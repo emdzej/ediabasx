@@ -70,6 +70,11 @@ Test PRG/GRP files are in the maintainer's local workspace:
 - Prefer `Uint8Array` for binary data
 - Use `iconv-lite` for CP1252 encoding (not custom tables)
 
+## Documentation
+
+- Keep `README.md` updated when adding new features or CLI commands
+- Document new jobs, results, and table formats as discovered
+
 ## Reference
 
 - Original: [EdiabasLib](https://github.com/uholeschak/ediabaslib) (C#)
