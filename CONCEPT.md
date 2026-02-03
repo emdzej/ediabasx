@@ -112,9 +112,9 @@ Offset  Size  Description
 #### 3. Communication Interfaces
 
 **Priority for migration:**
-1. ✅ ENET/DoIP (Ethernet) - Most important, modern vehicles
-2. ✅ TCP/IP based interfaces
-3. ⏸️ Serial/OBD - Can be added later via Node.js serialport
+1. ✅ Serial/OBD - Most commonly used, priority interface
+2. ✅ ENET/DoIP (Ethernet) - Modern vehicles
+3. ✅ TCP/IP based interfaces
 4. ❌ Bluetooth (Windows-specific) - Skip
 5. ❌ FTDI (platform-specific) - Skip
 
@@ -158,78 +158,88 @@ function decryptBytes(data: Uint8Array): Uint8Array {
 
 ## Proposed Architecture
 
-### Package Structure (Monorepo with pnpm workspaces)
+### Package Structure (Monorepo with pnpm workspaces + Turborepo)
 
 ```
-packages/
-├── core/                    # Core types and utilities
-│   ├── src/
-│   │   ├── types.ts         # Shared type definitions
-│   │   ├── errors.ts        # Custom error classes
-│   │   ├── encoding.ts      # Windows-1252 encoding
-│   │   └── crypto.ts        # XOR decryption
-│   └── package.json
-│
-├── prg-parser/              # PRG/GRP file parser
-│   ├── src/
-│   │   ├── parser.ts        # Main parser
-│   │   ├── header.ts        # Header parsing
-│   │   ├── jobs.ts          # Job list parsing
-│   │   ├── tables.ts        # Table parsing
-│   │   ├── descriptions.ts  # Comment/description parsing
-│   │   └── disassembler.ts  # Bytecode disassembler
-│   └── package.json
-│
-├── interpreter/             # BEST2 bytecode interpreter
-│   ├── src/
-│   │   ├── vm.ts            # Virtual machine core
-│   │   ├── registers.ts     # Register management
-│   │   ├── operations/      # Grouped by category
-│   │   │   ├── arithmetic.ts
-│   │   │   ├── logic.ts
-│   │   │   ├── control.ts
-│   │   │   ├── string.ts
-│   │   │   ├── float.ts
-│   │   │   ├── table.ts
-│   │   │   ├── result.ts
-│   │   │   └── comm.ts      # Communication stubs
-│   │   ├── flags.ts         # CPU flags (Z, C, V, S)
-│   │   └── stack.ts         # Call stack
-│   └── package.json
-│
-├── interface-base/          # Abstract communication interface
-│   ├── src/
-│   │   ├── interface.ts     # Base class
-│   │   └── simulation.ts    # Simulation mode
-│   └── package.json
-│
-├── interface-enet/          # Ethernet/DoIP interface
-│   ├── src/
-│   │   ├── enet.ts          # ENET implementation
-│   │   ├── doip.ts          # DoIP protocol
-│   │   ├── hsfz.ts          # HSFZ protocol
-│   │   └── discovery.ts     # Vehicle discovery
-│   └── package.json
-│
-├── ediabas/                 # Main library (combines all)
-│   ├── src/
-│   │   ├── index.ts         # Main export
-│   │   ├── ediabas.ts       # EdiabasNet equivalent
-│   │   └── config.ts        # Configuration
-│   └── package.json
-│
-└── cli/                     # CLI/TUI tools
-    ├── src/
-    │   ├── cli.ts           # Main CLI entry
-    │   ├── commands/
-    │   │   ├── info.ts      # Show PRG info
-    │   │   ├── jobs.ts      # List jobs
-    │   │   ├── disasm.ts    # Disassemble
-    │   │   ├── run.ts       # Execute job
-    │   │   └── discover.ts  # Find vehicles
-    │   └── tui/             # Terminal UI (optional)
-    │       └── browser.ts   # Job browser
-    └── package.json
+ediabas/
+├── turbo.json               # Turborepo configuration
+├── pnpm-workspace.yaml      # pnpm workspaces
+├── packages/
+│   ├── core/                    # Core types and utilities
+│   │   ├── src/
+│   │   │   ├── types.ts         # Shared type definitions
+│   │   │   ├── errors.ts        # Custom error classes
+│   │   │   ├── encoding.ts      # Windows-1252 encoding
+│   │   │   └── crypto.ts        # XOR decryption
+│   │   └── package.json
+│   │
+│   ├── best-parser/             # BEST2 PRG/GRP file parser
+│   │   ├── src/
+│   │   │   ├── parser.ts        # Main parser
+│   │   │   ├── header.ts        # Header parsing
+│   │   │   ├── jobs.ts          # Job list parsing
+│   │   │   ├── tables.ts        # Table parsing
+│   │   │   ├── descriptions.ts  # Comment/description parsing
+│   │   │   └── disassembler.ts  # Bytecode disassembler
+│   │   └── package.json
+│   │
+│   ├── interpreter/             # BEST2 bytecode interpreter
+│   │   ├── src/
+│   │   │   ├── vm.ts            # Virtual machine core
+│   │   │   ├── registers.ts     # Register management
+│   │   │   ├── operations/      # Grouped by category
+│   │   │   │   ├── arithmetic.ts
+│   │   │   │   ├── logic.ts
+│   │   │   │   ├── control.ts
+│   │   │   │   ├── string.ts
+│   │   │   │   ├── float.ts
+│   │   │   │   ├── table.ts
+│   │   │   │   ├── result.ts
+│   │   │   │   └── comm.ts      # Communication stubs
+│   │   │   ├── flags.ts         # CPU flags (Z, C, V, S)
+│   │   │   └── stack.ts         # Call stack
+│   │   └── package.json
+│   │
+│   ├── interface-base/          # Abstract communication interface
+│   │   ├── src/
+│   │   │   ├── interface.ts     # Base class
+│   │   │   └── simulation.ts    # Simulation mode
+│   │   └── package.json
+│   │
+│   ├── interface-serial/        # Serial/OBD interface (PRIORITY)
+│   │   ├── src/
+│   │   │   ├── serial.ts        # Serial port implementation
+│   │   │   ├── obd.ts           # OBD protocol handling
+│   │   │   └── adapters.ts      # Common adapter configs
+│   │   └── package.json
+│   │
+│   ├── interface-enet/          # Ethernet/DoIP interface
+│   │   ├── src/
+│   │   │   ├── enet.ts          # ENET implementation
+│   │   │   ├── doip.ts          # DoIP protocol
+│   │   │   ├── hsfz.ts          # HSFZ protocol
+│   │   │   └── discovery.ts     # Vehicle discovery
+│   │   └── package.json
+│   │
+│   ├── ediabas/                 # Main library (combines all)
+│   │   ├── src/
+│   │   │   ├── index.ts         # Main export
+│   │   │   ├── ediabas.ts       # EdiabasNet equivalent
+│   │   │   └── config.ts        # Configuration
+│   │   └── package.json
+│   │
+│   └── cli/                     # CLI/TUI tools
+│       ├── src/
+│       │   ├── cli.ts           # Main CLI entry
+│       │   ├── commands/
+│       │   │   ├── info.ts      # Show PRG info
+│       │   │   ├── jobs.ts      # List jobs
+│       │   │   ├── disasm.ts    # Disassemble
+│       │   │   ├── run.ts       # Execute job
+│       │   │   └── discover.ts  # Find vehicles
+│       │   └── tui/             # Terminal UI (optional)
+│       │       └── browser.ts   # Job browser
+│       └── package.json
 ```
 
 ### Dependencies
@@ -272,7 +282,7 @@ for (const result of results) {
 }
 
 // Low-level API
-import { PrgParser } from '@ediabas/prg-parser';
+import { PrgParser } from '@ediabas/best-parser';
 
 const parser = new PrgParser();
 const prg = await parser.parse('./d_motor.prg');
@@ -288,9 +298,9 @@ console.log(disasm);
 ## Implementation Plan
 
 ### Phase 1: Foundation (Week 1-2)
-1. ✅ Set up monorepo with pnpm workspaces
+1. ✅ Set up monorepo with pnpm workspaces + Turborepo
 2. ✅ Implement `@ediabas/core` - types, encoding, crypto
-3. ✅ Implement `@ediabas/prg-parser` - file parsing
+3. ✅ Implement `@ediabas/best-parser` - file parsing
 4. ✅ Implement disassembler (port BESTDIS)
 5. ✅ Basic CLI for testing parser
 
@@ -306,8 +316,8 @@ console.log(disasm);
 ### Phase 3: Communication (Week 5-6)
 1. Implement `@ediabas/interface-base`
 2. Implement simulation interface
-3. Implement `@ediabas/interface-enet`
-4. Implement DoIP/HSFZ protocols
+3. Implement `@ediabas/interface-serial` (OBD - PRIORITY)
+4. Implement `@ediabas/interface-enet` (DoIP/HSFZ)
 
 ### Phase 4: Integration (Week 7-8)
 1. Implement `@ediabas/ediabas` main library
