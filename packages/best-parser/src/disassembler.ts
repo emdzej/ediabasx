@@ -461,3 +461,77 @@ export function formatInstruction(instr: Instruction): string {
   }
   return `${instr.mnemonic} ${instr.operands.join(",")}`;
 }
+
+/**
+ * Disassemble bytecode for a specific job directly from the file buffer.
+ * This handles the case where code is embedded in the file at job offsets.
+ * 
+ * @param buffer - The raw file buffer (NOT XOR decoded)
+ * @param jobOffset - The offset where job bytecode starts
+ * @param maxInstructions - Maximum number of instructions to disassemble (default 1000)
+ */
+export function disassembleJob(
+  buffer: Uint8Array,
+  jobOffset: number,
+  maxInstructions = 1000
+): Instruction[] {
+  if (jobOffset < 0 || jobOffset >= buffer.length) {
+    return [];
+  }
+
+  // Create a slice from job offset to end of buffer
+  const codeSlice = buffer.slice(jobOffset);
+  
+  // XOR decode the slice
+  const decoded = new Uint8Array(codeSlice.length);
+  for (let i = 0; i < codeSlice.length; i++) {
+    decoded[i] = codeSlice[i] ^ 0xf7;
+  }
+
+  const view = new DataView(decoded.buffer, decoded.byteOffset, decoded.byteLength);
+  const instructions: Instruction[] = [];
+  let offset = 0;
+
+  while (offset + 1 < decoded.length && instructions.length < maxInstructions) {
+    const startOffset = jobOffset + offset; // Use absolute offset in file
+    const opcode = decoded[offset];
+    const addrMode = decoded[offset + 1];
+    offset += 2;
+
+    const opInfo = OPCODES.get(opcode);
+    
+    // If unknown opcode, stop disassembly (likely hit data or next job)
+    if (!opInfo) {
+      break;
+    }
+
+    const arg0Mode = (addrMode & 0xf0) >> 4;
+    const arg1Mode = addrMode & 0x0f;
+
+    const arg0 = readOperand(decoded, view, offset, arg0Mode as OpAddrMode);
+    offset = arg0.nextOffset;
+    const arg1 = readOperand(decoded, view, offset, arg1Mode as OpAddrMode);
+    offset = arg1.nextOffset;
+
+    let arg0Text = arg0.result.text;
+    if (opInfo.arg0IsNearAddress && arg0Mode === OpAddrMode.Imm32 && typeof arg0.result.value === "number") {
+      const labelOffset = jobOffset + offset + arg0.result.value;
+      arg0Text = `__${labelOffset.toString(16).toUpperCase().padStart(8, "0")}`;
+    }
+
+    const operands = [arg0Text, arg1.result.text].filter((value): value is string => Boolean(value));
+    instructions.push({
+      offset: startOffset,
+      opcode,
+      mnemonic: opInfo.mnemonic,
+      operands,
+    });
+
+    // Stop at end of job
+    if (opInfo.mnemonic === "eoj") {
+      break;
+    }
+  }
+
+  return instructions;
+}

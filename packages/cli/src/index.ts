@@ -3,7 +3,7 @@ import { Command } from "commander";
 import chalk from "chalk";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { disassemble, formatInstruction, parsePrg } from "@ediabas/best-parser";
+import { disassemble, disassembleJob, formatInstruction, parsePrg } from "@ediabas/best-parser";
 import type { PrgBinaryJob, PrgFile, PrgJob, PrgTable } from "@ediabas/best-parser";
 
 type OutputFormat = "json" | "table" | "human";
@@ -29,6 +29,10 @@ function resolveOutputFormat(options: OutputOptions, defaultFormat: OutputFormat
 function readPrgFile(filePath: string): PrgFile {
   const buffer = readFileSync(filePath);
   return parsePrg(new Uint8Array(buffer));
+}
+
+function readFileBuffer(filePath: string): Uint8Array {
+  return new Uint8Array(readFileSync(filePath));
 }
 
 function jsonStringify(value: unknown): string {
@@ -150,7 +154,24 @@ function resolveBinaryJobSlices(prg: PrgFile): Array<{ job: PrgBinaryJob; start:
   });
 }
 
-function printDisassembly(prg: PrgFile): void {
+function printDisassembly(prg: PrgFile, buffer: Uint8Array): void {
+  // For EDIABAS OBJECT format, bytecode is at binaryJob offsets in the raw buffer
+  if (prg.binaryJobs.length > 0) {
+    for (const job of prg.binaryJobs) {
+      const instructions = disassembleJob(buffer, job.offset);
+      if (instructions.length === 0) continue;
+
+      process.stdout.write(`${chalk.bold(job.name)} @ 0x${job.offset.toString(16).toUpperCase()}\n`);
+      for (const instr of instructions) {
+        const address = instr.offset.toString(16).toUpperCase().padStart(8, "0");
+        process.stdout.write(`  ${address}: ${formatInstruction(instr)}\n`);
+      }
+      process.stdout.write("\n");
+    }
+    return;
+  }
+
+  // Legacy format with separate code section
   if (prg.code.length === 0) {
     process.stdout.write("No bytecode section available.\n");
     return;
@@ -336,8 +357,9 @@ program
   .description("Disassemble bytecode into readable assembly")
   .action((filePath: string) => {
     try {
-      const prg = readPrgFile(filePath);
-      printDisassembly(prg);
+      const buffer = readFileBuffer(filePath);
+      const prg = parsePrg(buffer);
+      printDisassembly(prg, buffer);
     } catch (error) {
       handleError(error);
     }
