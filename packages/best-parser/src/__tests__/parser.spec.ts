@@ -79,9 +79,11 @@ describe("parsePrg", () => {
 
     expect(result.strings).toEqual(strings);
     expect(result.jobs).toEqual([
-      { name: "JOB1", offset: 0x10, argCount: 1, resultCount: 2 },
-      { name: "JOB2", offset: 0x20, argCount: 0, resultCount: 1 },
+      { name: "JOB1", offset: 0x10, argCount: 1, resultCount: 2, args: [], results: [] },
+      { name: "JOB2", offset: 0x20, argCount: 0, resultCount: 1, args: [], results: [] },
     ]);
+    expect(result.metadata).toEqual({});
+    expect(result.rawContent).toBe("");
     expect(Array.from(result.code)).toEqual(Array.from(codeBytes));
   });
 });

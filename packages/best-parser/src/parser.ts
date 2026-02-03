@@ -1,6 +1,6 @@
 import { cp1252ToUtf8, xorDecrypt } from "@ediabas/core";
 import { BinaryReader } from "./reader";
-import type { PrgFile, PrgHeader, PrgJob } from "./types";
+import type { PrgArg, PrgFile, PrgHeader, PrgJob, PrgMetadata, PrgResult } from "./types";
 
 const LEGACY_MAGIC = 0x00475250; // "PRG\0" little-endian
 const EDIABAS_MAGIC = "@EDIABAS OBJECT";
@@ -78,38 +78,169 @@ function decodeEdiabasData(buffer: Uint8Array): Uint8Array {
 }
 
 /**
- * Parse job metadata from text content.
- * The decoded PRG/GRP contains text in format:
+ * Parse file metadata from text content
+ */
+function parseMetadata(text: string): PrgMetadata {
+  const metadata: PrgMetadata = {};
+  
+  // ECU: line (first ECU: is the main one)
+  const ecuMatch = text.match(/^ECU:(.*)$/m);
+  if (ecuMatch) {
+    metadata.ecu = ecuMatch[1].trim();
+  }
+  
+  // ORIGIN:
+  const originMatch = text.match(/^ORIGIN:(.*)$/m);
+  if (originMatch) {
+    metadata.origin = originMatch[1].trim();
+  }
+  
+  // REVISION:
+  const revisionMatch = text.match(/^REVISION:(.*)$/m);
+  if (revisionMatch) {
+    metadata.revision = revisionMatch[1].trim();
+  }
+  
+  // AUTHOR:
+  const authorMatch = text.match(/^AUTHOR:(.*)$/m);
+  if (authorMatch) {
+    metadata.author = authorMatch[1].trim();
+  }
+  
+  // ECUCOMMENT:
+  const ecuCommentMatch = text.match(/^ECUCOMMENT:(.*)$/m);
+  if (ecuCommentMatch) {
+    metadata.ecuComment = ecuCommentMatch[1].trim();
+  }
+  
+  return metadata;
+}
+
+/**
+ * Parse full job metadata from text content.
+ * Format:
  *   JOBNAME:name
  *   JOBCOMMENT:description
  *   RESULT:name
  *   RESULTTYPE:type
+ *   RESULTCOMMENT:comment
  *   ARG:name
  *   ARGTYPE:type
+ *   ARGCOMMENT:comment
  */
 function parseJobsFromText(text: string): PrgJob[] {
   const jobs: PrgJob[] = [];
-  const jobMatches = text.matchAll(/JOBNAME:([A-Za-z0-9_]+)/g);
+  const lines = text.split("\n");
   
-  for (const match of jobMatches) {
-    const name = match[1];
-    // Count args and results for this job (until next JOBNAME)
-    const jobStart = match.index ?? 0;
-    const nextJobMatch = text.slice(jobStart + 1).match(/JOBNAME:/);
-    const jobEnd = nextJobMatch 
-      ? jobStart + 1 + (nextJobMatch.index ?? text.length)
-      : text.length;
+  let currentJob: PrgJob | null = null;
+  let currentResult: Partial<PrgResult> | null = null;
+  let currentArg: Partial<PrgArg> | null = null;
+  
+  for (const line of lines) {
+    const colonIndex = line.indexOf(":");
+    if (colonIndex === -1) continue;
     
-    const jobSection = text.slice(jobStart, jobEnd);
-    const argCount = (jobSection.match(/\nARG:/g) || []).length;
-    const resultCount = (jobSection.match(/\nRESULT:/g) || []).length;
+    const key = line.slice(0, colonIndex).trim();
+    const value = line.slice(colonIndex + 1).trim();
     
-    jobs.push({
-      name,
-      offset: jobStart,
-      argCount,
-      resultCount,
-    });
+    switch (key) {
+      case "JOBNAME":
+        // Save previous job
+        if (currentJob) {
+          if (currentResult?.name) {
+            currentJob.results.push(currentResult as PrgResult);
+          }
+          if (currentArg?.name) {
+            currentJob.args.push(currentArg as PrgArg);
+          }
+          jobs.push(currentJob);
+        }
+        // Start new job
+        currentJob = {
+          name: value,
+          offset: 0,
+          argCount: 0,
+          resultCount: 0,
+          args: [],
+          results: [],
+        };
+        currentResult = null;
+        currentArg = null;
+        break;
+        
+      case "JOBCOMMENT":
+        if (currentJob) {
+          currentJob.comment = currentJob.comment 
+            ? currentJob.comment + " " + value 
+            : value;
+        }
+        break;
+        
+      case "RESULT":
+        if (currentJob) {
+          // Save previous result
+          if (currentResult?.name) {
+            currentJob.results.push(currentResult as PrgResult);
+          }
+          currentResult = { name: value };
+        }
+        break;
+        
+      case "RESULTTYPE":
+        if (currentResult) {
+          currentResult.type = value;
+        }
+        break;
+        
+      case "RESULTCOMMENT":
+        if (currentResult) {
+          currentResult.comment = currentResult.comment
+            ? currentResult.comment + " " + value
+            : value;
+        }
+        break;
+        
+      case "ARG":
+        if (currentJob) {
+          // Save previous arg
+          if (currentArg?.name) {
+            currentJob.args.push(currentArg as PrgArg);
+          }
+          currentArg = { name: value };
+        }
+        break;
+        
+      case "ARGTYPE":
+        if (currentArg) {
+          currentArg.type = value;
+        }
+        break;
+        
+      case "ARGCOMMENT":
+        if (currentArg) {
+          currentArg.comment = currentArg.comment
+            ? currentArg.comment + " " + value
+            : value;
+        }
+        break;
+    }
+  }
+  
+  // Save last job
+  if (currentJob) {
+    if (currentResult?.name) {
+      currentJob.results.push(currentResult as PrgResult);
+    }
+    if (currentArg?.name) {
+      currentJob.args.push(currentArg as PrgArg);
+    }
+    jobs.push(currentJob);
+  }
+  
+  // Update counts
+  for (const job of jobs) {
+    job.argCount = job.args.length;
+    job.resultCount = job.results.length;
   }
   
   return jobs;
@@ -169,7 +300,14 @@ function parseLegacyJobs(
     const resultCount = reader.readUint16LE();
 
     const name = readNullTerminatedString(stringTable, nameOffset);
-    jobs.push({ name, offset, argCount, resultCount });
+    jobs.push({ 
+      name, 
+      offset, 
+      argCount, 
+      resultCount,
+      args: [],
+      results: [],
+    });
   }
 
   return jobs;
@@ -193,16 +331,21 @@ export function parsePrg(buffer: Uint8Array): PrgFile {
     const header = readEdiabasHeader(decoded);
     
     // The decoded data is text content
-    const textContent = cp1252ToUtf8(decoded.slice(EDIABAS_DATA_OFFSET));
-    const jobs = parseJobsFromText(textContent);
-    
-    // Store full text as single string for now
-    const strings = [textContent];
+    const rawContent = cp1252ToUtf8(decoded.slice(EDIABAS_DATA_OFFSET));
+    const metadata = parseMetadata(rawContent);
+    const jobs = parseJobsFromText(rawContent);
     
     // No bytecode in this format
     const code = new Uint8Array(0);
 
-    return { header, strings, jobs, code };
+    return { 
+      header, 
+      metadata,
+      rawContent,
+      strings: [], 
+      jobs, 
+      code,
+    };
   }
 
   // Legacy binary format
@@ -218,5 +361,12 @@ export function parsePrg(buffer: Uint8Array): PrgFile {
   const jobs = parseLegacyJobs(reader, header, stringTable);
   const code = buffer.slice(header.codeOffset, header.codeEnd);
 
-  return { header, strings, jobs, code };
+  return { 
+    header, 
+    metadata: {},
+    rawContent: "",
+    strings, 
+    jobs, 
+    code,
+  };
 }
