@@ -433,12 +433,36 @@ program
 program
   .command("disasm")
   .argument("<file>", "PRG/GRP file to disassemble")
+  .argument("[job]", "Job name to disassemble (optional, disassembles all if not specified)")
   .description("Disassemble bytecode into readable assembly")
-  .action((filePath: string) => {
+  .action((filePath: string, jobName?: string) => {
     try {
       const buffer = readFileBuffer(filePath);
       const prg = parsePrg(buffer);
-      printDisassembly(prg, buffer);
+      
+      if (jobName) {
+        // Find specific job
+        const job = prg.binaryJobs.find(
+          (j) => j.name.toLowerCase() === jobName.toLowerCase()
+        );
+        
+        if (!job) {
+          const available = prg.binaryJobs.map((j) => j.name).join(", ");
+          process.stderr.write(`${chalk.red("Error:")} Job "${jobName}" not found.\n`);
+          process.stderr.write(`Available jobs: ${available || "none"}\n`);
+          process.exitCode = 1;
+          return;
+        }
+        
+        const instructions = disassembleJob(buffer, job.offset);
+        process.stdout.write(`${chalk.bold(job.name)} @ 0x${job.offset.toString(16).toUpperCase()}\n`);
+        for (const instr of instructions) {
+          const address = instr.offset.toString(16).toUpperCase().padStart(8, "0");
+          process.stdout.write(`  ${address}: ${formatInstruction(instr)}\n`);
+        }
+      } else {
+        printDisassembly(prg, buffer);
+      }
     } catch (error) {
       handleError(error);
     }
