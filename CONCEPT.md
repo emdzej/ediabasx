@@ -209,16 +209,33 @@ ediabas/
 │   ├── interface-serial/        # Serial/OBD interface (PRIORITY)
 │   │   ├── src/
 │   │   │   ├── serial.ts        # Serial port implementation
-│   │   │   ├── obd.ts           # OBD protocol handling
 │   │   │   └── adapters.ts      # Common adapter configs
 │   │   └── package.json
 │   │
-│   ├── interface-enet/          # Ethernet/DoIP interface
+│   ├── interface-enet/          # Ethernet interface
 │   │   ├── src/
 │   │   │   ├── enet.ts          # ENET implementation
-│   │   │   ├── doip.ts          # DoIP protocol
-│   │   │   ├── hsfz.ts          # HSFZ protocol
 │   │   │   └── discovery.ts     # Vehicle discovery
+│   │   └── package.json
+│   │
+│   ├── protocol-uds/            # UDS protocol (ISO 14229)
+│   │   ├── src/
+│   │   │   ├── uds.ts           # UDS implementation
+│   │   │   ├── services.ts      # UDS service definitions
+│   │   │   └── nrc.ts           # Negative Response Codes
+│   │   └── package.json
+│   │
+│   ├── protocol-kwp/            # KWP2000 protocol (ISO 14230)
+│   │   ├── src/
+│   │   │   ├── kwp.ts           # KWP2000 implementation
+│   │   │   └── services.ts      # KWP service definitions
+│   │   └── package.json
+│   │
+│   ├── protocol-doip/           # DoIP protocol (ISO 13400)
+│   │   ├── src/
+│   │   │   ├── doip.ts          # DoIP implementation
+│   │   │   ├── hsfz.ts          # HSFZ (BMW proprietary)
+│   │   │   └── messages.ts      # Message definitions
 │   │   └── package.json
 │   │
 │   ├── ediabas/                 # Main library (combines all)
@@ -313,19 +330,22 @@ console.log(disasm);
 6. Implement float operations
 7. Implement table operations
 
-### Phase 3: Communication (Week 5-6)
+### Phase 3: Communication (Week 5-7)
 1. Implement `@ediabas/interface-base`
 2. Implement simulation interface
-3. Implement `@ediabas/interface-serial` (OBD - PRIORITY)
-4. Implement `@ediabas/interface-enet` (DoIP/HSFZ)
+3. Implement `@ediabas/protocol-uds` (ISO 14229)
+4. Implement `@ediabas/protocol-kwp` (ISO 14230)
+5. Implement `@ediabas/protocol-doip` (ISO 13400 + HSFZ)
+6. Implement `@ediabas/interface-serial` (OBD - PRIORITY)
+7. Implement `@ediabas/interface-enet`
 
-### Phase 4: Integration (Week 7-8)
+### Phase 4: Integration (Week 8-9)
 1. Implement `@ediabas/ediabas` main library
 2. Implement result generation (erg* operations)
 3. Implement communication operations (x* operations)
 4. End-to-end testing with real ECUs
 
-### Phase 5: CLI/TUI (Week 9-10)
+### Phase 5: CLI/TUI (Week 10-11)
 1. Implement CLI commands
 2. Implement interactive job browser
 3. Documentation and examples
