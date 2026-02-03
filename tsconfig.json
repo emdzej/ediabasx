@@ -1,0 +1,16 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/best-parser" },
+    { "path": "packages/interpreter" },
+    { "path": "packages/interface-base" },
+    { "path": "packages/interface-serial" },
+    { "path": "packages/interface-enet" },
+    { "path": "packages/protocol-uds" },
+    { "path": "packages/protocol-kwp" },
+    { "path": "packages/protocol-doip" },
+    { "path": "packages/ediabas" },
+    { "path": "packages/cli" }
+  ]
+}
