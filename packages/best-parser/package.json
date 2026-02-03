@@ -7,10 +7,14 @@
   "files": [
     "dist"
   ],
+  "dependencies": {
+    "@ediabas/core": "workspace:*"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run --passWithNoTests",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
   }
 }
