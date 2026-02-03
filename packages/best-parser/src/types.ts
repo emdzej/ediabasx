@@ -115,3 +115,13 @@ export type PrgFile = {
   /** Bytecode (empty for metadata-only files) */
   code: Uint8Array;
 };
+
+/**
+ * Disassembled instruction
+ */
+export type Instruction = {
+  offset: number;
+  opcode: number;
+  mnemonic: string;
+  operands: string[];
+};

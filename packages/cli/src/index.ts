@@ -3,8 +3,8 @@ import { Command } from "commander";
 import chalk from "chalk";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { parsePrg } from "@ediabas/best-parser";
-import type { PrgFile, PrgJob, PrgTable } from "@ediabas/best-parser";
+import { disassemble, formatInstruction, parsePrg } from "@ediabas/best-parser";
+import type { PrgBinaryJob, PrgFile, PrgJob, PrgTable } from "@ediabas/best-parser";
 
 type OutputFormat = "json" | "table" | "human";
 
@@ -135,6 +135,51 @@ function printTablesTable(tables: PrgTable[]): void {
       rows: table.rows,
     })),
   );
+}
+
+function resolveBinaryJobSlices(prg: PrgFile): Array<{ job: PrgBinaryJob; start: number; end: number }> {
+  const sortedJobs = [...prg.binaryJobs].sort((a, b) => a.offset - b.offset);
+  if (sortedJobs.length === 0) {
+    return [];
+  }
+
+  return sortedJobs.map((job, index) => {
+    const start = job.offset;
+    const end = index + 1 < sortedJobs.length ? sortedJobs[index + 1].offset : prg.code.length;
+    return { job, start, end };
+  });
+}
+
+function printDisassembly(prg: PrgFile): void {
+  if (prg.code.length === 0) {
+    process.stdout.write("No bytecode section available.\n");
+    return;
+  }
+
+  const jobSlices = resolveBinaryJobSlices(prg);
+  if (jobSlices.length === 0) {
+    const instructions = disassemble(prg.code);
+    for (const instr of instructions) {
+      const address = instr.offset.toString(16).toUpperCase().padStart(8, "0");
+      process.stdout.write(`${address}: ${formatInstruction(instr)}\n`);
+    }
+    return;
+  }
+
+  for (const slice of jobSlices) {
+    if (slice.start >= prg.code.length) continue;
+    const start = slice.start;
+    const end = Math.min(slice.end, prg.code.length);
+    const instructions = disassemble(prg.code.slice(start, end));
+
+    process.stdout.write(`${chalk.bold(slice.job.name)}\n`);
+    for (const instr of instructions) {
+      const absoluteOffset = start + instr.offset;
+      const address = absoluteOffset.toString(16).toUpperCase().padStart(8, "0");
+      process.stdout.write(`${address}: ${formatInstruction(instr)}\n`);
+    }
+    process.stdout.write("\n");
+  }
 }
 
 function printParseHuman(filePath: string, prg: PrgFile): void {
@@ -280,6 +325,19 @@ program
       }
 
       printTablesHuman(prg.tables);
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
+program
+  .command("disasm")
+  .argument("<file>", "PRG/GRP file to disassemble")
+  .description("Disassemble bytecode into readable assembly")
+  .action((filePath: string) => {
+    try {
+      const prg = readPrgFile(filePath);
+      printDisassembly(prg);
     } catch (error) {
       handleError(error);
     }
