@@ -265,10 +265,11 @@ ediabas/
 - `iconv-lite` - Windows-1252 encoding (or implement subset)
 
 **CLI:**
-- `commander` or `yargs` - CLI parsing
+- `commander` - CLI parsing (stable, well-documented standard)
+- `ink` - React-based TUI (interactive views, job browser, live output)
+- `@clack/prompts` - Beautiful interactive prompts (confirm, select, etc.)
 - `chalk` - Terminal colors
-- `inquirer` or `@clack/prompts` - Interactive prompts
-- `ink` (optional) - React-based TUI
+- `ora` - Spinners for async operations
 
 **Testing:**
 - `vitest` - Testing framework
