@@ -2,11 +2,23 @@
   "name": "@ediabas/cli",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "ediabas": "dist/index.js"
+  },
   "files": [
     "dist"
   ],
+  "dependencies": {
+    "@ediabas/best-parser": "workspace:*",
+    "chalk": "^5.4.1",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run --passWithNoTests",
