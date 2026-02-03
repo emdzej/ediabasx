@@ -8,7 +8,6 @@ const EDIABAS_DATA_OFFSET = 0xa0;
 const EDIABAS_XOR_KEY = new Uint8Array([0xf7]);
 
 // Header offsets for binary PRG
-const OFFSET_USES = 0x7c;
 const OFFSET_TABLE = 0x84;
 const OFFSET_JOB = 0x88;
 
