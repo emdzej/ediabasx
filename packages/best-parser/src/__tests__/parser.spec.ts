@@ -67,11 +67,14 @@ describe("parsePrg", () => {
       magic,
       version,
       stringTableOffset,
-      stringTableSize,
+      stringTableEnd: stringTableOffset + stringTableSize,
       jobTableOffset,
-      jobCount,
+      jobTableEnd: jobTableOffset + jobCount * jobEntrySize,
       codeOffset,
-      codeSize,
+      codeEnd: codeOffset + codeSize,
+      nameTableOffset: 0,
+      nameTableEnd: 0,
+      dataOffset: 0,
     });
 
     expect(result.strings).toEqual(strings);

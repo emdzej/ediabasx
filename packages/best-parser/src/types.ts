@@ -1,12 +1,15 @@
 export type PrgHeader = {
-  magic: number;
+  magic: string | number;
   version: number;
   stringTableOffset: number;
-  stringTableSize: number;
+  stringTableEnd: number;
   jobTableOffset: number;
-  jobCount: number;
+  jobTableEnd: number;
   codeOffset: number;
-  codeSize: number;
+  codeEnd: number;
+  nameTableOffset: number;
+  nameTableEnd: number;
+  dataOffset: number;
 };
 
 export type PrgJob = {
