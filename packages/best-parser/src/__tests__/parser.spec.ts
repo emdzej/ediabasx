@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { utf8ToCp1252 } from "@ediabas/core";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { parsePrg } from "../parser";
 
 function writeUint32LE(view: DataView, offset: number, value: number): void {
@@ -84,6 +86,65 @@ describe("parsePrg", () => {
     ]);
     expect(result.metadata).toEqual({});
     expect(result.rawContent).toBe("");
+    expect(result.binaryJobs).toEqual([]);
+    expect(result.tables).toEqual([]);
     expect(Array.from(result.code)).toEqual(Array.from(codeBytes));
+  });
+
+  describe("real PRG files", () => {
+    const testDataDir = path.join(__dirname, "../../../..", "test-data");
+    
+    it("parses d_motor.prg with binary jobs", () => {
+      const filePath = path.join(testDataDir, "d_motor.prg");
+      if (!fs.existsSync(filePath)) {
+        console.log("Skipping test: d_motor.prg not found");
+        return;
+      }
+      
+      const buffer = fs.readFileSync(filePath);
+      const result = parsePrg(new Uint8Array(buffer));
+      
+      // Should have binary jobs
+      expect(result.binaryJobs.length).toBe(10);
+      expect(result.binaryJobs[0].name).toBe("INFO");
+      expect(result.binaryJobs[0].offset).toBe(0xa0);
+      expect(result.binaryJobs[1].name).toBe("INITIALISIERUNG");
+      
+      // d_motor has no tables
+      expect(result.tables.length).toBe(0);
+      
+      // Text jobs should also be parsed
+      expect(result.jobs.length).toBeGreaterThan(0);
+      expect(result.jobs[0].name).toBe("INFO");
+    });
+    
+    it("parses allgemeine.prg with tables", () => {
+      const filePath = path.join(testDataDir, "allgemeine.prg");
+      if (!fs.existsSync(filePath)) {
+        console.log("Skipping test: allgemeine.prg not found");
+        return;
+      }
+      
+      const buffer = fs.readFileSync(filePath);
+      const result = parsePrg(new Uint8Array(buffer));
+      
+      // Should have binary jobs
+      expect(result.binaryJobs.length).toBe(230);
+      expect(result.binaryJobs[0].name).toBe("INFO");
+      
+      // Should have 14 tables
+      expect(result.tables.length).toBe(14);
+      
+      // Check first table (FORTTEXTE)
+      const forttexte = result.tables.find(t => t.name === "FORTTEXTE");
+      expect(forttexte).toBeDefined();
+      expect(forttexte!.columns).toBe(6);
+      expect(forttexte!.rows).toBe(170);
+      
+      // Check table has data
+      expect(forttexte!.values.length).toBeGreaterThan(0);
+      // First row should be headers
+      expect(forttexte!.values[0]).toContain("ORT");
+    });
   });
 });

@@ -1,3 +1,3 @@
 export { parsePrg } from "./parser";
-export type { PrgFile, PrgHeader, PrgJob } from "./types";
+export type { PrgArg, PrgBinaryJob, PrgFile, PrgHeader, PrgJob, PrgMetadata, PrgResult, PrgTable } from "./types";
 export { BinaryReader } from "./reader";

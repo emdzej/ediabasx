@@ -70,6 +70,32 @@ export type PrgMetadata = {
 };
 
 /**
+ * Table definition
+ */
+export type PrgTable = {
+  /** Table name */
+  name: string;
+  /** Number of columns */
+  columns: number;
+  /** Number of data rows (excluding header) */
+  rows: number;
+  /** Column offset in file */
+  columnOffset: number;
+  /** Table data: first row is headers, rest is data */
+  values: string[][];
+};
+
+/**
+ * Binary job entry (from compiled PRG)
+ */
+export type PrgBinaryJob = {
+  /** Job name */
+  name: string;
+  /** Bytecode offset */
+  offset: number;
+};
+
+/**
  * Parsed PRG/GRP file
  */
 export type PrgFile = {
@@ -80,8 +106,12 @@ export type PrgFile = {
   rawContent: string;
   /** All strings (legacy format) */
   strings: string[];
-  /** Job definitions */
+  /** Job definitions (from text metadata) */
   jobs: PrgJob[];
+  /** Binary job entries (from compiled PRG) */
+  binaryJobs: PrgBinaryJob[];
+  /** Tables */
+  tables: PrgTable[];
   /** Bytecode (empty for metadata-only files) */
   code: Uint8Array;
 };

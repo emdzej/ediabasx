@@ -1,11 +1,20 @@
 import { cp1252ToUtf8, xorDecrypt } from "@ediabas/core";
 import { BinaryReader } from "./reader";
-import type { PrgArg, PrgFile, PrgHeader, PrgJob, PrgMetadata, PrgResult } from "./types";
+import type { PrgArg, PrgBinaryJob, PrgFile, PrgHeader, PrgJob, PrgMetadata, PrgResult, PrgTable } from "./types";
 
 const LEGACY_MAGIC = 0x00475250; // "PRG\0" little-endian
 const EDIABAS_MAGIC = "@EDIABAS OBJECT";
 const EDIABAS_DATA_OFFSET = 0xa0;
 const EDIABAS_XOR_KEY = new Uint8Array([0xf7]);
+
+// Header offsets for binary PRG
+const OFFSET_USES = 0x7c;
+const OFFSET_TABLE = 0x84;
+const OFFSET_JOB = 0x88;
+
+// Entry sizes
+const JOB_ENTRY_SIZE = 0x44; // 68 bytes: 64 name + 4 offset
+const TABLE_ENTRY_SIZE = 0x50; // 80 bytes: 64 name + metadata
 
 /**
  * Parse legacy PRG format (if encountered)
@@ -75,6 +84,174 @@ function decodeEdiabasData(buffer: Uint8Array): Uint8Array {
   decoded.set(decrypted, EDIABAS_DATA_OFFSET);
   
   return decoded;
+}
+
+/**
+ * XOR decode a single uint32 at given offset (for data after 0xA0)
+ */
+function xorDecodeUint32(buffer: Uint8Array, offset: number): number {
+  if (offset < EDIABAS_DATA_OFFSET) {
+    // Not encoded
+    return new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength).getUint32(offset, true);
+  }
+  const b0 = buffer[offset] ^ 0xf7;
+  const b1 = buffer[offset + 1] ^ 0xf7;
+  const b2 = buffer[offset + 2] ^ 0xf7;
+  const b3 = buffer[offset + 3] ^ 0xf7;
+  return (b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)) >>> 0;
+}
+
+/**
+ * XOR decode a string at given offset (null-terminated, for data after 0xA0)
+ */
+function xorDecodeString(buffer: Uint8Array, offset: number, maxLen: number): string {
+  const bytes: number[] = [];
+  for (let i = 0; i < maxLen; i++) {
+    const b = offset + i >= EDIABAS_DATA_OFFSET 
+      ? buffer[offset + i] ^ 0xf7 
+      : buffer[offset + i];
+    if (b === 0) break;
+    bytes.push(b);
+  }
+  return cp1252ToUtf8(new Uint8Array(bytes));
+}
+
+/**
+ * Read a null-terminated string from XOR-decoded data
+ */
+function readXorString(buffer: Uint8Array, offset: number): string {
+  const bytes: number[] = [];
+  let i = offset;
+  while (i < buffer.length) {
+    const b = i >= EDIABAS_DATA_OFFSET ? buffer[i] ^ 0xf7 : buffer[i];
+    if (b === 0) break;
+    bytes.push(b);
+    i++;
+  }
+  return cp1252ToUtf8(new Uint8Array(bytes));
+}
+
+/**
+ * Parse binary job entries from compiled PRG
+ * Job list is at offset stored at 0x88, each entry is 0x44 bytes
+ * NOTE: jobCount is NOT XOR encoded, but job entries ARE
+ */
+function parseBinaryJobs(buffer: Uint8Array): PrgBinaryJob[] {
+  if (buffer.length < OFFSET_JOB + 4) return [];
+  
+  const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+  const jobListOffset = view.getUint32(OFFSET_JOB, true);
+  
+  if (jobListOffset <= 0 || jobListOffset >= buffer.length - 4) return [];
+  
+  // Job count is NOT XOR encoded (it's the count itself)
+  const jobCount = view.getInt32(jobListOffset, true);
+  
+  if (jobCount <= 0 || jobCount > 1000) return [];
+  
+  const jobs: PrgBinaryJob[] = [];
+  const entriesStart = jobListOffset + 4;
+  
+  for (let i = 0; i < jobCount; i++) {
+    const entryOffset = entriesStart + i * JOB_ENTRY_SIZE;
+    if (entryOffset + JOB_ENTRY_SIZE > buffer.length) break;
+    
+    const name = xorDecodeString(buffer, entryOffset, 64);
+    const bytecodeOffset = xorDecodeUint32(buffer, entryOffset + 0x40);
+    
+    jobs.push({ name, offset: bytecodeOffset });
+  }
+  
+  return jobs;
+}
+
+/**
+ * Parse binary table entries from compiled PRG
+ * Table list is at offset stored at 0x84, each entry is 0x50 bytes
+ * NOTE: tableCount encoding is inconsistent - try both raw and XOR decoded
+ */
+function parseBinaryTables(buffer: Uint8Array): PrgTable[] {
+  if (buffer.length < OFFSET_TABLE + 4) return [];
+  
+  const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+  const tableListOffset = view.getUint32(OFFSET_TABLE, true);
+  
+  if (tableListOffset <= 0 || tableListOffset >= buffer.length - 4) return [];
+  
+  // Table count encoding is inconsistent across files
+  // Try raw first, if invalid try XOR decoded
+  let tableCount = view.getInt32(tableListOffset, true);
+  if (tableCount <= 0 || tableCount > 1000) {
+    // Try XOR decoded
+    tableCount = xorDecodeUint32(buffer, tableListOffset);
+  }
+  
+  if (tableCount <= 0 || tableCount > 1000) return [];
+  
+  const tables: PrgTable[] = [];
+  const entriesStart = tableListOffset + 4;
+  
+  for (let i = 0; i < tableCount; i++) {
+    const entryOffset = entriesStart + i * TABLE_ENTRY_SIZE;
+    if (entryOffset + TABLE_ENTRY_SIZE > buffer.length) break;
+    
+    const name = xorDecodeString(buffer, entryOffset, 64);
+    const columnOffset = xorDecodeUint32(buffer, entryOffset + 0x40);
+    const columns = xorDecodeUint32(buffer, entryOffset + 0x48);
+    const rows = xorDecodeUint32(buffer, entryOffset + 0x4c);
+    
+    // Parse table data (headers + rows)
+    const values = parseTableData(buffer, columnOffset, columns, rows);
+    
+    tables.push({ name, columns, rows, columnOffset, values });
+  }
+  
+  return tables;
+}
+
+/**
+ * Parse table data: headers (row 0) + data rows
+ * Each cell is a null-terminated XOR-encoded string
+ */
+function parseTableData(
+  buffer: Uint8Array, 
+  startOffset: number, 
+  columns: number, 
+  rows: number
+): string[][] {
+  const values: string[][] = [];
+  let offset = startOffset;
+  
+  // Total rows = header row (1) + data rows
+  const totalRows = rows + 1;
+  
+  for (let row = 0; row < totalRows; row++) {
+    const rowData: string[] = [];
+    for (let col = 0; col < columns; col++) {
+      if (offset >= buffer.length) break;
+      
+      // Read null-terminated string
+      const str = readXorString(buffer, offset);
+      rowData.push(str);
+      
+      // Move past the string + null terminator
+      // Find actual length by scanning
+      let len = 0;
+      while (offset + len < buffer.length) {
+        const b = offset + len >= EDIABAS_DATA_OFFSET 
+          ? buffer[offset + len] ^ 0xf7 
+          : buffer[offset + len];
+        len++;
+        if (b === 0) break;
+      }
+      offset += len;
+    }
+    if (rowData.length > 0) {
+      values.push(rowData);
+    }
+  }
+  
+  return values;
 }
 
 /**
@@ -321,6 +498,8 @@ function parseLegacyJobs(
  * - Version at 0x10 (0 = GRP, 1 = PRG)
  * - XOR-encoded data from 0xA0 onwards (key: 0xF7)
  * - Decoded content is text with JOBNAME:, RESULT:, ARG: etc.
+ * - Binary job list at offset 0x88
+ * - Binary table list at offset 0x84
  */
 export function parsePrg(buffer: Uint8Array): PrgFile {
   const magicText = cp1252ToUtf8(buffer.slice(0, 16)).replace(/\0/g, "");
@@ -335,7 +514,13 @@ export function parsePrg(buffer: Uint8Array): PrgFile {
     const metadata = parseMetadata(rawContent);
     const jobs = parseJobsFromText(rawContent);
     
-    // No bytecode in this format
+    // Parse binary job entries (for bytecode offsets)
+    const binaryJobs = parseBinaryJobs(buffer);
+    
+    // Parse binary tables
+    const tables = parseBinaryTables(buffer);
+    
+    // No bytecode in this format (yet)
     const code = new Uint8Array(0);
 
     return { 
@@ -344,6 +529,8 @@ export function parsePrg(buffer: Uint8Array): PrgFile {
       rawContent,
       strings: [], 
       jobs, 
+      binaryJobs,
+      tables,
       code,
     };
   }
@@ -367,6 +554,8 @@ export function parsePrg(buffer: Uint8Array): PrgFile {
     rawContent: "",
     strings, 
     jobs, 
+    binaryJobs: [],
+    tables: [],
     code,
   };
 }
