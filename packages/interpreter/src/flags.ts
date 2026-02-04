@@ -115,7 +115,6 @@ export class Flags {
 
     // V flag: set if signed overflow occurred
     // For single-value update, we check if the value exceeds signed bounds
-    const signedValue = toSigned(masked, bits);
     const minSigned = MIN_SIGNED[bits];
     const maxSigned = MAX_SIGNED[bits];
     this.v = value < minSigned || value > maxSigned;
