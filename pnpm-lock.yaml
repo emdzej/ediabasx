@@ -87,7 +87,11 @@ importers:
 
   packages/interface-serial: {}
 
-  packages/interpreter: {}
+  packages/interpreter:
+    dependencies:
+      '@ediabas/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/protocol-doip: {}
 
