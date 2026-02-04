@@ -75,7 +75,7 @@ export function ContentPanel({ title, lines, height, width, focused = false, scr
   }
 
   return (
-    <Box flexDirection="column" width={safeWidth}>
+    <Box flexDirection="column" width={safeWidth} height={safeHeight}>
       <Text color={focused ? "cyan" : undefined}>{topBar}</Text>
       {displayLines.map((line, idx) => (
         <Text key={idx}>
