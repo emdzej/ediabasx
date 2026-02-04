@@ -34,17 +34,14 @@ function buildBottomBar(width: number, focused: boolean): string {
 }
 
 export function DetailsPanel({ title, lines, height, width, focused = false, scrollOffset = 0 }: DetailsPanelProps) {
-  // Ensure we have valid dimensions
-  const safeWidth = width || 40;
-  const safeHeight = height || 10;
+  const safeWidth = Math.max(10, width || 40);
+  const safeHeight = Math.max(4, height || 10);
   
   const v = focused ? "║" : "│";
-  const innerWidth = Math.max(1, safeWidth - 2);
-  const innerHeight = Math.max(1, safeHeight - 2);
+  const innerWidth = safeWidth - 2;
+  const innerHeight = safeHeight - 2; // space for top and bottom bars
 
   const visibleLines = lines.slice(scrollOffset, scrollOffset + innerHeight);
-  const hasMore = lines.length > scrollOffset + innerHeight;
-  const hasLess = scrollOffset > 0;
 
   const count = lines.length > innerHeight 
     ? `${scrollOffset + 1}-${Math.min(scrollOffset + innerHeight, lines.length)}/${lines.length}`
@@ -58,20 +55,14 @@ export function DetailsPanel({ title, lines, height, width, focused = false, scr
     return text.padEnd(innerWidth);
   };
 
+  // Build exactly innerHeight display lines
   const displayLines: string[] = [];
-  if (hasLess) displayLines.push(formatLine("↑ more above"));
-  
-  for (const line of visibleLines) {
-    if (displayLines.length >= innerHeight) break;
-    displayLines.push(formatLine(line));
-  }
-  
-  if (hasMore && displayLines.length < innerHeight) {
-    displayLines.push(formatLine("↓ more below"));
-  }
-
-  while (displayLines.length < innerHeight) {
-    displayLines.push(" ".repeat(innerWidth));
+  for (let i = 0; i < innerHeight; i++) {
+    if (i < visibleLines.length) {
+      displayLines.push(formatLine(visibleLines[i]));
+    } else {
+      displayLines.push(" ".repeat(innerWidth));
+    }
   }
 
   return (
