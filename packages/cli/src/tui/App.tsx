@@ -304,7 +304,7 @@ export function App({ filePath, buffer, prg }: AppProps) {
   const rightWidth = Math.max(10, contentWidth - leftWidth - 2);
   const bodyHeight = Math.max(6, height - 6);
   const contentHeight = Math.max(8, Math.floor(bodyHeight * 0.6));
-  const detailsHeight = Math.max(6, bodyHeight - contentHeight);
+  const detailsHeight = Math.max(6, bodyHeight - contentHeight - 1); // -1 for separator
 
   const header = `📁 ${path.basename(filePath)}`;
   const footer = isSearchActive
