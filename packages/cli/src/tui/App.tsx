@@ -370,36 +370,35 @@ export function App({ filePath, buffer, prg }: AppProps) {
           </Box>
         ) : (
           <Box height={bodyHeight} flexDirection="row">
+            <Box width={1} flexShrink={0}><Text>│</Text></Box>
             <ItemsPanel
               title={section === "jobs" ? "Jobs" : section === "tables" ? "Tables" : "Info"}
               items={filteredItems}
               selectedIndex={itemsIndex}
               height={bodyHeight}
-              width={leftWidth + 1}
+              width={leftWidth}
               focused={focusedPanel === "items"}
               emptyMessage={section === "metadata" ? "Select JOBS or TABLES" : "No items found"}
-              outerBorderLeft={true}
             />
-            <Box flexDirection="column" width={rightWidth}>
+            <Box flexDirection="column" width={rightWidth - 2}>
               <ContentPanel
                 title="Content"
                 lines={contentLines}
                 height={contentHeight}
-                width={rightWidth}
+                width={rightWidth - 2}
                 focused={focusedPanel === "content"}
                 scrollOffset={contentScroll}
-                outerBorderRight={true}
               />
               <DetailsPanel
                 title="Details"
                 lines={detailsLines}
                 height={detailsHeight}
-                width={rightWidth}
+                width={rightWidth - 2}
                 focused={focusedPanel === "details"}
                 scrollOffset={detailsScroll}
-                outerBorderRight={true}
               />
             </Box>
+            <Box width={1} flexShrink={0}><Text>│</Text></Box>
           </Box>
         )}
 
