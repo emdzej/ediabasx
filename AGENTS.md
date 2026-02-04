@@ -13,20 +13,36 @@ Migrating from C# EdiabasLib to a modern TypeScript monorepo.
 - **Testing**: Vitest
 - **Linting**: ESLint + Prettier
 - **Build**: TypeScript (`tsc`)
-- **CLI**: Commander + Ink + @clack/prompts
+- **CLI**: Commander + Ink
+
+---
+
+## Tech Guidelines
+
+When working with specific technologies, load the relevant guide:
+
+| Technology | Guide                                                            | When to load                     |
+| ---------- | ---------------------------------------------------------------- | -------------------------------- |
+| TypeScript | [`docs/guidelines/typescript.md`](docs/guidelines/typescript.md) | Types, const objects, binary ops |
+
+**Rule:** Load the relevant guide(s) before starting work in that area.
+
+---
 
 ## Package Structure
 
 ```
 packages/
-├── core/           # Types, encoding (CP1252), crypto (XOR)
-├── best-parser/    # PRG/GRP file parser
-├── interpreter/    # BEST VM (planned)
-├── interface-*/    # Communication interfaces
-├── protocol-*/     # UDS, KWP, DoIP protocols
-├── ediabas/        # Main library
-└── cli/            # CLI tool
+├── core/           # Types, encoding (CP1252), crypto (XOR), errors
+├── best-parser/    # PRG/GRP file parser + disassembler
+├── interpreter/    # BEST VM: registers, flags, callstack, ops
+├── interface-*/    # Communication interfaces (serial, ENET)
+├── protocol-*/     # Protocols (UDS, KWP, DoIP)
+├── ediabas/        # Main library integration
+└── cli/            # CLI tool with TUI
 ```
+
+---
 
 ## PRG/GRP File Format
 
@@ -36,6 +52,8 @@ Files start with `@EDIABAS OBJECT\0` (16 bytes):
 - Decoded content is text with JOBNAME:, RESULT:, ARG: metadata
 
 **Critical**: XOR key is `0xF7`, not `0xD7`!
+
+---
 
 ## Commands
 
@@ -47,14 +65,42 @@ pnpm build            # Build all packages
 pnpm typecheck        # Type check
 ```
 
-## Workflow
+---
 
-1. Create feature branch: `feature/issue-XXX-description`
-2. Make changes, run `pnpm test && pnpm lint`
-3. Commit with conventional commits: `feat(package): description`
-4. Push and create PR with `--body-file` (not inline `--body`)
-5. Wait for CI, address review comments
-6. Merge when approved
+## Core Rules
+
+### Language
+
+- **All code, comments, and commit messages in English**
+- Documentation can be bilingual
+
+### Git Workflow
+
+**Branches:**
+| Prefix | Usage | Example |
+|--------|-------|---------|
+| `feature/` | New features | `feature/interpreter-registers` |
+| `bugfix/` | Bug fixes | `bugfix/fix-xor-decoding` |
+| `chore/` | Maintenance | `chore/update-dependencies` |
+
+**Commits (Conventional):**
+
+```
+<type>(<scope>): <description>
+
+Types: feat, fix, docs, style, refactor, test, chore
+Scopes: core, best-parser, interpreter, cli, etc.
+```
+
+**Before every PR:**
+
+```bash
+pnpm lint && pnpm typecheck && pnpm test
+```
+
+**PR Body:** Use `--body-file /tmp/pr.md` (not inline `--body`) for proper formatting.
+
+---
 
 ## Test Data
 
@@ -63,17 +109,7 @@ Test PRG/GRP files are in the maintainer's local workspace:
 
 **DO NOT commit test files** — they contain BMW intellectual property.
 
-## Code Style
-
-- All code, comments, and commits in **English**
-- Use TypeScript strict mode
-- Prefer `Uint8Array` for binary data
-- Use `iconv-lite` for CP1252 encoding (not custom tables)
-
-## Documentation
-
-- Keep `README.md` updated when adding new features or CLI commands
-- Document new jobs, results, and table formats as discovered
+---
 
 ## Reference
 
