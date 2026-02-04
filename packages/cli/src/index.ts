@@ -3,8 +3,11 @@ import { Command } from "commander";
 import chalk from "chalk";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { render } from "ink";
+import React from "react";
 import { disassemble, disassembleJob, formatInstruction, parsePrg } from "@ediabas/best-parser";
 import type { PrgBinaryJob, PrgFile, PrgJob, PrgTable } from "@ediabas/best-parser";
+import { App } from "./tui/App.js";
 
 type OutputFormat = "json" | "table" | "human";
 
@@ -425,6 +428,20 @@ program
       }
 
       printTablesHuman(prg.tables);
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
+program
+  .command("explore")
+  .argument("<file>", "PRG/GRP file to explore")
+  .description("Explore a PRG/GRP file in an interactive TUI")
+  .action((filePath: string) => {
+    try {
+      const buffer = readFileBuffer(filePath);
+      const prg = parsePrg(buffer);
+      render(React.createElement(App, { filePath, buffer, prg }));
     } catch (error) {
       handleError(error);
     }
