@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { RegisterSet } from "./registers";
 import { Flags } from "./flags";
 import {
-  type Table,
+  type BestTable,
   type TableContext,
   tabget,
   tabgetHeader,
@@ -26,7 +26,7 @@ describe("Table Operations", () => {
   let context: TableContext;
 
   // Sample table with headers and data - template
-  const createSampleTable = (): Table => ({
+  const createSampleTable = (): BestTable => ({
     name: "TEST_TABLE",
     columns: 3,
     rows: 3,
@@ -39,7 +39,7 @@ describe("Table Operations", () => {
     ],
   });
 
-  const createEcuTable = (): Table => ({
+  const createEcuTable = (): BestTable => ({
     name: "ECU_DATA",
     columns: 2,
     rows: 2,
@@ -51,8 +51,8 @@ describe("Table Operations", () => {
     ],
   });
 
-  let sampleTable: Table;
-  let ecuTable: Table;
+  let sampleTable: BestTable;
+  let ecuTable: BestTable;
 
   beforeEach(() => {
     registers = new RegisterSet();
@@ -541,14 +541,16 @@ describe("Table Operations", () => {
       context.currentTable = undefined;
       registers.setS(0, "ECU_DATA");
       tabselect(registers, flags, context, { kind: "S", index: 0 });
-      expect(context.currentTable?.name).toBe("ECU_DATA");
+      expect(context.currentTable).toBeDefined();
+      expect(context.currentTable!.name).toBe("ECU_DATA");
       expect(flags.z).toBe(false);
     });
 
     it("should be case-insensitive", () => {
       registers.setS(0, "ecu_data");
       tabselect(registers, flags, context, { kind: "S", index: 0 });
-      expect(context.currentTable?.name).toBe("ECU_DATA");
+      expect(context.currentTable).toBeDefined();
+      expect(context.currentTable!.name).toBe("ECU_DATA");
     });
 
     it("should set Z flag when table not found", () => {
@@ -671,7 +673,7 @@ describe("Table Operations", () => {
 
   describe("Empty table handling", () => {
     it("should handle table with no data rows", () => {
-      const emptyTable: Table = {
+      const emptyTable: BestTable = {
         name: "EMPTY",
         columns: 2,
         rows: 0,
@@ -687,7 +689,7 @@ describe("Table Operations", () => {
     });
 
     it("should handle find in empty table", () => {
-      const emptyTable: Table = {
+      const emptyTable: BestTable = {
         name: "EMPTY",
         columns: 2,
         rows: 0,

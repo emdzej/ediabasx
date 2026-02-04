@@ -21,8 +21,9 @@ import { Flags } from "../flags";
 
 /**
  * Table structure as parsed by best-parser.
+ * Named BestTable to avoid conflict with global WebAssembly.Table type.
  */
-export interface Table {
+export interface BestTable {
   /** Table name */
   name: string;
   /** Number of columns */
@@ -35,14 +36,16 @@ export interface Table {
   values: string[][];
 }
 
+// Note: We don't export "Table" type alias to avoid collision with global WebAssembly.Table
+
 /**
  * Context containing available tables.
  */
 export interface TableContext {
   /** Map of table name (uppercase) to table data */
-  tables: Map<string, Table>;
+  tables: Map<string, BestTable>;
   /** Current table being accessed */
-  currentTable?: Table;
+  currentTable?: BestTable;
   /** Current row index (0-based, in data section) */
   currentRow?: number;
 }
@@ -625,11 +628,11 @@ export function tabgetnext(
 /**
  * Create a TableContext from an array of tables.
  *
- * @param tables - Array of Table objects
+ * @param tables - Array of BestTable objects
  * @returns TableContext ready for use
  */
-export function createTableContext(tables: Table[]): TableContext {
-  const tableMap = new Map<string, Table>();
+export function createTableContext(tables: BestTable[]): TableContext {
+  const tableMap = new Map<string, BestTable>();
 
   for (const table of tables) {
     tableMap.set(table.name.toUpperCase(), table);

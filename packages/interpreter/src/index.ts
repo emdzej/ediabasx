@@ -134,7 +134,7 @@ export {
 
 // Table operations
 export {
-  type Table,
+  type BestTable,
   type TableContext,
   type StringRegisterRef as TableStringRef,
   type IntRegisterRef as TableIntRef,
