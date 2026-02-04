@@ -1,14 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Box, Text, useApp } from "ink";
+import { Box, Text, useApp, useInput } from "ink";
 import { useStdoutDimensions } from "./useStdoutDimensions.js";
 import path from "node:path";
 import type { PrgFile, PrgJob, PrgTable } from "@ediabas/best-parser";
 import { disassembleJob, formatInstruction } from "@ediabas/best-parser";
-import { NavigationPanel } from "./NavigationPanel.js";
-import { ItemsPanel } from "./ItemsPanel.js";
 import { ContentPanel } from "./ContentPanel.js";
 import { DetailsPanel } from "./DetailsPanel.js";
-import { useKeyboard } from "./useKeyboard.js";
+import { ItemsPanel } from "./ItemsPanel.js";
 
 type NavigationSection = "jobs" | "tables" | "metadata";
 
@@ -23,6 +21,12 @@ const navigationItems: Array<{ label: string; section: NavigationSection }> = [
   { label: "TABLES", section: "tables" },
   { label: "METADATA", section: "metadata" },
 ];
+
+function truncate(text: string, maxWidth: number): string {
+  if (text.length <= maxWidth) return text;
+  if (maxWidth <= 3) return text.slice(0, maxWidth);
+  return text.slice(0, maxWidth - 3) + "...";
+}
 
 function buildDisassemblyMap(buffer: Uint8Array, prg: PrgFile): Map<string, string[]> {
   const map = new Map<string, string[]>();
@@ -90,12 +94,16 @@ function formatMetadata(prg: PrgFile, filePath: string): string[] {
   return lines;
 }
 
+type FocusedPanel = "items" | "content" | "details";
+
 export function App({ filePath, buffer, prg }: AppProps) {
   const { exit } = useApp();
   const [width, height] = useStdoutDimensions();
   const [navIndex, setNavIndex] = useState(0);
   const [itemsIndex, setItemsIndex] = useState(0);
-  const [focusedPanel, setFocusedPanel] = useState<"nav" | "items">("nav");
+  const [contentScroll, setContentScroll] = useState(0);
+  const [detailsScroll, setDetailsScroll] = useState(0);
+  const [focusedPanel, setFocusedPanel] = useState<FocusedPanel>("items");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -124,7 +132,13 @@ export function App({ filePath, buffer, prg }: AppProps) {
 
   useEffect(() => {
     setItemsIndex(0);
+    setContentScroll(0);
+    setDetailsScroll(0);
   }, [section]);
+
+  useEffect(() => {
+    setContentScroll(0);
+  }, [itemsIndex]);
 
   const selectedName = filteredItems[itemsIndex];
   const selectedJob = section === "jobs" ? prg.jobs.find((job) => job.name === selectedName) : undefined;
@@ -147,106 +161,238 @@ export function App({ filePath, buffer, prg }: AppProps) {
     return ["File metadata", ...formatMetadata(prg, filePath)];
   }, [section, selectedJob, selectedTable, prg, filePath]);
 
-  useKeyboard({
-    isSearchActive,
-    onUp: () => {
-      if (focusedPanel === "nav") {
-        setNavIndex((value) => Math.max(0, value - 1));
-      } else {
-        setItemsIndex((value) => Math.max(0, value - 1));
+  // Keyboard handling
+  useInput((input, key) => {
+    if (showHelp) {
+      if (input === "?" || input === "q" || key.escape) {
+        setShowHelp(false);
       }
-    },
-    onDown: () => {
-      if (focusedPanel === "nav") {
-        setNavIndex((value) => Math.min(navigationItems.length - 1, value + 1));
-      } else {
-        setItemsIndex((value) => Math.min(filteredItems.length - 1, value + 1));
+      return;
+    }
+
+    if (isSearchActive) {
+      if (key.return) {
+        setIsSearchActive(false);
+      } else if (key.escape) {
+        setIsSearchActive(false);
+        setSearchQuery("");
+      } else if (key.backspace || key.delete) {
+        setSearchQuery((prev) => prev.slice(0, -1));
+      } else if (input && !key.ctrl && !key.meta) {
+        setSearchQuery((prev) => prev + input);
       }
-    },
-    onLeft: () => setFocusedPanel("nav"),
-    onRight: () => setFocusedPanel("items"),
-    onEnter: () => {
-      if (focusedPanel === "nav") {
-        setItemsIndex(0);
-      }
-    },
-    onSearch: () => {
+      return;
+    }
+
+    // Quit
+    if (input === "q" || input === "Q") {
+      exit();
+      return;
+    }
+
+    // Help
+    if (input === "?") {
+      setShowHelp(true);
+      return;
+    }
+
+    // Search
+    if (input === "/") {
       setIsSearchActive(true);
-    },
-    onSearchInput: (value) => setSearchQuery((prev) => prev + value),
-    onSearchBackspace: () => setSearchQuery((prev) => prev.slice(0, -1)),
-    onSearchSubmit: () => setIsSearchActive(false),
-    onSearchCancel: () => {
-      setIsSearchActive(false);
-      setSearchQuery("");
-    },
-    onToggleHelp: () => setShowHelp((prev) => !prev),
-    onQuit: () => exit(),
+      return;
+    }
+
+    // Tab to cycle panels
+    if (key.tab) {
+      setFocusedPanel((prev) => {
+        if (prev === "items") return "content";
+        if (prev === "content") return "details";
+        return "items";
+      });
+      return;
+    }
+
+    // Panel switching with h/l or left/right
+    if (input === "h" || key.leftArrow) {
+      setFocusedPanel((prev) => {
+        if (prev === "details") return "content";
+        if (prev === "content") return "items";
+        return prev;
+      });
+      return;
+    }
+    if (input === "l" || key.rightArrow) {
+      setFocusedPanel((prev) => {
+        if (prev === "items") return "content";
+        if (prev === "content") return "details";
+        return prev;
+      });
+      return;
+    }
+
+    // Navigation section switching with 1/2/3
+    if (input === "1") {
+      setNavIndex(0);
+      return;
+    }
+    if (input === "2") {
+      setNavIndex(1);
+      return;
+    }
+    if (input === "3") {
+      setNavIndex(2);
+      return;
+    }
+
+    // Calculate visible heights for scrolling
+    const bodyHeight = Math.max(6, height - 6);
+    const contentHeight = Math.max(8, Math.floor(bodyHeight * 0.6)) - 3;
+    const detailsHeight = Math.max(6, bodyHeight - Math.floor(bodyHeight * 0.6)) - 3;
+    const itemsHeight = bodyHeight - 3;
+
+    // Up/Down navigation
+    if (input === "k" || key.upArrow) {
+      if (focusedPanel === "items") {
+        setItemsIndex((value) => Math.max(0, value - 1));
+      } else if (focusedPanel === "content") {
+        setContentScroll((value) => Math.max(0, value - 1));
+      } else if (focusedPanel === "details") {
+        setDetailsScroll((value) => Math.max(0, value - 1));
+      }
+      return;
+    }
+    if (input === "j" || key.downArrow) {
+      if (focusedPanel === "items") {
+        setItemsIndex((value) => Math.min(filteredItems.length - 1, value + 1));
+      } else if (focusedPanel === "content") {
+        const maxScroll = Math.max(0, contentLines.length - contentHeight);
+        setContentScroll((value) => Math.min(maxScroll, value + 1));
+      } else if (focusedPanel === "details") {
+        const maxScroll = Math.max(0, detailsLines.length - detailsHeight);
+        setDetailsScroll((value) => Math.min(maxScroll, value + 1));
+      }
+      return;
+    }
+
+    // Page Up/Down for faster scrolling
+    if (key.pageUp) {
+      if (focusedPanel === "items") {
+        setItemsIndex((value) => Math.max(0, value - itemsHeight));
+      } else if (focusedPanel === "content") {
+        setContentScroll((value) => Math.max(0, value - contentHeight));
+      } else if (focusedPanel === "details") {
+        setDetailsScroll((value) => Math.max(0, value - detailsHeight));
+      }
+      return;
+    }
+    if (key.pageDown) {
+      if (focusedPanel === "items") {
+        setItemsIndex((value) => Math.min(filteredItems.length - 1, value + itemsHeight));
+      } else if (focusedPanel === "content") {
+        const maxScroll = Math.max(0, contentLines.length - contentHeight);
+        setContentScroll((value) => Math.min(maxScroll, value + contentHeight));
+      } else if (focusedPanel === "details") {
+        const maxScroll = Math.max(0, detailsLines.length - detailsHeight);
+        setDetailsScroll((value) => Math.min(maxScroll, value + detailsHeight));
+      }
+      return;
+    }
   });
 
   const contentWidth = Math.max(0, width - 4);
-  const minRightWidth = 24;
-  const maxLeftWidth = Math.max(10, contentWidth - minRightWidth - 2);
-  const leftWidth = Math.min(Math.max(22, Math.floor(contentWidth * 0.28)), maxLeftWidth);
+  const leftWidth = Math.min(Math.max(22, Math.floor(contentWidth * 0.28)), 40);
   const rightWidth = Math.max(10, contentWidth - leftWidth - 2);
-  const bodyHeight = Math.max(6, height - 5);
-  const navHeight = Math.max(6, Math.floor(bodyHeight * 0.35));
-  const itemsHeight = Math.max(6, bodyHeight - navHeight);
+  const bodyHeight = Math.max(6, height - 6);
   const contentHeight = Math.max(8, Math.floor(bodyHeight * 0.6));
   const detailsHeight = Math.max(6, bodyHeight - contentHeight);
 
   const header = `📁 ${path.basename(filePath)}`;
   const footer = isSearchActive
-    ? `Search: ${searchQuery}`
-    : "↑↓ Navigate  ←→ Panels  Enter Select  / Search  Q Quit  ? Help";
+    ? `Search: ${searchQuery}_`
+    : "↑↓/jk Navigate  Tab/←→ Panels  1/2/3 Section  / Search  Q Quit  ? Help";
+
+  // Navbar
+  const navBar = navigationItems.map((item, index) => {
+    const isSelected = index === navIndex;
+    const label = isSelected ? `[${item.label}]` : ` ${item.label} `;
+    return (
+      <Text key={item.section} bold={isSelected} inverse={isSelected}>
+        {label}
+      </Text>
+    );
+  });
 
   return (
     <Box borderStyle="round" width={width} height={height} flexDirection="column" paddingX={1}>
+      {/* Header */}
       <Box height={1} justifyContent="space-between">
-        <Text>{header}</Text>
-        <Text>[Q]uit [?]Help</Text>
+        <Text bold>{header}</Text>
+        <Text dimColor>[Q]uit [?]Help</Text>
       </Box>
-      <Text>{"─".repeat(contentWidth)}</Text>
+
+      {/* Navigation bar */}
+      <Box height={1} gap={2}>
+        {navBar}
+        {searchQuery && <Text dimColor> Filter: {searchQuery}</Text>}
+      </Box>
+
+      <Text dimColor>{"─".repeat(contentWidth)}</Text>
+
       {showHelp ? (
         <Box borderStyle="round" paddingX={1} flexDirection="column" height={bodyHeight}>
-          <Text>Help</Text>
+          <Text bold>Help</Text>
           <Box flexDirection="column" marginTop={1}>
-            <Text>↑↓ or j/k: navigate lists</Text>
-            <Text>←→ or h/l: switch panels</Text>
-            <Text>Enter: select/expand</Text>
-            <Text>/ : search</Text>
-            <Text>Q: quit</Text>
-            <Text>? : toggle help</Text>
+            <Text>↑↓ or j/k    : scroll/navigate in focused panel</Text>
+            <Text>←→ or h/l    : switch panels</Text>
+            <Text>Tab          : cycle panels (items → content → details)</Text>
+            <Text>1/2/3        : switch section (JOBS/TABLES/METADATA)</Text>
+            <Text>PgUp/PgDown  : fast scroll</Text>
+            <Text>/            : search items</Text>
+            <Text>Esc          : cancel search</Text>
+            <Text>Q            : quit</Text>
+            <Text>?            : toggle help</Text>
+          </Box>
+          <Box marginTop={1}>
+            <Text dimColor>Press any key to close help...</Text>
           </Box>
         </Box>
       ) : (
         <Box flexDirection="row" height={bodyHeight}>
+          {/* Left: Items list */}
           <Box flexDirection="column" width={leftWidth}>
-            <NavigationPanel
-              items={navigationItems}
-              selectedIndex={navIndex}
-              height={navHeight}
-              focused={focusedPanel === "nav"}
-            />
-            <Box height={1} />
             <ItemsPanel
-              title="Items"
-              items={filteredItems}
+              title={section === "jobs" ? "Jobs" : section === "tables" ? "Tables" : "Info"}
+              items={filteredItems.map((item) => truncate(item, leftWidth - 4))}
               selectedIndex={itemsIndex}
-              height={itemsHeight}
+              height={bodyHeight}
               focused={focusedPanel === "items"}
-              emptyMessage={section === "metadata" ? "Metadata view" : "No items"}
+              emptyMessage={section === "metadata" ? "Select JOBS or TABLES" : "No items found"}
             />
           </Box>
           <Box width={2} />
+          {/* Right: Content + Details */}
           <Box flexDirection="column" width={rightWidth}>
-            <ContentPanel title="Content" lines={contentLines} height={contentHeight} />
+            <ContentPanel
+              title="Content"
+              lines={contentLines.map((line) => truncate(line, rightWidth - 4))}
+              height={contentHeight}
+              focused={focusedPanel === "content"}
+              scrollOffset={contentScroll}
+            />
             <Box height={1} />
-            <DetailsPanel title="Details" lines={detailsLines} height={detailsHeight} />
+            <DetailsPanel
+              title="Details"
+              lines={detailsLines.map((line) => truncate(line, rightWidth - 4))}
+              height={detailsHeight}
+              focused={focusedPanel === "details"}
+              scrollOffset={detailsScroll}
+            />
           </Box>
         </Box>
       )}
-      <Text>{footer}</Text>
+
+      {/* Footer */}
+      <Text dimColor>{truncate(footer, contentWidth)}</Text>
     </Box>
   );
 }

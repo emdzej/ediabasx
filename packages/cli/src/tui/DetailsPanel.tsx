@@ -5,23 +5,38 @@ type DetailsPanelProps = {
   title: string;
   lines: string[];
   height: number;
+  focused?: boolean;
+  scrollOffset?: number;
 };
 
-export function DetailsPanel({ title, lines, height }: DetailsPanelProps) {
-  const maxLines = Math.max(0, height - 2);
-  const visible = lines.slice(0, maxLines);
-  const overflow = lines.length > maxLines;
+export function DetailsPanel({ title, lines, height, focused = false, scrollOffset = 0 }: DetailsPanelProps) {
+  const innerHeight = Math.max(1, height - 3);
+  const visibleLines = lines.slice(scrollOffset, scrollOffset + innerHeight);
+  const hasMore = lines.length > scrollOffset + innerHeight;
+  const hasLess = scrollOffset > 0;
 
   return (
-    <Box borderStyle="round" paddingX={1} flexDirection="column" height={height}>
-      <Text>{title}</Text>
-      <Box flexDirection="column" marginTop={1}>
-        {visible.map((line, index) => (
-          <Text key={`${index}-${line}`}>
-            {line}
+    <Box
+      borderStyle={focused ? "double" : "single"}
+      borderColor={focused ? "cyan" : undefined}
+      flexDirection="column"
+      height={height}
+      paddingX={1}
+    >
+      <Box justifyContent="space-between">
+        <Text bold={focused}>{title}</Text>
+        {lines.length > innerHeight && (
+          <Text dimColor>
+            {scrollOffset + 1}-{Math.min(scrollOffset + innerHeight, lines.length)}/{lines.length}
           </Text>
+        )}
+      </Box>
+      <Box flexDirection="column" height={innerHeight}>
+        {hasLess && <Text dimColor>↑ more above</Text>}
+        {visibleLines.map((line, index) => (
+          <Text key={index}>{line}</Text>
         ))}
-        {overflow && <Text color="gray">… ({lines.length - maxLines} more lines)</Text>}
+        {hasMore && visibleLines.length === innerHeight && <Text dimColor>↓ more below</Text>}
       </Box>
     </Box>
   );
