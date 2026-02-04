@@ -12,3 +12,25 @@ export {
   DEFAULT_MAX_DEPTH,
   type CallStackOptions,
 } from "./callstack";
+
+export {
+  RegisterKinds,
+  type RegisterKind,
+  type RegisterRef,
+  add,
+  sub,
+  mul,
+  div,
+  mod,
+  neg,
+  inc,
+  dec,
+  and,
+  or,
+  xor,
+  not,
+  shl,
+  shr,
+  cmp,
+  test,
+} from "./operations/arithmetic";
