@@ -359,31 +359,32 @@ export function App({ filePath, buffer, prg }: AppProps) {
       ) : (
         <Box flexDirection="row" height={bodyHeight}>
           {/* Left: Items list */}
-          <Box flexDirection="column" width={leftWidth}>
-            <ItemsPanel
-              title={section === "jobs" ? "Jobs" : section === "tables" ? "Tables" : "Info"}
-              items={filteredItems.map((item) => truncate(item, leftWidth - 4))}
-              selectedIndex={itemsIndex}
-              height={bodyHeight}
-              focused={focusedPanel === "items"}
-              emptyMessage={section === "metadata" ? "Select JOBS or TABLES" : "No items found"}
-            />
-          </Box>
+          <ItemsPanel
+            title={section === "jobs" ? "Jobs" : section === "tables" ? "Tables" : "Info"}
+            items={filteredItems}
+            selectedIndex={itemsIndex}
+            height={bodyHeight}
+            width={leftWidth}
+            focused={focusedPanel === "items"}
+            emptyMessage={section === "metadata" ? "Select JOBS or TABLES" : "No items found"}
+          />
           <Box width={2} />
           {/* Right: Content + Details */}
           <Box flexDirection="column" width={rightWidth}>
             <ContentPanel
               title="Content"
-              lines={contentLines.map((line) => truncate(line, rightWidth - 4))}
+              lines={contentLines}
               height={contentHeight}
+              width={rightWidth}
               focused={focusedPanel === "content"}
               scrollOffset={contentScroll}
             />
             <Box height={1} />
             <DetailsPanel
               title="Details"
-              lines={detailsLines.map((line) => truncate(line, rightWidth - 4))}
+              lines={detailsLines}
               height={detailsHeight}
+              width={rightWidth}
               focused={focusedPanel === "details"}
               scrollOffset={detailsScroll}
             />
