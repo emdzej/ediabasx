@@ -1,1 +1,2 @@
-export const placeholder = "interface-base";
+export * from "./interfaces/base";
+export * from "./interfaces/simulation";
