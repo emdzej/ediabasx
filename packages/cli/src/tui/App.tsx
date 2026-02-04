@@ -28,21 +28,12 @@ function truncate(text: string, maxWidth: number): string {
   return text.slice(0, maxWidth - 3) + "...";
 }
 
-function buildTopBorder(title: string, navBar: string, width: number): string {
-  // Format: ╭─📁 filename.prg───[JOBS]  TABLES  METADATA───╮
+// Custom top border with embedded title
+function buildCustomTopBorder(title: string, width: number): string {
   const innerWidth = Math.max(0, width - 2);
-  const titlePart = `─${title}───`;
-  const combined = titlePart + navBar;
-  const fillWidth = Math.max(0, innerWidth - combined.length);
-  return `╭${combined}${"─".repeat(fillWidth)}╮`;
-}
-
-function buildBottomBorder(footer: string, width: number): string {
-  // Format: ╰─↑↓/jk Navigate  Tab/←→ Panels...───╯
-  const innerWidth = Math.max(0, width - 2);
-  const footerPart = `─${footer}─`;
-  const fillWidth = Math.max(0, innerWidth - footerPart.length);
-  return `╰${footerPart}${"─".repeat(fillWidth)}╯`;
+  const titlePart = title ? `─${title}` : "";
+  const fillWidth = Math.max(0, innerWidth - titlePart.length);
+  return `╭${titlePart}${"─".repeat(fillWidth)}╮`;
 }
 
 function buildDisassemblyMap(buffer: Uint8Array, prg: PrgFile): Map<string, string[]> {
@@ -273,10 +264,10 @@ export function App({ filePath, buffer, prg }: AppProps) {
     }
 
     // Calculate heights for scroll limits
-    const bodyHeight = Math.max(6, height - 2);
-    const contentHeight = Math.max(8, Math.floor(bodyHeight * 0.6)) - 3;
-    const detailsHeight = Math.max(6, bodyHeight - Math.floor(bodyHeight * 0.6)) - 3;
-    const itemsHeight = bodyHeight - 3;
+    const innerHeight = Math.max(6, height - 4); // -4 for borders
+    const contentHeight = Math.max(8, Math.floor(innerHeight * 0.6)) - 2;
+    const detailsHeight = Math.max(6, innerHeight - Math.floor(innerHeight * 0.6)) - 2;
+    const itemsHeight = innerHeight - 2;
 
     // Up/Down navigation
     if (input === "k" || key.upArrow) {
@@ -327,11 +318,12 @@ export function App({ filePath, buffer, prg }: AppProps) {
     }
   });
 
-  // Layout calculations
-  const innerWidth = Math.max(0, width - 2); // -2 for possible margins
-  const leftWidth = Math.min(Math.max(22, Math.floor(width * 0.28)), 40);
-  const rightWidth = Math.max(10, width - leftWidth - 1);
-  const bodyHeight = Math.max(6, height - 2); // -2: top border + bottom border
+  // Layout calculations - inside main border with padding
+  const innerWidth = Math.max(0, width - 4); // -4 for border + padding
+  const innerHeight = Math.max(6, height - 4); // -4 for border (top/bottom) + nav + footer
+  const leftWidth = Math.min(Math.max(22, Math.floor(innerWidth * 0.28)), 40);
+  const rightWidth = Math.max(10, innerWidth - leftWidth - 1);
+  const bodyHeight = Math.max(6, innerHeight - 2); // -2 for nav and footer lines
   const contentHeight = Math.max(8, Math.floor(bodyHeight * 0.6));
   const detailsHeight = Math.max(6, bodyHeight - contentHeight);
 
@@ -343,67 +335,84 @@ export function App({ filePath, buffer, prg }: AppProps) {
   const filterSuffix = searchQuery ? ` /${searchQuery}` : "";
   
   const mainTitle = `📁 ${path.basename(filePath)}`;
+  const topBorder = buildCustomTopBorder(mainTitle, width);
   const footer = isSearchActive
     ? `Search: ${searchQuery}_`
     : "↑↓ Navigate  Tab Panels  1/2/3 Section  / Search  Q Quit  ? Help";
 
-  const topBorder = buildTopBorder(mainTitle, navBarContent + filterSuffix, width);
-  const bottomBorder = buildBottomBorder(footer, width);
-
   return (
     <Box flexDirection="column" width={width} height={height}>
-      {/* Top border with title and nav */}
+      {/* Custom top border with title */}
       <Text>{topBorder}</Text>
-
-      {showHelp ? (
-        <Box flexDirection="column" height={bodyHeight}>
-          <Text bold> Help</Text>
-          <Text> ↑↓ or j/k    : scroll/navigate in focused panel</Text>
-          <Text> ←→ or h/l    : switch panels</Text>
-          <Text> Tab          : cycle panels (items → content → details)</Text>
-          <Text> 1/2/3        : switch section (JOBS/TABLES/METADATA)</Text>
-          <Text> PgUp/PgDown  : fast scroll</Text>
-          <Text> /            : search items</Text>
-          <Text> Esc          : cancel search</Text>
-          <Text> Q            : quit</Text>
-          <Text> ?            : toggle help</Text>
-          <Text> </Text>
-          <Text dimColor> Press any key to close help...</Text>
+      
+      {/* Main content area with side borders */}
+      <Box flexDirection="column" height={height - 2}>
+        {/* Navigation bar */}
+        <Box>
+          <Text>│ </Text>
+          <Text>{navBarContent}{filterSuffix}</Text>
+          <Text>{" ".repeat(Math.max(0, innerWidth - navBarContent.length - filterSuffix.length))}</Text>
+          <Text> │</Text>
         </Box>
-      ) : (
-        <Box height={bodyHeight} flexDirection="row">
-          <ItemsPanel
-            title={section === "jobs" ? "Jobs" : section === "tables" ? "Tables" : "Info"}
-            items={filteredItems}
-            selectedIndex={itemsIndex}
-            height={bodyHeight}
-            width={leftWidth}
-            focused={focusedPanel === "items"}
-            emptyMessage={section === "metadata" ? "Select JOBS or TABLES" : "No items found"}
-          />
-          <Box flexDirection="column" width={rightWidth}>
-            <ContentPanel
-              title="Content"
-              lines={contentLines}
-              height={contentHeight}
-              width={rightWidth}
-              focused={focusedPanel === "content"}
-              scrollOffset={contentScroll}
-            />
-            <DetailsPanel
-              title="Details"
-              lines={detailsLines}
-              height={detailsHeight}
-              width={rightWidth}
-              focused={focusedPanel === "details"}
-              scrollOffset={detailsScroll}
-            />
+
+        {showHelp ? (
+          <Box flexDirection="column" height={bodyHeight}>
+            <Box><Text>│ </Text><Text bold>Help</Text></Box>
+            <Box><Text>│  ↑↓ or j/k    : scroll/navigate</Text></Box>
+            <Box><Text>│  ←→ or h/l    : switch panels</Text></Box>
+            <Box><Text>│  Tab          : cycle panels</Text></Box>
+            <Box><Text>│  1/2/3        : switch section</Text></Box>
+            <Box><Text>│  /            : search</Text></Box>
+            <Box><Text>│  Q            : quit</Text></Box>
+            <Box><Text>│  ?            : toggle help</Text></Box>
+            <Box><Text>│ </Text></Box>
+            <Box><Text dimColor>│  Press any key to close...</Text></Box>
           </Box>
-        </Box>
-      )}
+        ) : (
+          <Box height={bodyHeight}>
+            <Text>│</Text>
+            <ItemsPanel
+              title={section === "jobs" ? "Jobs" : section === "tables" ? "Tables" : "Info"}
+              items={filteredItems}
+              selectedIndex={itemsIndex}
+              height={bodyHeight}
+              width={leftWidth}
+              focused={focusedPanel === "items"}
+              emptyMessage={section === "metadata" ? "Select JOBS or TABLES" : "No items found"}
+            />
+            <Box flexDirection="column" width={rightWidth}>
+              <ContentPanel
+                title="Content"
+                lines={contentLines}
+                height={contentHeight}
+                width={rightWidth}
+                focused={focusedPanel === "content"}
+                scrollOffset={contentScroll}
+              />
+              <DetailsPanel
+                title="Details"
+                lines={detailsLines}
+                height={detailsHeight}
+                width={rightWidth}
+                focused={focusedPanel === "details"}
+                scrollOffset={detailsScroll}
+              />
+            </Box>
+            <Text>│</Text>
+          </Box>
+        )}
 
-      {/* Bottom border with footer */}
-      <Text>{bottomBorder}</Text>
+        {/* Footer */}
+        <Box>
+          <Text>│ </Text>
+          <Text dimColor>{truncate(footer, innerWidth)}</Text>
+          <Text>{" ".repeat(Math.max(0, innerWidth - truncate(footer, innerWidth).length))}</Text>
+          <Text> │</Text>
+        </Box>
+      </Box>
+
+      {/* Bottom border */}
+      <Text>╰{"─".repeat(Math.max(0, width - 2))}╯</Text>
     </Box>
   );
 }
