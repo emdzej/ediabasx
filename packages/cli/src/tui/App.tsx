@@ -318,12 +318,11 @@ export function App({ filePath, buffer, prg }: AppProps) {
     }
   });
 
-  // Layout calculations - inside main border with padding
-  const innerWidth = Math.max(0, width - 4); // -4 for border + padding
-  const innerHeight = Math.max(6, height - 4); // -4 for border (top/bottom) + nav + footer
+  // Layout calculations - inside main border
+  const innerWidth = Math.max(0, width - 2); // -2 for left and right border │
   const leftWidth = Math.min(Math.max(22, Math.floor(innerWidth * 0.28)), 40);
-  const rightWidth = Math.max(10, innerWidth - leftWidth - 1);
-  const bodyHeight = Math.max(6, innerHeight - 2); // -2 for nav and footer lines
+  const rightWidth = innerWidth - leftWidth; // remaining width for right panels
+  const bodyHeight = Math.max(6, height - 4); // -4 for top border, nav, footer, bottom border
   const contentHeight = Math.max(8, Math.floor(bodyHeight * 0.6));
   const detailsHeight = Math.max(6, bodyHeight - contentHeight);
 
@@ -349,10 +348,7 @@ export function App({ filePath, buffer, prg }: AppProps) {
       <Box flexDirection="column" height={height - 2}>
         {/* Navigation bar */}
         <Box>
-          <Text>│ </Text>
-          <Text>{navBarContent}{filterSuffix}</Text>
-          <Text>{" ".repeat(Math.max(0, innerWidth - navBarContent.length - filterSuffix.length))}</Text>
-          <Text> │</Text>
+          <Text>│{navBarContent}{filterSuffix}{" ".repeat(Math.max(0, innerWidth - navBarContent.length - filterSuffix.length))}│</Text>
         </Box>
 
         {showHelp ? (
@@ -369,7 +365,7 @@ export function App({ filePath, buffer, prg }: AppProps) {
             <Box><Text dimColor>│  Press any key to close...</Text></Box>
           </Box>
         ) : (
-          <Box height={bodyHeight}>
+          <Box height={bodyHeight} flexDirection="row">
             <Text>│</Text>
             <ItemsPanel
               title={section === "jobs" ? "Jobs" : section === "tables" ? "Tables" : "Info"}
@@ -380,12 +376,12 @@ export function App({ filePath, buffer, prg }: AppProps) {
               focused={focusedPanel === "items"}
               emptyMessage={section === "metadata" ? "Select JOBS or TABLES" : "No items found"}
             />
-            <Box flexDirection="column" width={rightWidth}>
+            <Box flexDirection="column" width={rightWidth - 1}>
               <ContentPanel
                 title="Content"
                 lines={contentLines}
                 height={contentHeight}
-                width={rightWidth}
+                width={rightWidth - 1}
                 focused={focusedPanel === "content"}
                 scrollOffset={contentScroll}
               />
@@ -393,7 +389,7 @@ export function App({ filePath, buffer, prg }: AppProps) {
                 title="Details"
                 lines={detailsLines}
                 height={detailsHeight}
-                width={rightWidth}
+                width={rightWidth - 1}
                 focused={focusedPanel === "details"}
                 scrollOffset={detailsScroll}
               />
@@ -403,12 +399,7 @@ export function App({ filePath, buffer, prg }: AppProps) {
         )}
 
         {/* Footer */}
-        <Box>
-          <Text>│ </Text>
-          <Text dimColor>{truncate(footer, innerWidth)}</Text>
-          <Text>{" ".repeat(Math.max(0, innerWidth - truncate(footer, innerWidth).length))}</Text>
-          <Text> │</Text>
-        </Box>
+        <Text>│{truncate(footer, innerWidth)}{" ".repeat(Math.max(0, innerWidth - truncate(footer, innerWidth).length))}│</Text>
       </Box>
 
       {/* Bottom border */}
