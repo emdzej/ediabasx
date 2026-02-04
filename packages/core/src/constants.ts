@@ -1,57 +1,75 @@
-export enum BestOpcode {
-  Nop = 0x00,
-  PushConst = 0x01,
-  PushVar = 0x02,
-  Pop = 0x03,
-  Add = 0x04,
-  Sub = 0x05,
-  Mul = 0x06,
-  Div = 0x07,
-  Mod = 0x08,
-  And = 0x09,
-  Or = 0x0a,
-  Xor = 0x0b,
-  Not = 0x0c,
-  Jump = 0x0d,
-  JumpIfZero = 0x0e,
-  Call = 0x0f,
-  Return = 0x10,
-}
+// BEST opcodes
+export const BestOpcodes = {
+  NOP: 0x00,
+  PUSH_CONST: 0x01,
+  PUSH_VAR: 0x02,
+  POP: 0x03,
+  ADD: 0x04,
+  SUB: 0x05,
+  MUL: 0x06,
+  DIV: 0x07,
+  MOD: 0x08,
+  AND: 0x09,
+  OR: 0x0a,
+  XOR: 0x0b,
+  NOT: 0x0c,
+  JUMP: 0x0d,
+  JUMP_IF_ZERO: 0x0e,
+  CALL: 0x0f,
+  RETURN: 0x10,
+} as const;
 
-export enum BestDataTypeId {
-  String = 0x01,
-  Int = 0x02,
-  Long = 0x03,
-  Float = 0x04,
-  Double = 0x05,
-  Binary = 0x06,
-}
+export type BestOpcode = (typeof BestOpcodes)[keyof typeof BestOpcodes];
 
-export enum EdiabasIfhErrorCode {
-  Ok = 0,
-  Timeout = 1,
-  InvalidResponse = 2,
-  NotSupported = 3,
-}
+// BEST data types (numeric IDs for binary format)
+export const BestDataTypeIds = {
+  STRING: 0x01,
+  INT: 0x02,
+  LONG: 0x03,
+  FLOAT: 0x04,
+  DOUBLE: 0x05,
+  BINARY: 0x06,
+} as const;
 
-export enum EdiabasBipErrorCode {
-  Ok = 0,
-  InvalidOpcode = 1000,
-  StackUnderflow = 1001,
-  StackOverflow = 1002,
-  DivisionByZero = 1003,
-}
+export type BestDataTypeId = (typeof BestDataTypeIds)[keyof typeof BestDataTypeIds];
 
-export enum EdiabasSysErrorCode {
-  Ok = 0,
-  FileNotFound = 2000,
-  IoError = 2001,
-  PermissionDenied = 2002,
-}
+// IFH (Interface Handler) error codes
+export const IfhErrorCodes = {
+  OK: 0,
+  TIMEOUT: 1,
+  INVALID_RESPONSE: 2,
+  NOT_SUPPORTED: 3,
+} as const;
 
-export enum EdiabasApiErrorCode {
-  Ok = 0,
-  NotInitialized = 3000,
-  InvalidArgument = 3001,
-  Busy = 3002,
-}
+export type IfhErrorCode = (typeof IfhErrorCodes)[keyof typeof IfhErrorCodes];
+
+// BIP (BEST Interpreter) error codes
+export const BipErrorCodes = {
+  OK: 0,
+  INVALID_OPCODE: 1000,
+  STACK_UNDERFLOW: 1001,
+  STACK_OVERFLOW: 1002,
+  DIVISION_BY_ZERO: 1003,
+} as const;
+
+export type BipErrorCode = (typeof BipErrorCodes)[keyof typeof BipErrorCodes];
+
+// System error codes
+export const SysErrorCodes = {
+  OK: 0,
+  FILE_NOT_FOUND: 2000,
+  IO_ERROR: 2001,
+  PERMISSION_DENIED: 2002,
+} as const;
+
+export type SysErrorCode = (typeof SysErrorCodes)[keyof typeof SysErrorCodes];
+
+// API error codes
+export const ApiErrorCodes = {
+  OK: 0,
+  NOT_INITIALIZED: 3000,
+  INVALID_ARGUMENT: 3001,
+  BUSY: 3002,
+} as const;
+
+export type ApiErrorCode = (typeof ApiErrorCodes)[keyof typeof ApiErrorCodes];

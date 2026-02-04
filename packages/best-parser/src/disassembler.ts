@@ -6,24 +6,26 @@ type OpcodeDefinition = {
   arg0IsNearAddress?: boolean;
 };
 
-enum OpAddrMode {
-  None = 0,
-  RegS = 1,
-  RegAB = 2,
-  RegI = 3,
-  RegL = 4,
-  Imm8 = 5,
-  Imm16 = 6,
-  Imm32 = 7,
-  ImmStr = 8,
-  IdxImm = 9,
-  IdxReg = 10,
-  IdxRegImm = 11,
-  IdxImmLenImm = 12,
-  IdxImmLenReg = 13,
-  IdxRegLenImm = 14,
-  IdxRegLenReg = 15,
-}
+const OpAddrModes = {
+  NONE: 0,
+  REG_S: 1,
+  REG_AB: 2,
+  REG_I: 3,
+  REG_L: 4,
+  IMM8: 5,
+  IMM16: 6,
+  IMM32: 7,
+  IMM_STR: 8,
+  IDX_IMM: 9,
+  IDX_REG: 10,
+  IDX_REG_IMM: 11,
+  IDX_IMM_LEN_IMM: 12,
+  IDX_IMM_LEN_REG: 13,
+  IDX_REG_LEN_IMM: 14,
+  IDX_REG_LEN_REG: 15,
+} as const;
+
+type OpAddrMode = (typeof OpAddrModes)[keyof typeof OpAddrModes];
 
 const REGISTER_NAMES = new Map<number, string>([
   [0x00, "B0"],
@@ -331,16 +333,16 @@ function readRegister(byte: number): string {
 
 function readOperand(code: Uint8Array, view: DataView, offset: number, mode: OpAddrMode): { result: OperandResult; nextOffset: number } {
   switch (mode) {
-    case OpAddrMode.None:
+    case OpAddrModes.NONE:
       return { result: { text: null }, nextOffset: offset };
-    case OpAddrMode.RegS:
-    case OpAddrMode.RegAB:
-    case OpAddrMode.RegI:
-    case OpAddrMode.RegL: {
+    case OpAddrModes.REG_S:
+    case OpAddrModes.REG_AB:
+    case OpAddrModes.REG_I:
+    case OpAddrModes.REG_L: {
       const reg = readRegister(code[offset]);
       return { result: { text: reg }, nextOffset: offset + 1 };
     }
-    case OpAddrMode.Imm8: {
+    case OpAddrModes.IMM8: {
       const byte = code[offset];
       if (isPrintable(byte)) {
         let value = String.fromCharCode(byte);
@@ -351,15 +353,15 @@ function readOperand(code: Uint8Array, view: DataView, offset: number, mode: OpA
       }
       return { result: { text: `#$${byte.toString(16).toUpperCase()}.B` }, nextOffset: offset + 1 };
     }
-    case OpAddrMode.Imm16: {
+    case OpAddrModes.IMM16: {
       const value = readInt16(view, offset);
       return { result: { text: `#$${value.toString(16).toUpperCase()}.I` }, nextOffset: offset + 2 };
     }
-    case OpAddrMode.Imm32: {
+    case OpAddrModes.IMM32: {
       const value = readInt32(view, offset);
       return { result: { text: `#$${value.toString(16).toUpperCase()}.L`, value }, nextOffset: offset + 4 };
     }
-    case OpAddrMode.ImmStr: {
+    case OpAddrModes.IMM_STR: {
       const length = readInt16(view, offset);
       const start = offset + 2;
       const bytes = code.slice(start, start + length);
@@ -371,41 +373,41 @@ function readOperand(code: Uint8Array, view: DataView, offset: number, mode: OpA
       const parts = Array.from(bytes).map((b) => `$${b.toString(16).toUpperCase().padStart(2, "0")}.B`);
       return { result: { text: `{${parts.join(",")}}` }, nextOffset: start + length };
     }
-    case OpAddrMode.IdxImm: {
+    case OpAddrModes.IDX_IMM: {
       const reg = readRegister(code[offset]);
       const idx = readInt16(view, offset + 1);
       return { result: { text: `${reg}[#$${idx.toString(16).toUpperCase()}]` }, nextOffset: offset + 3 };
     }
-    case OpAddrMode.IdxReg: {
+    case OpAddrModes.IDX_REG: {
       const reg0 = readRegister(code[offset]);
       const reg1 = readRegister(code[offset + 1]);
       return { result: { text: `${reg0}[${reg1}]` }, nextOffset: offset + 2 };
     }
-    case OpAddrMode.IdxRegImm: {
+    case OpAddrModes.IDX_REG_IMM: {
       const reg0 = readRegister(code[offset]);
       const reg1 = readRegister(code[offset + 1]);
       const inc = readInt16(view, offset + 2);
       return { result: { text: `${reg0}[${reg1},#$${inc.toString(16).toUpperCase()}]` }, nextOffset: offset + 4 };
     }
-    case OpAddrMode.IdxImmLenImm: {
+    case OpAddrModes.IDX_IMM_LEN_IMM: {
       const reg = readRegister(code[offset]);
       const idx = readInt16(view, offset + 1);
       const len = readInt16(view, offset + 3);
       return { result: { text: `${reg}[#$${idx.toString(16).toUpperCase()}]#$${len.toString(16).toUpperCase()}` }, nextOffset: offset + 5 };
     }
-    case OpAddrMode.IdxImmLenReg: {
+    case OpAddrModes.IDX_IMM_LEN_REG: {
       const reg = readRegister(code[offset]);
       const idx = readInt16(view, offset + 1);
       const lenReg = readRegister(code[offset + 3]);
       return { result: { text: `${reg}[#$${idx.toString(16).toUpperCase()}]${lenReg}` }, nextOffset: offset + 4 };
     }
-    case OpAddrMode.IdxRegLenImm: {
+    case OpAddrModes.IDX_REG_LEN_IMM: {
       const reg = readRegister(code[offset]);
       const idxReg = readRegister(code[offset + 1]);
       const len = readInt16(view, offset + 2);
       return { result: { text: `${reg}[${idxReg}]#$${len.toString(16).toUpperCase()}` }, nextOffset: offset + 4 };
     }
-    case OpAddrMode.IdxRegLenReg: {
+    case OpAddrModes.IDX_REG_LEN_REG: {
       const reg = readRegister(code[offset]);
       const idxReg = readRegister(code[offset + 1]);
       const lenReg = readRegister(code[offset + 2]);
@@ -438,7 +440,7 @@ export function disassemble(code: Uint8Array): Instruction[] {
     offset = arg1.nextOffset;
 
     let arg0Text = arg0.result.text;
-    if (opInfo?.arg0IsNearAddress && arg0Mode === OpAddrMode.Imm32 && typeof arg0.result.value === "number") {
+    if (opInfo?.arg0IsNearAddress && arg0Mode === OpAddrModes.IMM32 && typeof arg0.result.value === "number") {
       const labelOffset = offset + arg0.result.value;
       arg0Text = `__${labelOffset.toString(16).toUpperCase().padStart(8, "0")}`;
     }
@@ -514,7 +516,7 @@ export function disassembleJob(
     offset = arg1.nextOffset;
 
     let arg0Text = arg0.result.text;
-    if (opInfo.arg0IsNearAddress && arg0Mode === OpAddrMode.Imm32 && typeof arg0.result.value === "number") {
+    if (opInfo.arg0IsNearAddress && arg0Mode === OpAddrModes.IMM32 && typeof arg0.result.value === "number") {
       const labelOffset = jobOffset + offset + arg0.result.value;
       arg0Text = `__${labelOffset.toString(16).toUpperCase().padStart(8, "0")}`;
     }
