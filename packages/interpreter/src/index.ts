@@ -69,3 +69,88 @@ export {
   js,
   jns,
 } from "./operations/control-flow";
+
+// String operations
+export {
+  type StringRegisterRef as StringRef,
+  type IntRegisterRef as StringIntRef,
+  scat,
+  slen,
+  scmp,
+  sget,
+  sset,
+  stoi,
+  itos,
+  stoh,
+  htos,
+  sfind,
+  ssub,
+  supper,
+  slower,
+  strim,
+  srev,
+  serase,
+  spaste,
+  stoken,
+  scopy,
+  sclear,
+  ssetImm,
+  // Aliases
+  strcmp,
+  strlen,
+  strcat,
+} from "./operations/string";
+
+// Float operations
+export {
+  type FloatRegisterRef as FloatRef,
+  type StringRegisterRef as FloatStringRef,
+  type IntRegisterRef as FloatIntRef,
+  fadd,
+  fsub,
+  fmul,
+  fdiv,
+  fcmp,
+  fabs,
+  fneg,
+  ftoi,
+  itof,
+  ftos,
+  stof,
+  fsqrt,
+  fpow,
+  fmod,
+  fround,
+  ffloor,
+  fceil,
+  fclear,
+  fcopy,
+  fsetImm,
+  // Aliases
+  fcomp,
+  a2flt,
+  flt2a,
+} from "./operations/float";
+
+// Table operations
+export {
+  type BestTable,
+  type TableContext,
+  type StringRegisterRef as TableStringRef,
+  type IntRegisterRef as TableIntRef,
+  tabget,
+  tabgetHeader,
+  tabset,
+  tabrows,
+  tabcols,
+  tabfind,
+  tabseeku,
+  tabline,
+  tabselect,
+  tabgetnext,
+  createTableContext,
+  selectFirstTable,
+  // Aliases
+  tablen,
+  tabseek,
+} from "./operations/table";
