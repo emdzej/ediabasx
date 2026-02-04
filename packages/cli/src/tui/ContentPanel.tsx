@@ -34,9 +34,13 @@ function buildBottomBar(width: number, focused: boolean): string {
 }
 
 export function ContentPanel({ title, lines, height, width, focused = false, scrollOffset = 0 }: ContentPanelProps) {
+  // Ensure we have valid dimensions
+  const safeWidth = width || 40;
+  const safeHeight = height || 10;
+  
   const v = focused ? "║" : "│";
-  const innerWidth = Math.max(0, width - 2);
-  const innerHeight = Math.max(1, height - 2);
+  const innerWidth = Math.max(1, safeWidth - 2);
+  const innerHeight = Math.max(1, safeHeight - 2);
 
   const visibleLines = lines.slice(scrollOffset, scrollOffset + innerHeight);
   const hasMore = lines.length > scrollOffset + innerHeight;
@@ -46,8 +50,8 @@ export function ContentPanel({ title, lines, height, width, focused = false, scr
     ? `${scrollOffset + 1}-${Math.min(scrollOffset + innerHeight, lines.length)}/${lines.length}`
     : null;
   
-  const topBar = buildTitleBar(title, count, width, focused);
-  const bottomBar = buildBottomBar(width, focused);
+  const topBar = buildTitleBar(title, count, safeWidth, focused);
+  const bottomBar = buildBottomBar(safeWidth, focused);
 
   const formatLine = (text: string): string => {
     if (text.length > innerWidth) return text.slice(0, innerWidth - 3) + "...";
@@ -71,7 +75,7 @@ export function ContentPanel({ title, lines, height, width, focused = false, scr
   }
 
   return (
-    <Box flexDirection="column" width={width} height={height}>
+    <Box flexDirection="column" width={safeWidth}>
       <Text color={focused ? "cyan" : undefined}>{topBar}</Text>
       {displayLines.map((line, idx) => (
         <Text key={idx}>
