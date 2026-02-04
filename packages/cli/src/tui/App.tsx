@@ -339,12 +339,14 @@ export function App({ filePath, buffer, prg }: AppProps) {
     ? `Search: ${searchQuery}_`
     : "↑↓/jk Navigate  Tab/←→ Panels  1/2/3 Section  / Search  Q Quit  ? Help";
 
-  // Build nav bar as string
-  const navBarParts = navigationItems.map((item, index) => {
+  // Build nav bar as string for proper width calculation
+  const navBarContent = navigationItems.map((item, index) => {
     const isSelected = index === navIndex;
     return isSelected ? `[${item.label}]` : ` ${item.label} `;
-  });
-  const navBarText = navBarParts.join("  ") + (searchQuery ? `  Filter: ${searchQuery}` : "");
+  }).join("  ");
+  const filterText = searchQuery ? `  Filter: ${searchQuery}` : "";
+  const navLine = navBarContent + filterText;
+  const navPadding = Math.max(0, contentWidth - navLine.length);
 
   return (
     <Box flexDirection="column" width={width} height={height}>
@@ -352,20 +354,7 @@ export function App({ filePath, buffer, prg }: AppProps) {
       <Text>{topBorder}</Text>
 
       {/* Navigation bar */}
-      <Box>
-        <Text>│ </Text>
-        {navigationItems.map((item, index) => {
-          const isSelected = index === navIndex;
-          return (
-            <Text key={item.section} bold={isSelected} inverse={isSelected}>
-              {isSelected ? `[${item.label}]` : ` ${item.label} `}
-            </Text>
-          );
-        })}
-        {searchQuery && <Text dimColor>  Filter: {searchQuery}</Text>}
-        <Text>{" ".repeat(Math.max(0, innerWidth - navBarText.length))}</Text>
-        <Text>│</Text>
-      </Box>
+      <Text>│{navLine}{" ".repeat(navPadding)}│</Text>
 
       {/* Separator */}
       <Text>├{"─".repeat(contentWidth)}┤</Text>
