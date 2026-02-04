@@ -376,8 +376,7 @@ export function App({ filePath, buffer, prg }: AppProps) {
           <Text dimColor>│ Press any key to close help...</Text>
         </Box>
       ) : (
-        <Box height={bodyHeight}>
-          <Text>│</Text>
+        <Box height={bodyHeight} paddingX={1}>
           <Box flexDirection="row">
             <ItemsPanel
               title={section === "jobs" ? "Jobs" : section === "tables" ? "Tables" : "Info"}
@@ -408,7 +407,6 @@ export function App({ filePath, buffer, prg }: AppProps) {
               />
             </Box>
           </Box>
-          <Text>│</Text>
         </Box>
       )}
 
