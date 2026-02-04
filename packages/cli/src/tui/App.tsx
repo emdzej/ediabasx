@@ -28,6 +28,14 @@ function truncate(text: string, maxWidth: number): string {
   return text.slice(0, maxWidth - 3) + "...";
 }
 
+// Custom top border with embedded title
+function buildCustomTopBorder(title: string, width: number): string {
+  const innerWidth = Math.max(0, width - 2);
+  const titlePart = title ? `─${title}` : "";
+  const fillWidth = Math.max(0, innerWidth - titlePart.length);
+  return `╭${titlePart}${"─".repeat(fillWidth)}╮`;
+}
+
 function buildDisassemblyMap(buffer: Uint8Array, prg: PrgFile): Map<string, string[]> {
   const map = new Map<string, string[]>();
   for (const job of prg.binaryJobs) {
@@ -99,88 +107,110 @@ type FocusedPanel = "items" | "content" | "details";
 export function App({ filePath, buffer, prg }: AppProps) {
   const { exit } = useApp();
   const [width, height] = useStdoutDimensions();
+
+  // Navigation state
+  const [section, setSection] = useState<NavigationSection>("jobs");
   const [navIndex, setNavIndex] = useState(0);
   const [itemsIndex, setItemsIndex] = useState(0);
+  const [focusedPanel, setFocusedPanel] = useState<FocusedPanel>("items");
   const [contentScroll, setContentScroll] = useState(0);
   const [detailsScroll, setDetailsScroll] = useState(0);
-  const [focusedPanel, setFocusedPanel] = useState<FocusedPanel>("items");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchActive, setIsSearchActive] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
-  const section = navigationItems[navIndex]?.section ?? "jobs";
+  // Search state
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
+  // Precompute disassembly for all jobs
   const disassemblyMap = useMemo(() => buildDisassemblyMap(buffer, prg), [buffer, prg]);
 
-  const items = useMemo(() => {
-    if (section === "jobs") return prg.jobs.map((job) => job.name);
-    if (section === "tables") return prg.tables.map((table) => table.name);
+  // Get items for current section
+  const allItems = useMemo(() => {
+    if (section === "jobs") return prg.jobs.map((j) => j.name);
+    if (section === "tables") return prg.tables.map((t) => t.name);
     return [];
-  }, [prg, section]);
+  }, [section, prg]);
 
+  // Filter items by search query
   const filteredItems = useMemo(() => {
-    if (!searchQuery) return items;
-    const query = searchQuery.toLowerCase();
-    return items.filter((item) => item.toLowerCase().includes(query));
-  }, [items, searchQuery]);
+    if (!searchQuery) return allItems;
+    const lower = searchQuery.toLowerCase();
+    return allItems.filter((item) => item.toLowerCase().includes(lower));
+  }, [allItems, searchQuery]);
 
-  useEffect(() => {
-    if (itemsIndex >= filteredItems.length) {
-      setItemsIndex(Math.max(0, filteredItems.length - 1));
-    }
-  }, [filteredItems, itemsIndex]);
-
+  // Reset selection when section or filter changes
   useEffect(() => {
     setItemsIndex(0);
     setContentScroll(0);
     setDetailsScroll(0);
-  }, [section]);
+  }, [section, searchQuery]);
 
-  useEffect(() => {
-    setContentScroll(0);
-  }, [itemsIndex]);
+  // Get content and details for selected item
+  const selectedItem = filteredItems[itemsIndex] ?? null;
 
-  const selectedName = filteredItems[itemsIndex];
-  const selectedJob = section === "jobs" ? prg.jobs.find((job) => job.name === selectedName) : undefined;
-  const selectedTable = section === "tables" ? prg.tables.find((table) => table.name === selectedName) : undefined;
-
-  const contentLines = useMemo(() => {
-    if (section === "jobs") {
-      if (!selectedName) return ["Select a job to see disassembly."];
-      return disassemblyMap.get(selectedName) ?? ["No bytecode available."];
+  const contentLines = useMemo<string[]>(() => {
+    if (section === "jobs" && selectedItem) {
+      return disassemblyMap.get(selectedItem) ?? ["(no disassembly)"];
     }
-    if (section === "tables") {
-      return formatTableContent(selectedTable);
+    if (section === "tables" && selectedItem) {
+      const table = prg.tables.find((t) => t.name === selectedItem);
+      return formatTableContent(table);
     }
-    return formatMetadata(prg, filePath);
-  }, [section, selectedName, disassemblyMap, selectedTable, prg, filePath]);
+    if (section === "metadata") {
+      return formatMetadata(prg, filePath);
+    }
+    return [];
+  }, [section, selectedItem, prg, filePath, disassemblyMap]);
 
-  const detailsLines = useMemo(() => {
-    if (section === "jobs") return formatJobDetails(selectedJob);
-    if (section === "tables") return formatTableDetails(selectedTable);
-    return ["File metadata", ...formatMetadata(prg, filePath)];
-  }, [section, selectedJob, selectedTable, prg, filePath]);
+  const detailsLines = useMemo<string[]>(() => {
+    if (section === "jobs" && selectedItem) {
+      const job = prg.jobs.find((j) => j.name === selectedItem);
+      return formatJobDetails(job);
+    }
+    if (section === "tables" && selectedItem) {
+      const table = prg.tables.find((t) => t.name === selectedItem);
+      return formatTableDetails(table);
+    }
+    return [];
+  }, [section, selectedItem, prg]);
 
-  // Keyboard handling
   useInput((input, key) => {
+    // Help toggle
+    if (input === "?" && !isSearchActive) {
+      setShowHelp((prev) => !prev);
+      return;
+    }
     if (showHelp) {
-      if (input === "?" || input === "q" || key.escape) {
-        setShowHelp(false);
+      setShowHelp(false);
+      return;
+    }
+
+    // Search mode
+    if (isSearchActive) {
+      if (key.escape) {
+        setIsSearchActive(false);
+        setSearchQuery("");
+        return;
+      }
+      if (key.return) {
+        setIsSearchActive(false);
+        return;
+      }
+      if (key.backspace || key.delete) {
+        setSearchQuery((q) => q.slice(0, -1));
+        return;
+      }
+      if (input && !key.ctrl && !key.meta) {
+        setSearchQuery((q) => q + input);
+        return;
       }
       return;
     }
 
-    if (isSearchActive) {
-      if (key.return) {
-        setIsSearchActive(false);
-      } else if (key.escape) {
-        setIsSearchActive(false);
-        setSearchQuery("");
-      } else if (key.backspace || key.delete) {
-        setSearchQuery((prev) => prev.slice(0, -1));
-      } else if (input && !key.ctrl && !key.meta) {
-        setSearchQuery((prev) => prev + input);
-      }
+    // Activate search
+    if (input === "/") {
+      setIsSearchActive(true);
+      setSearchQuery("");
       return;
     }
 
@@ -190,65 +220,54 @@ export function App({ filePath, buffer, prg }: AppProps) {
       return;
     }
 
-    // Help
-    if (input === "?") {
-      setShowHelp(true);
+    // Section navigation (1, 2, 3 keys)
+    if (input === "1") {
+      setSection("jobs");
+      setNavIndex(0);
+      return;
+    }
+    if (input === "2") {
+      setSection("tables");
+      setNavIndex(1);
+      return;
+    }
+    if (input === "3") {
+      setSection("metadata");
+      setNavIndex(2);
       return;
     }
 
-    // Search
-    if (input === "/") {
-      setIsSearchActive(true);
-      return;
-    }
-
-    // Tab to cycle panels
+    // Panel switching with Tab
     if (key.tab) {
-      setFocusedPanel((prev) => {
-        if (prev === "items") return "content";
-        if (prev === "content") return "details";
+      setFocusedPanel((current) => {
+        if (current === "items") return "content";
+        if (current === "content") return "details";
         return "items";
       });
       return;
     }
 
-    // Panel switching with h/l or left/right
+    // Panel switching with left/right
     if (input === "h" || key.leftArrow) {
-      setFocusedPanel((prev) => {
-        if (prev === "details") return "content";
-        if (prev === "content") return "items";
-        return prev;
+      setFocusedPanel((current) => {
+        if (current === "content" || current === "details") return "items";
+        return current;
       });
       return;
     }
     if (input === "l" || key.rightArrow) {
-      setFocusedPanel((prev) => {
-        if (prev === "items") return "content";
-        if (prev === "content") return "details";
-        return prev;
+      setFocusedPanel((current) => {
+        if (current === "items") return "content";
+        return current;
       });
       return;
     }
 
-    // Navigation section switching with 1/2/3
-    if (input === "1") {
-      setNavIndex(0);
-      return;
-    }
-    if (input === "2") {
-      setNavIndex(1);
-      return;
-    }
-    if (input === "3") {
-      setNavIndex(2);
-      return;
-    }
-
-    // Calculate visible heights for scrolling
-    const bodyHeight = Math.max(6, height - 6);
-    const contentHeight = Math.max(8, Math.floor(bodyHeight * 0.6)) - 3;
-    const detailsHeight = Math.max(6, bodyHeight - Math.floor(bodyHeight * 0.6)) - 3;
-    const itemsHeight = bodyHeight - 3;
+    // Calculate heights for scroll limits
+    const innerHeight = Math.max(6, height - 4); // -4 for borders
+    const contentHeight = Math.max(8, Math.floor(innerHeight * 0.6)) - 2;
+    const detailsHeight = Math.max(6, innerHeight - Math.floor(innerHeight * 0.6)) - 2;
+    const itemsHeight = innerHeight - 2;
 
     // Up/Down navigation
     if (input === "k" || key.upArrow) {
@@ -299,100 +318,100 @@ export function App({ filePath, buffer, prg }: AppProps) {
     }
   });
 
-  const contentWidth = Math.max(0, width - 4);
-  const leftWidth = Math.min(Math.max(22, Math.floor(contentWidth * 0.28)), 40);
-  const rightWidth = Math.max(10, contentWidth - leftWidth - 2);
-  const bodyHeight = Math.max(6, height - 6);
+  // Layout calculations - inside main border
+  // Total width between main borders: innerWidth = width - 2
+  // We need: │ + ItemsPanel + Content/DetailsPanel + │
+  // So panels together must fill innerWidth
+  const innerWidth = Math.max(0, width - 2);
+  
+  // ItemsPanel gets ~28% but includes left │ in its render
+  // Content/Details gets rest and includes right │ in its render
+  const itemsPanelWidth = Math.min(Math.max(22, Math.floor(innerWidth * 0.28)), 40) + 1; // +1 for left │
+  const rightPanelWidth = innerWidth - itemsPanelWidth + 1; // +1 for right │
+  
+  const bodyHeight = Math.max(6, height - 4); // -4 for top border, nav, footer, bottom border
   const contentHeight = Math.max(8, Math.floor(bodyHeight * 0.6));
   const detailsHeight = Math.max(6, bodyHeight - contentHeight);
 
-  const header = `📁 ${path.basename(filePath)}`;
+  // Build nav bar string
+  const navBarContent = navigationItems.map((item, index) => {
+    const isSelected = index === navIndex;
+    return isSelected ? `[${item.label}]` : ` ${item.label} `;
+  }).join(" ");
+  const filterSuffix = searchQuery ? ` /${searchQuery}` : "";
+  
+  const mainTitle = `📁 ${path.basename(filePath)}`;
+  const topBorder = buildCustomTopBorder(mainTitle, width);
   const footer = isSearchActive
     ? `Search: ${searchQuery}_`
-    : "↑↓/jk Navigate  Tab/←→ Panels  1/2/3 Section  / Search  Q Quit  ? Help";
-
-  // Navbar
-  const navBar = navigationItems.map((item, index) => {
-    const isSelected = index === navIndex;
-    const label = isSelected ? `[${item.label}]` : ` ${item.label} `;
-    return (
-      <Text key={item.section} bold={isSelected} inverse={isSelected}>
-        {label}
-      </Text>
-    );
-  });
+    : "↑↓ Navigate  Tab Panels  1/2/3 Section  / Search  Q Quit  ? Help";
 
   return (
-    <Box borderStyle="round" width={width} height={height} flexDirection="column" paddingX={1}>
-      {/* Header */}
-      <Box height={1} justifyContent="space-between">
-        <Text bold>{header}</Text>
-        <Text dimColor>[Q]uit [?]Help</Text>
-      </Box>
-
-      {/* Navigation bar */}
-      <Box height={1} gap={2}>
-        {navBar}
-        {searchQuery && <Text dimColor> Filter: {searchQuery}</Text>}
-      </Box>
-
-      <Text dimColor>{"─".repeat(contentWidth)}</Text>
-
-      {showHelp ? (
-        <Box borderStyle="round" paddingX={1} flexDirection="column" height={bodyHeight}>
-          <Text bold>Help</Text>
-          <Box flexDirection="column" marginTop={1}>
-            <Text>↑↓ or j/k    : scroll/navigate in focused panel</Text>
-            <Text>←→ or h/l    : switch panels</Text>
-            <Text>Tab          : cycle panels (items → content → details)</Text>
-            <Text>1/2/3        : switch section (JOBS/TABLES/METADATA)</Text>
-            <Text>PgUp/PgDown  : fast scroll</Text>
-            <Text>/            : search items</Text>
-            <Text>Esc          : cancel search</Text>
-            <Text>Q            : quit</Text>
-            <Text>?            : toggle help</Text>
-          </Box>
-          <Box marginTop={1}>
-            <Text dimColor>Press any key to close help...</Text>
-          </Box>
+    <Box flexDirection="column" width={width} height={height}>
+      {/* Custom top border with title */}
+      <Text>{topBorder}</Text>
+      
+      {/* Main content area with side borders */}
+      <Box flexDirection="column" height={height - 2}>
+        {/* Navigation bar */}
+        <Box>
+          <Text>│{navBarContent}{filterSuffix}{" ".repeat(Math.max(0, innerWidth - navBarContent.length - filterSuffix.length))}│</Text>
         </Box>
-      ) : (
-        <Box flexDirection="row" height={bodyHeight}>
-          {/* Left: Items list */}
-          <Box flexDirection="column" width={leftWidth}>
+
+        {showHelp ? (
+          <Box flexDirection="column" height={bodyHeight}>
+            <Box><Text>│ </Text><Text bold>Help</Text></Box>
+            <Box><Text>│  ↑↓ or j/k    : scroll/navigate</Text></Box>
+            <Box><Text>│  ←→ or h/l    : switch panels</Text></Box>
+            <Box><Text>│  Tab          : cycle panels</Text></Box>
+            <Box><Text>│  1/2/3        : switch section</Text></Box>
+            <Box><Text>│  /            : search</Text></Box>
+            <Box><Text>│  Q            : quit</Text></Box>
+            <Box><Text>│  ?            : toggle help</Text></Box>
+            <Box><Text>│ </Text></Box>
+            <Box><Text dimColor>│  Press any key to close...</Text></Box>
+          </Box>
+        ) : (
+          <Box height={bodyHeight} flexDirection="row">
             <ItemsPanel
               title={section === "jobs" ? "Jobs" : section === "tables" ? "Tables" : "Info"}
-              items={filteredItems.map((item) => truncate(item, leftWidth - 4))}
+              items={filteredItems}
               selectedIndex={itemsIndex}
               height={bodyHeight}
+              width={itemsPanelWidth}
               focused={focusedPanel === "items"}
               emptyMessage={section === "metadata" ? "Select JOBS or TABLES" : "No items found"}
+              outerBorderLeft={true}
             />
+            <Box flexDirection="column" width={rightPanelWidth}>
+              <ContentPanel
+                title="Content"
+                lines={contentLines}
+                height={contentHeight}
+                width={rightPanelWidth}
+                focused={focusedPanel === "content"}
+                scrollOffset={contentScroll}
+                outerBorderRight={true}
+              />
+              <DetailsPanel
+                title="Details"
+                lines={detailsLines}
+                height={detailsHeight}
+                width={rightPanelWidth}
+                focused={focusedPanel === "details"}
+                scrollOffset={detailsScroll}
+                outerBorderRight={true}
+              />
+            </Box>
           </Box>
-          <Box width={2} />
-          {/* Right: Content + Details */}
-          <Box flexDirection="column" width={rightWidth}>
-            <ContentPanel
-              title="Content"
-              lines={contentLines.map((line) => truncate(line, rightWidth - 4))}
-              height={contentHeight}
-              focused={focusedPanel === "content"}
-              scrollOffset={contentScroll}
-            />
-            <Box height={1} />
-            <DetailsPanel
-              title="Details"
-              lines={detailsLines.map((line) => truncate(line, rightWidth - 4))}
-              height={detailsHeight}
-              focused={focusedPanel === "details"}
-              scrollOffset={detailsScroll}
-            />
-          </Box>
-        </Box>
-      )}
+        )}
 
-      {/* Footer */}
-      <Text dimColor>{truncate(footer, contentWidth)}</Text>
+        {/* Footer */}
+        <Text>│{truncate(footer, innerWidth)}{" ".repeat(Math.max(0, innerWidth - truncate(footer, innerWidth).length))}│</Text>
+      </Box>
+
+      {/* Bottom border */}
+      <Text>╰{"─".repeat(Math.max(0, width - 2))}╯</Text>
     </Box>
   );
 }
