@@ -1,1 +1,2 @@
-export const placeholder = "interface-base";
+export { EdiabasInterface } from "./EdiabasInterface";
+export { SimulationInterface, EdiabasTimeoutError } from "./SimulationInterface";
