@@ -1,1 +1,1 @@
-export const placeholder = "interface-serial";
+export * from "./interfaces/serial";

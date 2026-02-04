@@ -3,7 +3,7 @@ import { EdiabasInterface } from "./base";
 type PendingReceive = {
   resolve: (data: Uint8Array) => void;
   reject: (error: Error) => void;
-  timeoutId: NodeJS.Timeout;
+  timeoutId: ReturnType<typeof setTimeout>;
 };
 
 type PatternEntry = {
