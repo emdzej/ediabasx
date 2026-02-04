@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { EdiabasError, EdiabasErrorCode } from "@ediabas/core";
+import { EdiabasError, EdiabasErrorCodes } from "@ediabas/core";
 import { CallStack, DEFAULT_MAX_DEPTH } from "./callstack";
 
 describe("CallStack", () => {
@@ -64,7 +64,7 @@ describe("CallStack", () => {
         smallStack.push(0x4000);
       } catch (e) {
         expect(e).toBeInstanceOf(EdiabasError);
-        expect((e as EdiabasError).code).toBe(EdiabasErrorCode.STACK_OVERFLOW);
+        expect((e as EdiabasError).code).toBe(EdiabasErrorCodes.STACK_OVERFLOW);
         expect((e as EdiabasError).message).toContain("overflow");
         expect((e as EdiabasError).message).toContain("3");
       }
@@ -120,7 +120,7 @@ describe("CallStack", () => {
         callStack.pop();
       } catch (e) {
         expect(e).toBeInstanceOf(EdiabasError);
-        expect((e as EdiabasError).code).toBe(EdiabasErrorCode.STACK_UNDERFLOW);
+        expect((e as EdiabasError).code).toBe(EdiabasErrorCodes.STACK_UNDERFLOW);
         expect((e as EdiabasError).message).toContain("underflow");
         expect((e as EdiabasError).message).toContain("RET");
         expect((e as EdiabasError).message).toContain("JTSR");

@@ -8,25 +8,27 @@
 /**
  * Error codes for EDIABAS errors.
  */
-export enum EdiabasErrorCode {
+export const EdiabasErrorCodes = {
   /** Generic/unknown error */
-  UNKNOWN = 0,
+  UNKNOWN: 0,
 
   /** Stack overflow (too many nested calls) */
-  STACK_OVERFLOW = 1,
+  STACK_OVERFLOW: 1,
 
   /** Stack underflow (return without call) */
-  STACK_UNDERFLOW = 2,
+  STACK_UNDERFLOW: 2,
 
   /** Invalid instruction or opcode */
-  INVALID_INSTRUCTION = 3,
+  INVALID_INSTRUCTION: 3,
 
   /** Register access error */
-  REGISTER_ERROR = 4,
+  REGISTER_ERROR: 4,
 
   /** Memory access error */
-  MEMORY_ERROR = 5,
-}
+  MEMORY_ERROR: 5,
+} as const;
+
+export type EdiabasErrorCode = (typeof EdiabasErrorCodes)[keyof typeof EdiabasErrorCodes];
 
 /**
  * Base error class for EDIABAS-related errors.
@@ -35,7 +37,7 @@ export enum EdiabasErrorCode {
  *
  * @example
  * ```ts
- * throw new EdiabasError(EdiabasErrorCode.STACK_OVERFLOW, "Call stack exceeded maximum depth of 256");
+ * throw new EdiabasError(EdiabasErrorCodes.STACK_OVERFLOW, "Call stack exceeded maximum depth of 256");
  * ```
  */
 export class EdiabasError extends Error {

@@ -9,7 +9,7 @@
  * - RET (Return): Pop return address and jump back
  */
 
-import { EdiabasError, EdiabasErrorCode } from "@ediabas/core";
+import { EdiabasError, EdiabasErrorCodes } from "@ediabas/core";
 
 /** Default maximum call stack depth */
 export const DEFAULT_MAX_DEPTH = 256;
@@ -76,7 +76,7 @@ export class CallStack {
   push(returnAddress: number): void {
     if (this.stack.length >= this.maxDepth) {
       throw new EdiabasError(
-        EdiabasErrorCode.STACK_OVERFLOW,
+        EdiabasErrorCodes.STACK_OVERFLOW,
         `Call stack overflow: exceeded maximum depth of ${this.maxDepth}`
       );
     }
@@ -102,7 +102,7 @@ export class CallStack {
     const address = this.stack.pop();
     if (address === undefined) {
       throw new EdiabasError(
-        EdiabasErrorCode.STACK_UNDERFLOW,
+        EdiabasErrorCodes.STACK_UNDERFLOW,
         "Call stack underflow: RET without matching JTSR"
       );
     }
