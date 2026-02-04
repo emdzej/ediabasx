@@ -4,3 +4,5 @@ export {
   type RegisterSetOptions,
   type RegisterSnapshot,
 } from "./registers";
+
+export { Flags, type BitWidth, type FlagSnapshot } from "./flags";
