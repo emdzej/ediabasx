@@ -8,6 +8,7 @@ type ContentPanelProps = {
   width: number;
   focused?: boolean;
   scrollOffset?: number;
+  outerBorderRight?: boolean; // Add main frame │ on right
 };
 
 function buildTitleBar(title: string, count: string | null, width: number, focused: boolean): string {
@@ -33,9 +34,19 @@ function buildBottomBar(width: number, focused: boolean): string {
   return `${chars.bl}${chars.h.repeat(innerWidth)}${chars.br}`;
 }
 
-export function ContentPanel({ title, lines, height, width, focused = false, scrollOffset = 0 }: ContentPanelProps) {
-  const safeWidth = Math.max(10, width || 40);
+export function ContentPanel({ 
+  title, 
+  lines, 
+  height, 
+  width, 
+  focused = false, 
+  scrollOffset = 0,
+  outerBorderRight = false,
+}: ContentPanelProps) {
+  const panelWidth = outerBorderRight ? width - 1 : width; // Reserve space for outer │
+  const safeWidth = Math.max(10, panelWidth || 40);
   const safeHeight = Math.max(4, height || 10);
+  const outerV = outerBorderRight ? "│" : "";
   
   const v = focused ? "║" : "│";
   const innerWidth = safeWidth - 2;
@@ -66,16 +77,17 @@ export function ContentPanel({ title, lines, height, width, focused = false, scr
   }
 
   return (
-    <Box flexDirection="column" width={safeWidth} height={safeHeight}>
-      <Text color={focused ? "cyan" : undefined}>{topBar}</Text>
+    <Box flexDirection="column" width={width} height={safeHeight}>
+      <Text><Text color={focused ? "cyan" : undefined}>{topBar}</Text>{outerV}</Text>
       {displayLines.map((line, idx) => (
         <Text key={idx}>
           <Text color={focused ? "cyan" : undefined}>{v}</Text>
           <Text>{line}</Text>
           <Text color={focused ? "cyan" : undefined}>{v}</Text>
+          {outerV}
         </Text>
       ))}
-      <Text color={focused ? "cyan" : undefined}>{bottomBar}</Text>
+      <Text><Text color={focused ? "cyan" : undefined}>{bottomBar}</Text>{outerV}</Text>
     </Box>
   );
 }

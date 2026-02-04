@@ -321,10 +321,14 @@ export function App({ filePath, buffer, prg }: AppProps) {
   // Layout calculations - inside main border
   const innerWidth = Math.max(0, width - 2); // -2 for left and right border │
   const leftWidth = Math.min(Math.max(22, Math.floor(innerWidth * 0.28)), 40);
-  const rightWidth = innerWidth - leftWidth; // remaining width for right panels
+  const rightWidth = innerWidth - leftWidth; // remaining width for right panels (including its borders)
   const bodyHeight = Math.max(6, height - 4); // -4 for top border, nav, footer, bottom border
   const contentHeight = Math.max(8, Math.floor(bodyHeight * 0.6));
   const detailsHeight = Math.max(6, bodyHeight - contentHeight);
+  
+  // Panel widths: leftWidth for Jobs, rightWidth for Content/Details
+  // Jobs panel renders │ on left side of its frame
+  // Content/Details panel renders │ on right side of its frame
 
   // Build nav bar string
   const navBarContent = navigationItems.map((item, index) => {
@@ -366,35 +370,36 @@ export function App({ filePath, buffer, prg }: AppProps) {
           </Box>
         ) : (
           <Box height={bodyHeight} flexDirection="row">
-            <Text>│</Text>
             <ItemsPanel
               title={section === "jobs" ? "Jobs" : section === "tables" ? "Tables" : "Info"}
               items={filteredItems}
               selectedIndex={itemsIndex}
               height={bodyHeight}
-              width={leftWidth}
+              width={leftWidth + 1}
               focused={focusedPanel === "items"}
               emptyMessage={section === "metadata" ? "Select JOBS or TABLES" : "No items found"}
+              outerBorderLeft={true}
             />
-            <Box flexDirection="column" width={rightWidth - 1}>
+            <Box flexDirection="column" width={rightWidth}>
               <ContentPanel
                 title="Content"
                 lines={contentLines}
                 height={contentHeight}
-                width={rightWidth - 1}
+                width={rightWidth}
                 focused={focusedPanel === "content"}
                 scrollOffset={contentScroll}
+                outerBorderRight={true}
               />
               <DetailsPanel
                 title="Details"
                 lines={detailsLines}
                 height={detailsHeight}
-                width={rightWidth - 1}
+                width={rightWidth}
                 focused={focusedPanel === "details"}
                 scrollOffset={detailsScroll}
+                outerBorderRight={true}
               />
             </Box>
-            <Text>│</Text>
           </Box>
         )}
 

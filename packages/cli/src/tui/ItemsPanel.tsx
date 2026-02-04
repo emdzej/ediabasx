@@ -9,6 +9,7 @@ type ItemsPanelProps = {
   width: number;
   focused: boolean;
   emptyMessage?: string;
+  outerBorderLeft?: boolean; // Add main frame │ on left
 };
 
 // Build title bar like: ╔═Jobs═══════════1/16═╗
@@ -43,10 +44,13 @@ export function ItemsPanel({
   width,
   focused,
   emptyMessage = "No items",
+  outerBorderLeft = false,
 }: ItemsPanelProps) {
   const v = focused ? "║" : "│";
-  const innerWidth = Math.max(1, width - 2);
+  const panelWidth = outerBorderLeft ? width - 1 : width; // Reserve space for outer │
+  const innerWidth = Math.max(1, panelWidth - 2);
   const innerHeight = Math.max(1, height - 2);
+  const outerV = outerBorderLeft ? "│" : "";
 
   // Calculate scroll window to keep selected item visible
   const halfWindow = Math.floor(innerHeight / 2);
@@ -57,8 +61,8 @@ export function ItemsPanel({
   const visibleItems = items.slice(scrollStart, scrollStart + innerHeight);
 
   const count = items.length > 0 ? `${selectedIndex + 1}/${items.length}` : null;
-  const topBar = buildTitleBar(title, count, width, focused);
-  const bottomBar = buildBottomBar(width, focused);
+  const topBar = buildTitleBar(title, count, panelWidth, focused);
+  const bottomBar = buildBottomBar(panelWidth, focused);
 
   // Pad or truncate text to fit inner width
   const formatLine = (text: string): string => {
@@ -91,15 +95,16 @@ export function ItemsPanel({
 
   return (
     <Box flexDirection="column" width={width}>
-      <Text color={focused ? "cyan" : undefined}>{topBar}</Text>
+      <Text>{outerV}<Text color={focused ? "cyan" : undefined}>{topBar}</Text></Text>
       {displayLines.map((line, idx) => (
         <Text key={idx}>
+          {outerV}
           <Text color={focused ? "cyan" : undefined}>{v}</Text>
           <Text inverse={line.isSelected}>{line.text}</Text>
           <Text color={focused ? "cyan" : undefined}>{v}</Text>
         </Text>
       ))}
-      <Text color={focused ? "cyan" : undefined}>{bottomBar}</Text>
+      <Text>{outerV}<Text color={focused ? "cyan" : undefined}>{bottomBar}</Text></Text>
     </Box>
   );
 }
