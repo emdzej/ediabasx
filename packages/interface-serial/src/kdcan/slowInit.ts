@@ -1,5 +1,6 @@
 import { SerialTransport } from "../types";
 import { delay } from "./delay";
+import { withLineControl } from "./lineControl";
 
 export const FIVE_BAUD_BIT_TIME_MS = 200;
 
@@ -8,17 +9,6 @@ export type FiveBaudInitOptions = {
   readonly bothLines?: boolean;
   readonly bitTimeMs?: number;
   readonly autoKeyByteDelay?: number;
-};
-
-type PulseCapableTransport = SerialTransport & {
-  sendPulse?: (
-    dataBits: number,
-    length: number,
-    pulseWidthMs: number,
-    setDtr: boolean,
-    bothLines: boolean,
-    autoKeyByteDelay?: number
-  ) => Promise<void>;
 };
 
 export function build5BaudDataBits(value: number): number {
@@ -38,46 +28,34 @@ export async function send5BaudInit(
     autoKeyByteDelay = 0
   } = options;
 
-  await transport.purge();
-
-  const pulseTransport = transport as PulseCapableTransport;
-  if (pulseTransport.sendPulse) {
-    await pulseTransport.sendPulse(
-      build5BaudDataBits(value),
-      10,
-      bitTimeMs,
+  await withLineControl(
+    transport,
+    {
       setDtr,
-      bothLines,
-      autoKeyByteDelay
-    );
-    return;
-  }
-
-  if (setDtr) {
-    await transport.setDtr(true);
-  }
-
-  if (bothLines) {
-    await transport.setRts(true);
-  }
-
-  const bits = buildBitSequence(value);
-  for (const bit of bits) {
-    if (bit === 0) {
-      await transport.setBreak(bitTimeMs);
-    } else {
-      await transport.setBreak(0);
-      await delay(bitTimeMs);
+      setRts: bothLines,
+      sendPulse: async pulseTransport => {
+        await pulseTransport.sendPulse?.(
+          build5BaudDataBits(value),
+          10,
+          bitTimeMs,
+          setDtr,
+          bothLines,
+          autoKeyByteDelay
+        );
+      }
+    },
+    async () => {
+      const bits = buildBitSequence(value);
+      for (const bit of bits) {
+        if (bit === 0) {
+          await transport.setBreak(bitTimeMs);
+        } else {
+          await transport.setBreak(0);
+          await delay(bitTimeMs);
+        }
+      }
     }
-  }
-
-  if (bothLines) {
-    await transport.setRts(false);
-  }
-
-  if (setDtr) {
-    await transport.setDtr(false);
-  }
+  );
 }
 
 function buildBitSequence(value: number): number[] {
@@ -89,4 +67,3 @@ function buildBitSequence(value: number): number[] {
   bits.push(1);
   return bits;
 }
-

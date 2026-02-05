@@ -54,6 +54,8 @@ export {
 export type { FastInitOptions, KwpProtocol } from "./fastInit";
 export { KwpProtocols, parseKeyBytes, sendFastInit } from "./fastInit";
 export { delay } from "./delay";
+export type { LineControlOptions } from "./lineControl";
+export { withLineControl } from "./lineControl";
 export type { FiveBaudInitOptions } from "./slowInit";
 export { FIVE_BAUD_BIT_TIME_MS, build5BaudDataBits, send5BaudInit } from "./slowInit";
 export type { AdapterMode, DcanSessionOptions, IsoTpSegmentationOptions } from "./dcan";
