@@ -30,18 +30,19 @@ function createJob(name: string): PrgJob {
   };
 }
 
-function createPrg(code: Uint8Array, tables: PrgTable[] = []): PrgFile {
+function createPrg(bytecode: Uint8Array, tables: PrgTable[] = []): PrgFile {
   const header = createHeader();
   const metadata: PrgMetadata = {};
   return {
     header,
+    rawBuffer: bytecode,
     metadata,
     rawContent: "",
     strings: [],
     jobs: [createJob("TEST")],
     binaryJobs: [],
     tables,
-    code,
+    code: bytecode,
   };
 }
 

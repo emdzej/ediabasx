@@ -158,11 +158,22 @@ export function ergi(
   registers: RegisterSet,
   collector: ResultCollector,
   name: StringSource,
-  value: IntRegisterRef
+  value: IntRegisterRef | number
 ): void {
   const resultName = resolveString(registers, name);
-  const raw = getIntValue(registers, value);
+  const raw = typeof value === "number" ? value : getIntValue(registers, value);
   collector.record(resultName, "int", toSigned16(raw));
+}
+
+/**
+ * ergi variant that takes a resolved value directly (for immediate operands)
+ */
+export function ergiValue(
+  collector: ResultCollector,
+  name: string,
+  value: number
+): void {
+  collector.record(name, "int", toSigned16(value));
 }
 
 export function ergr(

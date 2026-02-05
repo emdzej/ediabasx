@@ -202,6 +202,7 @@ export {
   ergw,
   ergd,
   ergi,
+  ergiValue,
   ergr,
   ergs,
   ergy,
@@ -259,6 +260,8 @@ export {
 export {
   type SharedMemoryKey,
   type SharedMemoryValue,
+  type SharedMemoryKeyOperand,
+  type SharedMemoryValueOperand,
   SharedMemory,
   shmset,
   shmget,

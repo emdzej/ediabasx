@@ -61,3 +61,35 @@ export function setStringValue(
 ): void {
   registers.setS(ref.index, value);
 }
+
+/**
+ * Get binary data from string register.
+ * String registers store binary data as cp1252-encoded strings.
+ */
+export function getBinaryValue(
+  registers: RegisterSet,
+  ref: StringRegisterRef
+): Uint8Array {
+  return registers.getSBinary(ref.index);
+}
+
+/**
+ * Set binary data to string register.
+ */
+export function setBinaryValue(
+  registers: RegisterSet,
+  ref: StringRegisterRef,
+  value: Uint8Array
+): void {
+  registers.setSBinary(ref.index, value);
+}
+
+/**
+ * Resolve string value from register reference (for operands that can be either immediate string or register).
+ */
+export function resolveStringValue(
+  registers: RegisterSet,
+  ref: StringRegisterRef
+): string {
+  return registers.getS(ref.index);
+}

@@ -7,6 +7,7 @@ import { render } from "ink";
 import React from "react";
 import { disassemble, disassembleJob, formatInstruction, parsePrg } from "@ediabas/best-parser";
 import type { PrgBinaryJob, PrgFile, PrgJob, PrgTable } from "@ediabas/best-parser";
+import type { EdiabasJobResult } from "@ediabas/ediabas";
 import { App } from "./tui/App.js";
 
 type OutputFormat = "json" | "table" | "human";
@@ -208,6 +209,102 @@ function printDisassembly(prg: PrgFile, buffer: Uint8Array): void {
 
 function printParseHuman(filePath: string, prg: PrgFile): void {
   printInfoSummary(filePath, prg);
+}
+
+function printJobInfo(job: PrgJob): void {
+  process.stdout.write(`${chalk.bold.cyan("Job:")} ${chalk.bold(job.name)}\n`);
+  if (job.comment) {
+    process.stdout.write(`${chalk.gray(job.comment)}\n`);
+  }
+  process.stdout.write("\n");
+
+  if (job.args.length > 0) {
+    process.stdout.write(`${chalk.bold("Arguments")} (${job.args.length}):\n`);
+    for (const arg of job.args) {
+      const comment = arg.comment ? chalk.gray(` - ${arg.comment}`) : "";
+      process.stdout.write(`  ${chalk.yellow(arg.name.padEnd(20))} ${chalk.blue(arg.type)}${comment}\n`);
+    }
+    process.stdout.write("\n");
+  } else {
+    process.stdout.write(`${chalk.gray("No arguments required.")}\n\n`);
+  }
+
+  if (job.results.length > 0) {
+    process.stdout.write(`${chalk.bold("Results")} (${job.results.length}):\n`);
+    for (const result of job.results) {
+      const comment = result.comment ? chalk.gray(` - ${result.comment}`) : "";
+      process.stdout.write(`  ${chalk.green(result.name.padEnd(20))} ${chalk.blue(result.type)}${comment}\n`);
+    }
+  } else {
+    process.stdout.write(`${chalk.gray("No results defined.")}\n`);
+  }
+}
+
+function printJobUsage(job: PrgJob, filePath: string): void {
+  const fileName = path.basename(filePath);
+  const argsStr = job.args.map((arg) => `<${arg.name}>`).join(" ");
+  process.stdout.write(`${chalk.bold("Usage:")}\n`);
+  process.stdout.write(`  ediabas run ${fileName} ${job.name}${argsStr ? " " + argsStr : ""}\n\n`);
+
+  if (job.args.length > 0) {
+    process.stdout.write(`${chalk.bold("Arguments:")}\n`);
+    for (const arg of job.args) {
+      const comment = arg.comment ? ` - ${arg.comment}` : "";
+      process.stdout.write(`  ${chalk.yellow(arg.name.padEnd(20))} (${arg.type})${comment}\n`);
+    }
+  }
+}
+
+function printResultsHuman(results: EdiabasJobResult[]): void {
+  if (results.length === 0) {
+    process.stdout.write(`${chalk.gray("No results returned.")}\n`);
+    return;
+  }
+
+  process.stdout.write(`${chalk.bold("Results:")}\n`);
+
+  const nameWidth = Math.max(6, ...results.map((result) => result.name.length));
+  const typeWidth = Math.max(6, ...results.map((result) => result.type.length));
+
+  process.stdout.write(
+    `  ${chalk.gray("Name".padEnd(nameWidth))}  ${chalk.gray("Type".padEnd(typeWidth))}  ${chalk.gray("Value")}\n`
+  );
+  process.stdout.write(
+    `  ${chalk.gray("─".repeat(nameWidth))}  ${chalk.gray("─".repeat(typeWidth))}  ${chalk.gray("─".repeat(30))}\n`
+  );
+
+  for (const result of results) {
+    const valueStr = formatResultValueHuman(result);
+    process.stdout.write(
+      `  ${chalk.green(result.name.padEnd(nameWidth))}  ${chalk.blue(result.type.padEnd(typeWidth))}  ${valueStr}\n`
+    );
+  }
+}
+
+function formatResultValueHuman(result: EdiabasJobResult): string {
+  if (result.value instanceof Uint8Array) {
+    const hex = Array.from(result.value)
+      .map((byte) => byte.toString(16).padStart(2, "0").toUpperCase())
+      .join(" ");
+    if (hex.length > 60) {
+      return chalk.yellow(`[${result.value.length} bytes] `) + hex.slice(0, 57) + "...";
+    }
+    return chalk.yellow(`[${result.value.length} bytes] `) + hex;
+  }
+  if (typeof result.value === "number") {
+    return chalk.cyan(result.value.toString());
+  }
+  if (typeof result.value === "string") {
+    return result.value;
+  }
+  return String(result.value);
+}
+
+function formatResultValueJson(result: EdiabasJobResult): EdiabasJobResult["value"] | number[] {
+  if (result.value instanceof Uint8Array) {
+    return Array.from(result.value);
+  }
+  return result.value;
 }
 
 function printParseTable(prg: PrgFile): void {
@@ -480,6 +577,125 @@ program
       } else {
         printDisassembly(prg, buffer);
       }
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
+program
+  .command("run")
+  .argument("<file>", "PRG/GRP file")
+  .argument("<job>", "Job name to execute")
+  .argument("[params...]", "Job parameters")
+  .option("-s, --simulation", "Run in simulation mode (no hardware required)")
+  .option("-t, --timeout <ms>", "Communication timeout in milliseconds", "5000")
+  .option("--json", "Output results as JSON")
+  .option("--results <names>", "Filter specific results (comma-separated)")
+  .option("--info", "Show job info instead of executing")
+  .description("Execute a job from PRG/GRP file")
+  .action(async (filePath: string, jobName: string, params: string[], options: {
+    simulation?: boolean;
+    timeout?: string;
+    json?: boolean;
+    results?: string;
+    info?: boolean;
+  }) => {
+    try {
+      const { Ediabas } = await import("@ediabas/ediabas");
+      const prg = readPrgFile(filePath);
+      const ecuPath = path.dirname(path.resolve(filePath));
+
+      let jobMeta = prg.jobs.find((job) => job.name.toUpperCase() === jobName.toUpperCase());
+      const binaryJob = prg.binaryJobs.find((job) => job.name.toUpperCase() === jobName.toUpperCase());
+
+      if (!jobMeta && !binaryJob) {
+        const availableJobs = prg.jobs.length > 0
+          ? prg.jobs.map((job) => job.name)
+          : prg.binaryJobs.map((job) => job.name);
+        process.stderr.write(`${chalk.red("Error:")} Job "${jobName}" not found.\n`);
+        process.stderr.write(`Available jobs: ${availableJobs.join(", ") || "none"}\n`);
+        process.exitCode = 1;
+        return;
+      }
+
+      if (!jobMeta && binaryJob) {
+        jobMeta = {
+          name: binaryJob.name,
+          offset: binaryJob.offset,
+          argCount: 0,
+          resultCount: 0,
+          args: [],
+          results: [],
+        };
+      }
+
+      if (!jobMeta) {
+        process.stderr.write(`${chalk.red("Error:")} Job metadata unavailable.\n`);
+        process.exitCode = 1;
+        return;
+      }
+
+      if (options.info) {
+        printJobInfo(jobMeta);
+        return;
+      }
+
+      const requiredArgs = jobMeta.args.length;
+      if (requiredArgs > 0 && params.length < requiredArgs) {
+        process.stderr.write(
+          `${chalk.red("Error:")} Job ${chalk.bold(jobMeta.name)} requires ${requiredArgs} argument(s), but ${params.length} provided.\n\n`
+        );
+        printJobUsage(jobMeta, filePath);
+        process.exitCode = 1;
+        return;
+      }
+
+      const timeout = Number.parseInt(options.timeout ?? "5000", 10);
+      const ediabas = new Ediabas({
+        ecuPath,
+        simulation: options.simulation ?? true,
+        timeout: Number.isFinite(timeout) ? timeout : 5000,
+        logging: false,
+      });
+
+      await ediabas.loadSgbd(path.basename(filePath));
+
+      const resultsFilter = options.results
+        ? new Set(options.results.split(",").map((value) => value.trim().toUpperCase()))
+        : undefined;
+
+      if (!options.json) {
+        process.stdout.write(`${chalk.cyan("Executing job:")} ${chalk.bold(jobMeta.name)}\n`);
+        if (params.length > 0) {
+          process.stdout.write(`${chalk.cyan("Parameters:")} ${params.join(", ")}\n`);
+        }
+        process.stdout.write("\n");
+      }
+
+      const startTime = Date.now();
+      const results = await ediabas.executeJob(jobName, { params });
+      const executionTime = Date.now() - startTime;
+
+      const filteredResults = resultsFilter
+        ? results.filter((result) => resultsFilter.has(result.name.toUpperCase()))
+        : results;
+
+      if (options.json) {
+        printJson({
+          job: jobMeta.name,
+          params,
+          results: filteredResults.map((result) => ({
+            name: result.name,
+            type: result.type,
+            value: formatResultValueJson(result),
+          })),
+          executionTimeMs: executionTime,
+        });
+        return;
+      }
+
+      printResultsHuman(filteredResults);
+      process.stdout.write(`\n${chalk.gray(`Execution time: ${executionTime}ms`)}\n`);
     } catch (error) {
       handleError(error);
     }

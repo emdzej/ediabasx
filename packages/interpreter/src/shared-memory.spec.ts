@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { RegisterSet } from "./registers";
 import { SharedMemory, shmget, shmset } from "./operations/shared-memory";
 
-const I0 = { kind: "I", index: 0 } as const;
-const I1 = { kind: "I", index: 1 } as const;
+const S0 = { kind: "S", index: 0 } as const;
+const S1 = { kind: "S", index: 1 } as const;
 
 describe("Shared memory operations", () => {
   let registers: RegisterSet;
@@ -15,18 +15,19 @@ describe("Shared memory operations", () => {
   });
 
   it("shmset stores values and shmget retrieves them", () => {
-    registers.setI(0, 42);
-    registers.setI(1, 1234);
+    registers.setS(0, "KEY_1");
+    registers.setS(1, "VALUE_1");
 
-    shmset(registers, memory, I0, I1);
-    registers.setI(1, 0);
-    shmget(registers, memory, I1, I0);
+    shmset(registers, memory, S0, S1);
+    registers.setS(1, "");
+    shmget(registers, memory, S1, S0);
 
-    expect(registers.getI(1)).toBe(1234);
+    expect(registers.getS(1)).toBe("VALUE_1");
   });
 
-  it("shmget returns 0 for missing keys", () => {
-    shmget(registers, memory, I0, 99);
-    expect(registers.getI(0)).toBe(0);
+  it("shmget returns empty string for missing keys", () => {
+    registers.setS(0, "MISSING");
+    shmget(registers, memory, S1, S0);
+    expect(registers.getS(1)).toBe("");
   });
 });

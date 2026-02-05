@@ -100,6 +100,8 @@ export type PrgBinaryJob = {
  */
 export type PrgFile = {
   header: PrgHeader;
+  /** Raw file buffer */
+  rawBuffer: Uint8Array;
   /** File metadata */
   metadata: PrgMetadata;
   /** Raw decoded text content */

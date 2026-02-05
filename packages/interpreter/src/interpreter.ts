@@ -158,6 +158,10 @@ import {
 import type { FloatRegisterRef, IntRegisterRef, StringRegisterRef } from "./operations/register-refs";
 import { getFloatValue, getIntValue, getStringValue, setFloatValue, setIntValue, setStringValue } from "./operations/register-values";
 
+const EDIABAS_MAGIC = "@EDIABAS OBJECT";
+const EDIABAS_DATA_OFFSET = 0xa0;
+const EDIABAS_XOR_KEY = 0xf7;
+
 const OpAddrModes = {
   NONE: 0,
   REG_S: 1,
@@ -704,6 +708,31 @@ function requireFileSystem(state: InterpreterState): FileSystem {
   return state.fileSystem;
 }
 
+function decodeEdiabasObject(buffer: Uint8Array): Uint8Array {
+  if (buffer.length <= EDIABAS_DATA_OFFSET) {
+    return buffer;
+  }
+  const decoded = new Uint8Array(buffer.length);
+  decoded.set(buffer.slice(0, EDIABAS_DATA_OFFSET));
+  for (let i = EDIABAS_DATA_OFFSET; i < buffer.length; i++) {
+    decoded[i] = buffer[i] ^ EDIABAS_XOR_KEY;
+  }
+  return decoded;
+}
+
+function resolveProgramCode(prg: PrgFile): Uint8Array {
+  if (prg.code.length > 0) {
+    return prg.code;
+  }
+
+  const isEdiabasObject = typeof prg.header.magic === "string" && prg.header.magic.startsWith(EDIABAS_MAGIC);
+  if (isEdiabasObject && prg.binaryJobs.length > 0) {
+    return decodeEdiabasObject(prg.rawBuffer);
+  }
+
+  return prg.code;
+}
+
 export class Interpreter {
   private readonly prg: PrgFile;
   private readonly code: Uint8Array;
@@ -712,7 +741,7 @@ export class Interpreter {
 
   constructor(prg: PrgFile) {
     this.prg = prg;
-    this.code = prg.code;
+    this.code = resolveProgramCode(prg);
     this.tableRegistry = createTableRegistry(prg.tables);
   }
 
@@ -1027,7 +1056,7 @@ export class Interpreter {
       },
       0x37: async (state, arg0, arg1) => {
         const name = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
-        ergi(state.registers, state.results, name, requireIntRegister(arg1));
+        ergi(state.registers, state.results, name, resolveIntValue(state.registers, arg1));
       },
       0x38: async (state, arg0, arg1) => {
         const name = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
@@ -1371,10 +1400,14 @@ export class Interpreter {
         setStringValue(state.registers, requireStringRegister(arg0), hex);
       },
       0x93: async (state, arg0, arg1) => {
-        shmset(state.registers, state.sharedMemory, arg0 as unknown as IntRegisterRef, arg1 as unknown as IntRegisterRef);
+        const key = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
+        const value = resolveBinaryValue(state.registers, arg1);
+        shmset(state.registers, state.sharedMemory, key, value);
       },
       0x94: async (state, arg0, arg1) => {
-        shmget(state.registers, state.sharedMemory, requireIntRegister(arg0), arg1 as unknown as IntRegisterRef);
+        const destination = requireStringRegister(arg0);
+        const key = arg1.kind === "string" ? arg1.value : requireStringRegister(arg1);
+        shmget(state.registers, state.sharedMemory, destination, key);
       },
       // 0x95: ergsysi - system info result
       0x95: async (state, arg0, arg1) => {
