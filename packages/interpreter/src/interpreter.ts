@@ -1064,6 +1064,7 @@ export class Interpreter {
       0x48: async (state, arg0) => {
         const offset = resolveIntValue(state.registers, arg0);
         return { pc: jnt(this.controlFlowState(state), state, offset).newPc };
+      },
       // 0x49: addc - add with carry
       0x49: async (state, arg0, arg1) => {
         addc(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
