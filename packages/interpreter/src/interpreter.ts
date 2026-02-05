@@ -16,8 +16,7 @@ import {
   shl,
   shr,
   cmp,
-  test,
-  move,
+  test,  
   clear,
   addc,
   subc,
@@ -45,7 +44,7 @@ import {
   jnt,
 } from "./operations/control-flow";
 import { clrc, setc, clrv } from "./operations/flags";
-import { push, pop, pushf, popf, atsp, swap } from "./operations/stack";
+import { pop, pushf, popf, atsp, swap } from "./operations/stack";
 import {
   scat,
   slen,
