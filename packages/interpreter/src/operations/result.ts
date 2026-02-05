@@ -125,10 +125,10 @@ export function ergb(
   registers: RegisterSet,
   collector: ResultCollector,
   name: StringSource,
-  value: IntRegisterRef
+  value: IntRegisterRef | number
 ): void {
   const resultName = resolveString(registers, name);
-  const raw = getIntValue(registers, value);
+  const raw = typeof value === "number" ? value : getIntValue(registers, value);
   collector.record(resultName, "byte", maskUnsigned(raw, 8));
 }
 
@@ -136,10 +136,10 @@ export function ergw(
   registers: RegisterSet,
   collector: ResultCollector,
   name: StringSource,
-  value: IntRegisterRef
+  value: IntRegisterRef | number
 ): void {
   const resultName = resolveString(registers, name);
-  const raw = getIntValue(registers, value);
+  const raw = typeof value === "number" ? value : getIntValue(registers, value);
   collector.record(resultName, "word", maskUnsigned(raw, 16));
 }
 
@@ -147,10 +147,10 @@ export function ergd(
   registers: RegisterSet,
   collector: ResultCollector,
   name: StringSource,
-  value: IntRegisterRef
+  value: IntRegisterRef | number
 ): void {
   const resultName = resolveString(registers, name);
-  const raw = getIntValue(registers, value);
+  const raw = typeof value === "number" ? value : getIntValue(registers, value);
   collector.record(resultName, "dword", maskUnsigned(raw, 32));
 }
 

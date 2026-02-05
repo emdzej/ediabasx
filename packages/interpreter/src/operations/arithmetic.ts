@@ -18,6 +18,8 @@ export type RegisterRef = {
   index: number;
 };
 
+export type RegisterOrValue = RegisterRef | number;
+
 const REGISTER_BIT_WIDTHS: Record<RegisterKind, BitWidth> = {
   B: 8,
   A: 8,
@@ -48,6 +50,13 @@ function maskValue(value: number, bits: BitWidth): number {
     return unsigned;
   }
   return unsigned & MAX_UNSIGNED[bits];
+}
+
+function resolveRightValue(registers: RegisterSet, right: RegisterOrValue): number {
+  if (typeof right === "number") {
+    return right;
+  }
+  return getIntValue(registers, right);
 }
 
 function updateZeroSign(flags: Flags, value: number, bits: BitWidth): void {
@@ -103,11 +112,11 @@ export function add(
   registers: RegisterSet,
   flags: Flags,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
   const bits = getBitWidth(destination);
   const value0 = maskValue(getIntValue(registers, destination), bits);
-  const value1 = maskValue(getIntValue(registers, source), bits);
+  const value1 = maskValue(resolveRightValue(registers, source), bits);
   const sum = value0 + value1;
   const result = maskValue(sum, bits);
 
@@ -121,11 +130,11 @@ export function sub(
   registers: RegisterSet,
   flags: Flags,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
   const bits = getBitWidth(destination);
   const value0 = maskValue(getIntValue(registers, destination), bits);
-  const value1 = maskValue(getIntValue(registers, source), bits);
+  const value1 = maskValue(resolveRightValue(registers, source), bits);
   const diff = value0 - value1;
   const result = maskValue(diff, bits);
 
@@ -139,11 +148,11 @@ export function mul(
   registers: RegisterSet,
   flags: Flags,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
   const bits = getBitWidth(destination);
   const value0 = maskValue(getIntValue(registers, destination), bits);
-  const value1 = maskValue(getIntValue(registers, source), bits);
+  const value1 = maskValue(resolveRightValue(registers, source), bits);
 
   let resultSigned: number;
   if (bits === 32) {
@@ -160,18 +169,20 @@ export function mul(
   flags.v = false;
 
   const resultHigh = maskValue(resultUnsigned >>> bits, bits);
-  setIntValue(registers, source, resultHigh);
+  if (typeof source !== "number") {
+    setIntValue(registers, source, resultHigh);
+  }
 }
 
 export function div(
   registers: RegisterSet,
   flags: Flags,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
   const bits = getBitWidth(destination);
   const value0 = maskValue(getIntValue(registers, destination), bits);
-  const value1 = maskValue(getIntValue(registers, source), bits);
+  const value1 = maskValue(resolveRightValue(registers, source), bits);
 
   let result = 0;
   let remainder = 0;
@@ -209,18 +220,20 @@ export function div(
   }
 
   setIntValue(registers, destination, result);
-  setIntValue(registers, source, remainder);
+  if (typeof source !== "number") {
+    setIntValue(registers, source, remainder);
+  }
 }
 
 export function mod(
   registers: RegisterSet,
   flags: Flags,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
   const bits = getBitWidth(destination);
   const value0 = maskValue(getIntValue(registers, destination), bits);
-  const value1 = maskValue(getIntValue(registers, source), bits);
+  const value1 = maskValue(resolveRightValue(registers, source), bits);
 
   let result = 0;
   let error = false;
@@ -308,11 +321,11 @@ export function and(
   registers: RegisterSet,
   flags: Flags,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
   const bits = getBitWidth(destination);
   const value0 = maskValue(getIntValue(registers, destination), bits);
-  const value1 = maskValue(getIntValue(registers, source), bits);
+  const value1 = maskValue(resolveRightValue(registers, source), bits);
   const result = maskValue(value0 & value1, bits);
 
   setIntValue(registers, destination, result);
@@ -324,11 +337,11 @@ export function or(
   registers: RegisterSet,
   flags: Flags,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
   const bits = getBitWidth(destination);
   const value0 = maskValue(getIntValue(registers, destination), bits);
-  const value1 = maskValue(getIntValue(registers, source), bits);
+  const value1 = maskValue(resolveRightValue(registers, source), bits);
   const result = maskValue(value0 | value1, bits);
 
   setIntValue(registers, destination, result);
@@ -340,11 +353,11 @@ export function xor(
   registers: RegisterSet,
   flags: Flags,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
   const bits = getBitWidth(destination);
   const value0 = maskValue(getIntValue(registers, destination), bits);
-  const value1 = maskValue(getIntValue(registers, source), bits);
+  const value1 = maskValue(resolveRightValue(registers, source), bits);
   const result = maskValue(value0 ^ value1, bits);
 
   setIntValue(registers, destination, result);
@@ -370,11 +383,11 @@ export function shl(
   registers: RegisterSet,
   flags: Flags,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
   const bits = getBitWidth(destination);
   const value0 = maskValue(getIntValue(registers, destination), bits);
-  const shift = getShiftAmount(getIntValue(registers, source));
+  const shift = getShiftAmount(resolveRightValue(registers, source));
   let result = value0;
 
   if (shift < 0) {
@@ -406,11 +419,11 @@ export function shr(
   registers: RegisterSet,
   flags: Flags,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
   const bits = getBitWidth(destination);
   const value0 = maskValue(getIntValue(registers, destination), bits);
-  const shift = getShiftAmount(getIntValue(registers, source));
+  const shift = getShiftAmount(resolveRightValue(registers, source));
   let result = value0;
 
   if (shift < 0) {
@@ -442,11 +455,11 @@ export function cmp(
   registers: RegisterSet,
   flags: Flags,
   left: RegisterRef,
-  right: RegisterRef
+  right: RegisterOrValue
 ): void {
   const bits = getBitWidth(left);
   const value0 = maskValue(getIntValue(registers, left), bits);
-  const value1 = maskValue(getIntValue(registers, right), bits);
+  const value1 = maskValue(resolveRightValue(registers, right), bits);
   const diff = value0 - value1;
   const result = maskValue(diff, bits);
 
@@ -459,11 +472,11 @@ export function test(
   registers: RegisterSet,
   flags: Flags,
   left: RegisterRef,
-  right: RegisterRef
+  right: RegisterOrValue
 ): void {
   const bits = getBitWidth(left);
   const value0 = maskValue(getIntValue(registers, left), bits);
-  const value1 = maskValue(getIntValue(registers, right), bits);
+  const value1 = maskValue(resolveRightValue(registers, right), bits);
   const result = maskValue(value0 & value1, bits);
 
   flags.v = false;
@@ -473,9 +486,9 @@ export function test(
 export function move(
   registers: RegisterSet,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
-  const value = getIntValue(registers, source);
+  const value = resolveRightValue(registers, source);
   setIntValue(registers, destination, value);
 }
 
@@ -510,11 +523,11 @@ export function addc(
   registers: RegisterSet,
   flags: Flags,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
   const bits = getBitWidth(destination);
   const value0 = maskValue(getIntValue(registers, destination), bits);
-  const value1 = maskValue(getIntValue(registers, source), bits);
+  const value1 = maskValue(resolveRightValue(registers, source), bits);
   const carryIn = flags.c ? 1 : 0;
   const sum = value0 + value1 + carryIn;
   const result = maskValue(sum, bits);
@@ -534,11 +547,11 @@ export function subc(
   registers: RegisterSet,
   flags: Flags,
   destination: RegisterRef,
-  source: RegisterRef
+  source: RegisterOrValue
 ): void {
   const bits = getBitWidth(destination);
   const value0 = maskValue(getIntValue(registers, destination), bits);
-  const value1 = maskValue(getIntValue(registers, source), bits);
+  const value1 = maskValue(resolveRightValue(registers, source), bits);
   // Borrow is carry flag directly
   const borrow = flags.c ? 1 : 0;
   const diff = value0 - value1 - borrow;

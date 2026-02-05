@@ -155,7 +155,7 @@ import {
   tabcols as tabcolsOp,
 } from "./operations/table";
 import type { FloatRegisterRef, IntRegisterRef, StringRegisterRef } from "./operations/register-refs";
-import { getFloatValue, getIntValue, getStringValue, setFloatValue, setIntValue, setStringValue } from "./operations/register-values";
+import { getBinaryValue, getFloatValue, getIntValue, getStringValue, setBinaryValue, setFloatValue, setIntValue, setStringValue } from "./operations/register-values";
 
 const EDIABAS_MAGIC = "@EDIABAS OBJECT";
 const EDIABAS_DATA_OFFSET = 0xa0;
@@ -344,6 +344,18 @@ function requireIntRegister(operand: Operand): IntRegisterRef {
   return reg;
 }
 
+function intRegisterByteLength(ref: IntRegisterRef): number {
+  switch (ref.kind) {
+    case "B":
+    case "A":
+      return 1;
+    case "I":
+      return 2;
+    case "L":
+      return 4;
+  }
+}
+
 function requireStringRegister(operand: Operand): StringRegisterRef {
   const reg = requireRegister(operand).ref;
   if (reg.kind !== "S") {
@@ -422,6 +434,13 @@ function resolveIntValue(registers: RegisterSet, operand: Operand): number {
         "Expected integer operand"
       );
   }
+}
+
+function resolveIntRegisterOrValue(registers: RegisterSet, operand: Operand): IntRegisterRef | number {
+  if (operand.kind === "register") {
+    return requireIntRegister(operand);
+  }
+  return resolveIntValue(registers, operand);
 }
 
 function resolveFloatValue(registers: RegisterSet, operand: Operand): number {
@@ -820,6 +839,7 @@ export class Interpreter {
       return false;
     }
 
+    const instructionPc = context.pc;
     const { opcode, arg0, arg1, nextPc } = decodeInstruction(this.code, context.pc);
     context.pc = nextPc;
 
@@ -831,14 +851,24 @@ export class Interpreter {
       );
     }
 
-    const result = await handler(context, arg0, arg1);
-    if (result?.halted) {
-      context.halted = true;
+    try {
+      const result = await handler(context, arg0, arg1);
+      if (result?.halted) {
+        context.halted = true;
+      }
+      if (typeof result?.pc === "number") {
+        context.pc = result.pc;
+      }
+      return !context.halted;
+    } catch (error) {
+      console.error("Interpreter error at", {
+        pc: instructionPc,
+        opcode,
+        arg0,
+        arg1,
+      });
+      throw error;
     }
-    if (typeof result?.pc === "number") {
-      context.pc = result.pc;
-    }
-    return !context.halted;
   }
 
   getState(): InterpreterSnapshot {
@@ -874,6 +904,30 @@ export class Interpreter {
     const handlers: Record<number, (state: InterpreterState, arg0: Operand, arg1: Operand) => Promise<{ pc?: number; halted?: boolean } | void>> = {
       0x00: async (state, arg0, arg1) => {
         // Universal move - handles int, float, and string registers
+        if (arg0.kind === "indexed") {
+          const base = arg0.base;
+          const baseBytes = getBinaryValue(state.registers, base);
+          const start = resolveIntValue(state.registers, arg0.index) + (arg0.offset?.value ?? 0);
+          const writeStart = Math.max(0, start);
+          let sourceBytes: Uint8Array;
+          if (arg1.kind === "string" || arg1.kind === "indexed" || (arg1.kind === "register" && arg1.ref.kind === "S")) {
+            sourceBytes = resolveBinaryValue(state.registers, arg1);
+          } else {
+            const length = arg0.length ? resolveIntValue(state.registers, arg0.length) : 1;
+            const value = resolveIntValue(state.registers, arg1);
+            sourceBytes = new Uint8Array(Math.max(0, length));
+            for (let i = 0; i < sourceBytes.length; i++) {
+              sourceBytes[i] = (value >> (i * 8)) & 0xff;
+            }
+          }
+          const requiredLength = writeStart + sourceBytes.length;
+          const updated = new Uint8Array(Math.max(baseBytes.length, requiredLength));
+          updated.set(baseBytes);
+          updated.set(sourceBytes, writeStart);
+          setBinaryValue(state.registers, base, updated);
+          return;
+        }
+
         const destRef = requireAnyRegister(arg0);
         if (destRef.kind === "S") {
           // String destination
@@ -885,6 +939,16 @@ export class Interpreter {
           state.registers.setF(destRef.index, value);
         } else {
           // Integer destination - resolve value from any source
+          if (arg1.kind === "indexed") {
+            const bytes = resolveIndexedBytes(state.registers, arg1);
+            const length = intRegisterByteLength(destRef);
+            let value = 0;
+            for (let i = length - 1; i >= 0; i--) {
+              value = (value << 8) | (bytes[i] ?? 0);
+            }
+            setIntValue(state.registers, destRef, value);
+            return;
+          }
           const value = resolveIntValue(state.registers, arg1);
           setIntValue(state.registers, destRef, value);
         }
@@ -893,28 +957,28 @@ export class Interpreter {
         clear(state.registers, requireAnyRegister(arg0));
       },
       0x02: async (state, arg0, arg1) => {
-        cmp(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        cmp(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x03: async (state, arg0, arg1) => {
-        sub(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        sub(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x04: async (state, arg0, arg1) => {
-        add(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        add(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x05: async (state, arg0, arg1) => {
-        mul(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        mul(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x06: async (state, arg0, arg1) => {
-        div(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        div(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x07: async (state, arg0, arg1) => {
-        andOp(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        andOp(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x08: async (state, arg0, arg1) => {
-        orOp(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        orOp(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x09: async (state, arg0, arg1) => {
-        xorOp(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        xorOp(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x0a: async (state, arg0) => {
         notOp(state.registers, state.flags, requireIntRegister(arg0));
@@ -944,16 +1008,16 @@ export class Interpreter {
         setc(state.flags);
       },
       0x18: async (state, arg0, arg1) => {
-        shr(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        shr(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x19: async (state, arg0, arg1) => {
-        shl(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        shl(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x1a: async (state, arg0, arg1) => {
-        shr(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        shr(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x1b: async (state, arg0, arg1) => {
-        shl(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        shl(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x1c: async () => {
         // nop
@@ -1057,15 +1121,15 @@ export class Interpreter {
       },
       0x34: async (state, arg0, arg1) => {
         const name = resolveResultName(arg0);
-        ergb(state.registers, state.results, name, requireIntRegister(arg1));
+        ergb(state.registers, state.results, name, resolveIntValue(state.registers, arg1));
       },
       0x35: async (state, arg0, arg1) => {
         const name = resolveResultName(arg0);
-        ergw(state.registers, state.results, name, requireIntRegister(arg1));
+        ergw(state.registers, state.results, name, resolveIntValue(state.registers, arg1));
       },
       0x36: async (state, arg0, arg1) => {
         const name = resolveResultName(arg0);
-        ergd(state.registers, state.results, name, requireIntRegister(arg1));
+        ergd(state.registers, state.results, name, resolveIntValue(state.registers, arg1));
       },
       0x37: async (state, arg0, arg1) => {
         const name = resolveResultName(arg0);
@@ -1141,11 +1205,11 @@ export class Interpreter {
       0x48: timerJumpHandler(jnt),
       // 0x49: addc - add with carry
       0x49: async (state, arg0, arg1) => {
-        addc(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        addc(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       // 0x4a: subc - subtract with carry/borrow
       0x4a: async (state, arg0, arg1) => {
-        subc(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        subc(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       // 0x4b: break - breakpoint (no-op in normal execution)
       0x4b: async () => {
@@ -1254,7 +1318,7 @@ export class Interpreter {
         parr(state.registers, state.parameters, requireFloatRegister(arg0), resolveIntValue(state.registers, arg1));
       },
       0x6a: async (state, arg0, arg1) => {
-        test(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+        test(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
       0x6b: async (state, arg0) => {
         const duration = resolveIntValue(state.registers, arg0);
@@ -1298,6 +1362,12 @@ export class Interpreter {
         tabgetOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), requireIntRegister(arg1));
       },
       0x7e: async (state, arg0, arg1) => {
+        if (arg1.kind === "string" || arg1.kind === "indexed") {
+          const dest = requireStringRegister(arg0);
+          const value = resolveStringValue(state.registers, arg1);
+          setStringValue(state.registers, dest, getStringValue(state.registers, dest) + value);
+          return;
+        }
         strcat(state.registers, requireStringRegister(arg0), requireStringRegister(arg1));
       },
       0x7f: async (state, arg0, arg1) => {
