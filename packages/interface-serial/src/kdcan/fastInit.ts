@@ -5,6 +5,7 @@ import {
   KWP_KEYBYTE_KWP2000
 } from "./constants";
 import { delay } from "./delay";
+import { withLineControl } from "./lineControl";
 
 export const KwpProtocols = {
   Kwp2000: "kwp2000",
@@ -20,16 +21,6 @@ export type FastInitOptions = {
   readonly idleDurationMs?: number;
 };
 
-type PulseCapableTransport = SerialTransport & {
-  sendPulse?: (
-    dataBits: number,
-    length: number,
-    pulseWidthMs: number,
-    setDtr: boolean,
-    bothLines: boolean
-  ) => Promise<void>;
-};
-
 export async function sendFastInit(
   transport: SerialTransport,
   options: FastInitOptions = {}
@@ -41,32 +32,26 @@ export async function sendFastInit(
     idleDurationMs = FAST_INIT_IDLE_MS
   } = options;
 
-  await transport.purge();
-
-  const pulseTransport = transport as PulseCapableTransport;
-  if (pulseTransport.sendPulse) {
-    await pulseTransport.sendPulse(0x02, 2, breakDurationMs, setDtr, useLLine);
-    return;
-  }
-
-  if (setDtr) {
-    await transport.setDtr(true);
-  }
-
-  if (useLLine) {
-    await transport.setRts(true);
-  }
-
-  await transport.setBreak(breakDurationMs);
-  await delay(idleDurationMs);
-
-  if (useLLine) {
-    await transport.setRts(false);
-  }
-
-  if (setDtr) {
-    await transport.setDtr(false);
-  }
+  await withLineControl(
+    transport,
+    {
+      setDtr,
+      setRts: useLLine,
+      sendPulse: async pulseTransport => {
+        await pulseTransport.sendPulse?.(
+          0x02,
+          2,
+          breakDurationMs,
+          setDtr,
+          useLLine
+        );
+      }
+    },
+    async () => {
+      await transport.setBreak(breakDurationMs);
+      await delay(idleDurationMs);
+    }
+  );
 }
 
 export function parseKeyBytes(response: Uint8Array): KwpProtocol {
@@ -78,4 +63,3 @@ export function parseKeyBytes(response: Uint8Array): KwpProtocol {
     ? KwpProtocols.Kwp2000
     : KwpProtocols.Kwp1281;
 }
-
