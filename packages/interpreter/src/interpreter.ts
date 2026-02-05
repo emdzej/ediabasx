@@ -330,6 +330,10 @@ function requireRegister(operand: Operand): RegisterOperand {
   return operand;
 }
 
+function requireAnyRegister(operand: Operand): IntRegisterRef | StringRegisterRef | FloatRegisterRef {
+  return requireRegister(operand).ref;
+}
+
 function requireIntRegister(operand: Operand): IntRegisterRef {
   const reg = requireRegister(operand).ref;
   if (reg.kind === "S" || reg.kind === "F") {
@@ -754,7 +758,9 @@ export class Interpreter {
   start(jobName: string, options: ExecutionOptions = {}): void {
     const job = resolveJobEntry(this.prg, jobName);
     const binaryOffset = resolveBinaryJobOffset(this.prg, jobName);
-    const offset = job?.offset ?? binaryOffset ?? 0;
+    // Prefer binaryOffset for EDIABAS OBJECT format (job.offset may be 0 placeholder)
+    // Use job.offset only if it's non-zero
+    const offset = binaryOffset ?? (job?.offset || 0);
     if (offset < 0 || offset >= this.code.length) {
       throw new EdiabasError(
         EdiabasErrorCodes.INVALID_INSTRUCTION,
@@ -868,10 +874,24 @@ export class Interpreter {
 
     const handlers: Record<number, (state: InterpreterState, arg0: Operand, arg1: Operand) => Promise<{ pc?: number; halted?: boolean } | void>> = {
       0x00: async (state, arg0, arg1) => {
-        move(state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
+        // Universal move - handles int, float, and string registers
+        const destRef = requireAnyRegister(arg0);
+        if (destRef.kind === "S") {
+          // String destination
+          const value = resolveStringValue(state.registers, arg1);
+          state.registers.setS(destRef.index, value);
+        } else if (destRef.kind === "F") {
+          // Float destination
+          const value = resolveFloatValue(state.registers, arg1);
+          state.registers.setF(destRef.index, value);
+        } else {
+          // Integer destination - resolve value from any source
+          const value = resolveIntValue(state.registers, arg1);
+          setIntValue(state.registers, destRef, value);
+        }
       },
       0x01: async (state, arg0) => {
-        clear(state.registers, requireIntRegister(arg0));
+        clear(state.registers, requireAnyRegister(arg0));
       },
       0x02: async (state, arg0, arg1) => {
         cmp(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
@@ -941,7 +961,9 @@ export class Interpreter {
       },
       0x1d: async () => ({ halted: true }),
       0x1e: async (state, arg0) => {
-        push(state.registers, state.dataStack, requireIntRegister(arg0));
+        // push accepts register or immediate value
+        const value = resolveIntValue(state.registers, arg0);
+        state.dataStack.push(value);
       },
       0x1f: async (state, arg0) => {
         pop(state.registers, state.dataStack, requireIntRegister(arg0));

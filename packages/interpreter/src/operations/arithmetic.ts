@@ -1,6 +1,7 @@
 import { RegisterSet } from "../registers";
 import { Flags, type BitWidth } from "../flags";
 import { getIntValue, setIntValue } from "./register-values";
+import type { AnyRegisterRef } from "./register-refs";
 
 export const RegisterKinds = {
   B: "B",
@@ -480,9 +481,15 @@ export function move(
 
 export function clear(
   registers: RegisterSet,
-  destination: RegisterRef
+  destination: AnyRegisterRef
 ): void {
-  setIntValue(registers, destination, 0);
+  if (destination.kind === "S") {
+    registers.setS(destination.index, "");
+  } else if (destination.kind === "F") {
+    registers.setF(destination.index, 0);
+  } else {
+    setIntValue(registers, destination, 0);
+  }
 }
 
 export const comp = cmp;

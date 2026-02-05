@@ -11,3 +11,5 @@ export type FloatRegisterRef = {
   kind: "F";
   index: number;
 };
+
+export type AnyRegisterRef = IntRegisterRef | StringRegisterRef | FloatRegisterRef;
