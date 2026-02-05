@@ -107,13 +107,6 @@ import {
   xtype,
   xvers,
   xreps,
-  xgetport,
-  xsetport,
-  xignit,
-  xloopt,
-  xprog,
-  xraw,
-  xsireset,
   xopen,
   xclose,
   xcloseex,
@@ -126,10 +119,8 @@ import {
   fopen,
   fclose,
   fread,
-  fwrite,
   fseek,
   fseekln,
-  feof,
 } from "./operations/file";
 import {
   type ProcedureHandler,
@@ -342,6 +333,30 @@ function requireFloatRegister(operand: Operand): FloatRegisterRef {
     );
   }
   return reg;
+}
+
+function requireDateTimeDestination(operand: Operand): DateTimeDestination {
+  const reg = requireRegister(operand).ref;
+  if (reg.kind === "F") {
+    throw new EdiabasError(
+      EdiabasErrorCodes.REGISTER_ERROR,
+      "Expected integer or string register"
+    );
+  }
+  return reg;
+}
+
+function optionalIntRegister(operand: Operand): IntRegisterRef | undefined {
+  if (operand.kind === "none") {
+    return undefined;
+  }
+  if (operand.kind === "register") {
+    return requireIntRegister(operand);
+  }
+  throw new EdiabasError(
+    EdiabasErrorCodes.INVALID_INSTRUCTION,
+    "Expected integer register"
+  );
 }
 
 function requireIndexed(operand: Operand): IndexedOperand {
@@ -995,7 +1010,7 @@ export class Interpreter {
         ergs(state.registers, state.results, name, requireStringRegister(arg1));
       },
       0x3a: async (state, arg0, arg1) => {
-        a2flt(state.registers, requireFloatRegister(arg0), requireStringRegister(arg1));
+        a2flt(state.registers, state.flags, requireFloatRegister(arg0), requireStringRegister(arg1));
       },
       0x3b: async (state, arg0, arg1) => {
         fadd(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
@@ -1133,10 +1148,10 @@ export class Interpreter {
         await wait(state.registers, duration as TimeValueRef);
       },
       0x6c: async (state, arg0) => {
-        getdate(state.registers, arg0 as DateTimeDestination);
+        getdate(state.registers, requireDateTimeDestination(arg0));
       },
       0x6d: async (state, arg0) => {
-        gettime(state.registers, arg0 as DateTimeDestination);
+        gettime(state.registers, requireDateTimeDestination(arg0));
       },
       0x79: async (state, arg0, arg1) => {
         fix2hex(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
@@ -1186,7 +1201,7 @@ export class Interpreter {
         shmget(state.registers, state.sharedMemory, requireIntRegister(arg0), arg1 as unknown as IntRegisterRef);
       },
       0x96: async (state, arg0, arg1) => {
-        flt2fix(state.registers, requireIntRegister(arg0), requireFloatRegister(arg1));
+        flt2fix(state.registers, state.flags, requireIntRegister(arg0), requireFloatRegister(arg1));
       },
       0x9a: async (state, arg0, arg1) => {
         tabseekuOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), requireIntRegister(arg1));
@@ -1219,13 +1234,13 @@ export class Interpreter {
         ufix2dez(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
       },
       0xaf: async (state, arg0) => {
-        await xopen(state.registers, requireCommunicationInterface(state), arg0.kind === "register" ? (arg0.ref.kind === "S" ? undefined : arg0.ref) : undefined);
+        await xopen(state.registers, requireCommunicationInterface(state), optionalIntRegister(arg0));
       },
       0xb0: async (state) => {
         await xclose(requireCommunicationInterface(state));
       },
       0xb1: async (state, arg0) => {
-        await xcloseex(state.registers, requireCommunicationInterface(state), arg0.kind === "register" ? (arg0.ref.kind === "S" ? undefined : arg0.ref) : undefined);
+        await xcloseex(state.registers, requireCommunicationInterface(state), optionalIntRegister(arg0));
       },
       0xb2: async (state, arg0) => {
         await xswitch(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
@@ -1234,7 +1249,7 @@ export class Interpreter {
         await xsendex(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
       0xb4: async (state, arg0, arg1) => {
-        const timeout = arg1.kind === "register" && arg1.ref.kind !== "S" ? arg1.ref : undefined;
+        const timeout = optionalIntRegister(arg1);
         await xrecvex(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0), timeout);
       },
       0xb6: async (state, arg0) => {

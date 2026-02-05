@@ -89,6 +89,9 @@ importers:
 
   packages/interpreter:
     dependencies:
+      '@ediabas/best-parser':
+        specifier: workspace:*
+        version: link:../best-parser
       '@ediabas/core':
         specifier: workspace:*
         version: link:../core
