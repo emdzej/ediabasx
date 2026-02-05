@@ -97,5 +97,24 @@ export function wait(
   });
 }
 
+/**
+ * Timer flag operations.
+ * The timer flag is a separate boolean from the timer value.
+ */
+
+export interface TimerFlagState {
+  timerFlag: boolean;
+}
+
+/** SETT - Set timer flag */
+export function sett(state: TimerFlagState): void {
+  state.timerFlag = true;
+}
+
+/** CLRT - Clear timer flag */
+export function clrt(state: TimerFlagState): void {
+  state.timerFlag = false;
+}
+
 export const date = getdate;
 export const time = gettime;

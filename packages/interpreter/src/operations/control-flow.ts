@@ -429,3 +429,48 @@ export { jnv as jno }; // JNV is same as JNO (Jump if No Overflow)
 export { jmi as js }; // JMI is same as JS (Jump if Sign)
 export { jpl as jns }; // JPL is same as JNS (Jump if No Sign)
 export { call as jtsr }; // CALL is same as JTSR (Jump To SubRoutine)
+
+/**
+ * Timer flag state for JT/JNT operations.
+ */
+export interface TimerFlagState {
+  timerFlag: boolean;
+}
+
+/**
+ * Jump if timer flag set (JT).
+ *
+ * @param state - Current execution state
+ * @param timerState - Timer flag state
+ * @param offset - Relative offset from current PC
+ * @returns New program counter
+ */
+export function jt(
+  state: ExecutionState,
+  timerState: TimerFlagState,
+  offset: number
+): ControlFlowResult {
+  if (timerState.timerFlag) {
+    return { newPc: state.pc + offset };
+  }
+  return { newPc: state.pc };
+}
+
+/**
+ * Jump if timer flag not set (JNT).
+ *
+ * @param state - Current execution state
+ * @param timerState - Timer flag state
+ * @param offset - Relative offset from current PC
+ * @returns New program counter
+ */
+export function jnt(
+  state: ExecutionState,
+  timerState: TimerFlagState,
+  offset: number
+): ControlFlowResult {
+  if (!timerState.timerFlag) {
+    return { newPc: state.pc + offset };
+  }
+  return { newPc: state.pc };
+}

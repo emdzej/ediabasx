@@ -39,6 +39,8 @@ import {
   jpl,
   call,
   ret,
+  jt,
+  jnt,
 } from "./operations/control-flow";
 import { clrc, setc, clrv } from "./operations/flags";
 import { push, pop, pushf, popf, atsp, swap } from "./operations/stack";
@@ -88,6 +90,8 @@ import {
   getdate,
   gettime,
   wait,
+  sett,
+  clrt,
 } from "./operations/time";
 import { SharedMemory, shmset, shmget } from "./operations/shared-memory";
 import {
@@ -214,6 +218,7 @@ type InterpreterState = {
   results: ResultCollector;
   sharedMemory: SharedMemory;
   timer: Timer;
+  timerFlag: boolean;
   tokenSeparator: string;
   tokenIndex: number;
   tableState: TableState;
@@ -726,6 +731,7 @@ export class Interpreter {
       results,
       sharedMemory,
       timer,
+      timerFlag: false,
       tokenSeparator: "",
       tokenIndex: 0,
       tableState,
@@ -1038,6 +1044,24 @@ export class Interpreter {
       0x44: async (state, arg0) => {
         const value = resolveIntValue(state.registers, arg0);
         settmr(state.registers, state.timer, value as TimeValueRef);
+      },
+      // 0x45: sett - set timer flag
+      0x45: async (state) => {
+        sett(state);
+      },
+      // 0x46: clrt - clear timer flag
+      0x46: async (state) => {
+        clrt(state);
+      },
+      // 0x47: jt - jump if timer flag set
+      0x47: async (state, arg0) => {
+        const offset = resolveIntValue(state.registers, arg0);
+        return { pc: jt(this.controlFlowState(state), state, offset).newPc };
+      },
+      // 0x48: jnt - jump if timer flag not set
+      0x48: async (state, arg0) => {
+        const offset = resolveIntValue(state.registers, arg0);
+        return { pc: jnt(this.controlFlowState(state), state, offset).newPc };
       },
       0x4c: async (state) => {
         clrv(state.flags);
