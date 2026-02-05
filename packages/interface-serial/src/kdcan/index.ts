@@ -53,3 +53,12 @@ export {
 } from "./telegram";
 export type { FastInitOptions, KwpProtocol } from "./fastInit";
 export { KwpProtocols, parseKeyBytes, sendFastInit } from "./fastInit";
+export type { AdapterMode, DcanSessionOptions, IsoTpSegmentationOptions } from "./dcan";
+export {
+  AdapterModes,
+  DCAN_BAUD_RATE,
+  DCAN_CONCEPT,
+  DcanSession,
+  segmentIsoTpPayload,
+  switchToCanMode
+} from "./dcan";
