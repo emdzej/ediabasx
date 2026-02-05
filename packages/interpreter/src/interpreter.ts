@@ -852,6 +852,20 @@ export class Interpreter {
   }
 
   private getHandler(opcode: number): ((state: InterpreterState, arg0: Operand, arg1: Operand) => Promise<{ pc?: number; halted?: boolean } | void>) | undefined {
+    const jumpHandler = (jumpFn: (flowState: ExecutionState, offset: number) => { newPc: number }) =>
+      async (state: InterpreterState, arg0: Operand) => {
+        const offset = resolveIntValue(state.registers, arg0);
+        return { pc: jumpFn(this.controlFlowState(state), offset).newPc };
+      };
+
+    const timerJumpHandler = (
+      jumpFn: (flowState: ExecutionState, timerState: { timerFlag: boolean }, offset: number) => { newPc: number }
+    ) =>
+      async (state: InterpreterState, arg0: Operand) => {
+        const offset = resolveIntValue(state.registers, arg0);
+        return { pc: jumpFn(this.controlFlowState(state), state, offset).newPc };
+      };
+
     const handlers: Record<number, (state: InterpreterState, arg0: Operand, arg1: Operand) => Promise<{ pc?: number; halted?: boolean } | void>> = {
       0x00: async (state, arg0, arg1) => {
         move(state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
@@ -886,11 +900,7 @@ export class Interpreter {
       0x0a: async (state, arg0) => {
         notOp(state.registers, state.flags, requireIntRegister(arg0));
       },
-      0x0b: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        const result = jmp(this.controlFlowState(state), offset);
-        return { pc: result.newPc };
-      },
+      0x0b: jumpHandler(jmp),
       0x0c: async (state, arg0) => {
         const offset = resolveIntValue(state.registers, arg0);
         const result = call(this.controlFlowState(state), offset);
@@ -900,38 +910,14 @@ export class Interpreter {
         const result = ret(this.controlFlowState(state));
         return { pc: result.newPc };
       },
-      0x0e: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jc(this.controlFlowState(state), offset).newPc };
-      },
-      0x0f: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jnc(this.controlFlowState(state), offset).newPc };
-      },
-      0x10: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jz(this.controlFlowState(state), offset).newPc };
-      },
-      0x11: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jnz(this.controlFlowState(state), offset).newPc };
-      },
-      0x12: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jv(this.controlFlowState(state), offset).newPc };
-      },
-      0x13: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jnv(this.controlFlowState(state), offset).newPc };
-      },
-      0x14: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jmi(this.controlFlowState(state), offset).newPc };
-      },
-      0x15: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jpl(this.controlFlowState(state), offset).newPc };
-      },
+      0x0e: jumpHandler(jc),
+      0x0f: jumpHandler(jnc),
+      0x10: jumpHandler(jz),
+      0x11: jumpHandler(jnz),
+      0x12: jumpHandler(jv),
+      0x13: jumpHandler(jnv),
+      0x14: jumpHandler(jmi),
+      0x15: jumpHandler(jpl),
       0x16: async (state) => {
         clrc(state.flags);
       },
@@ -1129,15 +1115,9 @@ export class Interpreter {
         clrt(state);
       },
       // 0x47: jt - jump if timer flag set
-      0x47: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jt(this.controlFlowState(state), state, offset).newPc };
-      },
+      0x47: timerJumpHandler(jt),
       // 0x48: jnt - jump if timer flag not set
-      0x48: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jnt(this.controlFlowState(state), state, offset).newPc };
-      },
+      0x48: timerJumpHandler(jnt),
       // 0x49: addc - add with carry
       0x49: async (state, arg0, arg1) => {
         addc(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
@@ -1237,30 +1217,12 @@ export class Interpreter {
       0x66: async (state, arg0, arg1) => {
         ftellln(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
       },
-      0x5a: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jg(this.controlFlowState(state), offset).newPc };
-      },
-      0x5b: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jnl(this.controlFlowState(state), offset).newPc };
-      },
-      0x5c: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jl(this.controlFlowState(state), offset).newPc };
-      },
-      0x5d: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jng(this.controlFlowState(state), offset).newPc };
-      },
-      0x5e: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: ja(this.controlFlowState(state), offset).newPc };
-      },
-      0x5f: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jna(this.controlFlowState(state), offset).newPc };
-      },
+      0x5a: jumpHandler(jg),
+      0x5b: jumpHandler(jnl),
+      0x5c: jumpHandler(jl),
+      0x5d: jumpHandler(jng),
+      0x5e: jumpHandler(ja),
+      0x5f: jumpHandler(jna),
       0x67: async (state, arg0, arg1) => {
         a2fix(state.registers, state.flags, requireIntRegister(arg0), requireStringRegister(arg1));
       },
