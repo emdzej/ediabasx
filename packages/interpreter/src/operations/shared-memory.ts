@@ -7,6 +7,8 @@ export type { StringRegisterRef } from "./register-refs";
 
 export type SharedMemoryKey = StringRegisterRef | string;
 export type SharedMemoryValue = StringRegisterRef | Uint8Array | string;
+export type SharedMemoryKeyOperand = SharedMemoryKey;
+export type SharedMemoryValueOperand = SharedMemoryValue;
 
 export class SharedMemory {
   private readonly entries = new Map<string, Uint8Array>();
