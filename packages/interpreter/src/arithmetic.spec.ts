@@ -20,6 +20,8 @@ import {
   shr,
   cmp,
   test,
+  addc,
+  subc,
 } from "./operations/arithmetic";
 
 const B0: RegisterRef = { kind: RegisterKinds.B, index: 0 };
@@ -358,6 +360,100 @@ describe("arithmetic operations", () => {
       expect(flags.z).toBe(true);
       expect(flags.v).toBe(false);
       expect(flags.c).toBe(true);
+    });
+  });
+
+  describe("addc (add with carry)", () => {
+    it("adds without carry when carry flag is clear", () => {
+      registers.setB(0, 10);
+      registers.setB(1, 5);
+      flags.c = false;
+
+      addc(registers, flags, B0, B1);
+
+      expect(registers.getB(0)).toBe(15);
+      expect(flags.c).toBe(false);
+    });
+
+    it("adds with carry when carry flag is set", () => {
+      registers.setB(0, 10);
+      registers.setB(1, 5);
+      flags.c = true;
+
+      addc(registers, flags, B0, B1);
+
+      expect(registers.getB(0)).toBe(16); // 10 + 5 + 1
+      expect(flags.c).toBe(false);
+    });
+
+    it("sets carry on overflow with carry input", () => {
+      registers.setB(0, 0xff);
+      registers.setB(1, 0);
+      flags.c = true;
+
+      addc(registers, flags, B0, B1);
+
+      expect(registers.getB(0)).toBe(0); // 255 + 0 + 1 = 256 -> 0
+      expect(flags.c).toBe(true);
+    });
+
+    it("works with 16-bit registers", () => {
+      registers.setI(0, 0xfffe);
+      registers.setI(1, 1);
+      flags.c = true;
+
+      addc(registers, flags, I0, I1);
+
+      expect(registers.getI(0)).toBe(0); // 0xfffe + 1 + 1 = 0x10000 -> 0
+      expect(flags.c).toBe(true);
+    });
+  });
+
+  describe("subc (subtract with carry/borrow)", () => {
+    it("subtracts without borrow when carry flag is clear", () => {
+      registers.setB(0, 10);
+      registers.setB(1, 3);
+      flags.c = false; // no borrow (C=0 means no borrow input)
+
+      subc(registers, flags, B0, B1);
+
+      expect(registers.getB(0)).toBe(7); // 10 - 3 - 0
+      expect(flags.c).toBe(false); // no borrow occurred
+    });
+
+    it("subtracts with borrow when carry flag is set", () => {
+      registers.setB(0, 10);
+      registers.setB(1, 3);
+      flags.c = true; // borrow input (C=1 means borrow)
+
+      subc(registers, flags, B0, B1);
+
+      expect(registers.getB(0)).toBe(6); // 10 - 3 - 1
+      expect(flags.c).toBe(false); // no borrow occurred
+    });
+
+    it("sets borrow (sets carry) on underflow", () => {
+      registers.setB(0, 0);
+      registers.setB(1, 0);
+      flags.c = true; // incoming borrow
+
+      subc(registers, flags, B0, B1);
+
+      expect(registers.getB(0)).toBe(0xff); // 0 - 0 - 1 = -1 -> 255
+      expect(flags.c).toBe(true); // borrow occurred
+    });
+
+    it("works for multi-precision subtraction", () => {
+      // Simulate subtraction with borrow chain
+      // Low word: 0x0000 - 0x0001 with no incoming borrow
+      registers.setI(0, 0x0000);
+      registers.setI(1, 0x0001);
+      flags.c = false; // no incoming borrow
+
+      subc(registers, flags, I0, I1);
+
+      expect(registers.getI(0)).toBe(0xffff);
+      expect(flags.c).toBe(true); // borrow for high word
     });
   });
 });
