@@ -500,3 +500,29 @@ export function test(
   flags.v = false;
   updateZeroSign(flags, result, bits);
 }
+
+export function move(
+  registers: RegisterSet,
+  destination: RegisterRef,
+  source: RegisterRef
+): void {
+  const value = getRegisterValue(registers, source);
+  setRegisterValue(registers, destination, value);
+}
+
+export function clear(
+  registers: RegisterSet,
+  destination: RegisterRef
+): void {
+  setRegisterValue(registers, destination, 0);
+}
+
+export const comp = cmp;
+export const subb = sub;
+export const adds = add;
+export const mult = mul;
+export const divs = div;
+export const lsl = shl;
+export const lsr = shr;
+export const asl = shl;
+export const asr = shr;

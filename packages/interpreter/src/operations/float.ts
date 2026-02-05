@@ -22,6 +22,14 @@ import type {
   IntRegisterRef,
   StringRegisterRef,
 } from "./register-refs";
+import {
+  getFloatValue,
+  getIntValue,
+  getStringValue,
+  setFloatValue,
+  setIntValue,
+  setStringValue,
+} from "./register-values";
 
 export type {
   FloatRegisterRef,
@@ -30,82 +38,6 @@ export type {
 } from "./register-refs";
 
 // Types are defined in register-refs.
-
-/**
- * Get float value from register.
- */
-function getFloatValue(registers: RegisterSet, ref: FloatRegisterRef): number {
-  return registers.getF(ref.index);
-}
-
-/**
- * Set float value in register.
- */
-function setFloatValue(
-  registers: RegisterSet,
-  ref: FloatRegisterRef,
-  value: number
-): void {
-  registers.setF(ref.index, value);
-}
-
-/**
- * Get string value from register.
- */
-function getStringValue(registers: RegisterSet, ref: StringRegisterRef): string {
-  return registers.getS(ref.index);
-}
-
-/**
- * Set string value in register.
- */
-function setStringValue(
-  registers: RegisterSet,
-  ref: StringRegisterRef,
-  value: string
-): void {
-  registers.setS(ref.index, value);
-}
-
-/**
- * Get integer value from register.
- */
-function getIntValue(registers: RegisterSet, ref: IntRegisterRef): number {
-  switch (ref.kind) {
-    case "B":
-      return registers.getB(ref.index);
-    case "A":
-      return registers.getA(ref.index);
-    case "I":
-      return registers.getI(ref.index);
-    case "L":
-      return registers.getL(ref.index);
-  }
-}
-
-/**
- * Set integer value in register.
- */
-function setIntValue(
-  registers: RegisterSet,
-  ref: IntRegisterRef,
-  value: number
-): void {
-  switch (ref.kind) {
-    case "B":
-      registers.setB(ref.index, value);
-      break;
-    case "A":
-      registers.setA(ref.index, value);
-      break;
-    case "I":
-      registers.setI(ref.index, value);
-      break;
-    case "L":
-      registers.setL(ref.index, value);
-      break;
-  }
-}
 
 /**
  * Update flags based on float comparison result.
@@ -784,3 +716,5 @@ export const a2flt = stof;
  * FLT2A - Float to ASCII (alias for FTOS).
  */
 export const flt2a = ftos;
+export const fix2flt = itof;
+export const flt2fix = ftoi;

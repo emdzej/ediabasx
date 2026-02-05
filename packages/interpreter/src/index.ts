@@ -14,6 +14,12 @@ export {
 } from "./callstack";
 
 export {
+  DataStack,
+  DEFAULT_STACK_DEPTH,
+  type DataStackOptions,
+} from "./stack";
+
+export {
   RegisterKinds,
   type RegisterKind,
   type RegisterRef,
@@ -33,6 +39,17 @@ export {
   shr,
   cmp,
   test,
+  move,
+  clear,
+  comp,
+  subb,
+  adds,
+  mult,
+  divs,
+  lsl,
+  lsr,
+  asl,
+  asr,
 } from "./operations/arithmetic";
 
 export {
@@ -70,6 +87,18 @@ export {
   jns,
 } from "./operations/control-flow";
 
+export { clrc, setc, clrv, setv } from "./operations/flags";
+
+export {
+  push,
+  pop,
+  pushf,
+  popf,
+  atsp,
+  swap,
+  setspc,
+} from "./operations/stack";
+
 // String operations
 export {
   type StringRegisterRef as StringRef,
@@ -95,6 +124,13 @@ export {
   scopy,
   sclear,
   ssetImm,
+  a2fix,
+  fix2hex,
+  fix2dez,
+  ufix2dez,
+  hex2fix,
+  dez2fix,
+  udez2fix,
   // Aliases
   strcmp,
   strlen,
@@ -130,6 +166,8 @@ export {
   fcomp,
   a2flt,
   flt2a,
+  fix2flt,
+  flt2fix,
 } from "./operations/float";
 
 // Table operations
@@ -171,6 +209,79 @@ export {
   ergy,
 } from "./operations/result";
 
+// Parameter operations
+export {
+  type JobParameter,
+  type ParameterIndex,
+  ParameterSet,
+  type StringRegisterRef as ParameterStringRef,
+  type IntRegisterRef as ParameterIntRef,
+  type FloatRegisterRef as ParameterFloatRef,
+  parb,
+  parw,
+  parl,
+  pars,
+  parr,
+  pary,
+  parn,
+} from "./operations/parameters";
+
+// File operations
+export {
+  type FileSystem,
+  type FileHandle,
+  type FileOpenMode,
+  type SeekOrigin,
+  type StringRegisterRef as FileStringRef,
+  type IntRegisterRef as FileIntRef,
+  fopen,
+  fclose,
+  fread,
+  fwrite,
+  fseek,
+  fseekln,
+  feof,
+} from "./operations/file";
+
+// Time/Date operations
+export {
+  type TimeValueRef,
+  type DateTimeDestination,
+  Timer,
+  gettmr,
+  settmr,
+  getdate,
+  gettime,
+  wait,
+  date,
+  time,
+} from "./operations/time";
+
+// Shared memory operations
+export {
+  type SharedMemoryKey,
+  type SharedMemoryValue,
+  SharedMemory,
+  shmset,
+  shmget,
+} from "./operations/shared-memory";
+
+// Procedure operations
+export {
+  type ProcedureArgument,
+  type ProcedureHandler,
+  ProcedureRegistry,
+  ProcedureStack,
+  plink,
+  pcall,
+  ppush,
+  ppushflt,
+  ppushy,
+  ppushBinary,
+  ppopBinary,
+  ppopString,
+} from "./operations/procedures";
+
 // Communication operations
 export {
   type CommunicationInterface,
@@ -184,4 +295,26 @@ export {
   xreset,
   xtype,
   xvers,
+  xsetpar,
+  xawlen,
+  xsendf,
+  xrequf,
+  xstopf,
+  xkeyb,
+  xstate,
+  xboot,
+  xreps,
+  xgetport,
+  xsetport,
+  xignit,
+  xloopt,
+  xprog,
+  xraw,
+  xsireset,
+  xopen,
+  xclose,
+  xcloseex,
+  xswitch,
+  xsendex,
+  xrecvex,
 } from "./operations/communication";
