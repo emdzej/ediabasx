@@ -1043,6 +1043,14 @@ export class Interpreter {
         const binary = resolveBinaryValue(state.registers, arg1);
         ergy(state.registers, state.results, name, binary);
       },
+      // 0x40: enewset - new result set (clear results)
+      0x40: async (state) => {
+        state.results.clear();
+      },
+      // 0x41: etag - result tag (no-op in our model)
+      0x41: async () => {
+        // Result tagging - no-op
+      },
       0x42: async (state, arg0) => {
         await xreps(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
@@ -1085,6 +1093,13 @@ export class Interpreter {
       },
       0x4c: async (state) => {
         clrv(state.flags);
+      },
+      // 0x4d: eerr - error result (F_ERRORTEXT, F_ERRORCODE)
+      0x4d: async (state, arg0, arg1) => {
+        const errorCode = resolveIntValue(state.registers, arg0);
+        const errorText = resolveStringValue(state.registers, arg1);
+        state.results.record("F_ERRORCODE", "dword", errorCode);
+        state.results.record("F_ERRORTEXT", "string", errorText);
       },
       0x4e: async (state) => {
         popf(state.dataStack, state.flags);
@@ -1249,6 +1264,18 @@ export class Interpreter {
       0x80: async (state, arg0) => {
         parn(state.registers, state.parameters, requireIntRegister(arg0));
       },
+      // 0x81: ergc - result char (byte)
+      0x81: async (state, arg0, arg1) => {
+        const name = resolveStringValue(state.registers, arg0);
+        const value = resolveIntValue(state.registers, arg1) & 0xff;
+        state.results.record(name, "byte", value);
+      },
+      // 0x82: ergl - result long (dword)
+      0x82: async (state, arg0, arg1) => {
+        const name = resolveStringValue(state.registers, arg0);
+        const value = resolveIntValue(state.registers, arg1) >>> 0;
+        state.results.record(name, "dword", value);
+      },
       0x83: async (state, arg0, arg1) => {
         const delimiter = arg1.kind === "register" && arg1.ref.kind === "S" ? arg1.ref : undefined;
         tablineOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), delimiter);
@@ -1324,6 +1351,12 @@ export class Interpreter {
       },
       0x94: async (state, arg0, arg1) => {
         shmget(state.registers, state.sharedMemory, requireIntRegister(arg0), arg1 as unknown as IntRegisterRef);
+      },
+      // 0x95: ergsysi - system info result
+      0x95: async (state, arg0, arg1) => {
+        const name = resolveStringValue(state.registers, arg0);
+        const value = resolveStringValue(state.registers, arg1);
+        state.results.record(name, "string", value);
       },
       0x96: async (state, arg0, arg1) => {
         flt2fix(state.registers, state.flags, requireIntRegister(arg0), requireFloatRegister(arg1));
@@ -1431,6 +1464,15 @@ export class Interpreter {
       },
       0xab: async (state, arg0, arg1) => {
         ufix2dez(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
+      },
+      // 0xac: generr - generate/throw error
+      0xac: async (state, arg0, arg1) => {
+        const errorCode = resolveIntValue(state.registers, arg0);
+        const errorText = resolveStringValue(state.registers, arg1);
+        // Store error info in results and throw with UNKNOWN code
+        state.results.record("F_ERRORCODE", "dword", errorCode);
+        state.results.record("F_ERRORTEXT", "string", errorText);
+        throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, `GENERR ${errorCode}: ${errorText}`);
       },
       // 0xad: ticks - get system ticks (ms since epoch)
       0xad: async (state, arg0) => {
