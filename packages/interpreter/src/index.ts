@@ -154,3 +154,19 @@ export {
   tablen,
   tabseek,
 } from "./operations/table";
+
+// Result operations
+export {
+  type JobResult,
+  ResultCollector,
+  type StringRegisterRef as ResultStringRef,
+  type IntRegisterRef as ResultIntRef,
+  type FloatRegisterRef as ResultFloatRef,
+  ergb,
+  ergw,
+  ergd,
+  ergi,
+  ergr,
+  ergs,
+  ergy,
+} from "./operations/result";
