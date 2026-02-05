@@ -125,8 +125,11 @@ import {
   fopen,
   fclose,
   fread,
+  freadln,
   fseek,
   fseekln,
+  ftell,
+  ftellln,
 } from "./operations/file";
 import {
   type ProcedureHandler,
@@ -1135,11 +1138,23 @@ export class Interpreter {
       0x61: async (state, arg0, arg1) => {
         fread(requireFileSystem(state), state.registers, requireStringRegister(arg0), requireIntRegister(arg1), { kind: "I", index: 0 });
       },
+      // 0x62: freadln - read line from file
+      0x62: async (state, arg0, arg1) => {
+        freadln(requireFileSystem(state), state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
+      },
       0x63: async (state, arg0, arg1) => {
         fseek(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
       },
       0x64: async (state, arg0, arg1) => {
         fseekln(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
+      },
+      // 0x65: ftell - get file position
+      0x65: async (state, arg0, arg1) => {
+        ftell(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
+      },
+      // 0x66: ftellln - get file line number
+      0x66: async (state, arg0, arg1) => {
+        ftellln(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
       },
       0x5a: async (state, arg0) => {
         const offset = resolveIntValue(state.registers, arg0);
