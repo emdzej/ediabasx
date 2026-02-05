@@ -170,3 +170,18 @@ export {
   ergs,
   ergy,
 } from "./operations/result";
+
+// Communication operations
+export {
+  type CommunicationInterface,
+  type StringRegisterRef as CommunicationStringRef,
+  type IntRegisterRef as CommunicationIntRef,
+  xconnect,
+  xhangup,
+  xsend,
+  xrecv,
+  xsendr,
+  xreset,
+  xtype,
+  xvers,
+} from "./operations/communication";
