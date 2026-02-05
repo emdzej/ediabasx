@@ -35,7 +35,8 @@ export class MockSerialTransport implements SerialTransport {
       options.telegramEndTimeoutMs ?? DEFAULT_TELEGRAM_END_TIMEOUT_MS;
   }
 
-  async open(_port: string): Promise<void> {
+  async open(port: string): Promise<void> {
+    void port;
     this.isOpen = true;
   }
 
@@ -49,15 +50,18 @@ export class MockSerialTransport implements SerialTransport {
     this.config = { ...config };
   }
 
-  async setDtr(_value: boolean): Promise<void> {
+  async setDtr(value: boolean): Promise<void> {
+    void value;
     this.assertOpen();
   }
 
-  async setRts(_value: boolean): Promise<void> {
+  async setRts(value: boolean): Promise<void> {
+    void value;
     this.assertOpen();
   }
 
-  async setBreak(_durationMs: number): Promise<void> {
+  async setBreak(durationMs: number): Promise<void> {
+    void durationMs;
     this.assertOpen();
   }
 

@@ -10,7 +10,7 @@ type SerialPortSignals = {
   brk?: boolean;
 };
 
-type SerialPortLike = {
+interface SerialPortLike {
   isOpen: boolean;
   open: (callback: (error?: Error | null) => void) => void;
   close: (callback: (error?: Error | null) => void) => void;
@@ -18,10 +18,10 @@ type SerialPortLike = {
   drain: (callback: (error?: Error | null) => void) => void;
   set: (signals: SerialPortSignals, callback: (error?: Error | null) => void) => void;
   flush?: (callback: (error?: Error | null) => void) => void;
-  on: (event: "data", listener: (data: Buffer) => void) => void;
-  on: (event: "error", listener: (error: Error) => void) => void;
+  on(event: "data", listener: (data: Buffer) => void): void;
+  on(event: "error", listener: (error: Error) => void): void;
   removeAllListeners: () => void;
-};
+}
 
 type PendingRead = {
   length: number;
