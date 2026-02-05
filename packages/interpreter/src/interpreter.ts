@@ -235,6 +235,12 @@ type InterpreterState = {
   procedureRegistry: ProcedureRegistry;
   procedureStack: ProcedureStack;
   procedureLinker?: (id: number) => ProcedureHandler | undefined;
+  // Progress reporting
+  progressText: string;
+  progressRange: number;
+  progressPos: number;
+  // Results filter (for etag)
+  resultsRequest: Set<string>;
 };
 
 export type ExecutionOptions = {
@@ -252,6 +258,8 @@ export type ExecutionOptions = {
   procedureRegistry?: ProcedureRegistry;
   procedureStack?: ProcedureStack;
   procedureLinker?: (id: number) => ProcedureHandler | undefined;
+  /** Set of requested result names (uppercase). If set, etag will skip results not in this set. */
+  resultsRequest?: Set<string>;
 };
 
 export type InterpreterSnapshot = {
@@ -261,6 +269,9 @@ export type InterpreterSnapshot = {
   flags: ReturnType<Flags["snapshot"]>;
   callStack: number[];
   dataStack: number[];
+  progressText: string;
+  progressRange: number;
+  progressPos: number;
 };
 
 function readInt16(view: DataView, offset: number): number {
@@ -748,6 +759,10 @@ export class Interpreter {
       procedureRegistry,
       procedureStack,
       procedureLinker: options.procedureLinker,
+      progressText: "",
+      progressRange: 0,
+      progressPos: -1,
+      resultsRequest: options.resultsRequest ?? new Set(),
     };
   }
 
@@ -795,6 +810,9 @@ export class Interpreter {
       flags: context.flags.snapshot(),
       callStack: context.callStack.snapshot(),
       dataStack: context.dataStack.snapshot(),
+      progressText: context.progressText,
+      progressRange: context.progressRange,
+      progressPos: context.progressPos,
     };
   }
 
@@ -1047,9 +1065,15 @@ export class Interpreter {
       0x40: async (state) => {
         state.results.clear();
       },
-      // 0x41: etag - result tag (no-op in our model)
-      0x41: async () => {
-        // Result tagging - no-op
+      // 0x41: etag - conditional result skip
+      // If resultsRequest is set and the result name is not in it, jump to arg0
+      0x41: async (state, arg0, arg1) => {
+        if (state.resultsRequest.size > 0) {
+          const resultName = resolveStringValue(state.registers, arg1).toUpperCase();
+          if (!state.resultsRequest.has(resultName)) {
+            state.pc = resolveIntValue(state.registers, arg0);
+          }
+        }
       },
       0x42: async (state, arg0) => {
         await xreps(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
@@ -1361,17 +1385,26 @@ export class Interpreter {
       0x96: async (state, arg0, arg1) => {
         flt2fix(state.registers, state.flags, requireIntRegister(arg0), requireFloatRegister(arg1));
       },
-      // 0x97: iupdate - update interface (no-op stub)
-      0x97: async () => {
-        // Update interface - no-op stub
+      // 0x97: iupdate - update progress text
+      0x97: async (state, arg0) => {
+        state.progressText = resolveStringValue(state.registers, arg0);
       },
-      // 0x98: irange - interface range (no-op stub)
-      0x98: async () => {
-        // Interface range - no-op stub
+      // 0x98: irange - set progress range
+      0x98: async (state, arg0) => {
+        state.progressRange = resolveIntValue(state.registers, arg0);
+        state.progressPos = -1;
       },
-      // 0x99: iincpos - increment position (no-op stub)
-      0x99: async () => {
-        // Increment position - no-op stub
+      // 0x99: iincpos - increment progress position
+      0x99: async (state, arg0) => {
+        const inc = resolveIntValue(state.registers, arg0);
+        if (state.progressPos < 0) {
+          state.progressPos = inc;
+        } else {
+          state.progressPos += inc;
+        }
+        if (state.progressPos > state.progressRange) {
+          state.progressPos = state.progressRange;
+        }
       },
       0x9a: async (state, arg0, arg1) => {
         tabseekuOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), requireIntRegister(arg1));
