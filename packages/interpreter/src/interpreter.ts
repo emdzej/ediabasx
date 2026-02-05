@@ -140,6 +140,9 @@ import {
   ppush,
   ppushflt,
   ppushy,
+  ppop,
+  ppopflt,
+  ppopy,
 } from "./operations/procedures";
 import {
   type TableState,
@@ -1299,14 +1302,36 @@ export class Interpreter {
         const id = resolveIntValue(state.registers, arg0);
         pcall(state.procedureRegistry, state.procedureStack, id);
       },
+      // 0xa2: plinkv - link procedure with validation (stub: same as plink)
+      0xa2: async (state, arg0) => {
+        const id = resolveIntValue(state.registers, arg0);
+        // Validation not implemented - acts same as plink
+        plink(state.procedureRegistry, id, () => {});
+      },
       0xa3: async (state, arg0) => {
         ppush(state.registers, state.procedureStack, requireIntRegister(arg0));
+      },
+      // 0xa4: ppop - pop int from procedure stack
+      0xa4: async (state, arg0) => {
+        ppop(state.registers, state.procedureStack, requireIntRegister(arg0));
       },
       0xa5: async (state, arg0) => {
         ppushflt(state.registers, state.procedureStack, requireFloatRegister(arg0));
       },
+      // 0xa6: ppopflt - pop float from procedure stack
+      0xa6: async (state, arg0) => {
+        ppopflt(state.registers, state.procedureStack, requireFloatRegister(arg0));
+      },
       0xa7: async (state, arg0) => {
         ppushy(state.registers, state.procedureStack, requireStringRegister(arg0));
+      },
+      // 0xa8: ppopy - pop binary/string from procedure stack
+      0xa8: async (state, arg0) => {
+        ppopy(state.registers, state.procedureStack, requireStringRegister(arg0));
+      },
+      // 0xa9: pjtsr - procedure jump to subroutine (stub: no-op)
+      0xa9: async () => {
+        // Jump to subroutine - not implemented
       },
       0xa1: async (state, arg0, arg1) => {
         fcomp(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));

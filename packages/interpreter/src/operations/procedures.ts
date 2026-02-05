@@ -1,7 +1,7 @@
 import { cp1252ToUtf8, utf8ToCp1252, EdiabasError, EdiabasErrorCodes } from "@ediabas/core";
 import { RegisterSet } from "../registers";
 import type { FloatRegisterRef, IntRegisterRef, StringRegisterRef } from "./register-refs";
-import { getFloatValue, getIntValue, getStringValue } from "./register-values";
+import { getFloatValue, getIntValue, getStringValue, setFloatValue, setIntValue, setStringValue } from "./register-values";
 
 export type { FloatRegisterRef, IntRegisterRef, StringRegisterRef } from "./register-refs";
 
@@ -44,6 +44,30 @@ export class ProcedureStack {
 
   pushBinary(value: Uint8Array): void {
     this.args.push({ kind: "binary", value: new Uint8Array(value) });
+  }
+
+  popInt(): number {
+    const entry = this.args.pop();
+    if (!entry || entry.kind !== "int") {
+      return 0;
+    }
+    return entry.value;
+  }
+
+  popFloat(): number {
+    const entry = this.args.pop();
+    if (!entry || entry.kind !== "float") {
+      return 0.0;
+    }
+    return entry.value;
+  }
+
+  popBinary(): Uint8Array {
+    const entry = this.args.pop();
+    if (!entry || entry.kind !== "binary") {
+      return new Uint8Array();
+    }
+    return new Uint8Array(entry.value);
   }
 
   drain(): ProcedureArgument[] {
@@ -108,6 +132,34 @@ export function ppushBinary(
   value: Uint8Array
 ): void {
   stack.pushBinary(value);
+}
+
+export function ppop(
+  registers: RegisterSet,
+  stack: ProcedureStack,
+  destination: IntRegisterRef
+): void {
+  const value = stack.popInt();
+  setIntValue(registers, destination, value);
+}
+
+export function ppopflt(
+  registers: RegisterSet,
+  stack: ProcedureStack,
+  destination: FloatRegisterRef
+): void {
+  const value = stack.popFloat();
+  setFloatValue(registers, destination, value);
+}
+
+export function ppopy(
+  registers: RegisterSet,
+  stack: ProcedureStack,
+  destination: StringRegisterRef
+): void {
+  const binary = stack.popBinary();
+  const value = cp1252ToUtf8(binary);
+  setStringValue(registers, destination, value);
 }
 
 export function ppopBinary(
