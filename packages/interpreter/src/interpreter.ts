@@ -363,6 +363,13 @@ function requireFloatRegister(operand: Operand): FloatRegisterRef {
   return reg;
 }
 
+function resolveResultName(operand: Operand): string | StringRegisterRef {
+  if (operand.kind === "string") {
+    return operand.value;
+  }
+  return requireStringRegister(operand);
+}
+
 function requireDateTimeDestination(operand: Operand): DateTimeDestination {
   const reg = requireRegister(operand).ref;
   if (reg.kind === "F") {
@@ -1043,27 +1050,27 @@ export class Interpreter {
         xvers(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
       },
       0x34: async (state, arg0, arg1) => {
-        const name = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
+        const name = resolveResultName(arg0);
         ergb(state.registers, state.results, name, requireIntRegister(arg1));
       },
       0x35: async (state, arg0, arg1) => {
-        const name = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
+        const name = resolveResultName(arg0);
         ergw(state.registers, state.results, name, requireIntRegister(arg1));
       },
       0x36: async (state, arg0, arg1) => {
-        const name = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
+        const name = resolveResultName(arg0);
         ergd(state.registers, state.results, name, requireIntRegister(arg1));
       },
       0x37: async (state, arg0, arg1) => {
-        const name = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
+        const name = resolveResultName(arg0);
         ergi(state.registers, state.results, name, resolveIntValue(state.registers, arg1));
       },
       0x38: async (state, arg0, arg1) => {
-        const name = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
+        const name = resolveResultName(arg0);
         ergr(state.registers, state.results, name, requireFloatRegister(arg1));
       },
       0x39: async (state, arg0, arg1) => {
-        const name = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
+        const name = resolveResultName(arg0);
         if (arg1.kind === "string") {
           ergs(state.registers, state.results, name, arg1.value);
           return;
@@ -1086,7 +1093,7 @@ export class Interpreter {
         fdiv(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
       },
       0x3f: async (state, arg0, arg1) => {
-        const name = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
+        const name = resolveResultName(arg0);
         const binary = resolveBinaryValue(state.registers, arg1);
         ergy(state.registers, state.results, name, binary);
       },
