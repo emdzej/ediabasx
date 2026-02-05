@@ -1,28 +1,20 @@
 import { cp1252ToUtf8, utf8ToCp1252, EdiabasError, EdiabasErrorCodes } from "@ediabas/core";
+import type { EdiabasInterface } from "@ediabas/interface-base";
 import { RegisterSet } from "../registers";
+import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 
-export type StringRegisterRef = {
-  kind: "S";
-  index: number;
-};
+export type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 
-export type IntRegisterRef = {
-  kind: "B" | "A" | "I" | "L";
-  index: number;
-};
-
-export interface CommunicationInterface {
-  connect(): Promise<void>;
-  disconnect(): Promise<void>;
-  send(data: Uint8Array): Promise<void>;
-  receive(timeoutMs?: number): Promise<Uint8Array>;
-  isConnected?: () => boolean;
+export type CommunicationInterface = Pick<
+  EdiabasInterface,
+  "connect" | "disconnect" | "send" | "receive" | "isConnected"
+> & {
   reset?: () => Promise<void> | void;
   getInterfaceType?: () => string;
   getInterfaceVersion?: () => number;
   type?: string;
   version?: number;
-}
+};
 
 function getIntValue(registers: RegisterSet, ref: IntRegisterRef): number {
   switch (ref.kind) {

@@ -5,6 +5,17 @@
  */
 
 import { RegisterSet } from "../registers";
+import type {
+  FloatRegisterRef,
+  IntRegisterRef,
+  StringRegisterRef,
+} from "./register-refs";
+
+export type {
+  FloatRegisterRef,
+  IntRegisterRef,
+  StringRegisterRef,
+} from "./register-refs";
 
 export interface JobResult {
   name: string;
@@ -14,20 +25,7 @@ export interface JobResult {
   comment?: string;
 }
 
-export type StringRegisterRef = {
-  kind: "S";
-  index: number;
-};
-
-export type IntRegisterRef = {
-  kind: "B" | "A" | "I" | "L";
-  index: number;
-};
-
-export type FloatRegisterRef = {
-  kind: "F";
-  index: number;
-};
+// Types are defined in register-refs.
 
 export type StringSource = string | StringRegisterRef;
 
