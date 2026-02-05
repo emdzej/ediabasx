@@ -4,6 +4,7 @@ import {
   FAST_INIT_IDLE_MS,
   KWP_KEYBYTE_KWP2000
 } from "./constants";
+import { delay } from "./delay";
 
 export const KwpProtocols = {
   Kwp2000: "kwp2000",
@@ -78,9 +79,3 @@ export function parseKeyBytes(response: Uint8Array): KwpProtocol {
     : KwpProtocols.Kwp1281;
 }
 
-function delay(durationMs: number): Promise<void> {
-  if (durationMs <= 0) {
-    return Promise.resolve();
-  }
-  return new Promise((resolve) => setTimeout(resolve, durationMs));
-}
