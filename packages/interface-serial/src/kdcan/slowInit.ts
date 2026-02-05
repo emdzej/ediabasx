@@ -1,4 +1,5 @@
 import { SerialTransport } from "../types";
+import { delay } from "./delay";
 
 export const FIVE_BAUD_BIT_TIME_MS = 200;
 
@@ -89,9 +90,3 @@ function buildBitSequence(value: number): number[] {
   return bits;
 }
 
-function delay(durationMs: number): Promise<void> {
-  if (durationMs <= 0) {
-    return Promise.resolve();
-  }
-  return new Promise((resolve) => setTimeout(resolve, durationMs));
-}
