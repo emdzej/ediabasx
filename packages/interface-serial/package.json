@@ -13,5 +13,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
+  },
+  "dependencies": {
+    "serialport": "^12.0.0"
   }
 }
