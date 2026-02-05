@@ -153,7 +153,7 @@ import {
   tabcols as tabcolsOp,
 } from "./operations/table";
 import type { FloatRegisterRef, IntRegisterRef, StringRegisterRef } from "./operations/register-refs";
-import { getFloatValue, getIntValue, getStringValue, setStringValue } from "./operations/register-values";
+import { getFloatValue, getIntValue, getStringValue, setFloatValue, setStringValue } from "./operations/register-values";
 
 const OpAddrModes = {
   NONE: 0,
@@ -1202,6 +1202,18 @@ export class Interpreter {
       0x6d: async (state, arg0) => {
         gettime(state.registers, requireDateTimeDestination(arg0));
       },
+      // 0x6e: xbatt - get battery voltage (stub: returns 12.0V)
+      0x6e: async (state, arg0) => {
+        setFloatValue(state.registers, requireFloatRegister(arg0), 12.0);
+      },
+      // 0x70: xdownl - download (no-op stub)
+      0x70: async () => {
+        // Download functionality - no-op stub
+      },
+      // 0x78: xstoptr - stop transfer (no-op stub)
+      0x78: async () => {
+        // Stop transfer - no-op stub
+      },
       0x79: async (state, arg0, arg1) => {
         fix2hex(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
       },
@@ -1230,12 +1242,20 @@ export class Interpreter {
         const delimiter = arg1.kind === "register" && arg1.ref.kind === "S" ? arg1.ref : undefined;
         tablineOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), delimiter);
       },
+      // 0x86: xinfo - interface info (stub: returns empty string)
+      0x86: async (state, arg0) => {
+        setStringValue(state.registers, requireStringRegister(arg0), "");
+      },
       0x87: async (state, arg0, arg1) => {
         flt2a(state.registers, requireStringRegister(arg0), requireFloatRegister(arg1));
       },
       0x88: async (state, arg0, arg1) => {
         const value = resolveFloatValue(state.registers, arg1);
         fsetImm(state.registers, requireFloatRegister(arg0), value);
+      },
+      // 0x8d: xparraw - raw parameters (no-op stub)
+      0x8d: async () => {
+        // Raw parameters - no-op stub
       },
       0x8f: async (state, arg0, arg1) => {
         strcmp(state.registers, state.flags, requireStringRegister(arg0), requireStringRegister(arg1));
