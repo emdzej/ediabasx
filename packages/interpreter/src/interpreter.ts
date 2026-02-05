@@ -1079,6 +1079,10 @@ export class Interpreter {
       0x4a: async (state, arg0, arg1) => {
         subc(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
       },
+      // 0x4b: break - breakpoint (no-op in normal execution)
+      0x4b: async () => {
+        // Breakpoint - no-op in normal execution
+      },
       0x4c: async (state) => {
         clrv(state.flags);
       },
@@ -1209,6 +1213,10 @@ export class Interpreter {
       0x6e: async (state, arg0) => {
         setFloatValue(state.registers, requireFloatRegister(arg0), 12.0);
       },
+      // 0x6f: tosp - to stack pointer (no-op stub)
+      0x6f: async () => {
+        // To stack pointer - no-op stub
+      },
       // 0x70: xdownl - download (no-op stub)
       0x70: async () => {
         // Download functionality - no-op stub
@@ -1287,6 +1295,18 @@ export class Interpreter {
       0x96: async (state, arg0, arg1) => {
         flt2fix(state.registers, state.flags, requireIntRegister(arg0), requireFloatRegister(arg1));
       },
+      // 0x97: iupdate - update interface (no-op stub)
+      0x97: async () => {
+        // Update interface - no-op stub
+      },
+      // 0x98: irange - interface range (no-op stub)
+      0x98: async () => {
+        // Interface range - no-op stub
+      },
+      // 0x99: iincpos - increment position (no-op stub)
+      0x99: async () => {
+        // Increment position - no-op stub
+      },
       0x9a: async (state, arg0, arg1) => {
         tabseekuOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), requireIntRegister(arg1));
       },
@@ -1333,11 +1353,24 @@ export class Interpreter {
       0xa9: async () => {
         // Jump to subroutine - not implemented
       },
+      // 0xaa: tabsetex - table set extended (same as tabset)
+      0xaa: async (state, arg0) => {
+        tabsetOp(state.registers, state.flags, this.tableRegistry, state.tableState, requireStringRegister(arg0));
+      },
       0xa1: async (state, arg0, arg1) => {
         fcomp(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
       },
       0xab: async (state, arg0, arg1) => {
         ufix2dez(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
+      },
+      // 0xad: ticks - get system ticks (ms since epoch)
+      0xad: async (state, arg0) => {
+        setIntValue(state.registers, requireIntRegister(arg0), Date.now() & 0xffffffff);
+      },
+      // 0xae: waitex - wait extended (same as wait)
+      0xae: async (state, arg0) => {
+        const durationMs = resolveIntValue(state.registers, arg0);
+        await new Promise((resolve) => setTimeout(resolve, Math.max(0, durationMs)));
       },
       0xaf: async (state, arg0) => {
         await xopen(state.registers, requireCommunicationInterface(state), optionalIntRegister(arg0));
@@ -1357,6 +1390,12 @@ export class Interpreter {
       0xb4: async (state, arg0, arg1) => {
         const timeout = optionalIntRegister(arg1);
         await xrecvex(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0), timeout);
+      },
+      // 0xb5: ssize - string size (length in bytes)
+      0xb5: async (state, arg0, arg1) => {
+        const str = getStringValue(state.registers, requireStringRegister(arg1));
+        const bytes = utf8ToCp1252(str);
+        setIntValue(state.registers, requireIntRegister(arg0), bytes.length);
       },
       0xb6: async (state, arg0) => {
         tabcolsOp(state.registers, state.flags, state.tableState, requireIntRegister(arg0));
