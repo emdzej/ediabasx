@@ -10,6 +10,7 @@ import type {
   IntRegisterRef,
   StringRegisterRef,
 } from "./register-refs";
+import { getFloatValue, getIntValue, getStringValue } from "./register-values";
 
 export type {
   FloatRegisterRef,
@@ -97,24 +98,7 @@ function resolveString(registers: RegisterSet, source: StringSource): string {
   if (typeof source === "string") {
     return source;
   }
-  return registers.getS(source.index);
-}
-
-function getIntValue(registers: RegisterSet, ref: IntRegisterRef): number {
-  switch (ref.kind) {
-    case "B":
-      return registers.getB(ref.index);
-    case "A":
-      return registers.getA(ref.index);
-    case "I":
-      return registers.getI(ref.index);
-    case "L":
-      return registers.getL(ref.index);
-  }
-}
-
-function getFloatValue(registers: RegisterSet, ref: FloatRegisterRef): number {
-  return registers.getF(ref.index);
+  return getStringValue(registers, source);
 }
 
 function maskUnsigned(value: number, bits: 8 | 16 | 32): number {

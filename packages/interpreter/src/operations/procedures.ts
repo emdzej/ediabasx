@@ -1,6 +1,7 @@
 import { cp1252ToUtf8, utf8ToCp1252, EdiabasError, EdiabasErrorCodes } from "@ediabas/core";
 import { RegisterSet } from "../registers";
 import type { FloatRegisterRef, IntRegisterRef, StringRegisterRef } from "./register-refs";
+import { getFloatValue, getIntValue, getStringValue } from "./register-values";
 
 export type { FloatRegisterRef, IntRegisterRef, StringRegisterRef } from "./register-refs";
 
@@ -57,27 +58,6 @@ export class ProcedureStack {
   size(): number {
     return this.args.length;
   }
-}
-
-function getIntValue(registers: RegisterSet, ref: IntRegisterRef): number {
-  switch (ref.kind) {
-    case "B":
-      return registers.getB(ref.index);
-    case "A":
-      return registers.getA(ref.index);
-    case "I":
-      return registers.getI(ref.index);
-    case "L":
-      return registers.getL(ref.index);
-  }
-}
-
-function getFloatValue(registers: RegisterSet, ref: FloatRegisterRef): number {
-  return registers.getF(ref.index);
-}
-
-function getStringValue(registers: RegisterSet, ref: StringRegisterRef): string {
-  return registers.getS(ref.index);
 }
 
 export function plink(

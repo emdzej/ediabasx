@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import { RegisterSet } from "./registers";
 import { Timer, gettmr, settmr, getdate, gettime, wait } from "./operations/time";
 

@@ -1,5 +1,6 @@
 import { RegisterSet } from "../registers";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
+import { getIntValue, setIntValue } from "./register-values";
 
 export type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 
@@ -21,36 +22,6 @@ export class Timer {
 
   read(): number {
     return this.baseMs + (this.now() - this.startedAt);
-  }
-}
-
-function getIntValue(registers: RegisterSet, ref: IntRegisterRef): number {
-  switch (ref.kind) {
-    case "B":
-      return registers.getB(ref.index);
-    case "A":
-      return registers.getA(ref.index);
-    case "I":
-      return registers.getI(ref.index);
-    case "L":
-      return registers.getL(ref.index);
-  }
-}
-
-function setIntValue(registers: RegisterSet, ref: IntRegisterRef, value: number): void {
-  switch (ref.kind) {
-    case "B":
-      registers.setB(ref.index, value);
-      return;
-    case "A":
-      registers.setA(ref.index, value);
-      return;
-    case "I":
-      registers.setI(ref.index, value);
-      return;
-    case "L":
-      registers.setL(ref.index, value);
-      return;
   }
 }
 
