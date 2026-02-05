@@ -532,7 +532,6 @@ export function parsePrg(buffer: Uint8Array): PrgFile {
       binaryJobs,
       tables,
       code,
-      rawBuffer: buffer,
     };
   }
 
@@ -559,6 +558,5 @@ export function parsePrg(buffer: Uint8Array): PrgFile {
     binaryJobs: [],
     tables: [],
     code,
-    rawBuffer: buffer,
   };
 }

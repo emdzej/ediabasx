@@ -116,8 +116,6 @@ export type PrgFile = {
   tables: PrgTable[];
   /** Bytecode (empty for metadata-only files) */
   code: Uint8Array;
-  /** Raw file buffer (for EDIABAS OBJECT format where bytecode is at binaryJob offsets) */
-  rawBuffer: Uint8Array;
 };
 
 /**
