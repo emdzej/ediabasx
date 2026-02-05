@@ -716,3 +716,5 @@ export const a2flt = stof;
  * FLT2A - Float to ASCII (alias for FTOS).
  */
 export const flt2a = ftos;
+export const fix2flt = itof;
+export const flt2fix = ftoi;

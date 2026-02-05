@@ -704,3 +704,40 @@ export const strlen = slen;
  * This is an alias for scat used in some BEST2 dialects.
  */
 export const strcat = scat;
+
+export const a2fix = stoi;
+export const fix2hex = htos;
+export const fix2dez = itos;
+
+export function ufix2dez(
+  registers: RegisterSet,
+  destination: StringRegisterRef,
+  source: IntRegisterRef
+): void {
+  const value = getIntValue(registers, source) >>> 0;
+  setStringValue(registers, destination, value.toString(10));
+}
+
+export const hex2fix = stoh;
+export const dez2fix = stoi;
+
+export function udez2fix(
+  registers: RegisterSet,
+  flags: Flags,
+  destination: IntRegisterRef,
+  source: StringRegisterRef
+): void {
+  const str = getStringValue(registers, source).trim();
+  const value = parseInt(str, 10);
+  if (isNaN(value)) {
+    setIntValue(registers, destination, 0);
+    flags.z = true;
+    flags.c = true;
+  } else {
+    setIntValue(registers, destination, value >>> 0);
+    flags.z = false;
+    flags.c = false;
+  }
+  flags.v = false;
+  flags.s = false;
+}
