@@ -158,10 +158,10 @@ export function ergi(
   registers: RegisterSet,
   collector: ResultCollector,
   name: StringSource,
-  value: IntRegisterRef
+  value: IntRegisterRef | number
 ): void {
   const resultName = resolveString(registers, name);
-  const raw = getIntValue(registers, value);
+  const raw = typeof value === "number" ? value : getIntValue(registers, value);
   collector.record(resultName, "int", toSigned16(raw));
 }
 

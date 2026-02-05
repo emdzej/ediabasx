@@ -35,6 +35,7 @@ function createPrg(code: Uint8Array, tables: PrgTable[] = []): PrgFile {
   const metadata: PrgMetadata = {};
   return {
     header,
+    rawBuffer: code,
     metadata,
     rawContent: "",
     strings: [],

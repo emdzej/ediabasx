@@ -524,6 +524,7 @@ export function parsePrg(buffer: Uint8Array): PrgFile {
 
     return { 
       header, 
+      rawBuffer: buffer,
       metadata,
       rawContent,
       strings: [], 
@@ -550,6 +551,7 @@ export function parsePrg(buffer: Uint8Array): PrgFile {
 
   return { 
     header, 
+    rawBuffer: buffer,
     metadata: {},
     rawContent: "",
     strings, 
