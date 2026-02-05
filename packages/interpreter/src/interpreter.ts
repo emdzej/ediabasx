@@ -153,7 +153,7 @@ import {
   tabcols as tabcolsOp,
 } from "./operations/table";
 import type { FloatRegisterRef, IntRegisterRef, StringRegisterRef } from "./operations/register-refs";
-import { getFloatValue, getIntValue, getStringValue, setFloatValue, setStringValue } from "./operations/register-values";
+import { getFloatValue, getIntValue, getStringValue, setFloatValue, setIntValue, setStringValue } from "./operations/register-values";
 
 const OpAddrModes = {
   NONE: 0,
@@ -1252,6 +1252,18 @@ export class Interpreter {
       0x88: async (state, arg0, arg1) => {
         const value = resolveFloatValue(state.registers, arg1);
         fsetImm(state.registers, requireFloatRegister(arg0), value);
+      },
+      // 0x89: cfgig - config get int (stub: returns 0)
+      0x89: async (state, arg0) => {
+        setIntValue(state.registers, requireIntRegister(arg0), 0);
+      },
+      // 0x8a: cfgsg - config set/get (no-op stub)
+      0x8a: async () => {
+        // Config set/get - no-op stub
+      },
+      // 0x8b: cfgis - config is set (stub: returns 0 = not set)
+      0x8b: async (state, arg0) => {
+        setIntValue(state.registers, requireIntRegister(arg0), 0);
       },
       // 0x8d: xparraw - raw parameters (no-op stub)
       0x8d: async () => {
