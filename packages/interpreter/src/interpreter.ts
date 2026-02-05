@@ -19,6 +19,8 @@ import {
   test,
   move,
   clear,
+  addc,
+  subc,
 } from "./operations/arithmetic";
 import {
   type ExecutionState,
@@ -1038,6 +1040,14 @@ export class Interpreter {
       0x44: async (state, arg0) => {
         const value = resolveIntValue(state.registers, arg0);
         settmr(state.registers, state.timer, value as TimeValueRef);
+      },
+      // 0x49: addc - add with carry
+      0x49: async (state, arg0, arg1) => {
+        addc(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
+      },
+      // 0x4a: subc - subtract with carry/borrow
+      0x4a: async (state, arg0, arg1) => {
+        subc(state.registers, state.flags, requireIntRegister(arg0), requireIntRegister(arg1));
       },
       0x4c: async (state) => {
         clrv(state.flags);

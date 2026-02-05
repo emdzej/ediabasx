@@ -526,3 +526,51 @@ export const lsl = shl;
 export const lsr = shr;
 export const asl = shl;
 export const asr = shr;
+
+/**
+ * Add with carry (ADDC).
+ * Adds source to destination plus the carry flag.
+ */
+export function addc(
+  registers: RegisterSet,
+  flags: Flags,
+  destination: RegisterRef,
+  source: RegisterRef
+): void {
+  const bits = getBitWidth(destination);
+  const value0 = maskValue(getRegisterValue(registers, destination), bits);
+  const value1 = maskValue(getRegisterValue(registers, source), bits);
+  const carryIn = flags.c ? 1 : 0;
+  const sum = value0 + value1 + carryIn;
+  const result = maskValue(sum, bits);
+
+  setRegisterValue(registers, destination, result);
+  updateZeroSign(flags, result, bits);
+  setOverflowAdd(flags, value0, value1 + carryIn, result, bits);
+  flags.c = sum > MAX_UNSIGNED[bits];
+}
+
+/**
+ * Subtract with carry/borrow (SUBC).
+ * Subtracts source from destination minus the carry flag (borrow).
+ * C=1 means borrow input, C=1 output means borrow occurred.
+ */
+export function subc(
+  registers: RegisterSet,
+  flags: Flags,
+  destination: RegisterRef,
+  source: RegisterRef
+): void {
+  const bits = getBitWidth(destination);
+  const value0 = maskValue(getRegisterValue(registers, destination), bits);
+  const value1 = maskValue(getRegisterValue(registers, source), bits);
+  // Borrow is carry flag directly
+  const borrow = flags.c ? 1 : 0;
+  const diff = value0 - value1 - borrow;
+  const result = maskValue(diff, bits);
+
+  setRegisterValue(registers, destination, result);
+  updateZeroSign(flags, result, bits);
+  setOverflowSub(flags, value0, value1 + borrow, result, bits);
+  flags.c = (value0 < value1 + borrow);
+}
