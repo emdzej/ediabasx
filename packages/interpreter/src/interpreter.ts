@@ -1276,15 +1276,48 @@ export class Interpreter {
       0x8b: async (state, arg0) => {
         setIntValue(state.registers, requireIntRegister(arg0), 0);
       },
+      // 0x8c: a2y - ASCII string to Y-register (binary)
+      0x8c: async (state, arg0, arg1) => {
+        const str = getStringValue(state.registers, requireStringRegister(arg1));
+        const bytes = utf8ToCp1252(str);
+        setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
+      },
       // 0x8d: xparraw - raw parameters (no-op stub)
       0x8d: async () => {
         // Raw parameters - no-op stub
+      },
+      // 0x8e: hex2y - hex string to Y-register (binary)
+      0x8e: async (state, arg0, arg1) => {
+        const hexStr = getStringValue(state.registers, requireStringRegister(arg1));
+        const bytes = new Uint8Array(hexStr.length / 2);
+        for (let i = 0; i < bytes.length; i++) {
+          bytes[i] = parseInt(hexStr.slice(i * 2, i * 2 + 2), 16) || 0;
+        }
+        setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
       },
       0x8f: async (state, arg0, arg1) => {
         strcmp(state.registers, state.flags, requireStringRegister(arg0), requireStringRegister(arg1));
       },
       0x90: async (state, arg0, arg1) => {
         strlen(state.registers, requireIntRegister(arg0), requireStringRegister(arg1));
+      },
+      // 0x91: y2bcd - Y-register to BCD string
+      0x91: async (state, arg0, arg1) => {
+        const bytes = utf8ToCp1252(getStringValue(state.registers, requireStringRegister(arg1)));
+        let bcd = "";
+        for (const byte of bytes) {
+          bcd += ((byte >> 4) & 0x0f).toString() + (byte & 0x0f).toString();
+        }
+        setStringValue(state.registers, requireStringRegister(arg0), bcd);
+      },
+      // 0x92: y2hex - Y-register to hex string
+      0x92: async (state, arg0, arg1) => {
+        const bytes = utf8ToCp1252(getStringValue(state.registers, requireStringRegister(arg1)));
+        let hex = "";
+        for (const byte of bytes) {
+          hex += byte.toString(16).padStart(2, "0").toUpperCase();
+        }
+        setStringValue(state.registers, requireStringRegister(arg0), hex);
       },
       0x93: async (state, arg0, arg1) => {
         shmset(state.registers, state.sharedMemory, arg0 as unknown as IntRegisterRef, arg1 as unknown as IntRegisterRef);
@@ -1309,6 +1342,42 @@ export class Interpreter {
       },
       0x9a: async (state, arg0, arg1) => {
         tabseekuOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), requireIntRegister(arg1));
+      },
+      // 0x9b: flt2y4 - float to 4-byte Y (IEEE 754 single)
+      0x9b: async (state, arg0, arg1) => {
+        const value = getFloatValue(state.registers, requireFloatRegister(arg1));
+        const buffer = new ArrayBuffer(4);
+        new DataView(buffer).setFloat32(0, value, false); // big-endian
+        const bytes = new Uint8Array(buffer);
+        setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
+      },
+      // 0x9c: flt2y8 - float to 8-byte Y (IEEE 754 double)
+      0x9c: async (state, arg0, arg1) => {
+        const value = getFloatValue(state.registers, requireFloatRegister(arg1));
+        const buffer = new ArrayBuffer(8);
+        new DataView(buffer).setFloat64(0, value, false); // big-endian
+        const bytes = new Uint8Array(buffer);
+        setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
+      },
+      // 0x9d: y42flt - 4-byte Y to float
+      0x9d: async (state, arg0, arg1) => {
+        const bytes = utf8ToCp1252(getStringValue(state.registers, requireStringRegister(arg1)));
+        const buffer = new ArrayBuffer(4);
+        const view = new DataView(buffer);
+        for (let i = 0; i < Math.min(4, bytes.length); i++) {
+          view.setUint8(i, bytes[i]);
+        }
+        setFloatValue(state.registers, requireFloatRegister(arg0), view.getFloat32(0, false));
+      },
+      // 0x9e: y82flt - 8-byte Y to float
+      0x9e: async (state, arg0, arg1) => {
+        const bytes = utf8ToCp1252(getStringValue(state.registers, requireStringRegister(arg1)));
+        const buffer = new ArrayBuffer(8);
+        const view = new DataView(buffer);
+        for (let i = 0; i < Math.min(8, bytes.length); i++) {
+          view.setUint8(i, bytes[i]);
+        }
+        setFloatValue(state.registers, requireFloatRegister(arg0), view.getFloat64(0, false));
       },
       0x9f: async (state, arg0) => {
         const id = resolveIntValue(state.registers, arg0);
