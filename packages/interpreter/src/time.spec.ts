@@ -33,7 +33,7 @@ describe("Time and date operations", () => {
     getdate(registers, I0, date);
 
     expect(registers.getS(0)).toBe("2026-02-05");
-    expect(registers.getI(0)).toBe(20260205);
+    expect(registers.getI(0)).toBe(20260205 & 0xffff);
   });
 
   it("gettime writes formatted string and numeric time", () => {
@@ -43,7 +43,7 @@ describe("Time and date operations", () => {
     gettime(registers, I1, date);
 
     expect(registers.getS(1)).toBe("10:05:07");
-    expect(registers.getI(1)).toBe(100507);
+    expect(registers.getI(1)).toBe(100507 & 0xffff);
   });
 
   it("wait resolves after duration", async () => {
