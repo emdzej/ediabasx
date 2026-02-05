@@ -23,6 +23,10 @@ export const CAN_PROT_ISOTP = 0x02;
 
 export const KWP1281_TIMEOUT = 60;
 
+export const FAST_INIT_BREAK_MS = 25;
+export const FAST_INIT_IDLE_MS = 25;
+export const KWP_KEYBYTE_KWP2000 = 0x8f;
+
 export const EscapeConfRead = 0x01;
 export const EscapeConfWrite = 0x02;
 export const EscapeCodeDefault = 0xff;

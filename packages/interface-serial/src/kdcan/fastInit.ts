@@ -1,0 +1,86 @@
+import { SerialTransport } from "../types";
+import {
+  FAST_INIT_BREAK_MS,
+  FAST_INIT_IDLE_MS,
+  KWP_KEYBYTE_KWP2000
+} from "./constants";
+
+export const KwpProtocols = {
+  Kwp2000: "kwp2000",
+  Kwp1281: "kwp1281"
+} as const;
+
+export type KwpProtocol = (typeof KwpProtocols)[keyof typeof KwpProtocols];
+
+export type FastInitOptions = {
+  readonly setDtr?: boolean;
+  readonly useLLine?: boolean;
+  readonly breakDurationMs?: number;
+  readonly idleDurationMs?: number;
+};
+
+type PulseCapableTransport = SerialTransport & {
+  sendPulse?: (
+    dataBits: number,
+    length: number,
+    pulseWidthMs: number,
+    setDtr: boolean,
+    bothLines: boolean
+  ) => Promise<void>;
+};
+
+export async function sendFastInit(
+  transport: SerialTransport,
+  options: FastInitOptions = {}
+): Promise<void> {
+  const {
+    setDtr = false,
+    useLLine = false,
+    breakDurationMs = FAST_INIT_BREAK_MS,
+    idleDurationMs = FAST_INIT_IDLE_MS
+  } = options;
+
+  await transport.purge();
+
+  const pulseTransport = transport as PulseCapableTransport;
+  if (pulseTransport.sendPulse) {
+    await pulseTransport.sendPulse(0x02, 2, breakDurationMs, setDtr, useLLine);
+    return;
+  }
+
+  if (setDtr) {
+    await transport.setDtr(true);
+  }
+
+  if (useLLine) {
+    await transport.setRts(true);
+  }
+
+  await transport.setBreak(breakDurationMs);
+  await delay(idleDurationMs);
+
+  if (useLLine) {
+    await transport.setRts(false);
+  }
+
+  if (setDtr) {
+    await transport.setDtr(false);
+  }
+}
+
+export function parseKeyBytes(response: Uint8Array): KwpProtocol {
+  if (response.length < 2) {
+    throw new Error("Key bytes response must include at least 2 bytes");
+  }
+
+  return response[1] === KWP_KEYBYTE_KWP2000
+    ? KwpProtocols.Kwp2000
+    : KwpProtocols.Kwp1281;
+}
+
+function delay(durationMs: number): Promise<void> {
+  if (durationMs <= 0) {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => setTimeout(resolve, durationMs));
+}

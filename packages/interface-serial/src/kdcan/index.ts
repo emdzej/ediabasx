@@ -15,6 +15,9 @@ export {
   EscapeConfWrite,
   EscapeMaskDefault,
   EscapeXor,
+  FAST_INIT_BREAK_MS,
+  FAST_INIT_IDLE_MS,
+  KWP_KEYBYTE_KWP2000,
   KLINEF1_FAST_INIT,
   KLINEF1_NO_ECHO,
   KLINEF1_PARITY_EVEN,
@@ -48,3 +51,5 @@ export {
   createPulseTelegram,
   getMinBaudRate
 } from "./telegram";
+export type { FastInitOptions, KwpProtocol } from "./fastInit";
+export { KwpProtocols, parseKeyBytes, sendFastInit } from "./fastInit";
