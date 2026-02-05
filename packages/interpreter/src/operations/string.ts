@@ -23,22 +23,9 @@
 
 import { RegisterSet } from "../registers";
 import { Flags } from "../flags";
+import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 
-/**
- * Reference to an S (string) register.
- */
-export type StringRegisterRef = {
-  kind: "S";
-  index: number;
-};
-
-/**
- * Reference to an integer register (B, A, I, or L).
- */
-export type IntRegisterRef = {
-  kind: "B" | "A" | "I" | "L";
-  index: number;
-};
+export type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 
 /**
  * Get string value from register.

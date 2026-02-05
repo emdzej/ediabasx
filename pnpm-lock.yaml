@@ -92,6 +92,9 @@ importers:
       '@ediabas/core':
         specifier: workspace:*
         version: link:../core
+      '@ediabas/interface-base':
+        specifier: workspace:*
+        version: link:../interface-base
 
   packages/protocol-doip: {}
 

@@ -8,7 +8,8 @@
     "dist"
   ],
   "dependencies": {
-    "@ediabas/core": "workspace:*"
+    "@ediabas/core": "workspace:*",
+    "@ediabas/interface-base": "workspace:*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

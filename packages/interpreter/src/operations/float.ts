@@ -17,30 +17,19 @@
 
 import { RegisterSet } from "../registers";
 import { Flags } from "../flags";
+import type {
+  FloatRegisterRef,
+  IntRegisterRef,
+  StringRegisterRef,
+} from "./register-refs";
 
-/**
- * Reference to an F (float) register.
- */
-export type FloatRegisterRef = {
-  kind: "F";
-  index: number;
-};
+export type {
+  FloatRegisterRef,
+  IntRegisterRef,
+  StringRegisterRef,
+} from "./register-refs";
 
-/**
- * Reference to an S (string) register.
- */
-export type StringRegisterRef = {
-  kind: "S";
-  index: number;
-};
-
-/**
- * Reference to an integer register (B, A, I, or L).
- */
-export type IntRegisterRef = {
-  kind: "B" | "A" | "I" | "L";
-  index: number;
-};
+// Types are defined in register-refs.
 
 /**
  * Get float value from register.
