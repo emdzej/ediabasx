@@ -5,6 +5,8 @@ export {
   type RegisterSnapshot,
 } from "./registers";
 
+export { Interpreter, type ExecutionOptions, type InterpreterSnapshot } from "./interpreter";
+
 export { Flags, type BitWidth, type FlagSnapshot } from "./flags";
 
 export {
@@ -172,25 +174,21 @@ export {
 
 // Table operations
 export {
-  type BestTable,
-  type TableContext,
+  type TableData,
+  type TableState,
+  type TableRegistry,
   type StringRegisterRef as TableStringRef,
   type IntRegisterRef as TableIntRef,
-  tabget,
-  tabgetHeader,
+  createTableRegistry,
   tabset,
+  tabseek,
+  tabseeku,
+  tabget,
   tabrows,
   tabcols,
-  tabfind,
-  tabseeku,
   tabline,
-  tabselect,
-  tabgetnext,
-  createTableContext,
-  selectFirstTable,
   // Aliases
   tablen,
-  tabseek,
 } from "./operations/table";
 
 // Result operations

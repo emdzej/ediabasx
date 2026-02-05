@@ -8,6 +8,7 @@
     "dist"
   ],
   "dependencies": {
+    "@ediabas/best-parser": "workspace:*",
     "@ediabas/core": "workspace:*",
     "@ediabas/interface-base": "workspace:*"
   },
