@@ -441,6 +441,17 @@ function resolveFloatValue(registers: RegisterSet, operand: Operand): number {
   }
 }
 
+function resolveIndexedBytes(registers: RegisterSet, operand: Operand): Uint8Array {
+  const indexed = requireIndexed(operand);
+  const base = getStringValue(registers, indexed.base);
+  const bytes = utf8ToCp1252(base);
+  const start = resolveIntValue(registers, indexed.index) + (indexed.offset?.value ?? 0);
+  const length = indexed.length
+    ? resolveIntValue(registers, indexed.length)
+    : bytes.length - start;
+  return bytes.slice(Math.max(0, start), Math.max(0, start) + Math.max(0, length));
+}
+
 function resolveStringValue(registers: RegisterSet, operand: Operand): string {
   switch (operand.kind) {
     case "string":
@@ -454,13 +465,7 @@ function resolveStringValue(registers: RegisterSet, operand: Operand): string {
       }
       return getStringValue(registers, operand.ref);
     case "indexed": {
-      const base = getStringValue(registers, operand.base);
-      const bytes = utf8ToCp1252(base);
-      const start = resolveIntValue(registers, operand.index) + (operand.offset?.value ?? 0);
-      const length = operand.length
-        ? resolveIntValue(registers, operand.length)
-        : bytes.length - start;
-      const slice = bytes.slice(Math.max(0, start), Math.max(0, start) + Math.max(0, length));
+      const slice = resolveIndexedBytes(registers, operand);
       return cp1252ToUtf8(slice);
     }
     default:
@@ -484,13 +489,7 @@ function resolveBinaryValue(registers: RegisterSet, operand: Operand): Uint8Arra
       }
       return utf8ToCp1252(getStringValue(registers, operand.ref));
     case "indexed": {
-      const base = getStringValue(registers, operand.base);
-      const bytes = utf8ToCp1252(base);
-      const start = resolveIntValue(registers, operand.index) + (operand.offset?.value ?? 0);
-      const length = operand.length
-        ? resolveIntValue(registers, operand.length)
-        : bytes.length - start;
-      return bytes.slice(Math.max(0, start), Math.max(0, start) + Math.max(0, length));
+      return resolveIndexedBytes(registers, operand);
     }
     default:
       throw new EdiabasError(
