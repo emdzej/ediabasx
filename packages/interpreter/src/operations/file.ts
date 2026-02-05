@@ -15,8 +15,11 @@ export interface FileSystem {
   open(path: string, mode: FileOpenMode): FileHandle;
   close(handle: FileHandle): void;
   read(handle: FileHandle, length: number): Uint8Array;
+  readLine?(handle: FileHandle): Uint8Array | null;
   write(handle: FileHandle, data: Uint8Array): number;
   seek(handle: FileHandle, offset: number, origin: SeekOrigin): void;
+  tell?(handle: FileHandle): number;
+  tellLine?(handle: FileHandle): number;
   eof(handle: FileHandle): boolean;
 }
 
@@ -99,4 +102,58 @@ export function feof(
 ): void {
   const handle = getIntValue(registers, handleRef);
   setIntValue(registers, destination, fileSystem.eof(handle) ? 1 : 0);
+}
+
+/**
+ * FREADLN - Read a line from file.
+ * Reads until newline (LF) or EOF. CR is stripped.
+ */
+export function freadln(
+  fileSystem: FileSystem,
+  registers: RegisterSet,
+  destination: StringRegisterRef,
+  handleRef: IntRegisterRef
+): void {
+  const handle = getIntValue(registers, handleRef);
+  if (fileSystem.readLine) {
+    const data = fileSystem.readLine(handle);
+    setStringValue(registers, destination, data ? cp1252ToUtf8(data) : "");
+  } else {
+    // Fallback: read byte by byte until newline
+    const bytes: number[] = [];
+    while (!fileSystem.eof(handle)) {
+      const byte = fileSystem.read(handle, 1);
+      if (byte.length === 0 || byte[0] === 0x0a) break;
+      if (byte[0] !== 0x0d) bytes.push(byte[0]);
+    }
+    setStringValue(registers, destination, cp1252ToUtf8(new Uint8Array(bytes)));
+  }
+}
+
+/**
+ * FTELL - Get current file position (byte offset).
+ */
+export function ftell(
+  fileSystem: FileSystem,
+  registers: RegisterSet,
+  destination: IntRegisterRef,
+  handleRef: IntRegisterRef
+): void {
+  const handle = getIntValue(registers, handleRef);
+  const position = fileSystem.tell ? fileSystem.tell(handle) : 0;
+  setIntValue(registers, destination, position);
+}
+
+/**
+ * FTELLLN - Get current line number in file.
+ */
+export function ftellln(
+  fileSystem: FileSystem,
+  registers: RegisterSet,
+  destination: IntRegisterRef,
+  handleRef: IntRegisterRef
+): void {
+  const handle = getIntValue(registers, handleRef);
+  const lineNumber = fileSystem.tellLine ? fileSystem.tellLine(handle) : 0;
+  setIntValue(registers, destination, lineNumber);
 }
