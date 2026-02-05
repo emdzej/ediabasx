@@ -258,8 +258,8 @@ export {
 
 // Shared memory operations
 export {
-  type SharedMemoryKeyOperand,
-  type SharedMemoryValueOperand,
+  type SharedMemoryKey,
+  type SharedMemoryValue,
   SharedMemory,
   shmset,
   shmget,
