@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import { RegisterSet } from "./registers";
-import { Timer, gettmr, settmr, getdate, gettime, wait } from "./operations/time";
+import { Timer, gettmr, settmr, getdate, gettime, wait, sett, clrt } from "./operations/time";
 
 const S0 = { kind: "S", index: 0 } as const;
 const S1 = { kind: "S", index: 1 } as const;
@@ -52,5 +52,27 @@ describe("Time and date operations", () => {
     vi.advanceTimersByTime(500);
     await promise;
     vi.useRealTimers();
+  });
+});
+
+describe("Timer flag operations", () => {
+  it("sett sets timer flag to true", () => {
+    const state = { timerFlag: false };
+    sett(state);
+    expect(state.timerFlag).toBe(true);
+  });
+
+  it("clrt clears timer flag to false", () => {
+    const state = { timerFlag: true };
+    clrt(state);
+    expect(state.timerFlag).toBe(false);
+  });
+
+  it("sett then clrt resets flag", () => {
+    const state = { timerFlag: false };
+    sett(state);
+    expect(state.timerFlag).toBe(true);
+    clrt(state);
+    expect(state.timerFlag).toBe(false);
   });
 });
