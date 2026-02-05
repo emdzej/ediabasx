@@ -78,6 +78,7 @@ import {
   ergw,
   ergd,
   ergi,
+  ergiValue,
   ergr,
   ergs,
   ergy,
@@ -95,7 +96,7 @@ import {
   sett,
   clrt,
 } from "./operations/time";
-import { SharedMemory, shmset, shmget } from "./operations/shared-memory";
+import { SharedMemory, shmset, shmget, type SharedMemoryKeyOperand, type SharedMemoryValueOperand } from "./operations/shared-memory";
 import {
   type CommunicationInterface,
   xconnect,
@@ -241,6 +242,8 @@ type InterpreterState = {
   progressPos: number;
   // Results filter (for etag)
   resultsRequest: Set<string>;
+  // XOR encoding flag
+  xorEncoded: boolean;
 };
 
 export type ExecutionOptions = {
@@ -380,6 +383,34 @@ function optionalIntRegister(operand: Operand): IntRegisterRef | undefined {
   throw new EdiabasError(
     EdiabasErrorCodes.INVALID_INSTRUCTION,
     "Expected integer register"
+  );
+}
+
+// Convert operand to SharedMemoryKeyOperand
+function toShmKeyOperand(operand: Operand): SharedMemoryKeyOperand {
+  if (operand.kind === "string") {
+    return { kind: "string", value: operand.value };
+  }
+  if (operand.kind === "register" && operand.ref.kind === "S") {
+    return { kind: "register", ref: operand.ref };
+  }
+  throw new EdiabasError(
+    EdiabasErrorCodes.INVALID_INSTRUCTION,
+    "shmset/shmget key must be string or string register"
+  );
+}
+
+// Convert operand to SharedMemoryValueOperand
+function toShmValueOperand(operand: Operand): SharedMemoryValueOperand {
+  if (operand.kind === "string") {
+    return { kind: "string", value: operand.value, raw: operand.raw };
+  }
+  if (operand.kind === "register" && operand.ref.kind === "S") {
+    return { kind: "register", ref: operand.ref };
+  }
+  throw new EdiabasError(
+    EdiabasErrorCodes.INVALID_INSTRUCTION,
+    "shmset value must be string or string register"
   );
 }
 
@@ -650,24 +681,75 @@ function decodeOperand(
   }
 }
 
-function decodeInstruction(code: Uint8Array, pc: number): { opcode: number; arg0: Operand; arg1: Operand; nextPc: number } {
+const XOR_KEY = 0xf7;
+
+// Check if code at offset looks XOR-encoded
+function isXorEncoded(code: Uint8Array, offset: number): boolean {
+  if (offset >= code.length) return false;
+  const firstByte = code[offset];
+  // If first byte is a valid opcode, not encoded
+  // Common opcodes: 0x00 (move), 0x1c (nop), 0x1d (eoj), 0x20-0x3f (various)
+  const validOpcodes = new Set([
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+    0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
+    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f,
+    0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f,
+  ]);
+  if (validOpcodes.has(firstByte)) return false;
+  // Check if XOR-decoded first byte is valid
+  const decoded = firstByte ^ XOR_KEY;
+  return validOpcodes.has(decoded);
+}
+
+// XOR decode a slice of code
+function xorDecode(code: Uint8Array, start: number, length: number): Uint8Array {
+  const decoded = new Uint8Array(length);
+  for (let i = 0; i < length && start + i < code.length; i++) {
+    decoded[i] = code[start + i] ^ XOR_KEY;
+  }
+  return decoded;
+}
+
+function decodeInstruction(code: Uint8Array, pc: number, xorEncoded: boolean): { opcode: number; arg0: Operand; arg1: Operand; nextPc: number } {
   if (pc + 1 >= code.length) {
     throw new EdiabasError(
       EdiabasErrorCodes.INVALID_INSTRUCTION,
       `PC out of range: ${pc}`
     );
   }
-  const opcode = code[pc];
-  const addrMode = code[pc + 1];
+  
+  // Decode bytes if XOR-encoded
+  const readByte = (offset: number): number => {
+    const byte = code[offset];
+    return xorEncoded ? byte ^ XOR_KEY : byte;
+  };
+  
+  const opcode = readByte(pc);
+  const addrMode = readByte(pc + 1);
   const arg0Mode = (addrMode & 0xf0) >> 4;
   const arg1Mode = addrMode & 0x0f;
   let offset = pc + 2;
-  const view = new DataView(code.buffer, code.byteOffset, code.byteLength);
-  const arg0 = decodeOperand(code, view, offset, arg0Mode as OpAddrMode);
+  
+  // For XOR-encoded, we need to decode the entire operand area
+  let workingCode = code;
+  if (xorEncoded) {
+    // Estimate max operand size (conservative: 64 bytes should be enough)
+    const maxLen = Math.min(64, code.length - pc);
+    workingCode = xorDecode(code, pc, maxLen);
+    offset = 2; // Reset offset relative to decoded slice
+  }
+  
+  const view = new DataView(workingCode.buffer, workingCode.byteOffset, workingCode.byteLength);
+  const arg0 = decodeOperand(workingCode, view, offset, arg0Mode as OpAddrMode);
   offset = arg0.nextOffset;
-  const arg1 = decodeOperand(code, view, offset, arg1Mode as OpAddrMode);
+  const arg1 = decodeOperand(workingCode, view, offset, arg1Mode as OpAddrMode);
   offset = arg1.nextOffset;
-  return { opcode, arg0: arg0.operand, arg1: arg1.operand, nextPc: offset };
+  
+  // Adjust nextPc for XOR-encoded (add back the original pc offset)
+  const nextPc = xorEncoded ? pc + offset : offset;
+  
+  return { opcode, arg0: arg0.operand, arg1: arg1.operand, nextPc };
 }
 
 function resolveJobEntry(prg: PrgFile, name: string): PrgJob | undefined {
@@ -707,12 +789,16 @@ function requireFileSystem(state: InterpreterState): FileSystem {
 export class Interpreter {
   private readonly prg: PrgFile;
   private readonly code: Uint8Array;
+  private readonly isEdiabasObjectFormat: boolean;
   private context: InterpreterState | null = null;
   private readonly tableRegistry: ReturnType<typeof createTableRegistry>;
 
   constructor(prg: PrgFile) {
     this.prg = prg;
-    this.code = prg.code;
+    // EDIABAS OBJECT format has code.length === 0, bytecode is at binaryJob offsets in rawBuffer
+    this.isEdiabasObjectFormat = prg.code.length === 0;
+    // Use rawBuffer for EDIABAS OBJECT format (where code is empty but bytecode is at binaryJob offsets)
+    this.code = this.isEdiabasObjectFormat ? prg.rawBuffer : prg.code;
     this.tableRegistry = createTableRegistry(prg.tables);
   }
 
@@ -738,6 +824,10 @@ export class Interpreter {
     const procedureRegistry = options.procedureRegistry ?? new ProcedureRegistry();
     const procedureStack = options.procedureStack ?? new ProcedureStack();
     const tableState = options.tableState ?? { activeTable: null, rowIndex: 0 };
+    
+    // EDIABAS OBJECT format always has XOR-encoded bytecode at binaryJob offsets
+    // Legacy format may or may not be encoded (check with isXorEncoded)
+    const xorEncoded = this.isEdiabasObjectFormat || isXorEncoded(this.code, offset);
 
     this.context = {
       pc: offset,
@@ -763,6 +853,7 @@ export class Interpreter {
       progressRange: 0,
       progressPos: -1,
       resultsRequest: options.resultsRequest ?? new Set(),
+      xorEncoded,
     };
   }
 
@@ -780,7 +871,7 @@ export class Interpreter {
       return false;
     }
 
-    const { opcode, arg0, arg1, nextPc } = decodeInstruction(this.code, context.pc);
+    const { opcode, arg0, arg1, nextPc } = decodeInstruction(this.code, context.pc, context.xorEncoded);
     context.pc = nextPc;
 
     const handler = this.getHandler(opcode);
@@ -1025,9 +1116,13 @@ export class Interpreter {
         const name = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
         ergd(state.registers, state.results, name, requireIntRegister(arg1));
       },
+      // 0x37: ergi - result int (signed 16-bit)
       0x37: async (state, arg0, arg1) => {
-        const name = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
-        ergi(state.registers, state.results, name, requireIntRegister(arg1));
+        const name = arg0.kind === "string" 
+          ? arg0.value 
+          : getStringValue(state.registers, requireStringRegister(arg0));
+        const value = resolveIntValue(state.registers, arg1);
+        ergiValue(state.results, name, value);
       },
       0x38: async (state, arg0, arg1) => {
         const name = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
@@ -1370,11 +1465,16 @@ export class Interpreter {
         }
         setStringValue(state.registers, requireStringRegister(arg0), hex);
       },
+      // 0x93: shmset - set shared memory (key: string, value: binary)
       0x93: async (state, arg0, arg1) => {
-        shmset(state.registers, state.sharedMemory, arg0 as unknown as IntRegisterRef, arg1 as unknown as IntRegisterRef);
+        const keyOperand = toShmKeyOperand(arg0);
+        const valueOperand = toShmValueOperand(arg1);
+        shmset(state.registers, state.sharedMemory, keyOperand, valueOperand);
       },
+      // 0x94: shmget - get shared memory (dest: string register, key: string)
       0x94: async (state, arg0, arg1) => {
-        shmget(state.registers, state.sharedMemory, requireIntRegister(arg0), arg1 as unknown as IntRegisterRef);
+        const keyOperand = toShmKeyOperand(arg1);
+        shmget(state.registers, state.sharedMemory, requireStringRegister(arg0), keyOperand);
       },
       // 0x95: ergsysi - system info result
       0x95: async (state, arg0, arg1) => {

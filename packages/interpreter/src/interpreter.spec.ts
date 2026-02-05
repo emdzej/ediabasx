@@ -42,6 +42,7 @@ function createPrg(code: Uint8Array, tables: PrgTable[] = []): PrgFile {
     binaryJobs: [],
     tables,
     code,
+    rawBuffer: code,
   };
 }
 

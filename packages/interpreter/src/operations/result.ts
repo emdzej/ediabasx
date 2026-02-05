@@ -165,6 +165,17 @@ export function ergi(
   collector.record(resultName, "int", toSigned16(raw));
 }
 
+/**
+ * ergi variant that takes a resolved value directly (for immediate operands)
+ */
+export function ergiValue(
+  collector: ResultCollector,
+  name: string,
+  value: number
+): void {
+  collector.record(name, "int", toSigned16(value));
+}
+
 export function ergr(
   registers: RegisterSet,
   collector: ResultCollector,

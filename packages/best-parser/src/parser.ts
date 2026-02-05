@@ -519,7 +519,7 @@ export function parsePrg(buffer: Uint8Array): PrgFile {
     // Parse binary tables
     const tables = parseBinaryTables(buffer);
     
-    // No bytecode in this format (yet)
+    // No bytecode in this format (yet) - use rawBuffer for EDIABAS format
     const code = new Uint8Array(0);
 
     return { 
@@ -531,6 +531,7 @@ export function parsePrg(buffer: Uint8Array): PrgFile {
       binaryJobs,
       tables,
       code,
+      rawBuffer: buffer,
     };
   }
 
@@ -556,5 +557,6 @@ export function parsePrg(buffer: Uint8Array): PrgFile {
     binaryJobs: [],
     tables: [],
     code,
+    rawBuffer: buffer,
   };
 }

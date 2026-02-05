@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { RegisterSet } from "./registers";
-import { SharedMemory, shmget, shmset } from "./operations/shared-memory";
+import { SharedMemory, shmget, shmset, type SharedMemoryKeyOperand, type SharedMemoryValueOperand } from "./operations/shared-memory";
 
-const I0 = { kind: "I", index: 0 } as const;
-const I1 = { kind: "I", index: 1 } as const;
+const S0 = { kind: "S", index: 0 } as const;
+const S1 = { kind: "S", index: 1 } as const;
 
 describe("Shared memory operations", () => {
   let registers: RegisterSet;
@@ -14,19 +14,56 @@ describe("Shared memory operations", () => {
     memory = new SharedMemory();
   });
 
-  it("shmset stores values and shmget retrieves them", () => {
-    registers.setI(0, 42);
-    registers.setI(1, 1234);
+  it("shmset stores values with string key and value", () => {
+    const keyOp: SharedMemoryKeyOperand = { kind: "string", value: "TEST_KEY" };
+    const valueOp: SharedMemoryValueOperand = { kind: "string", value: "test value" };
 
-    shmset(registers, memory, I0, I1);
-    registers.setI(1, 0);
-    shmget(registers, memory, I1, I0);
-
-    expect(registers.getI(1)).toBe(1234);
+    shmset(registers, memory, keyOp, valueOp);
+    
+    expect(memory.has("TEST_KEY")).toBe(true);
+    const stored = memory.get("TEST_KEY");
+    expect(new TextDecoder().decode(stored)).toBe("test value");
   });
 
-  it("shmget returns 0 for missing keys", () => {
-    shmget(registers, memory, I0, 99);
-    expect(registers.getI(0)).toBe(0);
+  it("shmget retrieves stored values into string register", () => {
+    const keyOp: SharedMemoryKeyOperand = { kind: "string", value: "MY_KEY" };
+    const valueOp: SharedMemoryValueOperand = { kind: "string", value: "hello world" };
+    
+    shmset(registers, memory, keyOp, valueOp);
+    shmget(registers, memory, S0, keyOp);
+
+    expect(registers.getS(0)).toBe("hello world");
+  });
+
+  it("shmget returns empty string for missing keys", () => {
+    registers.setS(0, "should be cleared");
+    const keyOp: SharedMemoryKeyOperand = { kind: "string", value: "NONEXISTENT" };
+    
+    shmget(registers, memory, S0, keyOp);
+    
+    expect(registers.getS(0)).toBe("");
+  });
+
+  it("shmset/shmget with register operands", () => {
+    registers.setS(0, "REG_KEY");
+    registers.setS(1, "value from register");
+    
+    const keyOp: SharedMemoryKeyOperand = { kind: "register", ref: S0 };
+    const valueOp: SharedMemoryValueOperand = { kind: "register", ref: S1 };
+    
+    shmset(registers, memory, keyOp, valueOp);
+    
+    expect(memory.has("REG_KEY")).toBe(true);
+  });
+
+  it("key lookup is case-insensitive", () => {
+    const keyLower: SharedMemoryKeyOperand = { kind: "string", value: "mykey" };
+    const keyUpper: SharedMemoryKeyOperand = { kind: "string", value: "MYKEY" };
+    const valueOp: SharedMemoryValueOperand = { kind: "string", value: "case test" };
+    
+    shmset(registers, memory, keyLower, valueOp);
+    shmget(registers, memory, S0, keyUpper);
+    
+    expect(registers.getS(0)).toBe("case test");
   });
 });

@@ -1,3 +1,5 @@
+import { cp1252ToUtf8, utf8ToCp1252 } from "@ediabas/core";
+
 /**
  * BEST2 Register System
  *
@@ -205,6 +207,33 @@ export class RegisterSet {
       value.length > this.maxStringSize
         ? value.slice(0, this.maxStringSize)
         : value;
+  }
+
+  /**
+   * Get binary data from an S register.
+   * Converts the UTF-8 string back to cp1252 bytes.
+   * @param reg Register index (0-15)
+   * @returns Binary data as Uint8Array
+   */
+  getSBinary(reg: number): Uint8Array {
+    validateIndex(reg, RegisterSet.S_COUNT, "S");
+    return utf8ToCp1252(this.sRegisters[reg]);
+  }
+
+  /**
+   * Set binary data to an S register.
+   * Converts cp1252 bytes to UTF-8 string for storage.
+   * @param reg Register index (0-15)
+   * @param value Binary data
+   */
+  setSBinary(reg: number, value: Uint8Array): void {
+    validateIndex(reg, RegisterSet.S_COUNT, "S");
+    const str = cp1252ToUtf8(value);
+    // Truncate to max string size
+    this.sRegisters[reg] =
+      str.length > this.maxStringSize
+        ? str.slice(0, this.maxStringSize)
+        : str;
   }
 
   /**

@@ -485,4 +485,227 @@ program
     }
   });
 
+program
+  .command("run")
+  .argument("<file>", "PRG/GRP file")
+  .argument("<job>", "Job name to execute")
+  .argument("[params...]", "Job parameters")
+  .option("-s, --simulation", "Run in simulation mode (no hardware required)")
+  .option("-t, --timeout <ms>", "Communication timeout in milliseconds", "5000")
+  .option("--json", "Output results as JSON")
+  .option("--results <names>", "Filter specific results (comma-separated)")
+  .option("--info", "Show job info instead of executing")
+  .description("Execute a job from PRG/GRP file")
+  .action(async (filePath: string, jobName: string, params: string[], options: {
+    simulation?: boolean;
+    timeout?: string;
+    json?: boolean;
+    results?: string;
+    info?: boolean;
+  }) => {
+    try {
+      const { Ediabas } = await import("@ediabas/ediabas");
+      const prg = readPrgFile(filePath);
+      const ecuPath = path.dirname(path.resolve(filePath));
+      
+      // Find job metadata from jobs or binaryJobs
+      let jobMeta = prg.jobs.find(
+        (j) => j.name.toUpperCase() === jobName.toUpperCase()
+      );
+      
+      // Fall back to binaryJobs if no metadata available
+      const binaryJob = prg.binaryJobs.find(
+        (j) => j.name.toUpperCase() === jobName.toUpperCase()
+      );
+      
+      if (!jobMeta && !binaryJob) {
+        const availableJobs = prg.jobs.length > 0 
+          ? prg.jobs.map((j) => j.name)
+          : prg.binaryJobs.map((j) => j.name);
+        process.stderr.write(`${chalk.red("Error:")} Job "${jobName}" not found.\n`);
+        process.stderr.write(`Available jobs: ${availableJobs.join(", ") || "none"}\n`);
+        process.exitCode = 1;
+        return;
+      }
+      
+      // Create minimal job metadata if only binaryJob exists
+      if (!jobMeta && binaryJob) {
+        jobMeta = {
+          name: binaryJob.name,
+          offset: binaryJob.offset,
+          argCount: 0,
+          resultCount: 0,
+          args: [],
+          results: [],
+        };
+      }
+      
+      // Show job info if --info flag
+      if (options.info) {
+        printJobInfo(jobMeta!);
+        return;
+      }
+      
+      // Validate parameters (only if job has defined args)
+      const requiredArgs = jobMeta!.args.length;
+      if (requiredArgs > 0 && params.length < requiredArgs) {
+        process.stderr.write(`${chalk.red("Error:")} Job ${chalk.bold(jobMeta!.name)} requires ${requiredArgs} argument(s), but ${params.length} provided.\n\n`);
+        printJobUsage(jobMeta!, filePath);
+        process.exitCode = 1;
+        return;
+      }
+      
+      // Create Ediabas instance
+      const ediabas = new Ediabas({
+        ecuPath,
+        simulation: options.simulation ?? true, // Default to simulation for safety
+        timeout: parseInt(options.timeout ?? "5000", 10),
+        logging: false,
+      });
+      
+      // Load SGBD
+      await ediabas.loadSgbd(path.basename(filePath));
+      
+      // Parse results filter
+      const resultsFilter = options.results
+        ? new Set(options.results.split(",").map((r) => r.trim().toUpperCase()))
+        : undefined;
+      
+      // Execute job
+      if (!options.json) {
+        process.stdout.write(`${chalk.cyan("Executing job:")} ${chalk.bold(jobMeta!.name)}\n`);
+        if (params.length > 0) {
+          process.stdout.write(`${chalk.cyan("Parameters:")} ${params.join(", ")}\n`);
+        }
+        process.stdout.write("\n");
+      }
+      
+      const startTime = Date.now();
+      const results = await ediabas.executeJob(jobName, { params });
+      const executionTime = Date.now() - startTime;
+      
+      // Filter results if requested
+      const filteredResults = resultsFilter
+        ? results.filter((r) => resultsFilter.has(r.name.toUpperCase()))
+        : results;
+      
+      // Output results
+      if (options.json) {
+        printJson({
+          job: jobMeta!.name,
+          params,
+          results: filteredResults.map((r) => ({
+            name: r.name,
+            type: r.type,
+            value: formatResultValueJson(r),
+          })),
+          executionTimeMs: executionTime,
+        });
+      } else {
+        printResultsHuman(filteredResults);
+        process.stdout.write(`\n${chalk.gray(`Execution time: ${executionTime}ms`)}\n`);
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
+function printJobInfo(job: PrgJob): void {
+  process.stdout.write(`${chalk.bold.cyan("Job:")} ${chalk.bold(job.name)}\n`);
+  if (job.comment) {
+    process.stdout.write(`${chalk.gray(job.comment)}\n`);
+  }
+  process.stdout.write("\n");
+  
+  if (job.args.length > 0) {
+    process.stdout.write(`${chalk.bold("Arguments")} (${job.args.length}):\n`);
+    for (const arg of job.args) {
+      const comment = arg.comment ? chalk.gray(` - ${arg.comment}`) : "";
+      process.stdout.write(`  ${chalk.yellow(arg.name.padEnd(20))} ${chalk.blue(arg.type)}${comment}\n`);
+    }
+    process.stdout.write("\n");
+  } else {
+    process.stdout.write(`${chalk.gray("No arguments required.")}\n\n`);
+  }
+  
+  if (job.results.length > 0) {
+    process.stdout.write(`${chalk.bold("Results")} (${job.results.length}):\n`);
+    for (const result of job.results) {
+      const comment = result.comment ? chalk.gray(` - ${result.comment}`) : "";
+      process.stdout.write(`  ${chalk.green(result.name.padEnd(20))} ${chalk.blue(result.type)}${comment}\n`);
+    }
+  } else {
+    process.stdout.write(`${chalk.gray("No results defined.")}\n`);
+  }
+}
+
+function printJobUsage(job: PrgJob, filePath: string): void {
+  const fileName = path.basename(filePath);
+  const argsStr = job.args.map((a) => `<${a.name}>`).join(" ");
+  
+  process.stdout.write(`${chalk.bold("Usage:")}\n`);
+  process.stdout.write(`  ediabas run ${fileName} ${job.name}${argsStr ? " " + argsStr : ""}\n\n`);
+  
+  if (job.args.length > 0) {
+    process.stdout.write(`${chalk.bold("Arguments:")}\n`);
+    for (const arg of job.args) {
+      const comment = arg.comment ? ` - ${arg.comment}` : "";
+      process.stdout.write(`  ${chalk.yellow(arg.name.padEnd(20))} (${arg.type})${comment}\n`);
+    }
+  }
+}
+
+function printResultsHuman(results: Array<{ name: string; type: string; value: unknown }>): void {
+  if (results.length === 0) {
+    process.stdout.write(`${chalk.gray("No results returned.")}\n`);
+    return;
+  }
+  
+  process.stdout.write(`${chalk.bold("Results:")}\n`);
+  
+  // Calculate column widths
+  const nameWidth = Math.max(6, ...results.map((r) => r.name.length));
+  const typeWidth = Math.max(6, ...results.map((r) => r.type.length));
+  
+  // Header
+  process.stdout.write(`  ${chalk.gray("Name".padEnd(nameWidth))}  ${chalk.gray("Type".padEnd(typeWidth))}  ${chalk.gray("Value")}\n`);
+  process.stdout.write(`  ${chalk.gray("─".repeat(nameWidth))}  ${chalk.gray("─".repeat(typeWidth))}  ${chalk.gray("─".repeat(30))}\n`);
+  
+  // Rows
+  for (const result of results) {
+    const valueStr = formatResultValueHuman(result);
+    process.stdout.write(`  ${chalk.green(result.name.padEnd(nameWidth))}  ${chalk.blue(result.type.padEnd(typeWidth))}  ${valueStr}\n`);
+  }
+}
+
+function formatResultValueHuman(result: { type: string; value: unknown }): string {
+  if (result.value instanceof Uint8Array) {
+    // Binary - show as hex
+    const hex = Array.from(result.value)
+      .map((b) => b.toString(16).padStart(2, "0").toUpperCase())
+      .join(" ");
+    if (hex.length > 60) {
+      return chalk.yellow(`[${result.value.length} bytes] `) + hex.slice(0, 57) + "...";
+    }
+    return chalk.yellow(`[${result.value.length} bytes] `) + hex;
+  }
+  
+  if (typeof result.value === "number") {
+    return chalk.cyan(result.value.toString());
+  }
+  
+  if (typeof result.value === "string") {
+    return result.value;
+  }
+  
+  return String(result.value);
+}
+
+function formatResultValueJson(result: { type: string; value: unknown }): unknown {
+  if (result.value instanceof Uint8Array) {
+    return Array.from(result.value);
+  }
+  return result.value;
+}
+
 program.parse();
