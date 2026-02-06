@@ -336,6 +336,38 @@ function resolveInterfaceSelection(options: InterfaceCliOptions, fallback: strin
   return { name, options: interfaceOptions };
 }
 
+function formatInterfaceSummary(name: string, options: InterfaceOptions): string {
+  const optionValue = (value: InterfaceOptions[string]): string | undefined => {
+    if (value === undefined) return undefined;
+    return String(value);
+  };
+
+  switch (name) {
+    case "gateway": {
+      const host = optionValue(options.host) ?? "127.0.0.1";
+      const port = optionValue(options.port) ?? "6801";
+      return `Gateway · ${host}:${port}`;
+    }
+    case "serial": {
+      const port = optionValue(options.port) ?? "unknown";
+      const baud = optionValue(options.baudRate) ?? "9600";
+      return `Serial · ${port} @ ${baud}`;
+    }
+    case "kdcan": {
+      const port = optionValue(options.port) ?? "unknown";
+      const baud = optionValue(options.baudRate) ?? "115200";
+      return `KDCAN · ${port} @ ${baud}`;
+    }
+    case "enet": {
+      const host = optionValue(options.host) ?? "unknown";
+      const port = optionValue(options.port) ?? "6801";
+      return `ENET · ${host}:${port}`;
+    }
+    default:
+      return "Simulation";
+  }
+}
+
 function formatInterfaceOption(option: InterfaceOptionMetadata, widths: { name: number; type: number }): string {
   const name = option.name.padEnd(widths.name);
   const type = option.type.padEnd(widths.type);
@@ -655,6 +687,63 @@ function handleError(error: unknown): void {
   const message = error instanceof Error ? error.message : String(error);
   process.stderr.write(`${chalk.red("Error:")} ${message}\n`);
   process.exitCode = 1;
+}
+
+type RunnerExecutionResult = {
+  results: EdiabasJobResult[];
+  executionTimeMs: number;
+};
+
+async function executeRunnerJob(
+  filePath: string,
+  jobName: string,
+  params: string[],
+  options: InterfaceCliOptions & { results?: string }
+): Promise<RunnerExecutionResult> {
+  const { Ediabas } = await import("@ediabas/ediabas");
+  const ecuPath = path.dirname(path.resolve(filePath));
+  const timeout = Number.parseInt(options.timeout ?? "5000", 10);
+  const selection = resolveInterfaceSelection(options, "simulation");
+  const useSimulation = selection.name === "simulation";
+
+  const transport = useSimulation
+    ? undefined
+    : createInterface(selection.name, selection.options);
+
+  const ediabas = new Ediabas({
+    ecuPath,
+    transport,
+    simulation: useSimulation,
+    timeout: Number.isFinite(timeout) ? timeout : 5000,
+    logging: false,
+  });
+
+  await ediabas.loadSgbd(path.basename(filePath));
+
+  const resultsFilter = options.results
+    ? new Set(options.results.split(",").map((value) => value.trim().toUpperCase()))
+    : undefined;
+
+  const startTime = Date.now();
+  let results: EdiabasJobResult[] = [];
+
+  try {
+    if (!useSimulation) {
+      await ediabas.connect();
+    }
+    results = await ediabas.executeJob(jobName, { params });
+  } finally {
+    if (!useSimulation) {
+      await ediabas.disconnect();
+    }
+  }
+
+  const executionTimeMs = Date.now() - startTime;
+  const filteredResults = resultsFilter
+    ? results.filter((result) => resultsFilter.has(result.name.toUpperCase()))
+    : results;
+
+  return { results: filteredResults, executionTimeMs };
 }
 
 program
@@ -1043,15 +1132,20 @@ const runCommand = program
       const prg = readPrgFile(filePath);
       if (!jobName) {
         const selection = resolveInterfaceSelection(options, "simulation");
-        const jobs = prg.jobs.length > 0 ? prg.jobs.map((job) => job.name) : prg.binaryJobs.map((job) => job.name);
-        const timeout = Number.parseInt(options.timeout ?? "5000", 10);
+        const jobs = prg.jobs.length > 0
+          ? prg.jobs.map((job) => ({ name: job.name, args: job.args }))
+          : prg.binaryJobs.map((job) => ({ name: job.name, args: [] }));
+        const interfaceSummary = formatInterfaceSummary(selection.name, selection.options);
+
+        const runInTui = async (job: string, params: string[]) =>
+          executeRunnerJob(filePath, job, params, options);
+
         render(
           React.createElement(RunnerApp, {
             filePath,
             jobs,
-            interfaceName: selection.name,
-            interfaceOptions: selection.options,
-            timeoutMs: Number.isFinite(timeout) ? timeout : 5000,
+            interfaceSummary,
+            onRun: runInTui,
           })
         );
         return;
