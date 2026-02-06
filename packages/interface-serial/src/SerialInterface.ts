@@ -9,24 +9,19 @@ export class SerialInterface extends EdiabasInterface {
     throw new Error("Not implemented");
   }
 
-  async send(data: Uint8Array): Promise<void> {
-    void data;
+  async send(_data: Uint8Array): Promise<void> {
     throw new Error("Not implemented");
   }
 
-  async receive(timeoutMs?: number): Promise<Uint8Array> {
-    void timeoutMs;
+  async receive(_timeoutMs?: number): Promise<Uint8Array> {
     throw new Error("Not implemented");
   }
 
-  getPort(index: number): number {
-    void index;
+  getPort(_index: number): number {
     throw new Error("Not implemented");
   }
 
-  setPort(index: number, value: number): void {
-    void index;
-    void value;
+  setPort(_index: number, _value: number): void {
     throw new Error("Not implemented");
   }
 
@@ -38,18 +33,15 @@ export class SerialInterface extends EdiabasInterface {
     throw new Error("Not implemented");
   }
 
-  setProgramVoltage(value: number): void {
-    void value;
+  setProgramVoltage(_value: number): void {
     throw new Error("Not implemented");
   }
 
-  rawData(request: Uint8Array): Uint8Array {
-    void request;
+  rawData(_request: Uint8Array): Uint8Array {
     throw new Error("Not implemented");
   }
 
-  switchSiRelais(time: number): void {
-    void time;
+  switchSiRelais(_time: number): void {
     throw new Error("Not implemented");
   }
 }
