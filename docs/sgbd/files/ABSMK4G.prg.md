@@ -1,0 +1,350 @@
+# ABSMK4G.prg
+
+## General
+
+|  |  |
+| --- | --- |
+| File | ABSMK4G.prg |
+| Type | PRG |
+| Jobs | 22 |
+| Tables | 8 |
+| Origin | BMW EF-73 Kusch |
+| Revision | 1.18 |
+| Author | BMW TP-421 Hirsch, BMW EF-73 Kusch |
+| ECU Comment | Keine Diagnose bei V > 2.5 km/h |
+
+## Info
+
+| Name | Type | Value | Unit | Comment |
+| --- | --- | --- | --- | --- |
+| ECU | string | Antiblockiersystem MK4 Geschlossen E36 |  |  |
+| ORIGIN | string | BMW EF-73 Kusch |  |  |
+| REVISION | string | 1.18 |  |  |
+| AUTHOR | string | BMW TP-421 Hirsch, BMW EF-73 Kusch |  |  |
+| COMMENT | string | Keine Diagnose bei V > 2.5 km/h |  |  |
+| SPRACHE | string | deutsch |  |  |
+
+## Jobs
+
+### INFO
+
+Information SGBD
+
+_No arguments._
+
+### INITIALISIERUNG
+
+Init-Job fuer ABSMK4G
+
+_No arguments._
+
+### IDENT
+
+Ident-Daten fuer ABS_MK4G
+
+_No arguments._
+
+### FS_LESEN
+
+Fehlerspeicher lesen fuer ABS_MK4G
+
+_No arguments._
+
+### FS_LESEN_KB90
+
+Fehlerspeicher lesen fuer ABS_MK4G mit KB90
+
+_No arguments._
+
+### FS_LOESCHEN
+
+Fehlerspeicher loeschen fuer ABS_MK4G
+
+_No arguments._
+
+### FS_INIT
+
+Fehlerspeicher initialisieren NVRAM-Loeschen
+
+_No arguments._
+
+### STATUS_IO_LESEN
+
+Status Eingaenge ABS_MK4G
+
+_No arguments._
+
+### STEUERN_DIGITAL
+
+Ansteuern mehrerer digitaler Ausgaenge
+
+| Name | Type | Description |
+| --- | --- | --- |
+| E_OR_W | string | Einmal = E oder Wiederholung = W |
+| ORT1 | string | gewuenschte Komponente 1 |
+| ORT2 | string | gewuenschte Komponente 2 |
+| ORT3 | string | gewuenschte Komponente 3 |
+| ORT4 | string | gewuenschte Komponente 4 |
+| ORT5 | string | gewuenschte Komponente 5 |
+| ORT6 | string | gewuenschte Komponente 6 |
+| ORT7 | string | gewuenschte Komponente 7 |
+
+### DRUCKABBAU_VL
+
+Steuern_Digital ansteueren u. ruecksetzen
+
+_No arguments._
+
+### DRUCKABBAU_VR
+
+Steuern_Digital ansteueren u. ruecksetzen
+
+_No arguments._
+
+### DRUCKAUFBAU_VL
+
+Steuern_Digital ansteueren u. ruecksetzen
+
+_No arguments._
+
+### DRUCKHALTEN
+
+Steuern_Digital ansteueren u. ruecksetzen
+
+_No arguments._
+
+### PUMPENFOERDERLEISTUNG_VO
+
+Steuern_Digital ansteueren u. ruecksetzen
+
+_No arguments._
+
+### DRUCKABBAU_HA
+
+Steuern_Digital ansteueren u. ruecksetzen
+
+_No arguments._
+
+### DRUCKAUFBAU_HA
+
+Steuern_Digital ansteueren u. ruecksetzen
+
+_No arguments._
+
+### PUMPENFOERDERLEISTUNG_HA
+
+Steuern_Digital ansteueren u. ruecksetzen
+
+_No arguments._
+
+### ABS_REGELSIMULATION
+
+Ansteuern mehrerer digitaler Ausgaenge
+
+| Name | Type | Description |
+| --- | --- | --- |
+| ANZAHL_WARTESCHLEIFEN | int | Anzahl Warteschleifen, wenn nicht angegeben == 3 |
+
+### HERSTELLDATEN_LESEN
+
+HERSTELL_Daten fuer ABSMK4G
+
+_No arguments._
+
+### ABGLEICHWERTE_LESEN
+
+Triggerschwellen der 4 Radsensoren
+
+_No arguments._
+
+### TRIG_SCHREIBEN
+
+TRIGGERSCHWELLEN SCHREIBEN ABS_MK4G
+
+| Name | Type | Description |
+| --- | --- | --- |
+| E_OR_W | string | Einmal = E oder Wiederholung = W |
+| ORT1 | string | gewuenschte Komponente 1 |
+| ORT2 | string | gewuenschte Komponente 2 |
+
+### DIAGNOSE_ENDE
+
+Diagnose beenden
+
+_No arguments._
+
+## Tables
+
+### JOBRESULT
+
+| SB | STATUS_TEXT |
+| --- | --- |
+| 0xA0 | OKAY |
+| 0xA1 | BUSY |
+| 0xA2 | ERROR_ECU_REJECTED |
+| 0xB0 | ERROR_ECU_PARAMETER |
+| 0xB1 | ERROR_ECU_FUNCTION |
+| 0xFF | ERROR_ECU_NACK |
+| 0x00 | ERROR_ECU_UNKNOWN_STATUSBYTE |
+
+### FORTTEXTE
+
+| ORT | ORTTEXT |
+| --- | --- |
+| 0x11 | ABS Ventil Einlass vorne links |
+| 0x12 | ABS Ventil Auslass vorne links |
+| 0x14 | ABS Ventil Einlass vorne rechts |
+| 0x18 | ABS Ventil Auslass vorne rechts |
+| 0x21 | ABS Ventil Einlass hinten |
+| 0x22 | ABS Ventil Auslass hinten |
+| 0x44 | Bus od. Busprozessor |
+| 0x48 | Interner IC Fehler |
+| 0x51 | Drehzahlfuehler vorne links Triggersignal |
+| 0x52 | Drehzahlfuehler vorne rechts Triggersignal |
+| 0x54 | Drehzahlfuehler hinten links Triggersignal |
+| 0x58 | Drehzahlfuehler hinten rechts Triggersignal |
+| 0x61 | Drehzahlfuehler vorne links Kontinuitaet |
+| 0x62 | Drehzahlfuehler vorne rechts Kontinuitaet |
+| 0x64 | Drehzahlfuehler hinten links Kontinuitaet |
+| 0x68 | Drehzahlfuehler hinten rechts Kontinuitaet |
+| 0x71 | Drehzahlfuehler vorne links Anfahrerkennung |
+| 0x72 | Drehzahlfuehler vorne rechts Anfahrerkennung |
+| 0x74 | Drehzahlfuehler hinten links Anfahrerkennung |
+| 0x78 | Drehzahlfuehler hinten rechts Anfahrerkennung |
+| 0x91 | Pumpenmotor |
+| 0x94 | Bordnetzspannung >16,5 Volt |
+| 0xA1 | Ventil Auslass / Sensor vorne links |
+| 0xA2 | Ventil Auslass / Sensor vorne rechts |
+| 0xA4 | Ventil Auslass / Sensor hinten links |
+| 0xA8 | Ventil Auslass / Sensor hinten rechts |
+| 0xB1 | Versorgung ABS-Aggregat |
+| 0xB2 | Ventilfehler Hauptrelais |
+| 0xB4 | Ventilblock, Stecker abgezogen |
+| 0xB8 | Hardware-gesteuertes Abschalten |
+| 0xFF | NVRAM intern |
+| 0xXY | unbekannter Fehlerort |
+
+### FUMWELTMATRIX
+
+| ORT | UW_ANZ | UW1_NR | UW1_A | UW2_NR | UW2_A | UW2_B | UW3_NR | UW3_A | UW3_B | UW4_NR | UW4_A | UW4_B |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 0x11 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x12 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x14 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x18 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x21 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x22 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x44 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x48 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x51 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x52 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x54 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x58 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x61 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x62 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x64 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x68 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x71 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x72 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x74 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x78 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x91 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0x94 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0xA1 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0xA2 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0xA4 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0xA8 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0xB1 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0xB2 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0xB4 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0xB8 | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0xFF | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+| 0xXY | 0x04 | 0x00 | 10 | 0x01 | 0x01 | 0x02 | 0x02 | 0x03 | 0x04 | 0x03 | 0x05 | 0x06 |
+
+### FUMWELTTEXTE
+
+| UWNR | UWTEXT | UW_EINH |
+| --- | --- | --- |
+| 0x00 | Fahrzeuggeschwindigkeit | km/h |
+| 0x01 | ABS Regelung aktiv | - |
+| 0x02 | ABS Regelung nicht aktiv | - |
+| 0x03 | BLS betaetigt | - |
+| 0x04 | BLS nicht betaetigt | - |
+| 0x05 | Unterspannungserkennung | - |
+| 0x06 | keine Unterspannungserkennung | - |
+| 0xXY | unbekannte Umweltbedingung | XY |
+
+### STEUERN
+
+| STEUER_I_O | BYTE | BITWERT |
+| --- | --- | --- |
+| EVVL | 0 | 0x01 |
+| AVVL | 0 | 0x02 |
+| EVVR | 0 | 0x04 |
+| AVVR | 0 | 0x08 |
+| EVHA | 0 | 0x10 |
+| AVHA | 0 | 0x20 |
+| Pumpe | 1 | 0x01 |
+| XYZ | 2 | 0xFF |
+
+### RAEDER
+
+| RAD_NAME | ADRESSE |
+| --- | --- |
+| VL | 0x81 |
+| VR | 0x82 |
+| HR | 0x83 |
+| HL | 0x84 |
+
+### TRIGGERSCHWELLE
+
+| TRIG_WERT | TRIG_HEX | USS |
+| --- | --- | --- |
+| 0 | 0x00 | 100 |
+| 1 | 0x01 | 125 |
+| 2 | 0x02 | 150 |
+| 3 | 0x03 | 200 |
+| 4 | 0x04 | 250 |
+| 5 | 0x05 | 300 |
+| 6 | 0x06 | 375 |
+| 7 | 0x07 | 475 |
+| 8 | 0x08 | 600 |
+| 9 | 0x09 | 750 |
+| A | 0x0A | 925 |
+| B | 0x0B | 1175 |
+| C | 0x0C | 1450 |
+| D | 0x0D | 1825 |
+| E | 0x0E | 2275 |
+| F | 0x0F | 2850 |
+
+### LIEFERANTEN
+
+| LIEF_NR | LIEF_NAME |
+| --- | --- |
+| 0x01 | Reinshagen |
+| 0x02 | Kostal |
+| 0x03 | Hella |
+| 0x04 | Siemens |
+| 0x05 | Eaton |
+| 0x06 | UTA |
+| 0x07 | Helbako |
+| 0x08 | Bosch |
+| 0x09 | Loewe |
+| 0x10 | VDO |
+| 0x11 | Valeo |
+| 0x12 | MBB |
+| 0x13 | Kammerer |
+| 0x14 | SWF |
+| 0x15 | Blaupunkt |
+| 0x16 | Philips |
+| 0x17 | Alpine |
+| 0x18 | Teves |
+| 0x19 | Elektromatik Suedafrika |
+| 0x20 | Becker |
+| 0x21 | Preh |
+| 0x22 | Alps |
+| 0x23 | Motorola |
+| 0x24 | Temic |
+| 0x25 | Webasto |
+| 0x26 | MotoMeter |
+| 0xFF | unbekannter Hersteller |

@@ -1,0 +1,1225 @@
+# BMSS501.prg
+
+## General
+
+|  |  |
+| --- | --- |
+| File | BMSS501.prg |
+| Type | PRG |
+| Jobs | 130 |
+| Tables | 11 |
+| Origin | BMW TI-433 Dennert |
+| Revision | 1.12 |
+| Author | BMW TP-421 Weber, BMW EE-32 Schaffert, BMW TI-433 Dennert |
+
+## Info
+
+| Name | Type | Value | Unit | Comment |
+| --- | --- | --- | --- | --- |
+| ECU | string | MSS50 fuer S50B32 |  |  |
+| ORIGIN | string | BMW TI-433 Dennert |  |  |
+| REVISION | string | 1.12 |  |  |
+| AUTHOR | string | BMW TP-421 Weber, BMW EE-32 Schaffert, BMW TI-433 Dennert |  |  |
+| COMMENT | string |  |  |  |
+| SPRACHE | string | deutsch |  |  |
+
+## Jobs
+
+### EDIC_RESET
+
+EDIC-Reset
+
+_No arguments._
+
+### initialisierung
+
+Default Init-Job
+
+_No arguments._
+
+### INFO
+
+Information SGBD
+
+_No arguments._
+
+### FS_LESEN_TEXT
+
+Auslesen des Fehlerspeichers (nur die F.-Namen)
+
+_No arguments._
+
+### ISN_LESEN
+
+liefert fertig formatierte ISN fuer MSS50
+
+_No arguments._
+
+### RAM_LESEN
+
+Beliebige RAM - Zellen auslesen
+
+| Name | Type | Description |
+| --- | --- | --- |
+| RAM_LESEN_ADRESSE | long | Uebergabeparameter, Startadresse High-Middle-Low |
+| RAM_LESEN_ANZAHL_BYTE | int | Uebergabeparameter, Anzahl der auszulesenden BYTES |
+
+### ROM_LESEN
+
+Beliebige FLASH - Zellen auslesen
+
+| Name | Type | Description |
+| --- | --- | --- |
+| ROM_LESEN_ADRESSE | long | Uebergabeparameter, Startadresse Segment-High-Middle-Low |
+| ROM_LESEN_ANZAHL_BYTE | int | Uebergabeparameter, Anzahl der auszulesenden BYTES |
+
+### EEPROM_LESEN
+
+Beliebige EEPROM - Zellen auslesen
+
+| Name | Type | Description |
+| --- | --- | --- |
+| EEPROM_LESEN_ADRESSE | long | Uebergabeparameter, Startadresse Segment-High-Middle-Low |
+| EEPROM_LESEN_ANZAHL_BYTE | int | Uebergabeparameter, Anzahl der auszulesenden BYTES |
+
+### IDENT
+
+Ident-Daten fuer DME
+
+_No arguments._
+
+### ADAPT_LOESCHEN
+
+alle Adaptionen gleichzeitig loeschen
+
+_No arguments._
+
+### ADAPT_SELEKTIV_LOESCHEN
+
+Adaptionen bitweise loeschen und Zustaende bitweise setzen
+
+| Name | Type | Description |
+| --- | --- | --- |
+| STATUS_ADAPT | int |  |
+
+### STEUERN_LAMBDAREGLER_SPERREN
+
+LA-Regler ueber Adaptionstelegramm loeschen
+
+_No arguments._
+
+### STEUERN_LLS_TESTDREHZAHL
+
+feste Leerlaufanhebung fuer VANOS-Test
+
+_No arguments._
+
+### ABGAS_VARIANTE_LESEN
+
+Auslesen der Abgasvariante
+
+_No arguments._
+
+### STATUS_CODIER_CHECKSUMME
+
+Codier - Checksumme abfragen
+
+_No arguments._
+
+### AIF_LESEN
+
+Auslesen des Anwender-Info-Feldes
+
+_No arguments._
+
+### FS_QUICK_LESEN
+
+Auslesen des QUICK Fehlerspeichers
+
+_No arguments._
+
+### FS_LESEN
+
+Auslesen des Fehlerspeichers
+
+_No arguments._
+
+### FS_LOESCHEN
+
+Loeschen des Fehlerspeichers
+
+_No arguments._
+
+### FS_SHADOW_LESEN
+
+Auslesen des Fehlerspeichers
+
+_No arguments._
+
+### STATUS_MOTORDREHZAHL
+
+Motordrehzahl auslesen
+
+_No arguments._
+
+### STATUS_MOTORTEMPERATUR
+
+Motortemperatur auslesen
+
+_No arguments._
+
+### STATUS_AN_LUFTTEMPERATUR
+
+Ansauglufttemperatur auslesen
+
+_No arguments._
+
+### STATUS_GESCHWINDIGKEIT
+
+Fahrzeuggeschwindigkeit
+
+_No arguments._
+
+### STATUS_ZUENDWINKEL
+
+Wert Zuendwinkel  auslesen
+
+_No arguments._
+
+### STATUS_DK_POTI
+
+Drosselklappenstellung  auslesen
+
+_No arguments._
+
+### STATUS_EVANOS_IST
+
+Wert Nockenwellenistposition Einlass auslesen
+
+_No arguments._
+
+### STATUS_AVANOS_IST
+
+Wert Nockenwellenistposition Auslass auslesen
+
+_No arguments._
+
+### STATUS_EVANOS_SOLL
+
+Wert Nockenwellensollposition Einlass auslesen
+
+_No arguments._
+
+### STATUS_AVANOS_SOLL
+
+Wert Nockenwellensollposition Auslass auslesen
+
+_No arguments._
+
+### STATUS_T_EINSPRITZ1
+
+Wert Einspritzzeit (ohne Ub-Korrektur!) Bank1/Zyl1
+
+_No arguments._
+
+### STATUS_T_EINSPRITZ2
+
+Wert Einspritzzeit (ohne Ub-Korrektur!) Bank2/Zyl4
+
+_No arguments._
+
+### STATUS_LA_REGLER1
+
+Lambdaregler-Faktor Bank 1 auslesen
+
+_No arguments._
+
+### STATUS_LA_REGLER2
+
+Lambdaregler-Faktor Bank 2 auslesen
+
+_No arguments._
+
+### STATUS_INT
+
+INT-Signal
+
+_No arguments._
+
+### STATUS_INT_2
+
+INT-Signal Bank 2
+
+_No arguments._
+
+### STATUS_ADD
+
+ADD-Signal
+
+_No arguments._
+
+### STATUS_ADD_2
+
+ADD-Signal Bank 2
+
+_No arguments._
+
+### STATUS_MUL
+
+MUL-Signal
+
+_No arguments._
+
+### STATUS_MUL_2
+
+MUL-Signal Bank 2
+
+_No arguments._
+
+### STATUS_KLOPF1
+
+Klopfsignal Zylinder 1
+
+_No arguments._
+
+### STATUS_KLOPF2
+
+Klopfsignal Zylinder 2
+
+_No arguments._
+
+### STATUS_KLOPF3
+
+Klopfsignal Zylinder 3
+
+_No arguments._
+
+### STATUS_KLOPF4
+
+Klopfsignal Zylinder 4
+
+_No arguments._
+
+### STATUS_KLOPF5
+
+Klopfsignal Zylinder 5
+
+_No arguments._
+
+### STATUS_KLOPF6
+
+Klopfsignal Zylinder 6
+
+_No arguments._
+
+### STATUS_UBATT
+
+Batteriespannung
+
+_No arguments._
+
+### STATUS_LMM
+
+Luftmasse
+
+_No arguments._
+
+### STATUS_LL_LUFTBEDARF
+
+Luftmasse
+
+_No arguments._
+
+### STATUS_UB
+
+Batteriespannung
+
+_No arguments._
+
+### STATUS_LUFTMASSE
+
+Luftmasse
+
+_No arguments._
+
+### STATUS_TL
+
+Lastsignal
+
+_No arguments._
+
+### STATUS_OEL_TEMPERATUR
+
+Motoroeltemperatur
+
+_No arguments._
+
+### STATUS_TVTE
+
+Tankenlueftungsventil Highzeit
+
+_No arguments._
+
+### STATUS_AUSBLEND
+
+Anzahl ausgeblendeter Zylinder
+
+_No arguments._
+
+### STATUS_ADC_INTOUT1
+
+Integrator Klopfsensor 1/2 (MUX)
+
+_No arguments._
+
+### STATUS_ADC_INTOUT2
+
+Integrator Klopfsensor 1/2 (MUX)
+
+_No arguments._
+
+### STATUS_ADC_VPP
+
+Programmierspannung
+
+_No arguments._
+
+### STATUS_ADC_UBHR
+
+Spannung Hauptrelaiskontakt
+
+_No arguments._
+
+### STATUS_ADC_TSG
+
+Steuergeraetetemperatur
+
+_No arguments._
+
+### STATUS_ADC_VEXT
+
+Ausgang externe 5V-Versorgung
+
+_No arguments._
+
+### STATUS_ADC_UBINT
+
+interne 5V-Versorgung
+
+_No arguments._
+
+### STATUS_ADC_ULS1
+
+Lambdasondendifferenzspannung 1
+
+_No arguments._
+
+### STATUS_ADC_ULS2
+
+Lambdasondendifferenzspannung 2
+
+_No arguments._
+
+### STATUS_L_SONDE
+
+Lambdasondendifferenzspannung 1
+
+_No arguments._
+
+### STATUS_L_SONDE_2
+
+Lambdasondendifferenzspannung 2
+
+_No arguments._
+
+### STATUS_ADC_TANS
+
+Fuehler Ansauglufttemperatur
+
+_No arguments._
+
+### STATUS_ADC_TMOT
+
+Ausgang externe 5V-Versorgung
+
+_No arguments._
+
+### STATUS_ADC_UHFM
+
+Spannung Luftmassenmesser
+
+_No arguments._
+
+### STATUS_DKP_VOLT
+
+Schleifenspannung DK-Poti
+
+_No arguments._
+
+### STATUS_DIGITAL
+
+Status Schalteingaenge
+
+_No arguments._
+
+### STEUERN_EV_1
+
+EV  1 ansteuern
+
+_No arguments._
+
+### STEUERN_EV_2
+
+EV  2 ansteuern
+
+_No arguments._
+
+### STEUERN_EV_3
+
+EV 3 ansteuern
+
+_No arguments._
+
+### STEUERN_EV_4
+
+EV 4 ansteuern
+
+_No arguments._
+
+### STEUERN_EV_5
+
+EV  5 ansteuern
+
+_No arguments._
+
+### STEUERN_EV_6
+
+EV  6 ansteuern
+
+_No arguments._
+
+### STEUERN_Z_1
+
+Z1 ansteuern
+
+_No arguments._
+
+### STEUERN_Z_2
+
+Z2 ansteuern
+
+_No arguments._
+
+### STEUERN_Z_3
+
+Z3 ansteuern
+
+_No arguments._
+
+### STEUERN_Z_4
+
+Z4 ansteuern
+
+_No arguments._
+
+### STEUERN_Z_5
+
+Z5 ansteuern
+
+_No arguments._
+
+### STEUERN_Z_6
+
+Z6 ansteuern
+
+_No arguments._
+
+### STEUERN_SLP
+
+Sekundaerluftpumpe ansteuern
+
+_No arguments._
+
+### STEUERN_LSH
+
+Lambdasondenheizung ansteuern
+
+_No arguments._
+
+### STEUERN_TEV
+
+Tankentlueftungsventil  ansteuern
+
+_No arguments._
+
+### STEUERN_ELUEFTER
+
+E-Luefterventil  ansteuern
+
+_No arguments._
+
+### STEUERN_FL
+
+Fehlerlampe NICHT UEBER DS2 - nur Pre-Drive-Check
+
+_No arguments._
+
+### STEUERN_LOEL
+
+Oelwarnlampe NICHT UEBER DS2 - Test nur ueber Pre-Drive-Check
+
+_No arguments._
+
+### STEUERN_AVANOS
+
+EVANOS ansteuern
+
+_No arguments._
+
+### STEUERN_EVANOS
+
+EVANOS ansteuern
+
+_No arguments._
+
+### STEUERN_EVANOS_VERSTELLZEIT
+
+Verstellzeitmessung EVANOS anstossen
+
+_No arguments._
+
+### STEUERN_AVANOS_VERSTELLZEIT
+
+Verstellzeitmessung AVANOS anstossen
+
+_No arguments._
+
+### STEUERN_EVANOS_DICHTHEIT
+
+Dichtheitmessung EVANOS anstossen
+
+_No arguments._
+
+### STEUERN_AVANOS_DICHTHEIT
+
+Dichtheitmessung EVANOS anstossen
+
+_No arguments._
+
+### STEUERN_EVANOS_FRUEHANSCHLAG
+
+Fruehanschlag EVANOS anfahren
+
+_No arguments._
+
+### STEUERN_EVANOS_SPAETANSCHLAG
+
+Spaetanschlag EVANOS anfahren
+
+_No arguments._
+
+### STEUERN_AVANOS_FRUEHANSCHLAG
+
+Fruehanschlag AVANOS anfahren
+
+_No arguments._
+
+### STEUERN_AVANOS_SPAETANSCHLAG
+
+Spaetanschlag AVANOS anfahren
+
+_No arguments._
+
+### STEUERN_LL_STELLER
+
+Leerlaufsteller ansteuern (nur Stellglied)
+
+_No arguments._
+
+### STEUERN_EKP
+
+EKP-Relais abschalten moeglich (ca.30s bis Motor aus)
+
+_No arguments._
+
+### STEUERN_KO
+
+Klimakompressorrelais ansteuern (5x 2s EIN/2s AUS)
+
+_No arguments._
+
+### UPROG_EIN
+
+Programmierspannung einschalten nach Info aus SG
+
+_No arguments._
+
+### UPROG_AUS
+
+Programmierspannung ausschalten
+
+_No arguments._
+
+### CO_EINZELABGLEICH_LESEN
+
+CO-Abgleich Einzelwert lesen (MSS50 je 1 Wort)
+
+| Name | Type | Description |
+| --- | --- | --- |
+| ZYLINDER_NR | int | Uebergabeparameter, Index fuer Zylinder |
+
+### CO_EINZELABGLEICH_VERSTELLEN
+
+CO-Abgleich Einzelwert verstellen im RAM (MSS50 je 1 Wort)
+
+| Name | Type | Description |
+| --- | --- | --- |
+| ZYLINDER_NR | int | Uebergabeparameter, Index fuer Zylinder |
+| CO_VERSTELL_WERT | int | Neuer Verstellwert |
+
+### CO_EINZELABGLEICH_PROGRAMMIEREN
+
+CO-Abgleich Einzelwert programmieren (von RAM ins EEPROM schreiben)
+
+| Name | Type | Description |
+| --- | --- | --- |
+| ZYLINDER_NR | int | Uebergabeparameter, Index fuer Zylinder |
+
+### DIAGNOSE_ENDE
+
+Beendet ALLE Diagnoseaktivitaeten, Neueinstieg sofort moeglich
+
+_No arguments._
+
+### DIAGNOSE_ERHALTEN
+
+_No description._
+
+_No arguments._
+
+### SPEICHER_LESEN
+
+Lese Bytes ueber direkte Adressierung Maximallaenge ist begrenzt
+
+| Name | Type | Description |
+| --- | --- | --- |
+| SEGMENT | int | Segment oder Speicher |
+| ADR | unsigned long | Adresse |
+| ANZ_BYTE | int | Anzahl der zu lesenden Bytes |
+
+### SPEICHER_SCHREIBEN
+
+Schreibe binaere Bytes ueber direkte Adressierung Maximallaenge ist begrenzt
+
+| Name | Type | Description |
+| --- | --- | --- |
+| SEGMENT | unsigned int | Segment oder Speicher |
+| ADR | unsigned long | Adresse |
+| ANZ_BYTE | unsigned int | Anzahl der zu schreibenden Bytes |
+| DATEN | string | Inhalte von Byte 1 bis n in ASCII-Code |
+
+### IO_STATUS_VORGEBEN
+
+direkte Stellgliedansteuerung ueber Pin/Tastv./Periode
+
+| Name | Type | Description |
+| --- | --- | --- |
+| PIN_NUMMER | int |  |
+| TASTVERHAELTNIS | int | 00 Stellglied nicht angesteuert, ff staendig angesteuert |
+| PERIODENDAUER | int | 00 ungueltig |
+
+### SYS_ADR_LESEN
+
+Dient zum Auslesen systemspezifischer Adressen
+
+_No arguments._
+
+### HERSTELLER_DATEN_LESEN
+
+Dient zum Auslesen herstellerspezifischer Adressen
+
+_No arguments._
+
+### HERSTELLER_SELBSTTEST
+
+Dient zum Aufruf einer herstellerspezifischen Testroutine (benoetigt spezielles Pruefumfeld - nicht fuer VK/HO)
+
+_No arguments._
+
+### SG_RESET
+
+Dient zum Software-Reset, Adaptionen/FS nicht gesichert!
+
+_No arguments._
+
+### IO_STATUS_LESEN
+
+Direktes Anfordern der IO-Bloecke ueber deren Index
+
+| Name | Type | Description |
+| --- | --- | --- |
+| AUSWAHL | int | Auswahl der Groessen, die man auslesen moechte |
+
+### MCS_AKTIVIEREN
+
+MCS-Modus einschalten (derzeit nicht implementiert)
+
+_No arguments._
+
+### LOGIN_REQUEST
+
+Schutzmechanismus SEED_KEY
+
+_No arguments._
+
+### SEED_KEY
+
+Schutzmechanismus SEED_KEY
+
+_No arguments._
+
+### ABGLEICH_LOGIN_REQUEST
+
+Schutzmechanismus nur fuer Abgleich, direkte Entriegelung
+
+_No arguments._
+
+### CODIER_CHECKSUM
+
+Steuergeraet prueft CRC16 Boot/Daten/Programm Master/Slave
+
+_No arguments._
+
+### ABGLEICHWERTE_SCHREIBEN
+
+Beschreiben des internen Speichers mit den motorspezifischen Abgleichdaten im Standardverfahren (ASCII)
+
+| Name | Type | Description |
+| --- | --- | --- |
+| ABGLEICHWERTE_SCHREIBEN_ANZAHL | int | Anzahl der zu schreibenden Abgleichdatenbytes ohne die Pruefziffer |
+| ABGLEICHWERTE_SCHREIBEN_DATEN | string | Abgleichdaten in folgendem Format z.B. 01 02 AB FF ... <PZ> Datenbytes - 2-stellige Hex-Werte, jeweils gefolgt von einem (1) Leerzeichen - Wertebereich: 00 - FF - nur Grossbuchstaben A - F sind erlaubt Pruefziffer <PZ>: - 1-stelliges Zeichen - Wertebereich: 0 - 9, A - Z - nur Grossbuchstaben A - Z sind erlaubt |
+
+### ABGLEICHWERTE_LESEN
+
+Lesen der aktuellen Abgleichwerte im Standardverfahren (ASCII)
+
+| Name | Type | Description |
+| --- | --- | --- |
+| ABGLEICHWERTE_LESEN_ANZAHL | int | Anzahl der zu lesenden Abgleichwerte |
+
+### ABGLEICHFLAG_SCHREIBEN
+
+Beschreiben des internen Speichers mit den motorspezifischen Abgleichdaten
+
+| Name | Type | Description |
+| --- | --- | --- |
+| ABGLEICHFLAG_SCHREIBEN_FLAG | string | ABGLEICH_IO ABGLEICH_NIO |
+
+### ABGLEICHFLAG_LESEN
+
+_No description._
+
+_No arguments._
+
+### STATUS_TEV
+
+MUL-Signal TEV-Bank1
+
+_No arguments._
+
+### STATUS_TEV_2
+
+MUL-Signal TEV-Bank2
+
+_No arguments._
+
+### FS_EEPROM_LOESCHEN
+
+Loeschen des EEPROM-Fehlerspeichers
+
+_No arguments._
+
+### SPEICHER_SCHREIBEN_BINAER
+
+Schreibe binaere Bytes ueber direkte Adressierung Maximallaenge ist begrenzt
+
+| Name | Type | Description |
+| --- | --- | --- |
+| SEGMENT | unsigned int | Segment oder Speicher |
+| ADR | unsigned long | Adresse |
+| ANZ_BYTE | unsigned int | Anzahl der zu schreibenden Bytes |
+| DATEN | string | Inhalte von Byte 1 bis n in ASCII-Code |
+
+## Tables
+
+### BETRIEBSWMATRIX
+
+| NAME | QUELLE | ZELLE | ORD | TYP | FAKT_A | FAKT_B | EINH |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Motordrehzahl | LINRAM | 0x600AA0 | HL | 1 | 0 | 1 | 1/min |
+| Motortemperatur | LINRAM | 0xE004E4 | -- | 1 | -48 | 1 | Grad C |
+| Ansauglufttemp | LINRAM | 0xE004DE | -- | 1 | -48 | 1 | Grad C |
+| DK-Poti adaptiert | LINRAM | 0xE0068A | -- | 1 | 0 | 0.3922 | % |
+| Geschwindigkeit | LINRAM | 0x600AB6 | HL | 1 | 0 | 1 | km/h |
+| Luftmasse | LINRAM | 0xE00552 | HL | 1 | 0 | 0.25 | kg/h |
+| Zuendwinkel_Zyl1 | LINRAM | 0x60046E | HL | 1 | 0 | 0.1 | Grad KW |
+| Einspritzzeit_Bank1 | LINRAM | 0xE0044E | HL | 1 | 0 | 0.001 | ms |
+| Einspritzzeit_Bank2 | LINRAM | 0xE00454 | HL | 1 | 0 | 0.001 | ms |
+| EVANOS_Ist | LINRAM | 0xE00604 | HL | 1 | 0 | 0.1 | Grad KW |
+| AVANOS_Ist | LINRAM | 0xE00634 | HL | 1 | 0 | 0.1 | Grad KW |
+| Lambdaregler_Bank1 | LINRAM | 0xE0059A | HL | 1 | 0 | 0.0000305 | [1] |
+| Lambdaregler_Bank2 | LINRAM | 0xE005AC | HL | 1 | 0 | 0.0000305 | [1] |
+| Tastverh_TEV | LINRAM | 0xE00A0C | HL | 1 | 0 | 0.016 | ms |
+| n_Ausblend_Zyl | LINRAM | 0xE004CE | -- | 1 | 0 | 1 | [1] |
+| KMW1 | LINRAM | 0x60053C | -- | 1 | 0 | 0.0196 | Volt |
+| KMW2 | LINRAM | 0x60053D | -- | 1 | 0 | 0.0196 | Volt |
+| KMW3 | LINRAM | 0x60053E | -- | 1 | 0 | 0.0196 | Volt |
+| KMW4 | LINRAM | 0x60053F | -- | 1 | 0 | 0.0196 | Volt |
+| KMW5 | LINRAM | 0x600540 | -- | 1 | 0 | 0.0196 | Volt |
+| KMW6 | LINRAM | 0x600541 | -- | 1 | 0 | 0.0196 | Volt |
+| Ubatt | LINRAM | 0x600A80 | -- | 1 | 0 | 0.1 | Volt |
+| EVANOS_Soll | LINRAM | 0xE00614 | -- | 1 | 0 | 1 | Grad KW |
+| AVANOS_Soll | LINRAM | 0xE0064A | -- | 1 | 0 | 1 | Grad KW |
+| Motoroeltemp. | LINRAM | 0xE00A53 | -- | 1 | -48 | 1 | Grad C |
+| Lastsignal | LINRAM | 0xE0055A | HL | 1 | 0 | 0.001 | ms |
+
+### BITS
+
+| NAME | BYTE | MASK | VALUE |
+| --- | --- | --- | --- |
+| BA | 0 | 0x01 | 0x01 |
+| SA | 1 | 0x02 | 0x02 |
+| LSH | 2 | 0x02 | 0x02 |
+| TZ1 | 4 | 0x01 | 0x01 |
+| TZ2 | 4 | 0x02 | 0x02 |
+| TZ3 | 4 | 0x04 | 0x04 |
+| TZ4 | 4 | 0x08 | 0x08 |
+| TZ5 | 4 | 0x10 | 0x10 |
+| TZ6 | 4 | 0x20 | 0x20 |
+| SLP | 6 | 0x02 | 0x02 |
+| NOISE | 8 | 0x80 | 0x80 |
+| KLOPF | 10 | 0x02 | 0x02 |
+| SCHUTZ | 10 | 0x01 | 0x01 |
+| S_AC | 11 | 0x01 | 0x01 |
+| S_GANG | 11 | 0x02 | 0x00 |
+| S_FPR | 11 | 0x04 | 0x00 |
+| S_KL50 | 11 | 0x08 | 0x00 |
+| S_KO | 11 | 0x20 | 0x00 |
+| S_FST | 11 | 0x40 | 0x40 |
+| S_KL15 | 11 | 0x80 | 0x80 |
+| M_SS | 12 | 0x01 | 0x01 |
+| M_STRT | 12 | 0x02 | 0x02 |
+| M_LL | 12 | 0x04 | 0x04 |
+| M_TL | 12 | 0x08 | 0x08 |
+| M_VL | 12 | 0x10 | 0x10 |
+| M_ZA | 12 | 0x20 | 0x20 |
+| M_NL | 12 | 0x40 | 0x40 |
+
+### FORTTEXTE
+
+| ORT | ORTTEXT | UW_1 | UW_2 | UW_3 | UW_4 |
+| --- | --- | --- | --- | --- | --- |
+| 0x24 | Tankentlueftungsventil | 0x00 | 0x01 | 0x03 | 0x0C |
+| 0x36 | Bordnetzspannung | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x19 | Zuendendstufe 1 | 0x00 | 0x01 | 0x05 | 0x0D |
+| 0x17 | Zuendendstufe 2 | 0x00 | 0x01 | 0x05 | 0x0D |
+| 0x18 | Zuendendstufe 3 | 0x00 | 0x01 | 0x05 | 0x0D |
+| 0x32 | Zuendendstufe 4 | 0x00 | 0x01 | 0x05 | 0x0D |
+| 0x34 | Zuendendstufe 5 | 0x00 | 0x01 | 0x05 | 0x0D |
+| 0x33 | Zuendendstufe 6 | 0x00 | 0x01 | 0x05 | 0x0D |
+| 0x25 | Relais Lambdasondenheizung | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x02 | Leerlaufsteller schliessende Spule | 0x00 | 0x01 | 0x04 | 0x0E |
+| 0x1D | Leerlaufsteller oeffnende Spule | 0x00 | 0x01 | 0x04 | 0x0E |
+| 0x9B | intern: Fehlerspeicher Master | 0x00 | 0x08 | 0x1A | 0x05 |
+| 0x96 | intern: Speichertest Master | 0x00 | 0x08 | 0x1A | 0x05 |
+| 0x0F | Zuendstrom Bank 1 | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x09 | Zuendstrom Bank 2 | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x46 | Klopfsensor 1 | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x45 | Klopfsensor 2 | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x44 | Klopfsensor 3 | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x2A | Geschwindigkeitssensor | 0x00 | 0x01 | 0x04 | 0x11 |
+| 0x97 | intern: Treiberdiagnose | 0x00 | 0x1A | 0x07 | 0x12 |
+| 0x98 | intern: Kommunikation Master | 0x00 | 0x1A | 0x07 | 0x12 |
+| 0x56 | CAN-Bus Off | 0x00 | 0x01 | 0x1A | 0x05 |
+| 0x88 | Fehler Leerlaufregler | 0x00 | 0x01 | 0x04 | 0x0E |
+| 0x50 | Schalter Gang | 0x00 | 0x01 | 0x11 | 0x05 |
+| 0x89 | CAN-Protokollfehler | 0x00 | 0x01 | 0x1A | 0x05 |
+| 0x8A | CAN-Timeout Botschaft 1 | 0x00 | 0x01 | 0x1A | 0x05 |
+| 0x8B | CAN-Timeout Botschaft 2 | 0x00 | 0x01 | 0x1A | 0x05 |
+| 0x8C | CAN-Timeout Botschaft 3 | 0x00 | 0x01 | 0x1A | 0x05 |
+| 0x9F | intern: Klopfbaustein 1 | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0xA0 | intern: Klopfbaustein 2 | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0xA1 | intern: Klopfbaustein 3 | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0xA2 | Synchronisation NW-Geber | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x52 | Anlasserschalter KL50 | 0x00 | 0x01 | 0x1A | 0x23 |
+| 0xA3 | intern: SG-Reset | 0x00 | 0x1A | 0x06 | 0x1B |
+| 0x35 | Relais Elektroluefter | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x82 | EWS-Signalmanipulation | 0x25 | 0x26 | 0x1A | 0x05 |
+| 0x10 | Fehler KW-Geber | 0x00 | 0x01 | 0x04 | 0x0F |
+| 0x9C | intern: Fehlerspeicher Slave | 0x00 | 0x01 | 0x1A | 0x05 |
+| 0x9D | intern: Speichertest Slave | 0x00 | 0x01 | 0x1A | 0x05 |
+| 0x40 | Klimaschalter AC/KO | 0x23 | 0x24 | 0x04 | 0x05 |
+| 0x01 | Relais Kraftstoffpumpe | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x13 | Relais Sekundaerluftpumpe | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x4E | Kuehlwassertemperaturfuehler | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x4D | Ansauglufttemperaturfuehler | 0x00 | 0x01 | 0x08 | 0x05 |
+| 0x0D | Lambdasonde 1 | 0x00 | 0x01 | 0x09 | 0x05 |
+| 0x0C | Lambdasonde 2 | 0x00 | 0x01 | 0x0A | 0x05 |
+| 0x29 | Luftmassenmesser | 0x00 | 0x02 | 0x0B | 0x13 |
+| 0x49 | Drosselklappenpotentiometer | 0x00 | 0x01 | 0x04 | 0x0B |
+| 0x90 | Lambdaregler 1 | 0x00 | 0x01 | 0x04 | 0x13 |
+| 0x91 | Lambdaregler 2 | 0x00 | 0x01 | 0x04 | 0x27 |
+| 0x30 | Relais Klimakompressor | 0x00 | 0x01 | 0x04 | 0x05 |
+| 0x07 | Einlassnockenwellengeber | 0x00 | 0x01 | 0x02 | 0x14 |
+| 0x0A | Auslassnockenwellengeber | 0x00 | 0x01 | 0x02 | 0x15 |
+| 0x43 | Einlass-VANOS-Fruehventil | 0x00 | 0x01 | 0x04 | 0x16 |
+| 0x48 | Einlass-VANOS-Spaetventil | 0x00 | 0x01 | 0x04 | 0x17 |
+| 0x16 | Auslass-VANOS-Fruehventil | 0x00 | 0x01 | 0x04 | 0x18 |
+| 0x15 | Auslass-VANOS-Spaetventil | 0x00 | 0x01 | 0x04 | 0x19 |
+| 0x2C | aktiver Oelniveaugeber | 0x00 | 0x01 | 0x04 | 0x1C |
+| 0x2E | Verbrauchssignal | 0x00 | 0x01 | 0x1A | 0x05 |
+| 0x2F | Drehzahlsignal | 0x00 | 0x01 | 0x1A | 0x05 |
+| 0x42 | EWS-Schnittstelle | 0x00 | 0x08 | 0x04 | 0x05 |
+| 0x03 | Einspritzventil 1 | 0x00 | 0x01 | 0x05 | 0x1D |
+| 0x05 | Einspritzventil 2 | 0x00 | 0x01 | 0x05 | 0x1E |
+| 0x04 | Einspritzventil 3 | 0x00 | 0x01 | 0x05 | 0x1F |
+| 0x21 | Einspritzventil 4 | 0x00 | 0x01 | 0x05 | 0x20 |
+| 0x1F | Einspritzventil 5 | 0x00 | 0x01 | 0x05 | 0x21 |
+| 0x20 | Einspritzventil 6 | 0x00 | 0x01 | 0x05 | 0x22 |
+| 0x9E | intern: Kommunikation Slave | 0x00 | 0x01 | 0x07 | 0x12 |
+| 0xXY | unbekannter Fehlercode | 0xFF | 0xFF | 0xFF | 0xFF |
+
+### FARTMATRIX
+
+| ORT | A1_0 | A1_1 | A2_0 | A2_1 | A3_0 | A3_1 | A4_0 | A4_1 | A5_0 | A5_1 | A6_0 | A6_1 | A7_0 | A7_1 | A8_0 | A8_1 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 0x24 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x36 | 0x00 | 0x06 | 0x00 | 0x13 | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x19 | 0x00 | 0x0E | 0x00 | 0x0F | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x17 | 0x00 | 0x0E | 0x00 | 0x0F | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x18 | 0x00 | 0x0E | 0x00 | 0x0F | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x32 | 0x00 | 0x0E | 0x00 | 0x0F | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x34 | 0x00 | 0x0E | 0x00 | 0x0F | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x33 | 0x00 | 0x0E | 0x00 | 0x0F | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x25 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x02 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x1D | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x9B | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x28 | 0x00 | 0x1A | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x96 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x1F | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x0F | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x0B | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x09 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x0B | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x46 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x45 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x44 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x2A | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x97 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x1B | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x98 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x1B | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x56 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x16 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x88 | 0x00 | 0x23 | 0x00 | 0x24 | 0x00 | 0x25 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x50 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x0B | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x89 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x1B | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x8A | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x16 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x8B | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x16 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x8C | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x16 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x9F | 0x00 | 0x1D | 0x00 | 0x1E | 0x00 | 0x1B | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0xA0 | 0x00 | 0x1D | 0x00 | 0x1E | 0x00 | 0x1B | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0xA1 | 0x00 | 0x1D | 0x00 | 0x1E | 0x00 | 0x1B | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0xA2 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x52 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x0B | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0xA3 | 0x00 | 0x26 | 0x00 | 0x27 | 0x00 | 0x08 | 0x00 | 0x1C | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x35 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x82 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x15 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x10 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x16 | 0x00 | 0x0C | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x9C | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x28 | 0x00 | 0x1A | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x9D | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x1F | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x40 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x01 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x13 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x4E | 0x00 | 0x12 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x4D | 0x00 | 0x12 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x0D | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x0B | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x0C | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x0B | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x29 | 0x00 | 0x06 | 0x00 | 0x13 | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x49 | 0x00 | 0x12 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x90 | 0x00 | 0x20 | 0x00 | 0x21 | 0x00 | 0x08 | 0x00 | 0x22 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x91 | 0x00 | 0x20 | 0x00 | 0x21 | 0x00 | 0x08 | 0x00 | 0x22 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x30 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x07 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x16 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x0A | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x16 | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x43 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x48 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x16 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x15 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x2C | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x0B | 0x00 | 0x09 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x2E | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x2F | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x42 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x16 | 0x00 | 0x17 | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x03 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x05 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x04 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x21 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x1F | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x20 | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x0D | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0x9E | 0x00 | 0x06 | 0x00 | 0x07 | 0x00 | 0x08 | 0x00 | 0x1B | 0x00 | 0x0a | 0x00 | 0x01 | 0x03 | 0x02 | 0x04 | 0x05 |
+| 0xXY | 0x00 | 0x00 | 0x00 | 0x00 | 0x00 | 0x00 | 0x00 | 0x00 | 0x00 | 0x00 | 0x00 | 0x00 | 0x00 | 0x00 | 0x00 | 0x00 |
+
+### FARTTEXTE
+
+| ARTNR | ARTTEXT |
+| --- | --- |
+| 0x00 | -- |
+| 0x01 | Fehler nach Entprellung abgespeichert |
+| 0x02 | Fehler momentan vorhanden |
+| 0x03 | Fehler momentan nicht vorhanden |
+| 0x04 | statischer Fehler |
+| 0x05 | sporadischer Fehler |
+| 0x06 | Kurzschluss nach UBatt / Wert zu gross |
+| 0x07 | Kurzschluss nach Masse / Wert zu klein |
+| 0x08 | Leitungsbruch / Wert fehlt |
+| 0x09 | Unplausibler Zustand / Wert unplausibel |
+| 0x0A | Abgasrelevanter Fehler |
+| 0x0B | Leitungsbruch / Abriss |
+| 0x0C | Stoerung |
+| 0x0D | Treiber Uebertemperatur |
+| 0x0E | Primaerkreisfehler |
+| 0x0F | Sekundaerkreisfehler |
+| 0x10 | Sensorwiderstand abgefallen |
+| 0x11 | Kommunikationsfehler SPI |
+| 0x12 | Kurzschluss nach UBatt / Wert zu gross / Abriss |
+| 0x13 | Kurzschluss nach Masse / Wert zu klein / Abriss |
+| 0x14 | Signal fehlt |
+| 0x15 | Signal manipuliert / unerwartet |
+| 0x16 | Signal fehlt / Timeout / Leitungsbruch |
+| 0x17 | Paritaetsfehler |
+| 0x18 | Spule Primaerkreisfehler |
+| 0x19 | Spule Sekundaerkreisfehler |
+| 0x1A | Initialisierung / Abspeicherung gestoert |
+| 0x1B | Kommunikation gestoert |
+| 0x1C | unzulaessige Resets / FLASH defekt / DS2-SG-Reset |
+| 0x1D | Integratorschwelle ueberschritten |
+| 0x1E | Integratorschwelle unterschritten |
+| 0x1F | Test unplausibel |
+| 0x20 | Regler laeuft gegen Maximalwert |
+| 0x21 | Regler laeuft gegen Minimalwert |
+| 0x22 | Regelung unplausibel |
+| 0x23 | Steller klemmt offen |
+| 0x24 | Steller klemmt geschlossen |
+| 0x25 | Leckluft |
+| 0x26 | Reset Master |
+| 0x27 | Reset Slave |
+| 0x28 | Pruefsumme falsch / Manipulation |
+| 0xXY | unbekannte Fehlerart |
+
+### FUMWELTTEXTE
+
+| UWNR | UWTEXT | UW_EINH | UWF_B | UWF_A |
+| --- | --- | --- | --- | --- |
+| 0x00 | Motordrehzahl | 1/min | 0 | 40 |
+| 0x01 | Lastsignal | ms | 0 | 0.032 |
+| 0x02 | DK-Poti adaptiert | % | 0 | 0.3922 |
+| 0x03 | Tastverh. Tankentl. | ms | 0 | 0.512 |
+| 0x04 | Motortemperatur | Grad C | -48 | 1 |
+| 0x05 | Batteriespannung HR | V | 0 | 0.1 |
+| 0x06 | Resetzaehler Master | - | 0 | 1 |
+| 0x07 | SPI-Fehlercode | - | 0 | 1 |
+| 0x08 | Ansauglufttemperatur | Grad C | -48 | 1 |
+| 0x09 | Lambdasondenspannung 1 | V | 0 | 0.032 |
+| 0x0a | Lambdasondenspannung 2 | V | 0 | 0.032 |
+| 0x0b | Spg. Luftmassenmesser | V | 0 | 0.032 |
+| 0x0c | Statusmaske Tankentl. | - | 0 | 1 |
+| 0x0d | Schliesszeit | ms | 0 | 0.128 |
+| 0x0e | Tastverh. LL-Steller | ms | 0 | 64 |
+| 0x0f | Status TPU_PMMX_IRQ | - | 0 | 1 |
+| 0x10 | Reset-Register CPU | - | 0 | 1 |
+| 0x11 | Geschwindigkeit | km/h | 0 | 2 |
+| 0x12 | IPK-Fehlercode | - | 0 | 1 |
+| 0x13 | Adaptionsfaktor ti1 | - | 0 | 0.0078125 |
+| 0x14 | EVANOS-Ist-Winkel | Grad KW | 0 | 0.8 |
+| 0x15 | AVANOS-Ist-Winkel | Grad KW | 0 | 0.8 |
+| 0x16 | Pulsz. EVANOS-Fruehv. | ms | 0 | 2.048 |
+| 0x17 | Pulsz. EVANOS-Spaetv. | ms | 0 | 2.048 |
+| 0x18 | Pulsz. AVANOS-Fruehv. | ms | 0 | 2.048 |
+| 0x19 | Pulsz. AVANOS-Spaetv. | ms | 0 | 2.048 |
+| 0x1A | Steuergeraetetemp. | Grad C | -48 | 1 |
+| 0x1B | Resetzaehler Slave | - | 0 | 1 |
+| 0x1C | Motoroeltemperatur | Grad C | 0 | 1 |
+| 0x1D | Einspritzzeit 1 | ms | 0 | 0.256 |
+| 0x1E | Einspritzzeit 2 | ms | 0 | 0.256 |
+| 0x1F | Einspritzzeit 3 | ms | 0 | 0.256 |
+| 0x20 | Einspritzzeit 4 | ms | 0 | 0.256 |
+| 0x21 | Einspritzzeit 5 | ms | 0 | 0.256 |
+| 0x22 | Einspritzzeit 6 | ms | 0 | 0.256 |
+| 0x23 | Zust.-Maske Schalter | - | 0 | 1 |
+| 0x24 | Zust.-Maske Klima | - | 0 | 1 |
+| 0x25 | ISN-high $0x.. | - | 0 | 1 |
+| 0x26 | ISN-low  $..xx | - | 0 | 1 |
+| 0x27 | Adaptionsfaktor ti2 | - | 0 | 0.0078125 |
+| 0xFF | unbekannte Umweltbed. | - | 0 | 1 |
+| 0xXY | ---- | ---- | 0 | 1 |
+
+### NULLEINSTEXTE
+
+| SELECTOR | 0 | 1 |
+| --- | --- | --- |
+| AE | AUS | EIN |
+| OZ | OFFEN | ZU |
+| AA | AUS | AKTIV |
+| XY | --?-- | --?-- |
+
+### JOBRESULT
+
+| SB | STATUS_TEXT |
+| --- | --- |
+| 0xA0 | OKAY |
+| 0xA1 | BUSY |
+| 0xA2 | ERROR_ECU_REJECTED |
+| 0xB0 | ERROR_ECU_PARAMETER |
+| 0xB1 | ERROR_ECU_FUNCTION |
+| 0xB2 | ERROR_ECU_NUMBER |
+| 0xFF | ERROR_ECU_NACK |
+| 0x00 | ERROR_ECU_UNKNOWN_STATUSBYTE |
+
+### PROGRESULT
+
+| SB | STATUS_TEXT |
+| --- | --- |
+| 0x01 | Programmierung in Ordnung |
+| 0x02 | Programmierung nicht in Ordnung |
+| 0x03 | Speicherzelle nicht geloescht |
+| 0x04 | Kopieren bzw. Sichern AIF nicht moeglich |
+| 0x05 | Kopieren bzw. Sichern ZIF nicht moeglich |
+| 0x06 | Programmierspannung zu niedrig |
+| 0x07 | Programmprogrammiersitzung aktiv |
+| 0x08 | Datenprogrammiersitzung aktiv |
+| 0x09 | BRIF Hardwarereferenz unplausibel |
+| 0x0A | ZIF Programmreferenz unplausibel |
+| 0x0B | Programm- und Hardwarereferenz passen nicht zueinander |
+| 0x0C | Programm unvollstaendig |
+| 0x0D | DIF Datenreferenz unplausibel |
+| 0x0E | Programm- und Datenreferenz passen nicht zueinander |
+| 0x0F | Daten unvollstaendig |
+| 0xXY | Kein vereinbartes Verify-Byte! |
+
+### IORESULT
+
+| SB | STATUS_TEXT |
+| --- | --- |
+| 0x00 | Stellglied wird angesteuert |
+| 0x01 | Ansteuerung nicht fuer diese Pin-Nummer |
+| 0x02 | Tastverhaeltnis ungueltig |
+| 0x03 | Periodendauer ungueltig |
+| 0x04 | Ansteuerbedingung nicht erfuellt |
+| 0xXY | Kein vereinbartes Verify-Byte! |
+
+### CODIER_CS
+
+| MASK | MESS |
+| --- | --- |
+| 0x00 | Bootsektor Master |
+| 0x01 | Programm Master |
+| 0x02 | Daten Master |
+| 0x03 | (unbenutzt) |
+| 0x04 | Bootsektor Slave |
+| 0x05 | Programm Slave |
+| 0x06 | Daten Slave |
+| 0x07 | (unbenutzt) |
