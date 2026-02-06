@@ -111,17 +111,23 @@ export class MockSerialTransport implements SerialTransport {
   enqueueRead(data: Uint8Array | number[], delayMs = 0): void {
     const payload = data instanceof Uint8Array ? data : Uint8Array.from(data);
     const chunk: ScheduledChunk = { data: payload, delayMs };
-    void this.scheduleChunk(chunk);
+    if (delayMs > 0) {
+      void this.scheduleChunkAsync(chunk);
+    } else {
+      this.scheduleChunkSync(chunk);
+    }
   }
 
   getWrites(): Uint8Array[] {
     return [...this.writeLog];
   }
 
-  private async scheduleChunk(chunk: ScheduledChunk): Promise<void> {
-    if (chunk.delayMs > 0) {
-      await new Promise((resolve) => setTimeout(resolve, chunk.delayMs));
-    }
+  private async scheduleChunkAsync(chunk: ScheduledChunk): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, chunk.delayMs));
+    this.scheduleChunkSync(chunk);
+  }
+
+  private scheduleChunkSync(chunk: ScheduledChunk): void {
     for (const value of chunk.data.values()) {
       this.bufferedData.push(value);
     }

@@ -3,8 +3,19 @@ import { EdiabasInterface, EdiabasTimeoutError } from "@ediabas/interface-base";
 import { SerialTimeoutError } from "./errors";
 import { NodeSerialTransport } from "./nodeSerialTransport";
 import {
+  DEFAULT_KWP2000_TIMERS,
+  Kwp2000Session,
+  KwpProtocols,
+  parseKeyBytes,
+  send5BaudInit,
+  sendFastInit,
+  type KwpProtocol,
+  type Kwp2000Timers
+} from "./kdcan";
+import {
   SerialCommParameterIds,
   SerialInitModes,
+  SerialProtocols,
   type SerialCommParameterState,
   type SerialInitMode,
   type SerialInterfaceConfig,
@@ -20,7 +31,10 @@ const DEFAULT_CONFIG = {
   timeoutMs: 5000,
   telegramEndTimeoutMs: 20,
   receiveBufferSize: 4096,
-  p1DelayMs: 0
+  p1DelayMs: 0,
+  kwpModeSelectPayload: Uint8Array.from([0x10, 0x81]),
+  kwpTesterPresentPayload: Uint8Array.from([0x3e, 0x00]),
+  kwpWakeAddress: 0x33
 } as const;
 
 const SerialTiming = {
@@ -43,6 +57,9 @@ export class SerialInterface extends EdiabasInterface {
   private _siRelaisTime = 0;
   private readonly commParameter: SerialCommParameterState = {};
   private answerLength: number | null = null;
+  private kwpSession: Kwp2000Session | null = null;
+  private klineProtocol: KwpProtocol | null = null;
+  private klineKeyBytes: Uint8Array | null = null;
 
   constructor(config: SerialInterfaceConfig) {
     super();
@@ -60,7 +77,10 @@ export class SerialInterface extends EdiabasInterface {
       timeoutMs: merged.timeoutMs,
       telegramEndTimeoutMs: merged.telegramEndTimeoutMs,
       receiveBufferSize: merged.receiveBufferSize,
-      p1DelayMs: this.clampP1(merged.p1DelayMs)
+      p1DelayMs: this.clampP1(merged.p1DelayMs),
+      kwpModeSelectPayload: Uint8Array.from(merged.kwpModeSelectPayload),
+      kwpTesterPresentPayload: Uint8Array.from(merged.kwpTesterPresentPayload),
+      kwpWakeAddress: merged.kwpWakeAddress
     };
 
     this.transport =
@@ -91,6 +111,9 @@ export class SerialInterface extends EdiabasInterface {
     }
     await this.transport.close();
     this.connected = false;
+    this.kwpSession = null;
+    this.klineProtocol = null;
+    this.klineKeyBytes = null;
   }
 
   async send(data: Uint8Array): Promise<void> {
@@ -221,7 +244,12 @@ export class SerialInterface extends EdiabasInterface {
 
   async sendFormatted(format: string, payload: string): Promise<void> {
     void format;
-    await this.send(utf8ToCp1252(payload));
+    const request = utf8ToCp1252(payload);
+    if (this.shouldUseKlineSession()) {
+      await this.sendKlineRequest(request);
+      return;
+    }
+    await this.send(request);
   }
 
   async requestFormatted(
@@ -229,7 +257,12 @@ export class SerialInterface extends EdiabasInterface {
     payload: string,
     timeoutMs?: number
   ): Promise<Uint8Array> {
-    await this.sendFormatted(format, payload);
+    void format;
+    const request = utf8ToCp1252(payload);
+    if (this.shouldUseKlineSession()) {
+      return this.sendKlineRequest(request);
+    }
+    await this.send(request);
     const expectedLength =
       this.answerLength !== null && this.answerLength > 0
         ? this.answerLength
@@ -238,6 +271,9 @@ export class SerialInterface extends EdiabasInterface {
   }
 
   async rawData(request: Uint8Array): Promise<Uint8Array> {
+    if (this.shouldUseKlineSession()) {
+      return this.sendKlineRequest(request);
+    }
     await this.send(request);
     return this.receive();
   }
@@ -266,6 +302,120 @@ export class SerialInterface extends EdiabasInterface {
       return SerialInitModes.Fast;
     }
     return SerialInitModes.Unknown;
+  }
+
+  private shouldUseKlineSession(): boolean {
+    return this.commParameter.protocol === SerialProtocols.Kwp;
+  }
+
+  private async sendKlineRequest(request: Uint8Array): Promise<Uint8Array> {
+    this.assertConnected();
+    await this.ensureKlineSession();
+
+    if (this.klineProtocol === KwpProtocols.Kwp2000 && this.kwpSession) {
+      return this.kwpSession.sendRequest(this.transport, request);
+    }
+
+    await this.send(request);
+    return this.receive();
+  }
+
+  private async ensureKlineSession(): Promise<void> {
+    if (this.klineProtocol !== null) {
+      return;
+    }
+
+    const initMode = this.commParameter.initMode ?? SerialInitModes.Fast;
+    const timers = this.buildKwpTimers();
+    const setDtr = this.commParameter.sendPulse ?? false;
+
+    if (initMode === SerialInitModes.Fast) {
+      await sendFastInit(this.transport, { setDtr });
+    } else if (initMode === SerialInitModes.FiveBaud) {
+      await send5BaudInit(this.transport, this.getKwpWakeAddress(), {
+        setDtr,
+        bothLines: true
+      });
+    } else {
+      throw new Error("Unsupported K-line init mode");
+    }
+
+    const keyBytes = await this.readKeyBytes(timers);
+    this.klineKeyBytes = keyBytes;
+    this.klineProtocol = parseKeyBytes(keyBytes);
+
+    if (this.klineProtocol === KwpProtocols.Kwp2000) {
+      const session = this.createKwpSession(timers);
+      this.kwpSession = session;
+      await session.startSessionWithKeyBytes(this.transport, keyBytes);
+    }
+  }
+
+  private buildKwpTimers(): Kwp2000Timers {
+    const overrides: { -readonly [K in keyof Kwp2000Timers]?: Kwp2000Timers[K] } = {};
+    if (this.commParameter.w1 !== undefined) {
+      overrides.w1 = this.commParameter.w1;
+    }
+    if (this.commParameter.w2 !== undefined) {
+      overrides.w2 = this.commParameter.w2;
+    }
+    if (this.commParameter.w3 !== undefined) {
+      overrides.w3 = this.commParameter.w3;
+    }
+    if (this.commParameter.w4 !== undefined) {
+      overrides.w4 = this.commParameter.w4;
+    }
+    if (this.commParameter.w5 !== undefined) {
+      overrides.w5 = this.commParameter.w5;
+    }
+    if (this.commParameter.p1 !== undefined) {
+      overrides.p1 = this.commParameter.p1;
+    }
+    if (this.commParameter.p2 !== undefined) {
+      overrides.p2 = this.commParameter.p2;
+    }
+    if (this.commParameter.p3 !== undefined) {
+      overrides.p3 = this.commParameter.p3;
+    }
+    if (this.commParameter.timeoutNr78 !== undefined) {
+      overrides.timeoutNr78 = this.commParameter.timeoutNr78;
+    }
+    if (this.commParameter.retryNr78 !== undefined) {
+      overrides.retryNr78 = this.commParameter.retryNr78;
+    }
+
+    return { ...DEFAULT_KWP2000_TIMERS, ...overrides };
+  }
+
+  private createKwpSession(timers: Kwp2000Timers): Kwp2000Session {
+    const ecuAddress = this.commParameter.ecuAddress ?? 0x12;
+    const testerAddress = this.commParameter.testerAddress ?? 0xf1;
+
+    return new Kwp2000Session({
+      ecuAddress,
+      testerAddress,
+      modeSelectPayload: this.config.kwpModeSelectPayload,
+      testerPresentPayload: this.config.kwpTesterPresentPayload,
+      timers
+    });
+  }
+
+  private getKwpWakeAddress(): number {
+    return this.commParameter.ecuAddress ?? this.config.kwpWakeAddress;
+  }
+
+  private async readKeyBytes(timers: Kwp2000Timers): Promise<Uint8Array> {
+    try {
+      const first = await this.transport.read(1, timers.w1);
+      const second = await this.transport.read(1, timers.w2);
+      await this.delay(timers.w3);
+      return Uint8Array.from([first[0], second[0]]);
+    } catch (error) {
+      if (error instanceof SerialTimeoutError) {
+        throw new EdiabasTimeoutError();
+      }
+      throw error;
+    }
   }
 
   private async receiveWithLength(

@@ -98,5 +98,8 @@ export type SerialInterfaceConfig = {
   telegramEndTimeoutMs?: number;
   receiveBufferSize?: number;
   p1DelayMs?: number;
+  kwpModeSelectPayload?: Uint8Array;
+  kwpTesterPresentPayload?: Uint8Array;
+  kwpWakeAddress?: number;
   transport?: SerialTransport;
 };

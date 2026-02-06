@@ -58,6 +58,15 @@ export type { LineControlOptions } from "./lineControl";
 export { withLineControl } from "./lineControl";
 export type { FiveBaudInitOptions } from "./slowInit";
 export { FIVE_BAUD_BIT_TIME_MS, build5BaudDataBits, send5BaudInit } from "./slowInit";
+export type {
+  Kwp2000SessionOptions,
+  Kwp2000Timers
+} from "./kwp2000";
+export {
+  buildBmwFastTelegram,
+  DEFAULT_KWP2000_TIMERS,
+  Kwp2000Session
+} from "./kwp2000";
 export type { AdapterMode, DcanSessionOptions, IsoTpSegmentationOptions } from "./dcan";
 export {
   AdapterModes,
