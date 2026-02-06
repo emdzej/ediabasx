@@ -105,6 +105,61 @@ describe("Interpreter", () => {
     expect(second).toBe(false);
   });
 
+  it("jumps to absolute address when target is a register", async () => {
+    const code = new Uint8Array([
+      0x00,
+      0x37,
+      0x10,
+      0x0c,
+      0x00,
+      0x00,
+      0x00,
+      0x0b,
+      0x30,
+      0x10,
+      0x1c,
+      0x00,
+      0x1d,
+      0x00,
+    ]);
+
+    const interpreter = new Interpreter(createPrg(code));
+    interpreter.start("TEST");
+
+    await interpreter.step();
+    await interpreter.step();
+
+    const state = interpreter.getState();
+    expect(state.pc).toBe(12);
+  });
+
+  it("calls absolute address when target is a register", async () => {
+    const code = new Uint8Array([
+      0x00,
+      0x37,
+      0x10,
+      0x0c,
+      0x00,
+      0x00,
+      0x00,
+      0x0c,
+      0x30,
+      0x10,
+      0x1d,
+      0x00,
+    ]);
+
+    const interpreter = new Interpreter(createPrg(code));
+    interpreter.start("TEST");
+
+    await interpreter.step();
+    await interpreter.step();
+
+    const state = interpreter.getState();
+    expect(state.pc).toBe(12);
+    expect(state.callStack).toEqual([10]);
+  });
+
   it("executes table operations with table state", async () => {
     const code = new Uint8Array([
       0x7b,

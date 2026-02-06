@@ -893,9 +893,17 @@ export class Interpreter {
   }
 
   private getHandler(opcode: number): ((state: InterpreterState, arg0: Operand, arg1: Operand) => Promise<{ pc?: number; halted?: boolean } | void>) | undefined {
+    const resolveJumpOffset = (state: InterpreterState, operand: Operand): number => {
+      if (operand.kind === "immediate") {
+        return operand.value;
+      }
+      const target = resolveIntValue(state.registers, operand);
+      return target - state.pc;
+    };
+
     const jumpHandler = (jumpFn: (flowState: ExecutionState, offset: number) => { newPc: number }) =>
       async (state: InterpreterState, arg0: Operand) => {
-        const offset = resolveIntValue(state.registers, arg0);
+        const offset = resolveJumpOffset(state, arg0);
         return { pc: jumpFn(this.controlFlowState(state), offset).newPc };
       };
 
@@ -903,12 +911,32 @@ export class Interpreter {
       jumpFn: (flowState: ExecutionState, timerState: { timerFlag: boolean }, offset: number) => { newPc: number }
     ) =>
       async (state: InterpreterState, arg0: Operand) => {
-        const offset = resolveIntValue(state.registers, arg0);
+        const offset = resolveJumpOffset(state, arg0);
         return { pc: jumpFn(this.controlFlowState(state), state, offset).newPc };
       };
 
     const handlers: Record<number, (state: InterpreterState, arg0: Operand, arg1: Operand) => Promise<{ pc?: number; halted?: boolean } | void>> = {
       0x00: async (state, arg0, arg1) => {
+        const setZeroSign = (value: number, length: number) => {
+          const mask = length === 4 ? 0xffffffff : (1 << (length * 8)) - 1;
+          const signMask = 1 << (length * 8 - 1);
+          const masked = value & mask;
+          state.flags.z = masked === 0;
+          state.flags.s = (masked & signMask) !== 0;
+        };
+
+        const clearFlags = () => {
+          state.flags.c = false;
+          state.flags.z = false;
+          state.flags.s = false;
+          state.flags.v = false;
+        };
+
+        const clearCarryOverflow = () => {
+          state.flags.c = false;
+          state.flags.v = false;
+        };
+
         // Universal move - handles int, float, and string registers
         if (arg0.kind === "indexed") {
           const base = arg0.base;
@@ -918,6 +946,7 @@ export class Interpreter {
           let sourceBytes: Uint8Array;
           if (arg1.kind === "string" || arg1.kind === "indexed" || (arg1.kind === "register" && arg1.ref.kind === "S")) {
             sourceBytes = resolveBinaryValue(state.registers, arg1);
+            clearFlags();
           } else {
             const length = arg0.length ? resolveIntValue(state.registers, arg0.length) : 1;
             const value = resolveIntValue(state.registers, arg1);
@@ -925,6 +954,8 @@ export class Interpreter {
             for (let i = 0; i < sourceBytes.length; i++) {
               sourceBytes[i] = (value >> (i * 8)) & 0xff;
             }
+            clearCarryOverflow();
+            setZeroSign(value, 1);
           }
           const requiredLength = writeStart + sourceBytes.length;
           const updated = new Uint8Array(Math.max(baseBytes.length, requiredLength));
@@ -937,30 +968,43 @@ export class Interpreter {
         const destRef = requireAnyRegister(arg0);
         if (destRef.kind === "S") {
           // String destination
-          const value = resolveStringValue(state.registers, arg1);
-          state.registers.setS(destRef.index, value);
+          if (arg1.kind === "string" || arg1.kind === "indexed" || (arg1.kind === "register" && arg1.ref.kind === "S")) {
+            const value = resolveBinaryValue(state.registers, arg1);
+            setBinaryValue(state.registers, destRef, value);
+            clearFlags();
+            return;
+          }
+          throw new EdiabasError(EdiabasErrorCodes.INVALID_INSTRUCTION, "Expected string operand");
         } else if (destRef.kind === "F") {
           // Float destination
           const value = resolveFloatValue(state.registers, arg1);
           state.registers.setF(destRef.index, value);
         } else {
           // Integer destination - resolve value from any source
-          if (arg1.kind === "indexed") {
-            const bytes = resolveIndexedBytes(state.registers, arg1);
+          if (arg1.kind === "indexed" || arg1.kind === "string" || (arg1.kind === "register" && arg1.ref.kind === "S")) {
+            const bytes = resolveBinaryValue(state.registers, arg1);
             const length = intRegisterByteLength(destRef);
             let value = 0;
             for (let i = length - 1; i >= 0; i--) {
               value = (value << 8) | (bytes[i] ?? 0);
             }
             setIntValue(state.registers, destRef, value);
+            clearCarryOverflow();
+            setZeroSign(value, length);
             return;
           }
           const value = resolveIntValue(state.registers, arg1);
           setIntValue(state.registers, destRef, value);
+          clearCarryOverflow();
+          setZeroSign(value, intRegisterByteLength(destRef));
         }
       },
       0x01: async (state, arg0) => {
         clear(state.registers, requireAnyRegister(arg0));
+        state.flags.c = false;
+        state.flags.z = true;
+        state.flags.s = false;
+        state.flags.v = false;
       },
       0x02: async (state, arg0, arg1) => {
         cmp(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
@@ -991,7 +1035,7 @@ export class Interpreter {
       },
       0x0b: jumpHandler(jmp),
       0x0c: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
+        const offset = resolveJumpOffset(state, arg0);
         const result = call(this.controlFlowState(state), offset);
         return { pc: result.newPc };
       },
