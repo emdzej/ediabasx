@@ -15,6 +15,7 @@ import type {
   InterfaceOptions
 } from "@ediabas/interfaces";
 import { App } from "./tui/App.js";
+import { RunnerApp } from "./tui/RunnerApp.js";
 import { SimulatorApp } from "./tui/SimulatorApp.js";
 import { SimulatorServer } from "./simulator/SimulatorServer.js";
 
@@ -1019,7 +1020,7 @@ program
 const runCommand = program
   .command("run")
   .argument("<file>", "PRG/GRP file")
-  .argument("<job>", "Job name to execute")
+  .argument("[job]", "Job name to execute")
   .argument("[params...]", "Job parameters")
   .option("-s, --simulation", "Run in simulation mode (alias for --interface simulation)")
   .option("-t, --timeout <ms>", "Communication timeout in milliseconds", "5000")
@@ -1030,7 +1031,7 @@ const runCommand = program
   .description("Execute a job from PRG/GRP file")
   .action(async (
     filePath: string,
-    jobName: string,
+    jobName: string | undefined,
     params: string[],
     options: InterfaceCliOptions & {
       json?: boolean;
@@ -1039,8 +1040,16 @@ const runCommand = program
     }
   ) => {
     try {
-      const { Ediabas } = await import("@ediabas/ediabas");
       const prg = readPrgFile(filePath);
+      if (!jobName) {
+        const selection = resolveInterfaceSelection(options, "simulation");
+        const jobs = prg.jobs.length > 0 ? prg.jobs.map((job) => job.name) : prg.binaryJobs.map((job) => job.name);
+        const interfaceLabel = selection.name.charAt(0).toUpperCase() + selection.name.slice(1);
+        render(React.createElement(RunnerApp, { filePath, jobs, interfaceLabel }));
+        return;
+      }
+
+      const { Ediabas } = await import("@ediabas/ediabas");
       const ecuPath = path.dirname(path.resolve(filePath));
 
       let jobMeta = prg.jobs.find((job) => job.name.toUpperCase() === jobName.toUpperCase());
