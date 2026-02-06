@@ -5,6 +5,7 @@ export { SerialInterface } from "./SerialInterface";
 export * from "./kdcan";
 export type {
   SerialDataBits,
+  SerialInterfaceConfig,
   SerialParity,
   SerialStopBits,
   SerialTransport,
