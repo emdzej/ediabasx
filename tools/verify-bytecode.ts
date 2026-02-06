@@ -567,7 +567,28 @@ async function verifyAllFiles(source: string, output: string): Promise<void> {
     }
 
     const filePath = path.join(source, name);
-    const report = await verifyFile(filePath);
+    let report: FileReport;
+    try {
+      report = await verifyFile(filePath);
+    } catch (error) {
+      report = {
+        file: path.basename(filePath),
+        status: "errors",
+        jobs: [
+          {
+            name: "<parse-error>",
+            status: "error",
+            instructions: 0,
+            errors: [
+              {
+                offset: 0,
+                message: error instanceof Error ? error.message : String(error),
+              },
+            ],
+          },
+        ],
+      };
+    }
     await fs.writeFile(reportPath, JSON.stringify(report, null, 2));
 
     summary.files[report.file] = report.status;
