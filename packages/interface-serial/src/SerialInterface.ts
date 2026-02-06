@@ -371,11 +371,40 @@ export class SerialInterface extends EdiabasInterface {
       return;
     }
     try {
+      if (this.shouldUseKlineSession()) {
+        await this.frequentKwp2000();
+        return;
+      }
       const response = await this.rawData(this.frequentSendBuffer);
       this.frequentRecvBuffer = response;
-    } catch {
-      // Ignore frequent mode errors to keep the timer running.
+    } catch (error) {
+      if (error instanceof EdiabasTimeoutError || error instanceof SerialTimeoutError) {
+        console.warn("Frequent mode timeout", error);
+        return;
+      }
+      console.error("Frequent mode communication error", error);
     }
+  }
+
+  private async frequentKwp2000(): Promise<void> {
+    this.assertConnected();
+    if (!this.frequentSendBuffer) {
+      return;
+    }
+
+    await this.ensureKlineSession();
+
+    if (this.klineProtocol !== KwpProtocols.Kwp2000 || !this.kwpSession) {
+      const response = await this.sendKlineRequest(this.frequentSendBuffer);
+      this.frequentRecvBuffer = response;
+      return;
+    }
+
+    const response = await this.kwpSession.sendRequest(
+      this.transport,
+      this.frequentSendBuffer
+    );
+    this.frequentRecvBuffer = response;
   }
 
   private clampP1(value: number): number {
@@ -472,7 +501,12 @@ export class SerialInterface extends EdiabasInterface {
       overrides.retryNr78 = this.commParameter.retryNr78;
     }
 
-    return { ...DEFAULT_KWP2000_TIMERS, ...overrides };
+    const defaults: Kwp2000Timers = {
+      ...DEFAULT_KWP2000_TIMERS,
+      p2: this.config.timeoutMs
+    };
+
+    return { ...defaults, ...overrides };
   }
 
   private createKwpSession(timers: Kwp2000Timers): Kwp2000Session {
