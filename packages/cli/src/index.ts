@@ -8,6 +8,8 @@ import React from "react";
 import { disassemble, disassembleJob, formatInstruction, parsePrg } from "@ediabas/best-parser";
 import type { PrgBinaryJob, PrgFile, PrgJob, PrgTable } from "@ediabas/best-parser";
 import type { EdiabasJobResult } from "@ediabas/ediabas";
+import { listInterfaces } from "@ediabas/interfaces";
+import type { InterfaceMetadata, InterfaceOptionMetadata } from "@ediabas/interfaces";
 import { App } from "./tui/App.js";
 
 type OutputFormat = "json" | "table" | "human";
@@ -53,6 +55,58 @@ function printJson(value: unknown): void {
 
 function printHeading(label: string): void {
   process.stdout.write(`${chalk.bold.cyan(label)}\n`);
+}
+
+function formatInterfaceOption(option: InterfaceOptionMetadata, widths: { name: number; type: number }): string {
+  const name = option.name.padEnd(widths.name);
+  const type = option.type.padEnd(widths.type);
+  const required = option.required ? chalk.red("required") : "optional";
+  const defaultValue = option.default !== undefined ? String(option.default) : "-";
+  const values = option.values ? ` [${option.values.join("|")}]` : "";
+  return `  ${chalk.yellow(name)}  ${chalk.blue(type)}  ${required}  ${chalk.gray(defaultValue)}  ${option.description}${values}`;
+}
+
+function printInterfacesHuman(interfaces: InterfaceMetadata[]): void {
+  printHeading("Interfaces");
+
+  if (interfaces.length === 0) {
+    process.stdout.write("No interfaces registered.\n");
+    return;
+  }
+
+  for (const entry of interfaces) {
+    process.stdout.write(`${chalk.bold(entry.name)}\n`);
+    process.stdout.write(`  ${entry.description}\n`);
+
+    if (entry.options && entry.options.length > 0) {
+      const widths = {
+        name: Math.max(4, ...entry.options.map((option) => option.name.length)),
+        type: Math.max(4, ...entry.options.map((option) => option.type.length))
+      };
+
+      process.stdout.write(`  ${chalk.bold("Options:")}\n`);
+      process.stdout.write(`  ${chalk.gray("Name".padEnd(widths.name))}  ${chalk.gray("Type".padEnd(widths.type))}  ${chalk.gray("Required")}  ${chalk.gray("Default")}  ${chalk.gray("Description")}\n`);
+      process.stdout.write(
+        `  ${chalk.gray("─".repeat(widths.name))}  ${chalk.gray("─".repeat(widths.type))}  ${chalk.gray("─".repeat(8))}  ${chalk.gray("─".repeat(7))}  ${chalk.gray("─".repeat(11))}\n`
+      );
+
+      for (const option of entry.options) {
+        process.stdout.write(`${formatInterfaceOption(option, widths)}\n`);
+      }
+    }
+
+    process.stdout.write("\n");
+  }
+}
+
+function printInterfacesTable(interfaces: InterfaceMetadata[]): void {
+  console.table(
+    interfaces.map((entry) => ({
+      name: entry.name,
+      description: entry.description,
+      options: entry.options?.length ?? 0
+    }))
+  );
 }
 
 function printInfoSummary(filePath: string, prg: PrgFile): void {
@@ -323,6 +377,32 @@ function handleError(error: unknown): void {
   process.stderr.write(`${chalk.red("Error:")} ${message}\n`);
   process.exitCode = 1;
 }
+
+program
+  .command("interfaces")
+  .option("--json", "output JSON")
+  .option("--table", "output as table")
+  .description("List available communication interfaces")
+  .action((options: OutputOptions) => {
+    try {
+      const interfaces = listInterfaces();
+      const format = resolveOutputFormat(options, "human");
+
+      if (format === "json") {
+        printJson(interfaces);
+        return;
+      }
+
+      if (format === "table") {
+        printInterfacesTable(interfaces);
+        return;
+      }
+
+      printInterfacesHuman(interfaces);
+    } catch (error) {
+      handleError(error);
+    }
+  });
 
 program
   .command("parse")
