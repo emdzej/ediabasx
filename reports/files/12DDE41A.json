@@ -1,6 +1,6 @@
 {
   "file": "12DDE41A.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "initialisierung",
@@ -22,15 +22,9 @@
     },
     {
       "name": "UPROG_AUS",
-      "status": "error",
-      "instructions": 3,
-      "errors": [
-        {
-          "offset": 2495,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 15,
+      "errors": []
     },
     {
       "name": "BLOCKLAENGE_MAX",

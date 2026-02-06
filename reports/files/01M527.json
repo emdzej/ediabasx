@@ -1,6 +1,6 @@
 {
   "file": "01M527.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "EDIC_RESET",
@@ -52,15 +52,9 @@
     },
     {
       "name": "UPROG_AUS",
-      "status": "error",
-      "instructions": 3,
-      "errors": [
-        {
-          "offset": 7192,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 15,
+      "errors": []
     },
     {
       "name": "EPROM_SCHREIBEN",

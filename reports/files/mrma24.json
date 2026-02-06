@@ -1,6 +1,6 @@
 {
   "file": "mrma24.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INFO",
@@ -28,15 +28,9 @@
     },
     {
       "name": "STEUERN_DEINIT_KLINE_KOMMUNIKATION",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 2341,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "FS_LOESCHEN",

@@ -1,6 +1,6 @@
 {
   "file": "edic_pc3.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INFO",
@@ -22,63 +22,33 @@
     },
     {
       "name": "STATUS_LESEN",
-      "status": "error",
-      "instructions": 16,
-      "errors": [
-        {
-          "offset": 748,
-          "opcode": 113,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 168,
+      "errors": []
     },
     {
       "name": "SPANNUNG_SG_EIN",
-      "status": "error",
-      "instructions": 42,
-      "errors": [
-        {
-          "offset": 1799,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
     },
     {
       "name": "SPANNUNG_SG_AUS",
-      "status": "error",
-      "instructions": 42,
-      "errors": [
-        {
-          "offset": 2040,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
     },
     {
       "name": "AUFNAHME_AUS",
-      "status": "error",
-      "instructions": 42,
-      "errors": [
-        {
-          "offset": 2281,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
     },
     {
       "name": "AUFNAHME_EIN",
-      "status": "error",
-      "instructions": 42,
-      "errors": [
-        {
-          "offset": 2560,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
     }
   ]
 }

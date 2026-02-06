@@ -1,6 +1,6 @@
 {
   "file": "carbpr.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INFO",
@@ -10,15 +10,9 @@
     },
     {
       "name": "INITIALISIERUNG",
-      "status": "error",
-      "instructions": 215,
-      "errors": [
-        {
-          "offset": 1407,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 411,
+      "errors": []
     },
     {
       "name": "SCAN_ENDE",

@@ -1,6 +1,6 @@
 {
   "file": "tcm_72.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INFO",
@@ -226,15 +226,9 @@
     },
     {
       "name": "_STAY_IN_BOOT",
-      "status": "error",
-      "instructions": 73,
-      "errors": [
-        {
-          "offset": 298488,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
     }
   ]
 }

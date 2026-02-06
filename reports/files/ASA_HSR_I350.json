@@ -3,13 +3,13 @@
   "status": "errors",
   "jobs": [
     {
-      "name": "<parse-error>",
+      "name": "<parse>",
       "status": "error",
       "instructions": 0,
       "errors": [
         {
           "offset": 0,
-          "message": "Invalid PRG magic: 0x4034b50"
+          "message": "Parse error: Invalid PRG magic: 0x4034b50"
         }
       ]
     }

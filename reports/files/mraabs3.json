@@ -1,6 +1,6 @@
 {
   "file": "mraabs3.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INFO",
@@ -64,63 +64,33 @@
     },
     {
       "name": "STATUS_AD_WERTE",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 32099,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 691,
+      "errors": []
     },
     {
       "name": "STATUS_ANALOG_RADGESCHWINDIGKEIT",
-      "status": "error",
-      "instructions": 266,
-      "errors": [
-        {
-          "offset": 36011,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 438,
+      "errors": []
     },
     {
       "name": "STATUS_ANALOG_SPANNUNG",
-      "status": "error",
-      "instructions": 331,
-      "errors": [
-        {
-          "offset": 38471,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 557,
+      "errors": []
     },
     {
       "name": "STATUS_DATE_OF_ECU_MANUFACTURING",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 42009,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 431,
+      "errors": []
     },
     {
       "name": "STATUS_DIGITAL",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 44014,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 941,
+      "errors": []
     },
     {
       "name": "STATUS_DRUCKWERTE",
@@ -130,75 +100,39 @@
     },
     {
       "name": "STATUS_ECU_IDENTIFICATION_DATA_TABLE",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 56179,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 1193,
+      "errors": []
     },
     {
       "name": "STATUS_EEPROM_VERSION",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 61853,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 292,
+      "errors": []
     },
     {
       "name": "STATUS_EEPROM_ZAEHLER",
-      "status": "error",
-      "instructions": 251,
-      "errors": [
-        {
-          "offset": 63320,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 2711,
+      "errors": []
     },
     {
       "name": "STATUS_FAHRGESTELL_NR",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 75389,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 390,
+      "errors": []
     },
     {
       "name": "STATUS_FAHRGESTELL_NR_EOL",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 77226,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 390,
+      "errors": []
     },
     {
       "name": "STATUS_FTE_SERIENNUMMER",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 79063,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 412,
+      "errors": []
     },
     {
       "name": "STATUS_FTE_SOFTWARE_NR",
@@ -208,27 +142,15 @@
     },
     {
       "name": "STATUS_GEHAEUSE_BARCODE",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 89017,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 476,
+      "errors": []
     },
     {
       "name": "STATUS_ICT_BARCODE",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 91274,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 363,
+      "errors": []
     },
     {
       "name": "STATUS_KODIERUNG_AD",
@@ -238,87 +160,45 @@
     },
     {
       "name": "STATUS_KODIERUNG_EEPROM",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 99318,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 353,
+      "errors": []
     },
     {
       "name": "STATUS_KODIERUNG_RAM",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 101115,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 353,
+      "errors": []
     },
     {
       "name": "STATUS_MAX_BAUDRATE",
-      "status": "error",
-      "instructions": 251,
-      "errors": [
-        {
-          "offset": 102953,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 420,
+      "errors": []
     },
     {
       "name": "STATUS_MODULATOR",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 104954,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 355,
+      "errors": []
     },
     {
       "name": "STATUS_SOFTWARE_VERSION",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 106644,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 595,
+      "errors": []
     },
     {
       "name": "STATUS_VEHICLE_MANUFACTURER_HW_NR",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 109340,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 335,
+      "errors": []
     },
     {
       "name": "STATUS_ZULAESSIGE_KODIERUNGEN",
-      "status": "error",
-      "instructions": 249,
-      "errors": [
-        {
-          "offset": 110949,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 430,
+      "errors": []
     },
     {
       "name": "STEUERN_BREMSLICHT",
@@ -334,15 +214,9 @@
     },
     {
       "name": "STEUERN_DEINIT_KLINE_KOMMUNIKATION",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 124143,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_FAHRZEUGCODIERUNG_EEPROM",

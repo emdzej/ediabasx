@@ -1,6 +1,6 @@
 {
   "file": "mraabsn.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INFO",
@@ -28,51 +28,27 @@
     },
     {
       "name": "STEUERN_REINIT_KLINE_ICOM",
-      "status": "error",
-      "instructions": 6,
-      "errors": [
-        {
-          "offset": 2190,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 40,
+      "errors": []
     },
     {
       "name": "FS_LOESCHEN",
-      "status": "error",
-      "instructions": 6,
-      "errors": [
-        {
-          "offset": 2415,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
     },
     {
       "name": "FS_LESEN",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 3598,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 1086,
+      "errors": []
     },
     {
       "name": "IDENT",
-      "status": "error",
-      "instructions": 6,
-      "errors": [
-        {
-          "offset": 8893,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 1001,
+      "errors": []
     },
     {
       "name": "SG_IDENTIFIKATION_ECU_LESEN",

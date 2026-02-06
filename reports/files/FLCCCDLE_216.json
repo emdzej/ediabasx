@@ -1,6 +1,6 @@
 {
   "file": "FLCCCDLE_216.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INFO",
@@ -202,27 +202,15 @@
     },
     {
       "name": "STATUS_DLE_VERSION",
-      "status": "error",
-      "instructions": 50,
-      "errors": [
-        {
-          "offset": 157379,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 236,
+      "errors": []
     },
     {
       "name": "STEUERN_DLE_RESET",
-      "status": "error",
-      "instructions": 23,
-      "errors": [
-        {
-          "offset": 158362,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 89,
+      "errors": []
     },
     {
       "name": "STEUERN_TP_INTERVALL",
@@ -250,51 +238,27 @@
     },
     {
       "name": "STEUERN_DLE_LADEN",
-      "status": "error",
-      "instructions": 125,
-      "errors": [
-        {
-          "offset": 162759,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 796,
+      "errors": []
     },
     {
       "name": "STEUERN_DLE_BUFFERCLEAR",
-      "status": "error",
-      "instructions": 19,
-      "errors": [
-        {
-          "offset": 166122,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 44,
+      "errors": []
     },
     {
       "name": "STATUS_DLE",
-      "status": "error",
-      "instructions": 19,
-      "errors": [
-        {
-          "offset": 166352,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 690,
+      "errors": []
     },
     {
       "name": "WAIT_FOR_DLE",
-      "status": "error",
-      "instructions": 33,
-      "errors": [
-        {
-          "offset": 169791,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 835,
+      "errors": []
     },
     {
       "name": "FLASH_SCHREIBEN_XXL",
@@ -370,15 +334,9 @@
     },
     {
       "name": "OPPS_STATUS_ROUTER",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 206761,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 224,
+      "errors": []
     }
   ]
 }

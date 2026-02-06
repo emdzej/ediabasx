@@ -3,13 +3,13 @@
   "status": "errors",
   "jobs": [
     {
-      "name": "<parse-error>",
+      "name": "<parse>",
       "status": "error",
       "instructions": 0,
       "errors": [
         {
           "offset": 0,
-          "message": "Offset is outside the bounds of the DataView"
+          "message": "Parse error: Offset is outside the bounds of the DataView"
         }
       ]
     }

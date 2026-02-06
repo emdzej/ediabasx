@@ -1,6 +1,6 @@
 {
   "file": "UTILITY.PRG",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INFO",
@@ -22,27 +22,15 @@
     },
     {
       "name": "STATUS_ZUENDUNG",
-      "status": "error",
-      "instructions": 13,
-      "errors": [
-        {
-          "offset": 902,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
     },
     {
       "name": "ABS_RELAIS",
-      "status": "error",
-      "instructions": 22,
-      "errors": [
-        {
-          "offset": 1488,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
     },
     {
       "name": "INTERFACE",
@@ -64,27 +52,15 @@
     },
     {
       "name": "PARALLELE_CODIERUNG_EIN",
-      "status": "error",
-      "instructions": 73,
-      "errors": [
-        {
-          "offset": 5205,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
     },
     {
       "name": "OGW_CAN_TEST",
-      "status": "error",
-      "instructions": 77,
-      "errors": [
-        {
-          "offset": 7175,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 113,
+      "errors": []
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "file": "BMS43DS0.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "ISN_LESEN",
@@ -346,27 +346,15 @@
     },
     {
       "name": "UPROG_EIN",
-      "status": "error",
-      "instructions": 362,
-      "errors": [
-        {
-          "offset": 157631,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 377,
+      "errors": []
     },
     {
       "name": "UPROG_AUS",
-      "status": "error",
-      "instructions": 3,
-      "errors": [
-        {
-          "offset": 157721,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 15,
+      "errors": []
     },
     {
       "name": "CO_ABGLEICH_LESEN",

@@ -1,6 +1,6 @@
 {
   "file": "DM5212R5.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "EDIC_RESET",
@@ -340,27 +340,15 @@
     },
     {
       "name": "UPROG_EIN",
-      "status": "error",
-      "instructions": 362,
-      "errors": [
-        {
-          "offset": 103348,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 377,
+      "errors": []
     },
     {
       "name": "UPROG_AUS",
-      "status": "error",
-      "instructions": 3,
-      "errors": [
-        {
-          "offset": 103438,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 15,
+      "errors": []
     },
     {
       "name": "CO_ABGLEICH_LESEN",

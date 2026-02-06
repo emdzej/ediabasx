@@ -1,6 +1,6 @@
 {
   "file": "BMS46D15.PRG",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "ISN_LESEN",
@@ -442,27 +442,15 @@
     },
     {
       "name": "UPROG_EIN",
-      "status": "error",
-      "instructions": 362,
-      "errors": [
-        {
-          "offset": 173324,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 377,
+      "errors": []
     },
     {
       "name": "UPROG_AUS",
-      "status": "error",
-      "instructions": 3,
-      "errors": [
-        {
-          "offset": 173414,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 15,
+      "errors": []
     },
     {
       "name": "CO_ABGLEICH_LESEN",

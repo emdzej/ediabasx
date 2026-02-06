@@ -1,6 +1,6 @@
 {
   "file": "DM5212R2.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "initialisierung",
@@ -280,15 +280,9 @@
     },
     {
       "name": "UPROG_AUS",
-      "status": "error",
-      "instructions": 3,
-      "errors": [
-        {
-          "offset": 78895,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 15,
+      "errors": []
     },
     {
       "name": "CO_ABGLEICH_LESEN",

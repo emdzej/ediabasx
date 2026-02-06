@@ -1,6 +1,6 @@
 {
   "file": "mrma22.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INFO",
@@ -16,123 +16,63 @@
     },
     {
       "name": "INITIALISIERUNG",
-      "status": "error",
-      "instructions": 60,
-      "errors": [
-        {
-          "offset": 912,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
     },
     {
       "name": "INIT_FS_LESEN",
-      "status": "error",
-      "instructions": 47,
-      "errors": [
-        {
-          "offset": 1326,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 209,
+      "errors": []
     },
     {
       "name": "FS_LESEN",
-      "status": "error",
-      "instructions": 153,
-      "errors": [
-        {
-          "offset": 2960,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 1581,
+      "errors": []
     },
     {
       "name": "INIT_FS_LOESCHEN",
-      "status": "error",
-      "instructions": 47,
-      "errors": [
-        {
-          "offset": 9970,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 209,
+      "errors": []
     },
     {
       "name": "FS_LOESCHEN",
-      "status": "error",
-      "instructions": 88,
-      "errors": [
-        {
-          "offset": 11229,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 959,
+      "errors": []
     },
     {
       "name": "INIT_LUEFTERTEST",
-      "status": "error",
-      "instructions": 47,
-      "errors": [
-        {
-          "offset": 15438,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 209,
+      "errors": []
     },
     {
       "name": "LUEFTERTEST",
-      "status": "error",
-      "instructions": 81,
-      "errors": [
-        {
-          "offset": 16659,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 1008,
+      "errors": []
     },
     {
       "name": "INIT_DK_EINSTELLEN",
-      "status": "error",
-      "instructions": 47,
-      "errors": [
-        {
-          "offset": 21198,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 276,
+      "errors": []
     },
     {
       "name": "ENDE_DK_EINSTELLEN",
-      "status": "error",
-      "instructions": 52,
-      "errors": [
-        {
-          "offset": 22627,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 216,
+      "errors": []
     },
     {
       "name": "DIAGNOSE_ENDE",
-      "status": "error",
-      "instructions": 20,
-      "errors": [
-        {
-          "offset": 23591,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "file": "BFOPTO.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INITIALISIERUNG",
@@ -22,27 +22,15 @@
     },
     {
       "name": "STEUERN_KOMMUNIKATIONS_MODE",
-      "status": "error",
-      "instructions": 10,
-      "errors": [
-        {
-          "offset": 2146,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
     },
     {
       "name": "STEUERN_MOST_MESSMODE",
-      "status": "error",
-      "instructions": 10,
-      "errors": [
-        {
-          "offset": 2392,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
     },
     {
       "name": "STEUERN_KOMMUNIKATIONSPARAMETER",
@@ -52,27 +40,15 @@
     },
     {
       "name": "STEUERN_ADS4MOST_MODE",
-      "status": "error",
-      "instructions": 10,
-      "errors": [
-        {
-          "offset": 2809,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
     },
     {
       "name": "STEUERN_BYTEFLIGHT_MODE",
-      "status": "error",
-      "instructions": 10,
-      "errors": [
-        {
-          "offset": 3055,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
     },
     {
       "name": "STEUERN_SET_MODUS",
@@ -88,99 +64,51 @@
     },
     {
       "name": "STATUS_IDENT",
-      "status": "error",
-      "instructions": 22,
-      "errors": [
-        {
-          "offset": 5229,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 40,
+      "errors": []
     },
     {
       "name": "STATUS_SELBSTTEST",
-      "status": "error",
-      "instructions": 10,
-      "errors": [
-        {
-          "offset": 6578,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
     },
     {
       "name": "STEUERN_OPPS_RESET",
-      "status": "error",
-      "instructions": 10,
-      "errors": [
-        {
-          "offset": 7066,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
     },
     {
       "name": "STATUS_SPANNUNG_MOST",
-      "status": "error",
-      "instructions": 10,
-      "errors": [
-        {
-          "offset": 7312,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
     },
     {
       "name": "STATUS_SENDELEISTUNG_MESSUNG",
-      "status": "error",
-      "instructions": 10,
-      "errors": [
-        {
-          "offset": 7812,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
     },
     {
       "name": "STATUS_MEASUREOPTICALPOWER",
-      "status": "error",
-      "instructions": 10,
-      "errors": [
-        {
-          "offset": 8514,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
     },
     {
       "name": "STATUS_GETOPTICALPOWER",
-      "status": "error",
-      "instructions": 10,
-      "errors": [
-        {
-          "offset": 9252,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
     },
     {
       "name": "STATUS_TEMPERATUR",
-      "status": "error",
-      "instructions": 10,
-      "errors": [
-        {
-          "offset": 9966,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
     },
     {
       "name": "STEUERN_SENDELEISTUNG",
@@ -190,15 +118,9 @@
     },
     {
       "name": "STEUERN_KALIBRIERUNG_MOST",
-      "status": "error",
-      "instructions": 30,
-      "errors": [
-        {
-          "offset": 11558,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 48,
+      "errors": []
     },
     {
       "name": "STATUS_POTENTIOMETER_OFFSET_ABGLEICH",

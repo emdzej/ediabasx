@@ -1,6 +1,6 @@
 {
   "file": "EDIC.PRG",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INFO",
@@ -22,375 +22,189 @@
     },
     {
       "name": "EDIC_SPANNUNG_KL15",
-      "status": "error",
-      "instructions": 0,
-      "errors": [
-        {
-          "offset": 892,
-          "opcode": 114,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 67,
+      "errors": []
     },
     {
       "name": "EDIC_GET_PORT_0",
-      "status": "error",
-      "instructions": 2,
-      "errors": [
-        {
-          "offset": 1236,
-          "opcode": 113,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
     },
     {
       "name": "EDIC_GET_PORT_1",
-      "status": "error",
-      "instructions": 2,
-      "errors": [
-        {
-          "offset": 1609,
-          "opcode": 113,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
     },
     {
       "name": "EDIC_GET_PORT_2",
-      "status": "error",
-      "instructions": 2,
-      "errors": [
-        {
-          "offset": 1982,
-          "opcode": 113,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
     },
     {
       "name": "EDIC_GET_PORT_3",
-      "status": "error",
-      "instructions": 2,
-      "errors": [
-        {
-          "offset": 2355,
-          "opcode": 113,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
     },
     {
       "name": "EDIC_GET_PORT_4",
-      "status": "error",
-      "instructions": 2,
-      "errors": [
-        {
-          "offset": 2728,
-          "opcode": 113,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
     },
     {
       "name": "EDIC_GET_PORT_5",
-      "status": "error",
-      "instructions": 2,
-      "errors": [
-        {
-          "offset": 3101,
-          "opcode": 113,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
     },
     {
       "name": "EDIC_GET_PORT_6",
-      "status": "error",
-      "instructions": 2,
-      "errors": [
-        {
-          "offset": 3474,
-          "opcode": 113,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
     },
     {
       "name": "EDIC_GET_PORT_7",
-      "status": "error",
-      "instructions": 2,
-      "errors": [
-        {
-          "offset": 3847,
-          "opcode": 113,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
     },
     {
       "name": "EDIC_SET_U_PROG",
-      "status": "error",
-      "instructions": 51,
-      "errors": [
-        {
-          "offset": 4492,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 66,
+      "errors": []
     },
     {
       "name": "EDIC_JUMPER_EINLESEN",
-      "status": "error",
-      "instructions": 4,
-      "errors": [
-        {
-          "offset": 4591,
-          "opcode": 113,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 57,
+      "errors": []
     },
     {
       "name": "EDIC_SIA_RESET",
-      "status": "error",
-      "instructions": 51,
-      "errors": [
-        {
-          "offset": 5113,
-          "opcode": 119,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 66,
+      "errors": []
     },
     {
       "name": "EDIC_SIA_EIN",
-      "status": "error",
-      "instructions": 8,
-      "errors": [
-        {
-          "offset": 5230,
-          "opcode": 119,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 20,
+      "errors": []
     },
     {
       "name": "EDIC_SIA_AUS",
-      "status": "error",
-      "instructions": 3,
-      "errors": [
-        {
-          "offset": 5310,
-          "opcode": 119,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 15,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_0_EIN",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 5586,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_0_AUS",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 5894,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_1_EIN",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 6202,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_1_AUS",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 6510,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_2_EIN",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 6818,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_2_AUS",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 7126,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_3_EIN",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 7434,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_3_AUS",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 7742,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_4_EIN",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 8050,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_4_AUS",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 8358,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_5_EIN",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 8666,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_5_AUS",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 8974,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_6_EIN",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 9282,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_6_AUS",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 9590,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_7_EIN",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 9898,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_SET_PORT_7_AUS",
-      "status": "error",
-      "instructions": 43,
-      "errors": [
-        {
-          "offset": 10206,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
     },
     {
       "name": "EDIC_LEITUNGSTEST",
-      "status": "error",
-      "instructions": 1,
-      "errors": [
-        {
-          "offset": 10308,
-          "opcode": 115,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
     },
     {
       "name": "EDIC_RESET",

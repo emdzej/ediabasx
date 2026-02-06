@@ -1,6 +1,6 @@
 {
   "file": "OPPS.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INFO",
@@ -16,15 +16,9 @@
     },
     {
       "name": "STATUS_BATT_IGNITION",
-      "status": "error",
-      "instructions": 22,
-      "errors": [
-        {
-          "offset": 738,
-          "opcode": 114,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 50,
+      "errors": []
     },
     {
       "name": "STATUS_TYP_VER",
@@ -34,183 +28,93 @@
     },
     {
       "name": "STEUERN_ROUTER_AUTOCOMM",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 1992,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_ROUTER_MOST",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 2564,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_ROUTER_OBD",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 3136,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_ROUTER_BYTEFLIGHT",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 3708,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_ROUTER_MOSTMEAS",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 4280,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_ROUTER_PAR_FREE",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 4852,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_ROUTER_RESET",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 5424,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_ROUTER_PAR_OBD",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 5997,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_ROUTER_PAR_MOST",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 6570,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STATUS_ROUTER",
-      "status": "error",
-      "instructions": 93,
-      "errors": [
-        {
-          "offset": 7367,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 441,
+      "errors": []
     },
     {
       "name": "STEUERN_ROUTER_TRACEON",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 9411,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_ROUTER_TRACEOFF",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 9984,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STATUS_MOST_NODES",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 10556,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_MOST_BUILDREGISTRY",
-      "status": "error",
-      "instructions": 85,
-      "errors": [
-        {
-          "offset": 11309,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
     },
     {
       "name": "STATUS_MOST_ONOFFTIME",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 11881,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
     },
     {
       "name": "STEUERN_MOST_MASTER_MODE",
@@ -220,27 +124,15 @@
     },
     {
       "name": "STEUERN_MOST_ASYNCOFF",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 15295,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_MOST_ASYNCON",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 15868,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_MOST_ASYNCMINLENGTH",
@@ -256,27 +148,15 @@
     },
     {
       "name": "STEUERN_MOST_NOWAKEUP",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 19464,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_MOST_WAKEUP",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 20037,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_MOSTCTRL_LLINTERVALL",
@@ -298,15 +178,9 @@
     },
     {
       "name": "STATUS_MOST_DIAG_FBLOCK",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 23516,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 158,
+      "errors": []
     },
     {
       "name": "STEUERN_MOST_TESTER_ADRESSE",
@@ -316,87 +190,45 @@
     },
     {
       "name": "STATUS_THREADS",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 26204,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
     },
     {
       "name": "STATUS_MOST_REGISTRY",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 26873,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 483,
+      "errors": []
     },
     {
       "name": "STEUERN_MOST_TRACEON",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 29465,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_MOST_TRACEOFF",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 30038,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_MOST_ETHTRACE",
-      "status": "error",
-      "instructions": 198,
-      "errors": [
-        {
-          "offset": 31292,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 268,
+      "errors": []
     },
     {
       "name": "STATUS_MOST_REGISTERS",
-      "status": "error",
-      "instructions": 55,
-      "errors": [
-        {
-          "offset": 31904,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
     },
     {
       "name": "STATUS_MOST_ACCLOG",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 35774,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 202,
+      "errors": []
     },
     {
       "name": "STEUERN_CAN_MODE",
@@ -406,63 +238,33 @@
     },
     {
       "name": "STATUS_CAN_MODE",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 38482,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
     },
     {
       "name": "STATUS_CAN_KL_15",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 39985,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
     },
     {
       "name": "STATUS__OBD_KWP2KS",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 41695,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
     },
     {
       "name": "STEUERN_DLE_TRACEON",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 42264,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     },
     {
       "name": "STEUERN_DLE_TRACEOFF",
-      "status": "error",
-      "instructions": 46,
-      "errors": [
-        {
-          "offset": 42837,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
     }
   ]
 }

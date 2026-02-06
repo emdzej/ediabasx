@@ -1,6 +1,6 @@
 {
   "file": "12MSS54.PRG",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "EDIC_RESET",
@@ -52,15 +52,9 @@
     },
     {
       "name": "UPROG_AUS",
-      "status": "error",
-      "instructions": 3,
-      "errors": [
-        {
-          "offset": 11989,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 15,
+      "errors": []
     },
     {
       "name": "BLOCKLAENGE_MAX",

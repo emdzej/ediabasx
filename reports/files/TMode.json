@@ -1,6 +1,6 @@
 {
   "file": "TMode.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "INFO",
@@ -94,75 +94,39 @@
     },
     {
       "name": "LESE_SPANNUNG_KL15",
-      "status": "error",
-      "instructions": 0,
-      "errors": [
-        {
-          "offset": 1268,
-          "opcode": 114,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 8,
+      "errors": []
     },
     {
       "name": "LESE_PORT",
-      "status": "error",
-      "instructions": 2,
-      "errors": [
-        {
-          "offset": 1327,
-          "opcode": 113,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 9,
+      "errors": []
     },
     {
       "name": "SETZE_PORT",
-      "status": "error",
-      "instructions": 2,
-      "errors": [
-        {
-          "offset": 1384,
-          "opcode": 118,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 4,
+      "errors": []
     },
     {
       "name": "SETZE_PROGRAMMIERSPANNUNG",
-      "status": "error",
-      "instructions": 2,
-      "errors": [
-        {
-          "offset": 1405,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 4,
+      "errors": []
     },
     {
       "name": "SETZE_SIA_RELAIS",
-      "status": "error",
-      "instructions": 2,
-      "errors": [
-        {
-          "offset": 1423,
-          "opcode": 119,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 4,
+      "errors": []
     },
     {
       "name": "TESTE_DIAGNOSELEITUNG",
-      "status": "error",
-      "instructions": 0,
-      "errors": [
-        {
-          "offset": 1432,
-          "opcode": 115,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
     },
     {
       "name": "HOLE_INTERFACE_STATUS",
@@ -172,15 +136,9 @@
     },
     {
       "name": "REICHE_AN_INTERFACE_DURCH",
-      "status": "error",
-      "instructions": 12,
-      "errors": [
-        {
-          "offset": 1559,
-          "opcode": 117,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
     },
     {
       "name": "SETZE_TRAP_MASK_REGISTER",

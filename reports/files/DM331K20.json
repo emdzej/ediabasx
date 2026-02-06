@@ -1,6 +1,6 @@
 {
   "file": "DM331K20.prg",
-  "status": "errors",
+  "status": "ok",
   "jobs": [
     {
       "name": "initialisierung",
@@ -322,15 +322,9 @@
     },
     {
       "name": "UPROG_AUS",
-      "status": "error",
-      "instructions": 3,
-      "errors": [
-        {
-          "offset": 73044,
-          "opcode": 116,
-          "message": "Unknown opcode"
-        }
-      ]
+      "status": "ok",
+      "instructions": 15,
+      "errors": []
     },
     {
       "name": "CO_ABGLEICH_LESEN",
