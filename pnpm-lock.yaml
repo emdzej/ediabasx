@@ -112,10 +112,17 @@ importers:
 
   packages/interface-base: {}
 
-  packages/interface-enet: {}
+  packages/interface-enet:
+    dependencies:
+      '@ediabas/interface-base':
+        specifier: workspace:*
+        version: link:../interface-base
 
   packages/interface-serial:
     dependencies:
+      '@ediabas/interface-base':
+        specifier: workspace:*
+        version: link:../interface-base
       serialport:
         specifier: ^12.0.0
         version: 12.0.0

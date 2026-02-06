@@ -9,19 +9,24 @@ export class EnetInterface extends EdiabasInterface {
     throw new Error("Not implemented");
   }
 
-  async send(_data: Uint8Array): Promise<void> {
+  async send(data: Uint8Array): Promise<void> {
+    void data;
     throw new Error("Not implemented");
   }
 
-  async receive(_timeoutMs?: number): Promise<Uint8Array> {
+  async receive(timeoutMs?: number): Promise<Uint8Array> {
+    void timeoutMs;
     throw new Error("Not implemented");
   }
 
-  getPort(_index: number): number {
+  getPort(index: number): number {
+    void index;
     throw new Error("Not implemented");
   }
 
-  setPort(_index: number, _value: number): void {
+  setPort(index: number, value: number): void {
+    void index;
+    void value;
     throw new Error("Not implemented");
   }
 
@@ -33,15 +38,18 @@ export class EnetInterface extends EdiabasInterface {
     throw new Error("Not implemented");
   }
 
-  setProgramVoltage(_value: number): void {
+  setProgramVoltage(value: number): void {
+    void value;
     throw new Error("Not implemented");
   }
 
-  rawData(_request: Uint8Array): Uint8Array {
+  rawData(request: Uint8Array): Uint8Array {
+    void request;
     throw new Error("Not implemented");
   }
 
-  switchSiRelais(_time: number): void {
+  switchSiRelais(time: number): void {
+    void time;
     throw new Error("Not implemented");
   }
 }
