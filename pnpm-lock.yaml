@@ -135,6 +135,12 @@ importers:
       '@ediabas/interface-base':
         specifier: workspace:*
         version: link:../interface-base
+      '@ediabas/interface-enet':
+        specifier: workspace:*
+        version: link:../interface-enet
+      '@ediabas/interface-serial':
+        specifier: workspace:*
+        version: link:../interface-serial
     devDependencies:
       '@types/node':
         specifier: ^25.2.1

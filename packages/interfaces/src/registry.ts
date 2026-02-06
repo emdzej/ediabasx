@@ -54,6 +54,93 @@ const interfaceRegistry: InterfaceMetadata[] = [
         description: "Number of stop bits.",
         type: "number",
         default: 1
+      },
+      {
+        name: "timeoutMs",
+        description: "Communication timeout in milliseconds.",
+        type: "number",
+        default: 5000
+      },
+      {
+        name: "protocol",
+        description: "Protocol selection for K-Line or CAN sessions.",
+        type: "enum",
+        values: ["uart", "kwp", "tp20", "isotp"],
+        default: "kwp"
+      },
+      {
+        name: "initMode",
+        description: "K-Line init mode.",
+        type: "enum",
+        values: ["fast", "five-baud"],
+        default: "fast"
+      },
+      {
+        name: "testerCanId",
+        description: "Tester CAN identifier.",
+        type: "number",
+        default: 1777
+      },
+      {
+        name: "ecuCanId",
+        description: "ECU CAN identifier.",
+        type: "number",
+        default: 1536
+      },
+      {
+        name: "p1",
+        description: "KWP P1 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "p2",
+        description: "KWP P2 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "p3",
+        description: "KWP P3 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "w1",
+        description: "KWP W1 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "w2",
+        description: "KWP W2 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "w3",
+        description: "KWP W3 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "w4",
+        description: "KWP W4 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "w5",
+        description: "KWP W5 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "interByteTime",
+        description: "Inter-byte delay (ms).",
+        type: "number"
+      },
+      {
+        name: "timeoutNr78",
+        description: "NR78 timeout (ms).",
+        type: "number"
+      },
+      {
+        name: "retryNr78",
+        description: "NR78 retry count.",
+        type: "number"
       }
     ]
   },
@@ -72,6 +159,112 @@ const interfaceRegistry: InterfaceMetadata[] = [
         description: "Baud rate for the adapter.",
         type: "number",
         default: 115200
+      },
+      {
+        name: "dataBits",
+        description: "Number of data bits.",
+        type: "number",
+        default: 8
+      },
+      {
+        name: "parity",
+        description: "Parity setting.",
+        type: "enum",
+        values: ["none", "even", "odd"],
+        default: "none"
+      },
+      {
+        name: "stopBits",
+        description: "Number of stop bits.",
+        type: "number",
+        default: 1
+      },
+      {
+        name: "timeoutMs",
+        description: "Communication timeout in milliseconds.",
+        type: "number",
+        default: 5000
+      },
+      {
+        name: "protocol",
+        description: "CAN protocol selection (tp20 or isotp).",
+        type: "enum",
+        values: ["tp20", "isotp"],
+        default: "isotp"
+      },
+      {
+        name: "initMode",
+        description: "K-Line init mode.",
+        type: "enum",
+        values: ["fast", "five-baud"],
+        default: "fast"
+      },
+      {
+        name: "testerCanId",
+        description: "Tester CAN identifier.",
+        type: "number",
+        default: 1777
+      },
+      {
+        name: "ecuCanId",
+        description: "ECU CAN identifier.",
+        type: "number",
+        default: 1536
+      },
+      {
+        name: "p1",
+        description: "KWP P1 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "p2",
+        description: "KWP P2 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "p3",
+        description: "KWP P3 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "w1",
+        description: "KWP W1 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "w2",
+        description: "KWP W2 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "w3",
+        description: "KWP W3 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "w4",
+        description: "KWP W4 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "w5",
+        description: "KWP W5 timing (ms).",
+        type: "number"
+      },
+      {
+        name: "interByteTime",
+        description: "Inter-byte delay (ms).",
+        type: "number"
+      },
+      {
+        name: "timeoutNr78",
+        description: "NR78 timeout (ms).",
+        type: "number"
+      },
+      {
+        name: "retryNr78",
+        description: "NR78 retry count.",
+        type: "number"
       }
     ]
   },
