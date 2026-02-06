@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   build5BaudDataBits,
   buildBmwFastTelegram,
@@ -429,5 +429,62 @@ describe("SerialInterface", () => {
     // Initially adapter info is not available
     expect(serialInterface.adapterType).toBe(-1);
     expect(serialInterface.ignitionStatus).toBe(-1);
+  });
+
+  describe("frequent mode", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("runs frequent mode lifecycle", async () => {
+      const transport = new MockSerialTransport({ telegramEndTimeoutMs: 5 });
+      const serialInterface = new SerialInterface({
+        port: PORT,
+        transport,
+        receiveBufferSize: 3
+      });
+
+      await serialInterface.connect();
+      await serialInterface.transmitFrequent(Uint8Array.from([0x01, 0x02]));
+
+      transport.enqueueRead([0xaa, 0xbb, 0xcc]);
+
+      expect(vi.getTimerCount()).toBe(1);
+
+      const cycle = (
+        serialInterface as unknown as { runFrequentCycle: () => Promise<void> }
+      ).runFrequentCycle();
+      await vi.advanceTimersByTimeAsync(30);
+      await cycle;
+
+      const received = await serialInterface.receiveFrequent();
+      expect(received).toEqual(Uint8Array.from([0xaa, 0xbb, 0xcc]));
+
+      await serialInterface.stopFrequent();
+      await vi.runAllTimersAsync();
+      expect((await serialInterface.receiveFrequent()).length).toBe(0);
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it("cleans up frequent timer on disconnect", async () => {
+      const transport = new MockSerialTransport();
+      const serialInterface = new SerialInterface({
+        port: PORT,
+        transport
+      });
+
+      await serialInterface.connect();
+      await serialInterface.transmitFrequent(Uint8Array.from([0x0f]));
+      expect(vi.getTimerCount()).toBe(1);
+
+      await serialInterface.disconnect();
+      await vi.runAllTimersAsync();
+
+      expect(vi.getTimerCount()).toBe(0);
+    });
   });
 });

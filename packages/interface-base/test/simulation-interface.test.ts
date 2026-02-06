@@ -169,6 +169,33 @@ describe("SimulationInterface send/receive", () => {
   });
 });
 
+describe("SimulationInterface frequent mode", () => {
+  it("stores frequent data on transmit", async () => {
+    const sim = new SimulationInterface();
+    await sim.connect();
+    await sim.transmitFrequent(Uint8Array.from([0x10, 0x20]));
+    const received = await sim.receiveFrequent();
+    expect([...received]).toEqual([0x10, 0x20]);
+  });
+
+  it("returns buffered frequent data", async () => {
+    const sim = new SimulationInterface();
+    await sim.connect();
+    await sim.transmitFrequent(Uint8Array.from([0xaa, 0xbb, 0xcc]));
+    const received = await sim.receiveFrequent();
+    expect([...received]).toEqual([0xaa, 0xbb, 0xcc]);
+  });
+
+  it("clears frequent buffer on stop", async () => {
+    const sim = new SimulationInterface();
+    await sim.connect();
+    await sim.transmitFrequent(Uint8Array.from([0x01]));
+    await sim.stopFrequent();
+    const received = await sim.receiveFrequent();
+    expect(received.length).toBe(0);
+  });
+});
+
 describe("SimulationInterface timeout handling", () => {
   beforeEach(() => {
     vi.useFakeTimers();
