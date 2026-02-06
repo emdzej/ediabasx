@@ -100,6 +100,17 @@ describe("Extended communication operations", () => {
     expect(iface.stopFrequent).toHaveBeenCalled();
   });
 
+  it("xstopf clears frequent state", async () => {
+    const frequentState = { active: true };
+    iface.stopFrequent = vi.fn().mockImplementation(async () => {
+      frequentState.active = false;
+    });
+
+    await xstopf(iface);
+
+    expect(frequentState.active).toBe(false);
+  });
+
   it("xkeyb reads keyboard input", async () => {
     await xkeyb(registers, iface, S0);
     expect(registers.getS(0)).toBe("X");
