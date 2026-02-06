@@ -6,6 +6,14 @@ export abstract class EdiabasInterface {
   abstract send(data: Uint8Array): Promise<void>;
   abstract receive(timeoutMs?: number): Promise<Uint8Array>;
 
+  abstract getPort(index: number): number | Promise<number>;
+  abstract setPort(index: number, value: number): void | Promise<void>;
+  abstract get ignitionVoltage(): number | Promise<number>;
+  abstract get loopTest(): number | Promise<number>;
+  abstract setProgramVoltage(value: number): void | Promise<void>;
+  abstract rawData(request: Uint8Array): Uint8Array | Promise<Uint8Array>;
+  abstract switchSiRelais(time: number): void | Promise<void>;
+
   isConnected(): boolean {
     return this.connected;
   }

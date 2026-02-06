@@ -472,8 +472,28 @@ async function writeSummary(summaryPath: string, summary: SummaryReport): Promis
 }
 
 async function verifyFile(filePath: string): Promise<FileReport> {
-  const buffer = await fs.readFile(filePath);
-  const prg = parsePrg(new Uint8Array(buffer));
+  const fileName = path.basename(filePath);
+  let prg: PrgFile;
+
+  try {
+    const buffer = await fs.readFile(filePath);
+    prg = parsePrg(new Uint8Array(buffer));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      file: fileName,
+      status: "errors",
+      jobs: [
+        {
+          name: "<parse>",
+          status: "error",
+          instructions: 0,
+          errors: [{ offset: 0, message: `Parse error: ${message}` }],
+        },
+      ],
+    };
+  }
+
   const code = resolveProgramCode(prg);
   const interpreter = new Interpreter(prg);
 
@@ -515,7 +535,7 @@ async function verifyFile(filePath: string): Promise<FileReport> {
 
   const status = jobs.some((job) => job.status === "error") ? "errors" : "ok";
   return {
-    file: path.basename(filePath),
+    file: fileName,
     status,
     jobs,
   };

@@ -252,6 +252,39 @@ export class GatewayServer {
         await this.iface.setParameter(parameter, value);
         return { ok: true };
       }
+      case "getPort": {
+        const index = this.extractIndex(params);
+        const value = await this.iface.getPort(index);
+        return { value };
+      }
+      case "setPort": {
+        const { index, value } = this.extractIndexValue(params);
+        await this.iface.setPort(index, value);
+        return { ok: true };
+      }
+      case "getIgnitionVoltage": {
+        const value = await this.iface.ignitionVoltage;
+        return { value };
+      }
+      case "getLoopTest": {
+        const value = await this.iface.loopTest;
+        return { value };
+      }
+      case "setProgramVoltage": {
+        const value = this.extractValue(params);
+        await this.iface.setProgramVoltage(value);
+        return { ok: true };
+      }
+      case "rawData": {
+        const payload = this.extractData(params);
+        const response = await this.iface.rawData(payload);
+        return { data: Array.from(response) };
+      }
+      case "switchSiRelais": {
+        const time = this.extractValue(params, "time");
+        await this.iface.switchSiRelais(time);
+        return { ok: true };
+      }
       default:
         throw this.buildJsonRpcError(jsonRpcErrors.methodNotFound);
     }
@@ -282,6 +315,40 @@ export class GatewayServer {
       throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
     }
     return timeout;
+  }
+
+  private extractIndex(params: unknown): number {
+    if (!params || typeof params !== "object") {
+      throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+    }
+    const index = (params as { index?: unknown }).index;
+    if (typeof index !== "number") {
+      throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+    }
+    return index;
+  }
+
+  private extractValue(params: unknown, key: "value" | "time" = "value"): number {
+    if (!params || typeof params !== "object") {
+      throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+    }
+    const value = (params as Record<string, unknown>)[key];
+    if (typeof value !== "number") {
+      throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+    }
+    return value;
+  }
+
+  private extractIndexValue(params: unknown): { index: number; value: number } {
+    if (!params || typeof params !== "object") {
+      throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+    }
+    const index = (params as { index?: unknown }).index;
+    const value = (params as { value?: unknown }).value;
+    if (typeof index !== "number" || typeof value !== "number") {
+      throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+    }
+    return { index, value };
   }
 
   private extractData(params: unknown): Uint8Array {

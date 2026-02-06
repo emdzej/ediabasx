@@ -52,13 +52,13 @@ describe("Extended communication operations", () => {
       getState: () => 7,
       boot: vi.fn(),
       setResponse: vi.fn(),
-      getPort: () => 3,
+      getPort: vi.fn().mockResolvedValue(3),
       setPort: vi.fn(),
-      getIgnition: () => 1,
-      loopTest: vi.fn().mockResolvedValue(9),
-      setProgrammingMode: vi.fn(),
-      rawCommand: vi.fn().mockResolvedValue(Uint8Array.from([0x43])),
-      resetServiceInterval: vi.fn(),
+      ignitionVoltage: 1,
+      loopTest: 9,
+      setProgramVoltage: vi.fn(),
+      rawData: vi.fn().mockResolvedValue(Uint8Array.from([0x43])),
+      switchSiRelais: vi.fn(),
       open: vi.fn(),
       close: vi.fn(),
       closeEx: vi.fn(),
@@ -121,19 +121,21 @@ describe("Extended communication operations", () => {
     expect(iface.setResponse).toHaveBeenCalledWith(Uint8Array.from([0x41]));
   });
 
-  it("xgetport returns port", () => {
-    xgetport(registers, iface, I0);
+  it("xgetport returns port", async () => {
+    registers.setI(1, 2);
+    await xgetport(registers, iface, I0, registers.getI(1));
+    expect(iface.getPort).toHaveBeenCalledWith(2);
     expect(registers.getI(0)).toBe(3);
   });
 
   it("xsetport updates port", async () => {
-    registers.setI(0, 9);
-    await xsetport(registers, iface, I0);
-    expect(iface.setPort).toHaveBeenCalledWith(9);
+    registers.setS(0, String.fromCharCode(2));
+    await xsetport(registers, iface, S0, 9);
+    expect(iface.setPort).toHaveBeenCalledWith(2, 9);
   });
 
-  it("xignit returns ignition state", () => {
-    xignit(registers, iface, I0);
+  it("xignit returns ignition state", async () => {
+    await xignit(registers, iface, I0);
     expect(registers.getI(0)).toBe(1);
   });
 
@@ -142,21 +144,21 @@ describe("Extended communication operations", () => {
     expect(registers.getI(0)).toBe(9);
   });
 
-  it("xprog sets programming mode", async () => {
-    registers.setI(0, 1);
-    await xprog(registers, iface, I0);
-    expect(iface.setProgrammingMode).toHaveBeenCalledWith(true);
+  it("xprog sets program voltage", async () => {
+    registers.setI(0, 12);
+    await xprog(registers, iface, registers.getI(0));
+    expect(iface.setProgramVoltage).toHaveBeenCalledWith(12);
   });
 
-  it("xraw uses raw command when available", async () => {
+  it("xraw uses raw data when available", async () => {
     registers.setS(0, "req");
-    await xraw(registers, iface, S0, S1);
+    await xraw(registers, iface, S1, S0);
     expect(registers.getS(1)).toBe("C");
   });
 
   it("xsireset resets service interval", async () => {
-    await xsireset(iface);
-    expect(iface.resetServiceInterval).toHaveBeenCalled();
+    await xsireset(iface, 5);
+    expect(iface.switchSiRelais).toHaveBeenCalledWith(5);
   });
 
   it("xopen/xclose/xcloseex call interface controls", async () => {

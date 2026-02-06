@@ -97,6 +97,45 @@ export class GatewayClient extends EdiabasInterface {
     await this.request("setParam", { parameter, value });
   }
 
+  async getPort(index: number): Promise<number> {
+    this.assertConnected();
+    const result = await this.request<{ value: number }>("getPort", { index });
+    return result?.value ?? 0;
+  }
+
+  async setPort(index: number, value: number): Promise<void> {
+    this.assertConnected();
+    await this.request("setPort", { index, value });
+  }
+
+  get ignitionVoltage(): Promise<number> {
+    this.assertConnected();
+    return this.request<{ value: number }>("getIgnitionVoltage").then((result) => result?.value ?? 0);
+  }
+
+  get loopTest(): Promise<number> {
+    this.assertConnected();
+    return this.request<{ value: number }>("getLoopTest").then((result) => result?.value ?? 0);
+  }
+
+  async setProgramVoltage(value: number): Promise<void> {
+    this.assertConnected();
+    await this.request("setProgramVoltage", { value });
+  }
+
+  async rawData(request: Uint8Array): Promise<Uint8Array> {
+    this.assertConnected();
+    const result = await this.request<{ data: number[] }>("rawData", {
+      data: Array.from(request)
+    });
+    return Uint8Array.from(result?.data ?? []);
+  }
+
+  async switchSiRelais(time: number): Promise<void> {
+    this.assertConnected();
+    await this.request("switchSiRelais", { time });
+  }
+
   private async ensureSocket(): Promise<void> {
     if (this.socket && !this.socket.destroyed) {
       return;

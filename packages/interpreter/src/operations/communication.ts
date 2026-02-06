@@ -33,13 +33,13 @@ export type CommunicationInterface = Pick<
   getState?: () => number;
   boot?: () => Promise<void> | void;
   setResponse?: (response: Uint8Array) => Promise<void> | void;
-  getPort?: () => number;
-  setPort?: (port: number) => Promise<void> | void;
-  getIgnition?: () => number;
-  loopTest?: () => Promise<number> | number;
-  setProgrammingMode?: (enabled: boolean) => Promise<void> | void;
-  rawCommand?: (payload: Uint8Array, timeoutMs?: number) => Promise<Uint8Array> | Uint8Array;
-  resetServiceInterval?: () => Promise<void> | void;
+  getPort?: (index: number) => Promise<number> | number;
+  setPort?: (index: number, value: number) => Promise<void> | void;
+  ignitionVoltage?: number | Promise<number>;
+  loopTest?: number | Promise<number>;
+  setProgramVoltage?: (value: number) => Promise<void> | void;
+  rawData?: (payload: Uint8Array) => Promise<Uint8Array> | Uint8Array;
+  switchSiRelais?: (time: number) => Promise<void> | void;
   open?: (mode?: number) => Promise<void> | void;
   close?: () => Promise<void> | void;
   closeEx?: (mode?: number) => Promise<void> | void;
@@ -76,8 +76,8 @@ function wrapInterfaceError(error: unknown, action: string): never {
   throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, `${action} failed`);
 }
 
-function assertCapability<T>(value: T | undefined, action: string): T {
-  if (!value) {
+function assertCapability<T>(value: T | undefined | null, action: string): T {
+  if (value === undefined || value === null) {
     throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, `${action} is not supported`);
   }
   return value;
@@ -294,35 +294,49 @@ export async function xreps(
   }
 }
 
-export function xgetport(
+export async function xgetport(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
-  destination: IntRegisterRef
-): void {
-  const portValue = interfaceClass.getPort ? interfaceClass.getPort() : 0;
-  setIntValue(registers, destination, portValue);
+  destination: IntRegisterRef,
+  portIndex: number
+): Promise<void> {
+  const getPort = assertCapability(interfaceClass.getPort, "Get port");
+  try {
+    const portValue = await getPort(portIndex & 0xff);
+    setIntValue(registers, destination, portValue);
+  } catch (error) {
+    wrapInterfaceError(error, "Get port");
+  }
 }
 
 export async function xsetport(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
-  source: IntRegisterRef
+  portIndexSource: StringRegisterRef,
+  portValue: number
 ): Promise<void> {
   const setPort = assertCapability(interfaceClass.setPort, "Set port");
   try {
-    await setPort(getIntValue(registers, source));
+    const portData = toBytes(registers, portIndexSource);
+    const portIndex = portData[0] ?? 0;
+    await setPort(portIndex, portValue);
   } catch (error) {
     wrapInterfaceError(error, "Set port");
   }
 }
 
-export function xignit(
+export async function xignit(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
   destination: IntRegisterRef
-): void {
-  const ignitionValue = interfaceClass.getIgnition ? interfaceClass.getIgnition() : 0;
-  setIntValue(registers, destination, ignitionValue);
+): Promise<void> {
+  const ignitionVoltage = assertCapability(interfaceClass.ignitionVoltage, "Ignition voltage");
+  try {
+    const value = await ignitionVoltage;
+    setIntValue(registers, destination, value);
+  } catch (error) {
+    wrapInterfaceError(error, "Ignition voltage");
+  }
 }
 
 export async function xloopt(
@@ -332,7 +346,7 @@ export async function xloopt(
 ): Promise<void> {
   const loopTest = assertCapability(interfaceClass.loopTest, "Loop test");
   try {
-    const result = await loopTest();
+    const result = await loopTest;
     setIntValue(registers, destination, result);
   } catch (error) {
     wrapInterfaceError(error, "Loop test");
@@ -342,47 +356,44 @@ export async function xloopt(
 export async function xprog(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
-  mode: IntRegisterRef
+  value: number
 ): Promise<void> {
-  const setProgrammingMode = assertCapability(
-    interfaceClass.setProgrammingMode,
-    "Programming mode"
+  const setProgramVoltage = assertCapability(
+    interfaceClass.setProgramVoltage,
+    "Program voltage"
   );
   try {
-    await setProgrammingMode(getIntValue(registers, mode) !== 0);
+    await setProgramVoltage(value);
   } catch (error) {
-    wrapInterfaceError(error, "Programming mode");
+    wrapInterfaceError(error, "Program voltage");
   }
 }
 
 export async function xraw(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
-  request: StringRegisterRef,
   response: StringRegisterRef,
-  timeoutMs?: IntRegisterRef
+  request: StringRegisterRef
 ): Promise<void> {
-  const timeout = timeoutMs ? getIntValue(registers, timeoutMs) : undefined;
+  const rawData = assertCapability(interfaceClass.rawData, "Raw data");
   try {
-    if (interfaceClass.rawCommand) {
-      const data = await interfaceClass.rawCommand(toBytes(registers, request), timeout);
-      fromBytes(registers, response, data);
-      return;
-    }
-    await xsend(registers, interfaceClass, request);
-    await xrecv(registers, interfaceClass, response, timeoutMs);
+    const data = await rawData(toBytes(registers, request));
+    fromBytes(registers, response, data);
   } catch (error) {
-    wrapInterfaceError(error, "Raw communication");
+    wrapInterfaceError(error, "Raw data");
   }
 }
 
-export async function xsireset(interfaceClass: CommunicationInterface): Promise<void> {
-  const resetServiceInterval = assertCapability(
-    interfaceClass.resetServiceInterval,
+export async function xsireset(
+  interfaceClass: CommunicationInterface,
+  timeValue: number
+): Promise<void> {
+  const switchSiRelais = assertCapability(
+    interfaceClass.switchSiRelais,
     "Service interval reset"
   );
   try {
-    await resetServiceInterval();
+    await switchSiRelais(timeValue);
   } catch (error) {
     wrapInterfaceError(error, "Service interval reset");
   }
