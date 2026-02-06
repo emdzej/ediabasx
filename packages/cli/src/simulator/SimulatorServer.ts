@@ -41,7 +41,18 @@ const jsonRpcErrors = {
   invalidRequest: { code: -32600, message: "Invalid Request" },
   methodNotFound: { code: -32601, message: "Method not found" },
   invalidParams: { code: -32602, message: "Invalid params" },
+  requestCancelled: { code: -32001, message: "Request cancelled" },
   serverError: { code: -32000, message: "Server error" }
+};
+
+type DialogMode = "number" | "hex";
+
+type DialogRequest = {
+  prompt: string;
+  mode: DialogMode;
+  detail?: string;
+  onSubmit: (value: string) => void;
+  onCancel: () => void;
 };
 
 export class SimulatorServer extends EventEmitter {
@@ -206,6 +217,13 @@ export class SimulatorServer extends EventEmitter {
       case "disconnect":
         this.connectedClients.delete(socket);
         return { connected: false };
+      case "info":
+        return {
+          connected: this.connectedClients.has(socket),
+          clients: this.clients.size,
+          host: this.host,
+          port: this.port,
+        };
       case "send": {
         const data = this.extractData(params);
         this.emit("data", data);
@@ -213,6 +231,52 @@ export class SimulatorServer extends EventEmitter {
       }
       case "receive":
         return { data: this.dequeueResponse() };
+      case "getIgnitionVoltage": {
+        const value = await this.promptNumber("Ignition voltage (V):");
+        return { value };
+      }
+      case "getLoopTest": {
+        const value = await this.promptNumber("Loop test value:");
+        return { value };
+      }
+      case "getPort": {
+        const requestParams = this.requireObject(params);
+        const index = this.parseNumberParam(requestParams, "index");
+        const value = await this.promptNumber(`Port ${index} value:`);
+        return { value };
+      }
+      case "rawData": {
+        const requestData = this.extractData(params);
+        this.emit("log", `rawData request: ${this.formatHex(requestData)}`);
+        const response = await this.promptHex("Raw response (hex):");
+        return { data: Array.from(response) };
+      }
+      case "setParam": {
+        const requestParams = this.requireObject(params);
+        const param = requestParams.param;
+        const value = requestParams.value;
+        this.emit("log", `setParam(param=${String(param)}, value=${String(value)})`);
+        return { ok: true };
+      }
+      case "setPort": {
+        const requestParams = this.requireObject(params);
+        const index = this.parseNumberParam(requestParams, "index");
+        const value = this.parseNumberParam(requestParams, "value");
+        this.emit("log", `setPort(index=${index}, value=${value})`);
+        return { ok: true };
+      }
+      case "setProgramVoltage": {
+        const requestParams = this.requireObject(params);
+        const value = this.parseNumberParam(requestParams, "value");
+        this.emit("log", `setProgramVoltage(value=${value})`);
+        return { ok: true };
+      }
+      case "switchSiRelais": {
+        const requestParams = this.requireObject(params);
+        const time = this.parseNumberParam(requestParams, "time");
+        this.emit("log", `switchSiRelais(time=${time})`);
+        return { ok: true };
+      }
       default:
         throw this.buildJsonRpcError(jsonRpcErrors.methodNotFound);
     }
@@ -240,6 +304,27 @@ export class SimulatorServer extends EventEmitter {
     throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
   }
 
+  private requireObject(params: unknown): Record<string, unknown> {
+    if (!params || typeof params !== "object") {
+      throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+    }
+    return params as Record<string, unknown>;
+  }
+
+  private parseNumberParam(params: Record<string, unknown>, key: string): number {
+    const value = params[key];
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+    if (typeof value === "string") {
+      const parsed = Number.parseFloat(value);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+    throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+  }
+
   private parseHexString(value: string): Uint8Array {
     const cleaned = value.replace(/\s+/g, "");
     if (!cleaned || cleaned.length % 2 !== 0) {
@@ -255,6 +340,56 @@ export class SimulatorServer extends EventEmitter {
       bytes.push(parsed);
     }
     return Uint8Array.from(bytes);
+  }
+
+  private parseHexResponse(value: string): Uint8Array {
+    const cleaned = value.replace(/\s+/g, "");
+    if (!cleaned) {
+      return new Uint8Array();
+    }
+    if (cleaned.length % 2 !== 0) {
+      throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+    }
+    const bytes: number[] = [];
+    for (let index = 0; index < cleaned.length; index += 2) {
+      const chunk = cleaned.slice(index, index + 2);
+      const parsed = Number.parseInt(chunk, 16);
+      if (Number.isNaN(parsed)) {
+        throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+      }
+      bytes.push(parsed);
+    }
+    return Uint8Array.from(bytes);
+  }
+
+  private formatHex(data: Uint8Array): string {
+    if (data.length === 0) return "(empty)";
+    return Array.from(data)
+      .map((byte) => byte.toString(16).padStart(2, "0").toUpperCase())
+      .join(" ");
+  }
+
+  private async promptNumber(prompt: string): Promise<number> {
+    const input = await this.requestDialog(prompt, "number");
+    const parsed = Number.parseFloat(input);
+    if (!Number.isFinite(parsed)) {
+      throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+    }
+    return parsed;
+  }
+
+  private async promptHex(prompt: string): Promise<Uint8Array> {
+    const input = await this.requestDialog(prompt, "hex");
+    return this.parseHexResponse(input);
+  }
+
+  private requestDialog(prompt: string, mode: DialogMode, detail?: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const onSubmit = (value: string) => resolve(value);
+      const onCancel = () => reject(this.buildJsonRpcError(jsonRpcErrors.requestCancelled));
+      const request: DialogRequest = { prompt, mode, detail, onSubmit, onCancel };
+      this.emit("dialog", request);
+    });
   }
 
   private isValidRequest(request: unknown): request is JsonRpcRequest {
