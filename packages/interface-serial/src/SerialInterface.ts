@@ -1,5 +1,6 @@
 import { utf8ToCp1252 } from "@ediabas/core";
 import { EdiabasInterface, EdiabasTimeoutError } from "@ediabas/interface-base";
+import { IsoTpFrameTypes, parseIsoTpFrame } from "@ediabas/protocol-uds";
 import { SerialTimeoutError } from "./errors";
 import { NodeSerialTransport } from "./nodeSerialTransport";
 import {
@@ -458,6 +459,67 @@ export class SerialInterface extends EdiabasInterface {
     }
   }
 
+  private async receiveIsoTpResponse(
+    timeoutMs?: number
+  ): Promise<Uint8Array> {
+    this.assertConnected();
+    const timeout = timeoutMs ?? this.config.timeoutMs;
+    const firstFrame = await this.readIsoTpFrame(timeout);
+    const firstInfo = parseIsoTpFrame(firstFrame);
+
+    if (firstInfo.type === IsoTpFrameTypes.Single) {
+      return Uint8Array.from(firstInfo.payload);
+    }
+
+    if (
+      firstInfo.type !== IsoTpFrameTypes.First ||
+      firstInfo.totalLength === undefined
+    ) {
+      throw new Error("Unexpected ISO-TP frame type");
+    }
+
+    const totalLength = firstInfo.totalLength;
+    const payload = new Uint8Array(totalLength);
+    let offset = 0;
+
+    const firstPayload = firstInfo.payload.subarray(
+      0,
+      Math.min(6, totalLength)
+    );
+    payload.set(firstPayload, offset);
+    offset += firstPayload.length;
+
+    let expectedSequence = 1;
+    while (offset < totalLength) {
+      const frame = await this.readIsoTpFrame(timeout);
+      const info = parseIsoTpFrame(frame);
+
+      if (info.type === IsoTpFrameTypes.FlowControl) {
+        continue;
+      }
+
+      if (info.type !== IsoTpFrameTypes.Consecutive) {
+        throw new Error("Unexpected ISO-TP frame type");
+      }
+
+      if (info.sequence !== expectedSequence) {
+        throw new Error("ISO-TP sequence mismatch");
+      }
+
+      const remaining = totalLength - offset;
+      const slice = info.payload.subarray(0, Math.min(remaining, info.payload.length));
+      payload.set(slice, offset);
+      offset += slice.length;
+      expectedSequence = (expectedSequence + 1) & 0x0f;
+    }
+
+    return payload;
+  }
+
+  private async readIsoTpFrame(timeoutMs: number): Promise<Uint8Array> {
+    return this.transport.read(8, timeoutMs);
+  }
+
   private async receiveWithLength(
     length: number,
     timeoutMs?: number
@@ -612,6 +674,10 @@ export class SerialInterface extends EdiabasInterface {
     const segments = segmentIsoTpPayload(request);
     for (const segment of segments) {
       await this.dcanSession.sendRequest(this.transport, segment);
+    }
+
+    if (this.commParameter.protocol === SerialProtocols.IsoTp) {
+      return this.receiveIsoTpResponse();
     }
 
     return this.receive();
