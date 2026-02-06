@@ -167,13 +167,13 @@ describe("Interpreter", () => {
       0x10,
       0x1c,
       0x7c,
-      0x13,
-      0x1d,
-      0x10,
-      0x7d,
-      0x13,
-      0x1e,
       0x11,
+      0x1d,
+      0x1e,
+      0x7d,
+      0x11,
+      0x1f,
+      0x20,
       0x1d,
       0x00,
     ]);
@@ -192,14 +192,15 @@ describe("Interpreter", () => {
 
     const registers = new RegisterSet();
     registers.setS(0, "TEST_TABLE");
-    registers.setS(1, "Beta");
-    registers.setI(0, 1);
-    registers.setI(1, 0);
+    registers.setS(1, "Name");
+    registers.setS(2, "Beta");
+    registers.setS(3, "");
+    registers.setS(4, "ID");
 
     const interpreter = new Interpreter(createPrg(code, [table]));
     await interpreter.execute("TEST", { registers });
 
-    expect(registers.getS(2)).toBe("2");
+    expect(registers.getS(3)).toBe("2");
   });
 
   describe("string opcodes (0x20-0x25)", () => {

@@ -9,7 +9,7 @@ import type { PrgTable } from "@ediabas/best-parser";
 import { RegisterSet } from "../registers";
 import { Flags } from "../flags";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
-import { getIntValue, getStringValue, setIntValue, setStringValue } from "./register-values";
+import { setIntValue, setStringValue } from "./register-values";
 
 export type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 
@@ -30,215 +30,218 @@ export function createTableRegistry(tables: TableData[]): TableRegistry {
   return registry;
 }
 
+function parseEdiabasInt(value: string): number {
+  const trimmed = value.trimEnd();
+  if (trimmed.length === 0) {
+    return 0;
+  }
+  const lower = trimmed.toLowerCase();
+  try {
+    if (lower.startsWith("0x")) {
+      return parseInt(trimmed.slice(2), 16);
+    }
+    if (lower.startsWith("0y")) {
+      return parseInt(trimmed.slice(2), 2);
+    }
+    if (lower === "-" || lower === "--") {
+      return 0;
+    }
+    if (lower[0] >= "a" && lower[0] <= "z") {
+      return 0;
+    }
+    let numberConv = trimmed.trimStart();
+    const index = numberConv.search(/[.,]/);
+    if (index >= 0) {
+      numberConv = numberConv.slice(0, index);
+    }
+    return parseInt(numberConv, 10);
+  } catch {
+    return 0;
+  }
+}
+
+function getColumnIndex(table: TableData, columnName: string): number {
+  const header = table.values[0] ?? [];
+  const target = columnName.toUpperCase();
+  for (let i = 0; i < header.length; i += 1) {
+    if ((header[i] ?? "").toUpperCase() === target) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 export function tabset(
-  registers: RegisterSet,
   flags: Flags,
   registry: TableRegistry,
   state: TableState,
-  tableNameRef: StringRegisterRef
+  tableName: string
 ): void {
-  const tableName = getStringValue(registers, tableNameRef).toUpperCase();
-  const table = registry.get(tableName) ?? null;
+  const table = registry.get(tableName.toUpperCase()) ?? null;
+  const previousTable = state.activeTable;
+  const previousRow = state.rowIndex;
 
   state.activeTable = table;
-  state.rowIndex = 0;
+  state.rowIndex = -1;
+
+  if (table && previousTable === table) {
+    state.rowIndex = previousRow;
+  }
 
   if (!table) {
     flags.z = true;
-    flags.c = true;
-    return;
   }
-
-  flags.z = false;
-  flags.c = false;
 }
 
 export function tabseek(
-  registers: RegisterSet,
   flags: Flags,
   state: TableState,
-  valueRef: StringRegisterRef,
-  colRef: IntRegisterRef
+  columnName: string,
+  searchValue: string
 ): void {
   const table = state.activeTable;
   if (!table) {
     state.rowIndex = -1;
     flags.z = true;
-    flags.c = true;
     return;
   }
 
-  const searchValue = getStringValue(registers, valueRef);
-  const col = getIntValue(registers, colRef);
-
-  if (col < 0 || col >= table.columns) {
+  const columnIndex = getColumnIndex(table, columnName);
+  if (columnIndex < 0) {
     state.rowIndex = -1;
     flags.z = true;
-    flags.c = true;
     return;
   }
 
+  const searchUpper = searchValue.toUpperCase();
   for (let row = 0; row < table.rows; row += 1) {
     const dataRowIndex = row + 1;
-    if (dataRowIndex >= table.values.length) {
-      continue;
-    }
-    const cellValue = table.values[dataRowIndex][col] ?? "";
-    if (cellValue === searchValue) {
+    const cellValue = (table.values[dataRowIndex]?.[columnIndex] ?? "").toUpperCase();
+    if (cellValue === searchUpper) {
       state.rowIndex = row;
       flags.z = false;
-      flags.c = false;
       return;
     }
   }
 
-  state.rowIndex = -1;
+  state.rowIndex = table.rows > 0 ? table.rows - 1 : -1;
   flags.z = true;
-  flags.c = true;
 }
 
 export function tabseeku(
-  registers: RegisterSet,
   flags: Flags,
   state: TableState,
-  valueRef: StringRegisterRef,
-  colRef: IntRegisterRef
+  columnName: string,
+  searchValue: number
 ): void {
   const table = state.activeTable;
   if (!table) {
     state.rowIndex = -1;
     flags.z = true;
-    flags.c = true;
     return;
   }
 
-  const searchValue = getStringValue(registers, valueRef).toUpperCase();
-  const col = getIntValue(registers, colRef);
-
-  if (col < 0 || col >= table.columns) {
+  const columnIndex = getColumnIndex(table, columnName);
+  if (columnIndex < 0) {
     state.rowIndex = -1;
     flags.z = true;
-    flags.c = true;
     return;
   }
 
+  const searchNumber = searchValue >>> 0;
   for (let row = 0; row < table.rows; row += 1) {
     const dataRowIndex = row + 1;
-    if (dataRowIndex >= table.values.length) {
-      continue;
-    }
-    const cellValue = (table.values[dataRowIndex][col] ?? "").toUpperCase();
-    if (cellValue === searchValue) {
+    const cellValue = table.values[dataRowIndex]?.[columnIndex] ?? "";
+    if ((parseEdiabasInt(cellValue) >>> 0) === searchNumber) {
       state.rowIndex = row;
       flags.z = false;
-      flags.c = false;
       return;
     }
   }
 
-  state.rowIndex = -1;
+  state.rowIndex = table.rows > 0 ? table.rows - 1 : -1;
   flags.z = true;
-  flags.c = true;
 }
 
 export function tabget(
   registers: RegisterSet,
-  flags: Flags,
+  _flags: Flags,
   state: TableState,
   destination: StringRegisterRef,
-  colRef: IntRegisterRef
+  columnName: string
 ): void {
   const table = state.activeTable;
   if (!table || state.rowIndex < 0) {
     setStringValue(registers, destination, "");
-    flags.z = true;
-    flags.c = true;
     return;
   }
 
-  const col = getIntValue(registers, colRef);
-  const dataRowIndex = state.rowIndex + 1;
-
-  if (
-    dataRowIndex < 1 ||
-    dataRowIndex >= table.values.length ||
-    col < 0 ||
-    col >= table.columns
-  ) {
+  const columnIndex = getColumnIndex(table, columnName);
+  if (columnIndex < 0) {
     setStringValue(registers, destination, "");
-    flags.z = true;
-    flags.c = true;
     return;
   }
 
-  const value = table.values[dataRowIndex][col] ?? "";
+  if (state.rowIndex >= table.rows) {
+    setStringValue(registers, destination, "");
+    return;
+  }
+
+  const dataRowIndex = state.rowIndex + 1;
+  const value = table.values[dataRowIndex]?.[columnIndex] ?? "";
   setStringValue(registers, destination, value);
-  flags.z = false;
-  flags.c = false;
 }
 
 export function tabrows(
   registers: RegisterSet,
-  flags: Flags,
+  _flags: Flags,
   state: TableState,
   destination: IntRegisterRef
 ): void {
   const table = state.activeTable;
   if (!table) {
     setIntValue(registers, destination, 0);
-    flags.z = true;
     return;
   }
 
-  setIntValue(registers, destination, table.rows);
-  flags.z = table.rows === 0;
+  setIntValue(registers, destination, table.rows + 1);
 }
 
 export function tabcols(
   registers: RegisterSet,
-  flags: Flags,
+  _flags: Flags,
   state: TableState,
   destination: IntRegisterRef
 ): void {
   const table = state.activeTable;
   if (!table) {
     setIntValue(registers, destination, 0);
-    flags.z = true;
     return;
   }
 
   setIntValue(registers, destination, table.columns);
-  flags.z = table.columns === 0;
 }
 
 export function tabline(
-  registers: RegisterSet,
   flags: Flags,
   state: TableState,
-  destination: StringRegisterRef,
-  delimiterRef?: StringRegisterRef
+  line: number
 ): void {
   const table = state.activeTable;
-  if (!table || state.rowIndex < 0) {
-    setStringValue(registers, destination, "");
+  if (!table) {
+    state.rowIndex = -1;
     flags.z = true;
-    flags.c = true;
     return;
   }
 
-  const dataRowIndex = state.rowIndex + 1;
-  if (dataRowIndex < 1 || dataRowIndex >= table.values.length) {
-    setStringValue(registers, destination, "");
+  if (line >= table.rows) {
+    state.rowIndex = table.rows > 0 ? table.rows - 1 : -1;
     flags.z = true;
-    flags.c = true;
     return;
   }
 
-  const delimiter = delimiterRef ? getStringValue(registers, delimiterRef) : "\t";
-  const line = table.values[dataRowIndex].join(delimiter);
-  setStringValue(registers, destination, line);
+  state.rowIndex = line;
   flags.z = false;
-  flags.c = false;
 }
 
 export const tablen = tabrows;

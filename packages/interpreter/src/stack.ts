@@ -21,17 +21,17 @@ export class DataStack {
     this.stack = [];
   }
 
-  push(value: number): void {
+  pushByte(value: number): void {
     if (this.stack.length >= this.maxDepth) {
       throw new EdiabasError(
         EdiabasErrorCodes.STACK_OVERFLOW,
         `Data stack overflow: exceeded maximum depth of ${this.maxDepth}`
       );
     }
-    this.stack.push(value | 0);
+    this.stack.push(value & 0xff);
   }
 
-  pop(): number {
+  popByte(): number {
     const value = this.stack.pop();
     if (value === undefined) {
       throw new EdiabasError(
@@ -42,12 +42,24 @@ export class DataStack {
     return value;
   }
 
-  peek(offset: number = 0): number | undefined {
+  peekByte(offset: number = 0): number | undefined {
     const index = this.stack.length - 1 - offset;
     if (index < 0 || index >= this.stack.length) {
       return undefined;
     }
     return this.stack[index];
+  }
+
+  push(value: number): void {
+    this.pushByte(value);
+  }
+
+  pop(): number {
+    return this.popByte();
+  }
+
+  peek(offset: number = 0): number | undefined {
+    return this.peekByte(offset);
   }
 
   swap(): void {
