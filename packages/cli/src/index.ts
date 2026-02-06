@@ -931,6 +931,7 @@ program
         React.createElement(SimulatorApp, {
           host: address.host,
           port: address.port,
+          server,
           onExit: stopServer,
         })
       );
