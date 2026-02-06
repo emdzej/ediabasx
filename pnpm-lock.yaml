@@ -120,6 +120,9 @@ importers:
 
   packages/interface-serial:
     dependencies:
+      '@ediabas/core':
+        specifier: workspace:*
+        version: link:../core
       '@ediabas/interface-base':
         specifier: workspace:*
         version: link:../interface-base

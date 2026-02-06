@@ -1,10 +1,15 @@
+import { utf8ToCp1252 } from "@ediabas/core";
 import { EdiabasInterface, EdiabasTimeoutError } from "@ediabas/interface-base";
 import { SerialTimeoutError } from "./errors";
 import { NodeSerialTransport } from "./nodeSerialTransport";
-import type {
-  SerialInterfaceConfig,
-  SerialTransport,
-  SerialTransportConfig
+import {
+  SerialCommParameterIds,
+  SerialInitModes,
+  type SerialCommParameterState,
+  type SerialInitMode,
+  type SerialInterfaceConfig,
+  type SerialTransport,
+  type SerialTransportConfig
 } from "./types";
 
 const DEFAULT_CONFIG = {
@@ -36,6 +41,8 @@ export class SerialInterface extends EdiabasInterface {
   private _loopTest = 0;
   private _programVoltage = 0;
   private _siRelaisTime = 0;
+  private readonly commParameter: SerialCommParameterState = {};
+  private answerLength: number | null = null;
 
   constructor(config: SerialInterfaceConfig) {
     super();
@@ -136,6 +143,100 @@ export class SerialInterface extends EdiabasInterface {
     this._programVoltage = value;
   }
 
+  setParameter(parameter: number, value: number): void {
+    switch (parameter) {
+      case SerialCommParameterIds.Protocol:
+        this.commParameter.protocol = value;
+        return;
+      case SerialCommParameterIds.TesterAddress:
+        this.commParameter.testerAddress = value;
+        return;
+      case SerialCommParameterIds.EcuAddress:
+        this.commParameter.ecuAddress = value;
+        return;
+      case SerialCommParameterIds.TesterCanId:
+        this.commParameter.testerCanId = value;
+        return;
+      case SerialCommParameterIds.EcuCanId:
+        this.commParameter.ecuCanId = value;
+        return;
+      case SerialCommParameterIds.P1:
+        this.commParameter.p1 = value;
+        return;
+      case SerialCommParameterIds.P2:
+        this.commParameter.p2 = value;
+        return;
+      case SerialCommParameterIds.P3:
+        this.commParameter.p3 = value;
+        return;
+      case SerialCommParameterIds.W1:
+        this.commParameter.w1 = value;
+        return;
+      case SerialCommParameterIds.W2:
+        this.commParameter.w2 = value;
+        return;
+      case SerialCommParameterIds.W3:
+        this.commParameter.w3 = value;
+        return;
+      case SerialCommParameterIds.W4:
+        this.commParameter.w4 = value;
+        return;
+      case SerialCommParameterIds.W5:
+        this.commParameter.w5 = value;
+        return;
+      case SerialCommParameterIds.InterByteTime:
+        this.commParameter.interByteTime = value;
+        return;
+      case SerialCommParameterIds.RetryCount:
+        this.commParameter.retryCount = value;
+        return;
+      case SerialCommParameterIds.TimeoutNr78:
+        this.commParameter.timeoutNr78 = value;
+        return;
+      case SerialCommParameterIds.RetryNr78:
+        this.commParameter.retryNr78 = value;
+        return;
+      case SerialCommParameterIds.InitMode:
+        this.commParameter.initMode = this.resolveInitMode(value);
+        return;
+      case SerialCommParameterIds.SendPulse:
+        this.commParameter.sendPulse = value !== 0;
+        return;
+      default:
+        return;
+    }
+  }
+
+  setAnswerLength(length: number): void {
+    this.answerLength = length;
+  }
+
+  getCommParameterState(): SerialCommParameterState {
+    return { ...this.commParameter };
+  }
+
+  getAnswerLength(): number | null {
+    return this.answerLength;
+  }
+
+  async sendFormatted(format: string, payload: string): Promise<void> {
+    void format;
+    await this.send(utf8ToCp1252(payload));
+  }
+
+  async requestFormatted(
+    format: string,
+    payload: string,
+    timeoutMs?: number
+  ): Promise<Uint8Array> {
+    await this.sendFormatted(format, payload);
+    const expectedLength =
+      this.answerLength !== null && this.answerLength > 0
+        ? this.answerLength
+        : this.config.receiveBufferSize;
+    return this.receiveWithLength(expectedLength, timeoutMs);
+  }
+
   async rawData(request: Uint8Array): Promise<Uint8Array> {
     await this.send(request);
     return this.receive();
@@ -155,6 +256,38 @@ export class SerialInterface extends EdiabasInterface {
 
   private clampP1(value: number): number {
     return Math.min(Math.max(value, SerialTiming.p1Min), SerialTiming.p1Max);
+  }
+
+  private resolveInitMode(value: number): SerialInitMode {
+    if (value === 0) {
+      return SerialInitModes.FiveBaud;
+    }
+    if (value === 1) {
+      return SerialInitModes.Fast;
+    }
+    return SerialInitModes.Unknown;
+  }
+
+  private async receiveWithLength(
+    length: number,
+    timeoutMs?: number
+  ): Promise<Uint8Array> {
+    this.assertConnected();
+    if (length <= 0) {
+      return new Uint8Array();
+    }
+    const timeout = timeoutMs ?? this.config.timeoutMs;
+    try {
+      const payload = await this.transport.read(length, timeout);
+      await this.enforceP2Timing();
+      this.lastReceiveAt = this.now();
+      return payload;
+    } catch (error) {
+      if (error instanceof SerialTimeoutError) {
+        throw new EdiabasTimeoutError();
+      }
+      throw error;
+    }
   }
 
   private async enforceP1Timing(): Promise<void> {
