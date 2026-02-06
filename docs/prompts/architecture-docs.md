@@ -26,6 +26,12 @@ The documentation must reflect the current codebase. Use concrete names and opti
 - Monorepo structure and package roles (brief)
 - Data flow diagram: **PRG/GRP → Parser → Interpreter → Interface → ECU**
 - Key abstractions: `Ediabas`, `EdiabasInterface`, `CommunicationInterface`, parser, interpreter, gateway
+- Class collaboration diagrams:
+  - Job execution flow diagram (Ediabas → parser → interpreter → interface)
+  - Interface layer detail (EdiabasInterface, SerialInterface, transports, protocol sessions)
+  - Interpreter ↔ interface adapter snippet from `ediabas.ts`
+- Key class responsibilities table (Ediabas, BestParser, Interpreter, RegisterSet, ResultCollector, interface types)
+- Sequence diagram for simple job execution (CLI → Ediabas → Interpreter → Interface)
 
 ### `docs/PACKAGES.md`
 - Short description of each package in `packages/`:
