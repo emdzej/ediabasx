@@ -28,7 +28,7 @@ export type CommunicationInterface = Pick<
     payload: string,
     timeoutMs?: number
   ) => Promise<Uint8Array> | Uint8Array;
-  stopFormatted?: () => Promise<void> | void;
+  stopFrequent?: () => Promise<void> | void;
   readKeyboard?: () => Promise<string> | string;
   getState?: () => number;
   boot?: () => Promise<void> | void;
@@ -241,11 +241,11 @@ export async function xrequf(
 }
 
 export async function xstopf(interfaceClass: CommunicationInterface): Promise<void> {
-  const stopFormatted = assertCapability(interfaceClass.stopFormatted, "Stop formatted");
+  const stopFrequent = assertCapability(interfaceClass.stopFrequent, "Stop frequent");
   try {
-    await stopFormatted();
+    await stopFrequent();
   } catch (error) {
-    wrapInterfaceError(error, "Stop formatted");
+    wrapInterfaceError(error, "Stop frequent");
   }
 }
 

@@ -61,6 +61,8 @@ export class SimulationInterface extends EdiabasInterface {
     });
   }
 
+  async stopFrequent(): Promise<void> {}
+
   getPort(index: number): number {
     return this.ports.get(index) ?? 0;
   }
