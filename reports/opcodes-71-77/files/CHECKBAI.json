@@ -1,0 +1,24 @@
+{
+  "file": "CHECKBAI.PRG",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "NUMMERN_CHECK",
+      "status": "ok",
+      "instructions": 216,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    }
+  ]
+}

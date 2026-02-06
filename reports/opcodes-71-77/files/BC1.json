@@ -1,0 +1,234 @@
+{
+  "file": "BC1.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 78,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 191,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "START_DIAGNOSTICS",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "READ_MANUFACTURER_DATA",
+      "status": "ok",
+      "instructions": 120,
+      "errors": []
+    },
+    {
+      "name": "READ_SIA_DATA",
+      "status": "ok",
+      "instructions": 108,
+      "errors": []
+    },
+    {
+      "name": "C_FG_LESEN",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "C_FG_AUFTRAG",
+      "status": "ok",
+      "instructions": 248,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 228,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 272,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN",
+      "status": "ok",
+      "instructions": 259,
+      "errors": []
+    },
+    {
+      "name": "READ_ALARM_MISLOCK",
+      "status": "ok",
+      "instructions": 201,
+      "errors": []
+    },
+    {
+      "name": "READ_ALARM_TRIGGER",
+      "status": "ok",
+      "instructions": 201,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_SCHREIBEN",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_IOSTATES",
+      "status": "ok",
+      "instructions": 106,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_PWM_OUTPUTS",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_STEPPER_MOTOR",
+      "status": "ok",
+      "instructions": 234,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TILT_SENSOR",
+      "status": "ok",
+      "instructions": 234,
+      "errors": []
+    },
+    {
+      "name": "CLEAR_RF_BUFFERS",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANALOG",
+      "status": "ok",
+      "instructions": 206,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LIGHT_INPUTS",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIGITAL_INPUTS",
+      "status": "ok",
+      "instructions": 201,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LIGHT_OUTPUTS",
+      "status": "ok",
+      "instructions": 201,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIGITAL_OUTPUTS",
+      "status": "ok",
+      "instructions": 201,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RF",
+      "status": "ok",
+      "instructions": 201,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TILT_SENSOR",
+      "status": "ok",
+      "instructions": 123,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 81,
+      "errors": []
+    },
+    {
+      "name": "SG_RESET",
+      "status": "ok",
+      "instructions": 81,
+      "errors": []
+    },
+    {
+      "name": "READ_PLIP_CODES",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "WRITE_PLIP_CODES",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "C_C_LESEN",
+      "status": "ok",
+      "instructions": 38,
+      "errors": []
+    },
+    {
+      "name": "C_C_AUFTRAG",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "LWR_ON",
+      "status": "ok",
+      "instructions": 159,
+      "errors": []
+    },
+    {
+      "name": "LWR_OFF",
+      "status": "ok",
+      "instructions": 159,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 159,
+      "errors": []
+    }
+  ]
+}

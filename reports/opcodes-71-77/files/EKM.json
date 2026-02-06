@@ -1,0 +1,132 @@
+{
+  "file": "EKM.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 43,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 97,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 43,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 129,
+      "errors": []
+    },
+    {
+      "name": "GWSZ_RESET",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "SIA_RESET",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOTOR",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIAGNOSE_LESEN",
+      "status": "ok",
+      "instructions": 43,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIGITAL_GEFILTERT_LESEN",
+      "status": "ok",
+      "instructions": 43,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIGITAL_UNGEFILTERT_LESEN",
+      "status": "ok",
+      "instructions": 43,
+      "errors": []
+    },
+    {
+      "name": "CODIERDATEN_LESEN",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "SIA_DATEN_LESEN",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "CODIERUNG_LESEN",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LESEN_IO_PROZ",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AUSGAENGE_LESEN",
+      "status": "ok",
+      "instructions": 43,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANALOG_GEFILTERT_LESEN",
+      "status": "ok",
+      "instructions": 43,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANALOG_UNGEFILTERT_LESEN",
+      "status": "ok",
+      "instructions": 43,
+      "errors": []
+    },
+    {
+      "name": "TACHO_A",
+      "status": "ok",
+      "instructions": 62,
+      "errors": []
+    }
+  ]
+}

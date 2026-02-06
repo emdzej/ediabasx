@@ -1,0 +1,324 @@
+{
+  "file": "KOMBI46.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 54,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 122,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 191,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "GWSZ_OFFSET_LESEN",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "GWSZ_OFFSET_SCHREIBEN",
+      "status": "ok",
+      "instructions": 60,
+      "errors": []
+    },
+    {
+      "name": "KALIBRIERFAKTOR_VERBRAUCH_LESEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "KALIBRIERFAKTOR_VERBRAUCH_SCHREIBEN",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "SIA_KORREKTUR_SCHREIBEN",
+      "status": "ok",
+      "instructions": 91,
+      "errors": []
+    },
+    {
+      "name": "ZEITINSPEKTION_VORZIEHEN",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "ZEITINSPEKTIONSDATUM_SCHREIBEN",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "ZEITINSPEKTIONSDATUM_LESEN",
+      "status": "ok",
+      "instructions": 91,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 99,
+      "errors": []
+    },
+    {
+      "name": "SOFTWARE_RESET",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "SIA_RESET",
+      "status": "ok",
+      "instructions": 82,
+      "errors": []
+    },
+    {
+      "name": "GWSZ_RESET",
+      "status": "ok",
+      "instructions": 91,
+      "errors": []
+    },
+    {
+      "name": "AIF_GWSZ_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "GWSZ_MINUS_OFFSET_LESEN",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "AIF_FG_NR_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "AIF_SIA_DATEN_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "CODIERDATEN_LESEN",
+      "status": "ok",
+      "instructions": 443,
+      "errors": []
+    },
+    {
+      "name": "TACHO_ENDWERT_LESEN",
+      "status": "ok",
+      "instructions": 111,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SELBSTTEST",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ANZEIGE",
+      "status": "ok",
+      "instructions": 94,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_GONG3",
+      "status": "ok",
+      "instructions": 81,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_PIEZO",
+      "status": "ok",
+      "instructions": 81,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TACHO_A",
+      "status": "ok",
+      "instructions": 66,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LEUCHTE",
+      "status": "ok",
+      "instructions": 119,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_IO",
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IO_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANALOG_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TANKINHALT_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AUSSENTEMP_LESEN",
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
+    },
+    {
+      "name": "RAM_LESEN",
+      "status": "ok",
+      "instructions": 219,
+      "errors": []
+    },
+    {
+      "name": "ROM_LESEN",
+      "status": "ok",
+      "instructions": 58,
+      "errors": []
+    },
+    {
+      "name": "EEPROM_LESEN",
+      "status": "ok",
+      "instructions": 66,
+      "errors": []
+    },
+    {
+      "name": "DPRAM_LESEN",
+      "status": "ok",
+      "instructions": 89,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_MOTORDREHZAHL_LESEN",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_KUEHLMITTELTEMP_LESEN",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_GETRIEBEINFO_LESEN",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_EINSPRITZMENGE_LESEN",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_SIGNALE_LESEN",
+      "status": "ok",
+      "instructions": 111,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TOENS_IO",
+      "status": "ok",
+      "instructions": 96,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TOENS_SG",
+      "status": "ok",
+      "instructions": 96,
+      "errors": []
+    },
+    {
+      "name": "ZCS_LESEN",
+      "status": "ok",
+      "instructions": 129,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SIA_FINISH",
+      "status": "ok",
+      "instructions": 136,
+      "errors": []
+    },
+    {
+      "name": "C_FA_LESEN",
+      "status": "ok",
+      "instructions": 137,
+      "errors": []
+    },
+    {
+      "name": "C_FA_AUFTRAG",
+      "status": "ok",
+      "instructions": 60,
+      "errors": []
+    }
+  ]
+}

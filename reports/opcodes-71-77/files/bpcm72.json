@@ -1,0 +1,708 @@
+{
+  "file": "bpcm72.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 590,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 227,
+      "errors": []
+    },
+    {
+      "name": "_IDENT_DCX",
+      "status": "ok",
+      "instructions": 205,
+      "errors": []
+    },
+    {
+      "name": "_UDS_TEST_E72",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "_BPCM_ENG_SW_NO",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 275,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP_LESEN",
+      "status": "ok",
+      "instructions": 277,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN",
+      "status": "ok",
+      "instructions": 193,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 757,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SOC_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CURRENT_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BUSVOLT_CALCULATE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BUS_VOLT_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BUSVOLT_SOURCE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PACK_VOLT_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PACK_VOLT_SOURCE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PWR_CHRG_LT_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PWR_CHRG_ST_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PWR_DISCHRG_LT_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PWR_DISCHRG_ST_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MAX_MODVOLT_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MIN_MODULSPANNUNG_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_12V_FEED2CONTROLLER_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_12V_FEED2PUMP_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_12V_FEED2CNTCR_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MAX_MODTEMP_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MIN_MODTEMP_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HV_BPCM_STATE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HVILCURR_RETURN_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_COOLANT_IN_TEMP_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_COOLANT_OUT_TEMP_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ISOLATION_RESI_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ISOLATION_STATE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CNCTR_PWM_CMD_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_COOL_PUMP_SPEED_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PRECHARGE_INHIBIT_TIME_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_4MODULES_TEMP_LESEN",
+      "status": "ok",
+      "instructions": 233,
+      "errors": []
+    },
+    {
+      "name": "STATUS_26_MODULES_VOLT_LESEN",
+      "status": "ok",
+      "instructions": 233,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SERVICE_DISCONNECT_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HVIL_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_REASON_CNCTR_NOT_CLOSE_WHEN_CMND_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_REASONS_CNCTR_OPENED_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ACTIVE_DISCHARGE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BATTERY_RESI_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HVBP_CNTCR_STATE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_CNTCR_CMND_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_SOC_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_HIGH_VOLT_EXCEEDED_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_MOD_VOLT_DIFF_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_MAX_MOD_VLT_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_MIN_MOD_VLT_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_HVBP_VOLTS_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_CURRENT_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_TEMPERATURE_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_MOD_TEMP_DIFF_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_HVBP_COOLANT_IN_TEMP_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_HVBP_COOLANT_OUT_TEMP_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_MOD_COOLANT_TEMP_DELTA_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_ISOLATION_RESI_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LIFETIME_CNCTR_CLOSES_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LIFETIME_12V_LOSS_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LIFETIME_MIN_OCV_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LIFETIME_CNCTR_OPEN_REQ_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LIFETIME_PRECHARGE_FAILS_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TOTAL_OEPRATION_TIME_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TOTAL_CNCTR_CLOSING_TIME_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CUMULATIVE_CHARGE_AMP_HOURS_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CUMULATIVE_DISCHARGE_AMP_HOURS_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LIFETIME_CNCTR_OPENS_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_BAT_RESI_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SOC_5DAY_HISTORY",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UH_HVBP_COOLANT_TEMP_DELTA_HISTOGRAM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_WELD_CHECK_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_OPEN_CABLE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BATT_CHANGE_ODOMETER",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_FAULT_CHECK_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_WAKE_UP_SIGNALS_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CONTACTOR_CLOSURE_ENABLE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CONTACTOR_CLOSURE_ENABLE",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PUMP_ENABLE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_PUMP_ENABLE",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_COOL_PUMP",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_COOL_PUMP_RETURN_CONTROL",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_COOL_PUMP_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BATT_CHANGE_ODOMETER",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ISOL_TEST",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ISOL_TEST_RETURN_CONTROL",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ISOL_TEST_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CLEAR_PUMP_DRYRUN_OFF",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CLEAR_DRYRUN_OFF_RETURN_CONTROL",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CLEAR_DRYRUN_OFF_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_FAULT_CHECK_DISABLER",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "_BSE_INIT_STATES",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_BSE_BPCM_INPUT",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_BSE_BSEC_DATA",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_BSE_EEPROM_DATA_01",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_BSE_EEPROM_DATA_02",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_BSE_API_DATA_01",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_BSE_API_DATA_02",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_BSE_API_DATA_03",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_SOC_OLD",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_AMPHR_CHARGE",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_AMPHR_DISCHARGE",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_LOAD_CHECK_ENABLER",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_LOAD_CHECK_ENABLER",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_SERVICE_CAN_ENABLER",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_SERVICE_CAN_ENABLER",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    }
+  ]
+}

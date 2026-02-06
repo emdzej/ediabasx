@@ -1,0 +1,150 @@
+{
+  "file": "BMBT_MIR.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 37,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 99,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SELBSTHALTUNG",
+      "status": "ok",
+      "instructions": 34,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MONITOR_HELLIGKEIT",
+      "status": "ok",
+      "instructions": 34,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_NF_TEST",
+      "status": "ok",
+      "instructions": 34,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HEADROOM",
+      "status": "ok",
+      "instructions": 34,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MUTE",
+      "status": "ok",
+      "instructions": 34,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_POWER_CASSETTE",
+      "status": "ok",
+      "instructions": 34,
+      "errors": []
+    },
+    {
+      "name": "Status_lesen_SG",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CASSETTE",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "TESTTON_AUSGEBEN",
+      "status": "ok",
+      "instructions": 79,
+      "errors": []
+    },
+    {
+      "name": "CASSETTENDECK_BETRIEBSSTUNDENZAEHLER_LOESCHEN",
+      "status": "ok",
+      "instructions": 79,
+      "errors": []
+    },
+    {
+      "name": "SELBSTTEST",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_DREHGEBER",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_DISPLAY",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 136,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 78,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 191,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_SG",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    }
+  ]
+}

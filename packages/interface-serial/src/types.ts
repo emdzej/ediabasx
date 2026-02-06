@@ -22,3 +22,16 @@ export interface SerialTransport {
   read(length: number, timeoutMs: number): Promise<Uint8Array>;
   write(data: Uint8Array): Promise<void>;
 }
+
+export type SerialInterfaceConfig = {
+  port: string;
+  baudRate?: number;
+  dataBits?: SerialDataBits;
+  parity?: SerialParity;
+  stopBits?: SerialStopBits;
+  timeoutMs?: number;
+  telegramEndTimeoutMs?: number;
+  receiveBufferSize?: number;
+  p1DelayMs?: number;
+  transport?: SerialTransport;
+};

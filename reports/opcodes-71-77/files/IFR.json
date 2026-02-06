@@ -1,0 +1,396 @@
+{
+  "file": "IFR.PRG",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "INIT_IFR",
+      "status": "ok",
+      "instructions": 79,
+      "errors": []
+    },
+    {
+      "name": "START_PRUEFUNG",
+      "status": "ok",
+      "instructions": 100,
+      "errors": []
+    },
+    {
+      "name": "ENDE_PRUEFUNG",
+      "status": "ok",
+      "instructions": 127,
+      "errors": []
+    },
+    {
+      "name": "SET_COMMUNICATION_PARA",
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
+    },
+    {
+      "name": "GET_COMMUNICATION_PARA",
+      "status": "ok",
+      "instructions": 126,
+      "errors": []
+    },
+    {
+      "name": "SET_CONFIRMED_COM",
+      "status": "ok",
+      "instructions": 115,
+      "errors": []
+    },
+    {
+      "name": "CPU_PORT_K1_EIN",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "CPU_PORT_K1_AUS",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "CPU_PORT_K1_LESEN",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "CPU_PORT_K2_EIN",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "CPU_PORT_K2_AUS",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "CPU_PORT_K2_LESEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "CPU_CAN_EIN",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "CPU_CAN_AUS",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "CPU_CAN_LESEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CPU_K1_K2_CAN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "CPU_PORT_STROMREGELUNG_EIN",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "CPU_PORT_STROMREGELUNG_AUS",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "CPU_PORT_STROMREGELUNG_LESEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "ADRESSE_LESEN",
+      "status": "ok",
+      "instructions": 198,
+      "errors": []
+    },
+    {
+      "name": "ADRESSE_LESEN_MASTER",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "ADRESSE_LESEN_SLAVE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "ADRESSEN_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_IFR",
+      "status": "ok",
+      "instructions": 113,
+      "errors": []
+    },
+    {
+      "name": "VERSION_LESEN",
+      "status": "ok",
+      "instructions": 100,
+      "errors": []
+    },
+    {
+      "name": "CHECK_SLEEP",
+      "status": "ok",
+      "instructions": 120,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KLEMMEN",
+      "status": "ok",
+      "instructions": 522,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SLAVE_ZIELNUMMER",
+      "status": "ok",
+      "instructions": 152,
+      "errors": []
+    },
+    {
+      "name": "STATUS_STATISTIK_MASTER",
+      "status": "ok",
+      "instructions": 546,
+      "errors": []
+    },
+    {
+      "name": "STATUS_STATISTIK_SLAVE",
+      "status": "ok",
+      "instructions": 546,
+      "errors": []
+    },
+    {
+      "name": "LOESCHEN_STATISTIK_MASTER",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "LOESCHEN_STATISTIK_SLAVE",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "ZIEL_MASTER_LESEN",
+      "status": "ok",
+      "instructions": 141,
+      "errors": []
+    },
+    {
+      "name": "BIN_DOWNLOAD_START",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "BIN_FILE_DOWNLOAD",
+      "status": "ok",
+      "instructions": 152,
+      "errors": []
+    },
+    {
+      "name": "BIN_DOWNLOAD_ENDE",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "START_FLASHEN",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "CHECK_FIRMWARE",
+      "status": "ok",
+      "instructions": 291,
+      "errors": []
+    },
+    {
+      "name": "FORTSCHRITT_FLASHEN",
+      "status": "ok",
+      "instructions": 135,
+      "errors": []
+    },
+    {
+      "name": "RUECKLESEN_FW_AUS_MDA",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "FORTSCHRITT_RUECKLESEN",
+      "status": "ok",
+      "instructions": 135,
+      "errors": []
+    },
+    {
+      "name": "KONFIG_LESEN",
+      "status": "ok",
+      "instructions": 199,
+      "errors": []
+    },
+    {
+      "name": "KONFIG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 528,
+      "errors": []
+    },
+    {
+      "name": "RESET",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "KL15_VER_LESEN",
+      "status": "ok",
+      "instructions": 394,
+      "errors": []
+    },
+    {
+      "name": "KL15_RESET",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "KL15_START_FLASH",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "KL15_STATUS_FLASH",
+      "status": "ok",
+      "instructions": 170,
+      "errors": []
+    },
+    {
+      "name": "KL15_START_DOWNLOAD",
+      "status": "ok",
+      "instructions": 145,
+      "errors": []
+    },
+    {
+      "name": "KL15_DOWNLOAD_PCMDA",
+      "status": "ok",
+      "instructions": 152,
+      "errors": []
+    },
+    {
+      "name": "KL15_ENDE_DOWNLOAD",
+      "status": "ok",
+      "instructions": 145,
+      "errors": []
+    },
+    {
+      "name": "KL15_CHECK_FIRMWARE",
+      "status": "ok",
+      "instructions": 292,
+      "errors": []
+    },
+    {
+      "name": "SET_CAN_ACCEPT_FILTER",
+      "status": "ok",
+      "instructions": 140,
+      "errors": []
+    },
+    {
+      "name": "GET_CAN_MESSAGE",
+      "status": "ok",
+      "instructions": 236,
+      "errors": []
+    },
+    {
+      "name": "SEND_CAN_MESSAGE",
+      "status": "ok",
+      "instructions": 134,
+      "errors": []
+    },
+    {
+      "name": "SET_AUTO_ASSIGN",
+      "status": "ok",
+      "instructions": 124,
+      "errors": []
+    },
+    {
+      "name": "WRITE_AUTO_ASSIGN_DATA",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "READ_AUTO_ASSIGN_DATA",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "READ_AUTO_ASSIGN_STATUS",
+      "status": "ok",
+      "instructions": 333,
+      "errors": []
+    },
+    {
+      "name": "GET_RUNNING_TIME",
+      "status": "ok",
+      "instructions": 194,
+      "errors": []
+    },
+    {
+      "name": "GET_ERROR_COUNT",
+      "status": "ok",
+      "instructions": 488,
+      "errors": []
+    },
+    {
+      "name": "CLR_ERROR_COUNT",
+      "status": "ok",
+      "instructions": 133,
+      "errors": []
+    },
+    {
+      "name": "_SET_MASTER_COM_MODE",
+      "status": "ok",
+      "instructions": 310,
+      "errors": []
+    }
+  ]
+}

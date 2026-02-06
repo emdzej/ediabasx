@@ -1,0 +1,42 @@
+{
+  "file": "C_EML3S.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "SEED_KEY",
+      "status": "ok",
+      "instructions": 172,
+      "errors": []
+    },
+    {
+      "name": "C_S_AUFTRAG",
+      "status": "ok",
+      "instructions": 325,
+      "errors": []
+    },
+    {
+      "name": "C_S_LESEN",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    }
+  ]
+}

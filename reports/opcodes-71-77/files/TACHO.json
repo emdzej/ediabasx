@@ -1,0 +1,120 @@
+{
+  "file": "TACHO.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 324,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 152,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TACHO",
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TACHO_AUS",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DREHZAHL",
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DREHZAHL_AUS",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KVA",
+      "status": "ok",
+      "instructions": 82,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_OEL",
+      "status": "ok",
+      "instructions": 82,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AUS",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "ZEIGERZAHL",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "CODIERDATEN_LESEN",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "CODIEREN_TACHO_260",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "CODIEREN_TACHO_260_BASIS",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "CODIEREN_TACHO_280",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "CODIEREN_TACHO_300",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "CODIEREN_MIT_OEL",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "CODIEREN_MIT_VERBR",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "SG_RESET_OHNE_UHR_DATUM",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    }
+  ]
+}

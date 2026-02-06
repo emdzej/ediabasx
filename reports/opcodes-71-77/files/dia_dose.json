@@ -1,0 +1,60 @@
+{
+  "file": "dia_dose.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "SPANNUNG_KL30_ABFRAGEN",
+      "status": "ok",
+      "instructions": 315,
+      "errors": []
+    },
+    {
+      "name": "SPANNUNG_KL15_ABFRAGEN",
+      "status": "ok",
+      "instructions": 315,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 27,
+      "errors": []
+    },
+    {
+      "name": "ENDE",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "U_PROG",
+      "status": "ok",
+      "instructions": 399,
+      "errors": []
+    },
+    {
+      "name": "GET_VOLTAGE",
+      "status": "ok",
+      "instructions": 323,
+      "errors": []
+    },
+    {
+      "name": "SIA_RESET",
+      "status": "ok",
+      "instructions": 618,
+      "errors": []
+    }
+  ]
+}

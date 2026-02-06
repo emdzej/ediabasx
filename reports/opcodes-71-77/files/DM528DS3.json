@@ -1,0 +1,540 @@
+{
+  "file": "DM528DS3.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "EDIC_RESET",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "initialisierung",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "ISN_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "RAM_LESEN",
+      "status": "ok",
+      "instructions": 223,
+      "errors": []
+    },
+    {
+      "name": "ROM_LESEN",
+      "status": "ok",
+      "instructions": 223,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 89,
+      "errors": []
+    },
+    {
+      "name": "ADAPT_LOESCHEN",
+      "status": "ok",
+      "instructions": 96,
+      "errors": []
+    },
+    {
+      "name": "ADAPT_SELEKTIV_LOESCHEN",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "ABGAS_VARIANTE_LESEN",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CODIER_CHECKSUMME",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 126,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 119,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "FS_QUICK_LESEN",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "FS_SHADOW_LESEN",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LDP_PERIODENDAUER",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LDP_START",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOTORDREHZAHL",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOTORTEMPERATUR",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AN_LUFTTEMPERATUR",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GESCHWINDIGKEIT",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DKP_VOLT",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UBATT",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZSR",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LMM_VOLT",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KLOPF_ADC1",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KLOPF_ADC2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_L_SONDE",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_L_SONDE_2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_L_SONDE_H",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_L_SONDE_2_H",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LMM",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAST",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZUENDWINKEL",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINSPRITZZEIT",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LL_REGLER",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_H_SONDE",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_H_SONDE_2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_INT",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_INT_2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADD",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADD_2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MUL",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MUL_2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LL_LUFTBEDARF",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIGITAL",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_1",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_3",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_4",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_5",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_6",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_7",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_8",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TEV",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LL_STELLER",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EKP",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KO",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TESTPLATZ",
+      "status": "ok",
+      "instructions": 236,
+      "errors": []
+    },
+    {
+      "name": "UPROG_EIN",
+      "status": "ok",
+      "instructions": 377,
+      "errors": []
+    },
+    {
+      "name": "UPROG_AUS",
+      "status": "ok",
+      "instructions": 15,
+      "errors": []
+    },
+    {
+      "name": "CO_ABGLEICH_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "CO_ABGLEICH_VERSTELLEN",
+      "status": "ok",
+      "instructions": 244,
+      "errors": []
+    },
+    {
+      "name": "CO_ABGLEICH_PROGRAMMIEREN",
+      "status": "ok",
+      "instructions": 101,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GEBERRAD_ADAPTION",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "LESEN_SYSTEMCHECK_LAUFUNRUHE",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "START_SYSTEMCHECK_TANK_LECK",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "LESEN_SYSTEMCHECK_TANK_LECK",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STOP_SYSTEMCHECK_TANK_LECK",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYNC_MODE",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYNC_MODE",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    },
+    {
+      "name": "SEED_KEY",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LMM_MASSE",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYSTEMCHECK_LAUFUNRUHE",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LS_VKAT_HEIZUNG_TV_1",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LS_VKAT_HEIZUNG_TV_2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LS_VKAT_SIGNAL_1",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LS_VKAT_SIGNAL_2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LS_NKAT_SIGNAL_1",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LS_NKAT_SIGNAL_2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAMBDA_INTEGRATOR_1",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAMBDA_INTEGRATOR_2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAMBDA_ADD_1",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAMBDA_ADD_2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAMBDA_MUL_1",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAMBDA_MUL_2",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    }
+  ]
+}

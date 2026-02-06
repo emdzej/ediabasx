@@ -1,0 +1,222 @@
+{
+  "file": "EDIC.PRG",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 24,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SPANNUNG_KL30",
+      "status": "ok",
+      "instructions": 67,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SPANNUNG_KL15",
+      "status": "ok",
+      "instructions": 67,
+      "errors": []
+    },
+    {
+      "name": "EDIC_GET_PORT_0",
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
+    },
+    {
+      "name": "EDIC_GET_PORT_1",
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
+    },
+    {
+      "name": "EDIC_GET_PORT_2",
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
+    },
+    {
+      "name": "EDIC_GET_PORT_3",
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
+    },
+    {
+      "name": "EDIC_GET_PORT_4",
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
+    },
+    {
+      "name": "EDIC_GET_PORT_5",
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
+    },
+    {
+      "name": "EDIC_GET_PORT_6",
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
+    },
+    {
+      "name": "EDIC_GET_PORT_7",
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_U_PROG",
+      "status": "ok",
+      "instructions": 66,
+      "errors": []
+    },
+    {
+      "name": "EDIC_JUMPER_EINLESEN",
+      "status": "ok",
+      "instructions": 57,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SIA_RESET",
+      "status": "ok",
+      "instructions": 66,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SIA_EIN",
+      "status": "ok",
+      "instructions": 20,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SIA_AUS",
+      "status": "ok",
+      "instructions": 15,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_0_EIN",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_0_AUS",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_1_EIN",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_1_AUS",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_2_EIN",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_2_AUS",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_3_EIN",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_3_AUS",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_4_EIN",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_4_AUS",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_5_EIN",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_5_AUS",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_6_EIN",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_6_AUS",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_7_EIN",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_SET_PORT_7_AUS",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "EDIC_LEITUNGSTEST",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    },
+    {
+      "name": "EDIC_RESET",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "EDIC_VERSION",
+      "status": "ok",
+      "instructions": 14,
+      "errors": []
+    }
+  ]
+}
