@@ -51,6 +51,7 @@ export class SimulatorServer extends EventEmitter {
   private server?: Server;
   private clients = new Set<Socket>();
   private connectedClients = new Set<Socket>();
+  private readonly responseQueue: Uint8Array[] = [];
   private shuttingDown = false;
 
   constructor(options: SimulatorServerOptions) {
@@ -66,6 +67,16 @@ export class SimulatorServer extends EventEmitter {
 
   get clientCount(): number {
     return this.clients.size;
+  }
+
+  queueResponse(data: Uint8Array): void {
+    if (data.length === 0) {
+      this.responseQueue.push(data);
+      this.emit("responseQueued", data);
+      return;
+    }
+    this.responseQueue.push(new Uint8Array(data));
+    this.emit("responseQueued", data);
   }
 
   async start(): Promise<void> {
@@ -104,6 +115,7 @@ export class SimulatorServer extends EventEmitter {
     }
     this.clients.clear();
     this.connectedClients.clear();
+    this.responseQueue.length = 0;
 
     await new Promise<void>((resolve) => {
       server.close(() => resolve());
@@ -200,10 +212,15 @@ export class SimulatorServer extends EventEmitter {
         return { ok: true };
       }
       case "receive":
-        return { data: [] };
+        return { data: this.dequeueResponse() };
       default:
         throw this.buildJsonRpcError(jsonRpcErrors.methodNotFound);
     }
+  }
+
+  private dequeueResponse(): number[] {
+    const next = this.responseQueue.shift();
+    return next ? Array.from(next) : [];
   }
 
   private extractData(params: unknown): Uint8Array {
