@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  build5BaudDataBits,
+  buildBmwFastTelegram,
+  MockSerialTransport,
   SerialCommParameterIds,
   SerialInitModes,
-  MockSerialTransport,
-  SerialInterface
+  SerialInterface,
+  SerialProtocols
 } from "..";
 
 const PORT = "/dev/mock";
@@ -132,5 +135,200 @@ describe("SerialInterface", () => {
     await expect(
       serialInterface.requestFormatted("%s", "REQ")
     ).resolves.toEqual(Uint8Array.from([0xaa, 0xbb]));
+  });
+
+  it("starts KWP2000 session with fast init", async () => {
+    const transport = new MockSerialTransport() as MockSerialTransport & {
+      sendPulse: (
+        dataBits: number,
+        length: number,
+        pulseWidthMs: number,
+        setDtr: boolean,
+        bothLines: boolean
+      ) => Promise<void>;
+    };
+    await transport.open(PORT);
+
+    transport.sendPulse = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(transport, "purge").mockResolvedValue(undefined);
+
+    const serialInterface = new SerialInterface({
+      port: PORT,
+      transport
+    });
+
+    serialInterface.setParameter(SerialCommParameterIds.Protocol, SerialProtocols.Kwp);
+    serialInterface.setParameter(SerialCommParameterIds.InitMode, 1);
+    serialInterface.setParameter(SerialCommParameterIds.TesterAddress, 0xf1);
+    serialInterface.setParameter(SerialCommParameterIds.EcuAddress, 0x12);
+    serialInterface.setParameter(SerialCommParameterIds.W1, 5);
+    serialInterface.setParameter(SerialCommParameterIds.W2, 5);
+    serialInterface.setParameter(SerialCommParameterIds.W3, 0);
+    serialInterface.setParameter(SerialCommParameterIds.W4, 0);
+    serialInterface.setParameter(SerialCommParameterIds.W5, 0);
+    serialInterface.setParameter(SerialCommParameterIds.P1, 5);
+    serialInterface.setParameter(SerialCommParameterIds.P2, 5);
+    serialInterface.setParameter(SerialCommParameterIds.P3, 0);
+    serialInterface.setParameter(SerialCommParameterIds.SendPulse, 1);
+
+    await serialInterface.connect();
+
+    const modeResponse = buildBmwFastTelegram(
+      Uint8Array.from([0x50, 0x81]),
+      0x12,
+      0xf1
+    );
+    const testerResponse = buildBmwFastTelegram(
+      Uint8Array.from([0x7e, 0x00]),
+      0x12,
+      0xf1
+    );
+    const dataResponse = buildBmwFastTelegram(
+      Uint8Array.from([0x62, 0x01]),
+      0x12,
+      0xf1
+    );
+
+    transport.enqueueRead([0x12, 0x8f]);
+    transport.enqueueRead(modeResponse);
+    transport.enqueueRead(testerResponse);
+    transport.enqueueRead(dataResponse);
+
+    const response = await serialInterface.rawData(Uint8Array.from([0x22, 0x01]));
+
+    expect(Array.from(response)).toEqual(Array.from(dataResponse));
+    expect(transport.sendPulse).toHaveBeenCalledWith(0x02, 2, 25, true, false);
+
+    const requestTelegram = buildBmwFastTelegram(
+      Uint8Array.from([0x22, 0x01]),
+      0x12,
+      0xf1
+    );
+
+    expect(transport.getWrites().map((entry) => Array.from(entry))).toEqual([
+      Array.from(
+        buildBmwFastTelegram(Uint8Array.from([0x10, 0x81]), 0x12, 0xf1)
+      ),
+      Array.from(
+        buildBmwFastTelegram(Uint8Array.from([0x3e, 0x00]), 0x12, 0xf1)
+      ),
+      Array.from(requestTelegram)
+    ]);
+  });
+
+  it("falls back to raw KWP1281 after 5-baud init", async () => {
+    const transport = new MockSerialTransport() as MockSerialTransport & {
+      sendPulse: (
+        dataBits: number,
+        length: number,
+        pulseWidthMs: number,
+        setDtr: boolean,
+        bothLines: boolean,
+        autoKeyByteDelay?: number
+      ) => Promise<void>;
+    };
+    await transport.open(PORT);
+
+    transport.sendPulse = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(transport, "purge").mockResolvedValue(undefined);
+
+    const serialInterface = new SerialInterface({
+      port: PORT,
+      transport
+    });
+
+    serialInterface.setParameter(SerialCommParameterIds.Protocol, SerialProtocols.Kwp);
+    serialInterface.setParameter(SerialCommParameterIds.InitMode, 0);
+    serialInterface.setParameter(SerialCommParameterIds.EcuAddress, 0x33);
+    serialInterface.setParameter(SerialCommParameterIds.W1, 100);
+    serialInterface.setParameter(SerialCommParameterIds.W2, 100);
+    serialInterface.setParameter(SerialCommParameterIds.W3, 0);
+    serialInterface.setParameter(SerialCommParameterIds.SendPulse, 1);
+
+    await serialInterface.connect();
+
+    transport.enqueueRead([0x12, 0x01]);
+    transport.enqueueRead([0xaa]);
+
+    const response = await serialInterface.rawData(Uint8Array.from([0x99, 0x88]));
+
+    expect(Array.from(response)).toEqual([0xaa]);
+    expect(transport.sendPulse).toHaveBeenCalledWith(
+      build5BaudDataBits(0x33),
+      10,
+      200,
+      true,
+      true,
+      0
+    );
+
+    expect(transport.getWrites()).toEqual([
+      Uint8Array.from([0x99]),
+      Uint8Array.from([0x88])
+    ]);
+  });
+
+  it("retries NR78 responses during KWP2000 requests", async () => {
+    const transport = new MockSerialTransport() as MockSerialTransport & {
+      sendPulse: () => Promise<void>;
+    };
+    await transport.open(PORT);
+    
+    transport.sendPulse = vi.fn().mockResolvedValue(undefined);
+    vi.spyOn(transport, "purge").mockResolvedValue(undefined);
+    
+    const serialInterface = new SerialInterface({
+      port: PORT,
+      transport
+    });
+
+    serialInterface.setParameter(SerialCommParameterIds.Protocol, SerialProtocols.Kwp);
+    serialInterface.setParameter(SerialCommParameterIds.InitMode, 1);
+    serialInterface.setParameter(SerialCommParameterIds.TesterAddress, 0xf1);
+    serialInterface.setParameter(SerialCommParameterIds.EcuAddress, 0x12);
+    serialInterface.setParameter(SerialCommParameterIds.W1, 100);
+    serialInterface.setParameter(SerialCommParameterIds.W2, 100);
+    serialInterface.setParameter(SerialCommParameterIds.W3, 0);
+    serialInterface.setParameter(SerialCommParameterIds.W4, 0);
+    serialInterface.setParameter(SerialCommParameterIds.W5, 0);
+    serialInterface.setParameter(SerialCommParameterIds.P1, 100);
+    serialInterface.setParameter(SerialCommParameterIds.P2, 100);
+    serialInterface.setParameter(SerialCommParameterIds.P3, 0);
+    serialInterface.setParameter(SerialCommParameterIds.TimeoutNr78, 100);
+    serialInterface.setParameter(SerialCommParameterIds.RetryNr78, 1);
+    serialInterface.setParameter(SerialCommParameterIds.SendPulse, 1);
+
+    await serialInterface.connect();
+
+    const modeResponse = buildBmwFastTelegram(
+      Uint8Array.from([0x50, 0x81]),
+      0x12,
+      0xf1
+    );
+    const testerResponse = buildBmwFastTelegram(
+      Uint8Array.from([0x7e, 0x00]),
+      0x12,
+      0xf1
+    );
+    const nr78Response = buildBmwFastTelegram(
+      Uint8Array.from([0x7f, 0x22, 0x78]),
+      0x12,
+      0xf1
+    );
+    const okResponse = buildBmwFastTelegram(
+      Uint8Array.from([0x62, 0x01]),
+      0x12,
+      0xf1
+    );
+
+    transport.enqueueRead([0x12, 0x8f]);
+    transport.enqueueRead(modeResponse);
+    transport.enqueueRead(testerResponse);
+    transport.enqueueRead(nr78Response);
+    transport.enqueueRead(okResponse);
+
+    const response = await serialInterface.rawData(Uint8Array.from([0x22, 0x01]));
+
+    expect(Array.from(response)).toEqual(Array.from(okResponse));
   });
 });

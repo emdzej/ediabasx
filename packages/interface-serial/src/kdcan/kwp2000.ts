@@ -16,6 +16,8 @@ const DEFAULT_TIMERS = {
   retryNr78: 2
 } as const;
 
+export const DEFAULT_KWP2000_TIMERS: Kwp2000Timers = { ...DEFAULT_TIMERS };
+
 export type Kwp2000Timers = {
   readonly w1: number;
   readonly w2: number;
@@ -66,6 +68,14 @@ export class Kwp2000Session {
     await sendFastInit(transport, this.fastInitOptions);
 
     const keyBytes = await this.readKeyBytes(transport);
+    return this.startSessionWithKeyBytes(transport, keyBytes);
+  }
+
+  async startSessionWithKeyBytes(
+    transport: SerialTransport,
+    keyBytes: Uint8Array
+  ): Promise<Uint8Array> {
+    this.assertState("idle");
     if (parseKeyBytes(keyBytes) !== KwpProtocols.Kwp2000) {
       throw new Error("KWP2000 key bytes not detected");
     }
