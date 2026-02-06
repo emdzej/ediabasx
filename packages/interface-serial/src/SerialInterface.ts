@@ -375,6 +375,14 @@ export class SerialInterface extends EdiabasInterface {
         await this.frequentKwp2000();
         return;
       }
+      if (
+        this.shouldUseCanSession() ||
+        this.adapterMode === AdapterModes.Can ||
+        this.dcanSession
+      ) {
+        await this.frequentCan();
+        return;
+      }
       const response = await this.rawData(this.frequentSendBuffer);
       this.frequentRecvBuffer = response;
     } catch (error) {
@@ -404,6 +412,36 @@ export class SerialInterface extends EdiabasInterface {
       this.transport,
       this.frequentSendBuffer
     );
+    this.frequentRecvBuffer = response;
+  }
+
+  private async frequentCan(): Promise<void> {
+    this.assertConnected();
+    if (!this.frequentSendBuffer) {
+      return;
+    }
+
+    if (!this.dcanSession) {
+      if (!this.shouldUseCanSession()) {
+        throw new Error("CAN session not initialized");
+      }
+      await this.ensureCanSession();
+    }
+
+    if (!this.dcanSession) {
+      throw new Error("CAN session not initialized");
+    }
+
+    const segments = segmentIsoTpPayload(this.frequentSendBuffer);
+    for (const segment of segments) {
+      await this.dcanSession.sendRequest(this.transport, segment);
+    }
+
+    const response =
+      this.commParameter.protocol === SerialProtocols.IsoTp
+        ? await this.receiveIsoTpResponse()
+        : await this.receive();
+
     this.frequentRecvBuffer = response;
   }
 
