@@ -15,6 +15,8 @@ import type {
   InterfaceOptions
 } from "@ediabas/interfaces";
 import { App } from "./tui/App.js";
+import { SimulatorApp } from "./tui/SimulatorApp.js";
+import { SimulatorServer } from "./simulator/SimulatorServer.js";
 
 type OutputFormat = "json" | "table" | "human";
 
@@ -24,6 +26,8 @@ type OutputOptions = {
 };
 
 const DEFAULT_GATEWAY_PORT = 6801;
+const DEFAULT_SIMULATOR_HOST = "127.0.0.1";
+const DEFAULT_SIMULATOR_PORT = 6802;
 
 const program = new Command();
 
@@ -898,6 +902,50 @@ program
       const buffer = readFileBuffer(filePath);
       const prg = parsePrg(buffer);
       render(React.createElement(App, { filePath, buffer, prg }));
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
+program
+  .command("simulator")
+  .option("--host <host>", "host to bind", DEFAULT_SIMULATOR_HOST)
+  .option("--port <port>", "port to bind", DEFAULT_SIMULATOR_PORT.toString())
+  .description("Start the interactive simulator")
+  .action(async (options: { host?: string; port?: string }) => {
+    try {
+      const host = options.host ?? DEFAULT_SIMULATOR_HOST;
+      const port = parseNumber(options.port ?? `${DEFAULT_SIMULATOR_PORT}`, "Simulator port");
+      const server = new SimulatorServer({ host, port, logger: console });
+      await server.start();
+      const address = server.address;
+
+      let shuttingDown = false;
+      const stopServer = async () => {
+        if (shuttingDown) return;
+        shuttingDown = true;
+        await server.stop();
+      };
+
+      const instance = render(
+        React.createElement(SimulatorApp, {
+          host: address.host,
+          port: address.port,
+          onExit: stopServer,
+        })
+      );
+
+      const shutdown = async () => {
+        await stopServer();
+        instance.unmount();
+      };
+
+      process.on("SIGINT", () => {
+        void shutdown();
+      });
+      process.on("SIGTERM", () => {
+        void shutdown();
+      });
     } catch (error) {
       handleError(error);
     }
