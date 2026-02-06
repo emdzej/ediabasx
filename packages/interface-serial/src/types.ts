@@ -21,6 +21,14 @@ export interface SerialTransport {
   purge(): Promise<void>;
   read(length: number, timeoutMs: number): Promise<Uint8Array>;
   write(data: Uint8Array): Promise<void>;
+  sendPulse?(
+    dataBits: number,
+    length: number,
+    pulseWidthMs: number,
+    setDtr: boolean,
+    bothLines: boolean,
+    autoKeyByteDelay?: number
+  ): Promise<void>;
 }
 
 export const SerialProtocols = {
@@ -60,7 +68,9 @@ export const SerialCommParameterIds = {
   TimeoutNr78: 0x10,
   RetryNr78: 0x11,
   InitMode: 0x12,
-  SendPulse: 0x13
+  SendPulse: 0x13,
+  CanFlags: 0x14,
+  CanBaudRate: 0x15
 } as const;
 
 export type SerialCommParameterId =
@@ -72,6 +82,8 @@ export type SerialCommParameterState = {
   ecuAddress?: number;
   testerCanId?: number;
   ecuCanId?: number;
+  canFlags?: number;
+  canBaudRate?: number;
   p1?: number;
   p2?: number;
   p3?: number;

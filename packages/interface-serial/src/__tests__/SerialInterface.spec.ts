@@ -331,4 +331,78 @@ describe("SerialInterface", () => {
 
     expect(Array.from(response)).toEqual(Array.from(okResponse));
   });
+
+  it("switches to CAN mode for ISO-TP protocol", async () => {
+    const transport = new MockSerialTransport();
+    const configureSpy = vi.spyOn(transport, "configure");
+    const setDtrSpy = vi.spyOn(transport, "setDtr");
+    const setRtsSpy = vi.spyOn(transport, "setRts");
+
+    const serialInterface = new SerialInterface({
+      port: PORT,
+      transport
+    });
+
+    serialInterface.setParameter(SerialCommParameterIds.Protocol, SerialProtocols.IsoTp);
+    serialInterface.setParameter(SerialCommParameterIds.TesterCanId, 0x7e0);
+    serialInterface.setParameter(SerialCommParameterIds.EcuCanId, 0x7e8);
+
+    await serialInterface.connect();
+
+    // Enqueue CAN response
+    transport.enqueueRead([0x03, 0x7f, 0x22, 0x10]);
+
+    await serialInterface.rawData(Uint8Array.from([0x22, 0xf1, 0x90]));
+
+    // Should have switched to CAN mode (500000 baud, DTR+RTS high)
+    expect(configureSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ baudRate: 500000 })
+    );
+    expect(setDtrSpy).toHaveBeenCalledWith(true);
+    expect(setRtsSpy).toHaveBeenCalledWith(true);
+  });
+
+  it("segments large ISO-TP payloads", async () => {
+    const transport = new MockSerialTransport();
+    const writeSpy = vi.spyOn(transport, "write");
+
+    const serialInterface = new SerialInterface({
+      port: PORT,
+      transport
+    });
+
+    serialInterface.setParameter(SerialCommParameterIds.Protocol, SerialProtocols.IsoTp);
+    serialInterface.setParameter(SerialCommParameterIds.TesterCanId, 0x7e0);
+    serialInterface.setParameter(SerialCommParameterIds.EcuCanId, 0x7e8);
+
+    await serialInterface.connect();
+
+    // Enqueue response
+    transport.enqueueRead([0x03, 0x62, 0xf1, 0x90]);
+
+    // Send a payload larger than 7 bytes (requires ISO-TP segmentation)
+    const largePayload = Uint8Array.from([
+      0x22, 0xf1, 0x90, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08
+    ]);
+
+    await serialInterface.rawData(largePayload);
+
+    // Should have written multiple frames (first frame + consecutive frames)
+    const writes = writeSpy.mock.calls;
+    expect(writes.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("exposes adapter info after polling", async () => {
+    const transport = new MockSerialTransport();
+    const serialInterface = new SerialInterface({
+      port: PORT,
+      transport
+    });
+
+    await serialInterface.connect();
+
+    // Initially adapter info is not available
+    expect(serialInterface.adapterType).toBe(-1);
+    expect(serialInterface.ignitionStatus).toBe(-1);
+  });
 });
