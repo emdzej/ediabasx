@@ -1,0 +1,18 @@
+{
+  "file": "D_0072B.grp",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENTIFIKATION",
+      "status": "ok",
+      "instructions": 127,
+      "errors": []
+    }
+  ]
+}

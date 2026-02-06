@@ -1,0 +1,60 @@
+{
+  "file": "ZKE3_FT3.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 168,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "HERSTELLDATEN_LESEN",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIGITAL_FT",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANALOG_FT",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DIGITAL_FT",
+      "status": "ok",
+      "instructions": 332,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BYTES_FT",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FH_FT",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    }
+  ]
+}

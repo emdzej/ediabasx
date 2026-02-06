@@ -1,0 +1,654 @@
+{
+  "file": "ME7C007.PRG",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "initialisierung",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LL_LESEN",
+      "status": "ok",
+      "instructions": 179,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "DK_ANSCHLAG",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "FS_QUICK_LESEN",
+      "status": "ok",
+      "instructions": 173,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 221,
+      "errors": []
+    },
+    {
+      "name": "FS_KURZ_LESEN",
+      "status": "ok",
+      "instructions": 197,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 173,
+      "errors": []
+    },
+    {
+      "name": "FS_HEX_LESEN",
+      "status": "ok",
+      "instructions": 191,
+      "errors": []
+    },
+    {
+      "name": "SG_ADRESSEN",
+      "status": "ok",
+      "instructions": 173,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCH",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "WINDS2_FS_LESEN",
+      "status": "ok",
+      "instructions": 221,
+      "errors": []
+    },
+    {
+      "name": "WINDS2_MESSWERTE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "WINDS2_BATT_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "WINDS2_SCHALT_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "WINDS2_LAUF_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "WINDS2_GEMISCH_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "WINDS2_AUSG_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "WINDS2_NWGR_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "WINDS2_FUNKT_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "WINDS2_FGRSTAT_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "WINDS2_DKHFM_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "VANOS_ANSTEUER_1",
+      "status": "ok",
+      "instructions": 220,
+      "errors": []
+    },
+    {
+      "name": "VANOS_ANSTEUER_2",
+      "status": "ok",
+      "instructions": 220,
+      "errors": []
+    },
+    {
+      "name": "VANOS_SYSTEM_1",
+      "status": "ok",
+      "instructions": 179,
+      "errors": []
+    },
+    {
+      "name": "VANOS_SYSTEM_2",
+      "status": "ok",
+      "instructions": 179,
+      "errors": []
+    },
+    {
+      "name": "VANOS_ENDE",
+      "status": "ok",
+      "instructions": 292,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_1",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_2",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_3",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_4",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_5",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_6",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_7",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_8",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_1_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_2_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_3_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_4_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_5_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_6_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_7_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_8_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_AUSBL",
+      "status": "ok",
+      "instructions": 180,
+      "errors": []
+    },
+    {
+      "name": "LDP_ANSTEUER",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "LDP_SYSTEM",
+      "status": "ok",
+      "instructions": 258,
+      "errors": []
+    },
+    {
+      "name": "LDP_ENDE",
+      "status": "ok",
+      "instructions": 233,
+      "errors": []
+    },
+    {
+      "name": "ADAP_SELEKTIV_LOESCHEN",
+      "status": "ok",
+      "instructions": 233,
+      "errors": []
+    },
+    {
+      "name": "CO_LESEN",
+      "status": "ok",
+      "instructions": 179,
+      "errors": []
+    },
+    {
+      "name": "CO_VORGEBEN",
+      "status": "ok",
+      "instructions": 198,
+      "errors": []
+    },
+    {
+      "name": "CO_PROGRAMM",
+      "status": "ok",
+      "instructions": 198,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_E_LUEFTER",
+      "status": "ok",
+      "instructions": 180,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_E_LUEFTER_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SLP",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SLP_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TEV",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TEV_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KFK",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KFK_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SLV",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SLV_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EKP",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EKP_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HLS1",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HLS1_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HLS2",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HLS2_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HLS3",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HLS3_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HLS4",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HLS4_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LDP",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LDP_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_STA",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_STA_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KOE",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KOE_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EBL",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EBL_AUS",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "AMUENE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "AMUENE_LOESCHEN",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "WINDS2_READINESS_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "LL_ERH_SETZEN",
+      "status": "ok",
+      "instructions": 198,
+      "errors": []
+    },
+    {
+      "name": "LL_ERH_STATUS",
+      "status": "ok",
+      "instructions": 179,
+      "errors": []
+    },
+    {
+      "name": "LL_ERH_ENDE",
+      "status": "ok",
+      "instructions": 179,
+      "errors": []
+    },
+    {
+      "name": "SLP_ANSTEUER",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "SLP_SYSTEM",
+      "status": "ok",
+      "instructions": 213,
+      "errors": []
+    },
+    {
+      "name": "SLS_Zyklus",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "SLS2_Zyklus",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "SLP_ENDE",
+      "status": "ok",
+      "instructions": 233,
+      "errors": []
+    },
+    {
+      "name": "LDP_Zyklus",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "TESK_Zyklus",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "TEV_ANSTEUER",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "TEV_SYSTEM",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "TEV_Zyklus",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "TEV_ENDE",
+      "status": "ok",
+      "instructions": 233,
+      "errors": []
+    },
+    {
+      "name": "STOP_COMM",
+      "status": "ok",
+      "instructions": 179,
+      "errors": []
+    },
+    {
+      "name": "ADC_WERTE_LESEN",
+      "status": "ok",
+      "instructions": 248,
+      "errors": []
+    },
+    {
+      "name": "LR_SPERREN",
+      "status": "ok",
+      "instructions": 178,
+      "errors": []
+    },
+    {
+      "name": "LR_SPERREN_ENDE",
+      "status": "ok",
+      "instructions": 250,
+      "errors": []
+    },
+    {
+      "name": "LL_VORGEBEN",
+      "status": "ok",
+      "instructions": 229,
+      "errors": []
+    },
+    {
+      "name": "LL_PROGRAMMIEREN",
+      "status": "ok",
+      "instructions": 229,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "SLS_ZYKLUS",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "SLS2_ZYKLUS",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "LDP_ZYKLUS",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "TESK_ZYKLUS",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "TEV_ZYKLUS",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    }
+  ]
+}

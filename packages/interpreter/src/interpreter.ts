@@ -112,6 +112,13 @@ import {
   xtype,
   xvers,
   xreps,
+  xgetport,
+  xsetport,
+  xignit,
+  xloopt,
+  xprog,
+  xraw,
+  xsireset,
   xopen,
   xclose,
   xcloseex,
@@ -1341,6 +1348,46 @@ export class Interpreter {
       // 0x70: xdownl - download (no-op stub)
       0x70: async () => {
         // Download functionality - no-op stub
+      },
+      0x71: async (state, arg0, arg1) => {
+        await xgetport(
+          state.registers,
+          requireCommunicationInterface(state),
+          requireIntRegister(arg0),
+          resolveIntValue(state.registers, arg1)
+        );
+      },
+      0x72: async (state, arg0) => {
+        await xignit(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
+      },
+      0x73: async (state, arg0) => {
+        await xloopt(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
+      },
+      0x74: async (state, arg0) => {
+        await xprog(
+          state.registers,
+          requireCommunicationInterface(state),
+          resolveIntValue(state.registers, arg0)
+        );
+      },
+      0x75: async (state, arg0, arg1) => {
+        await xraw(
+          state.registers,
+          requireCommunicationInterface(state),
+          requireStringRegister(arg0),
+          requireStringRegister(arg1)
+        );
+      },
+      0x76: async (state, arg0, arg1) => {
+        await xsetport(
+          state.registers,
+          requireCommunicationInterface(state),
+          requireStringRegister(arg0),
+          resolveIntValue(state.registers, arg1)
+        );
+      },
+      0x77: async (state, arg0) => {
+        await xsireset(requireCommunicationInterface(state), resolveIntValue(state.registers, arg0));
       },
       // 0x78: xstoptr - stop transfer (no-op stub)
       0x78: async () => {

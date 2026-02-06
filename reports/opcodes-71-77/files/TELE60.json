@@ -1,0 +1,798 @@
+{
+  "file": "TELE60.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 324,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 152,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "NORMALER_DATENVERKEHR",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN",
+      "status": "ok",
+      "instructions": 166,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 156,
+      "errors": []
+    },
+    {
+      "name": "IS_LOESCHEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 82,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_SCHREIBEN",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 77,
+      "errors": []
+    },
+    {
+      "name": "C_CI_LESEN",
+      "status": "ok",
+      "instructions": 311,
+      "errors": []
+    },
+    {
+      "name": "C_FG_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "C_FG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "C_FG_AUFTRAG",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_SCHREIBEN",
+      "status": "ok",
+      "instructions": 178,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_AUFTRAG",
+      "status": "ok",
+      "instructions": 178,
+      "errors": []
+    },
+    {
+      "name": "C_C_LESEN",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "C_C_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "C_C_AUFTRAG",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 334,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 232,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP_LESEN",
+      "status": "ok",
+      "instructions": 232,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN",
+      "status": "ok",
+      "instructions": 285,
+      "errors": []
+    },
+    {
+      "name": "HARDWARE_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 232,
+      "errors": []
+    },
+    {
+      "name": "DATEN_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "FLASH_ZEITEN_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "FLASH_BLOCKLAENGE_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_ZUFALLSZAHL_LESEN",
+      "status": "ok",
+      "instructions": 35,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_START",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 140,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SIGNATUR_PRUEFEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "FLASH_LOESCHEN",
+      "status": "ok",
+      "instructions": 59,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ADRESSE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ENDE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 78,
+      "errors": []
+    },
+    {
+      "name": "AIF_SCHREIBEN",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "PRUEFCODE_LESEN",
+      "status": "ok",
+      "instructions": 173,
+      "errors": []
+    },
+    {
+      "name": "MOST_VERSION_LESEN",
+      "status": "ok",
+      "instructions": 140,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOST_3DB",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_3DB",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_WAKE_UP_STATUS",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ABILITY_TO_WAKE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ABILITY_TO_WAKE",
+      "status": "ok",
+      "instructions": 84,
+      "errors": []
+    },
+    {
+      "name": "TCU_TYPE_LESEN",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    },
+    {
+      "name": "FG_ALS_BT_USER_FRIENDLY_NAME_SCHREIBEN",
+      "status": "ok",
+      "instructions": 199,
+      "errors": []
+    },
+    {
+      "name": "BT_USER_FRIENDLY_NAME_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "BT_USER_FRIENDLY_NAME_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "BT_DEVICE_ADDRESS_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "BT_FIX_PASSKEY_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "BT_PAIRED_DEVICES_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "BT_PAIRING_START",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "BT_PAIRED_DEVICES_LOESCHEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "BT_DISCOVERABLE_MODE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "BT_INQUIRY_START",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "BT_INQUIRY_RESULT_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "BT_PAIRING_RESULT_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "BT_DISABLE",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    },
+    {
+      "name": "BT_ENABLE",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    },
+    {
+      "name": "BT_OPERATIONMODE_LESEN",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    },
+    {
+      "name": "LESEN_SIM_CARD",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "RESET_MODE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "NVM_INIT",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SELBSTTEST",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "SCHREIBEN_DSP_PARAMS",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "LESEN_DSP_PARAMS",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "SCHREIBEN_PORT_PINS",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "LESEN_PORT_PINS",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "US_ESN_LESEN",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    },
+    {
+      "name": "GMIN_NULL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "US_MIN_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "US_MIN_LESEN",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    },
+    {
+      "name": "US_CDMA_DIRECTORY_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "US_CDMA_DIRECTORY_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "US_SID_NID_SCHREIBEN",
+      "status": "ok",
+      "instructions": 494,
+      "errors": []
+    },
+    {
+      "name": "US_SID_NID_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "US_CDMA_PRIMARY_CH_A_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "US_CDMA_PRIMARY_CH_A_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "US_CDMA_SECONDARY_CH_A_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "US_CDMA_SECONDARY_CH_A_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "US_CDMA_PRIMARY_CH_B_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "US_CDMA_PRIMARY_CH_B_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "US_CDMA_SECONDARY_CH_B_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "US_CDMA_SECONDARY_CH_B_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "US_AMPS_SID_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "US_AMPS_SID_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "US_AMPS_PAGING_CH_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "US_AMPS_PAGING_CH_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "DEALER_NO_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "DEALER_NO_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "BREAKDOWN_NO_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "BREAKDOWN_NO_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "HOTLINE_NO_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "HOTLINE_NO_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "LESEN_DSP_ACOUSTICS",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "TELEMATICS_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "NON_TELEMATICS_ECALL_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "BACKUP_BATTERY_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "US_CALLS_WITH_GMIN_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "TMP_PIN_STORAGE_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "ECALL_DISABLE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "ECALL_ENABLE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "ECALL_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "EMERG_NO_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "EMERG_NO_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "GATS_SMSC_NO_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "GATS_SMSC_NO_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "GATS_PROVIDER_NO_SCHREIBEN",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "GATS_PROVIDER_NO_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "ICC_ID_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "JAP_EMERG_DATA_NO_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "JAP_EMERG_DATA_NO_SCHREIBEN",
+      "status": "ok",
+      "instructions": 912,
+      "errors": []
+    },
+    {
+      "name": "JAP_EMERG_VOICE_NO_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "JAP_EMERG_VOICE_NO_SCHREIBEN",
+      "status": "ok",
+      "instructions": 912,
+      "errors": []
+    },
+    {
+      "name": "JAP_MAIN_DATA_NO_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "JAP_MAIN_DATA_NO_SCHREIBEN",
+      "status": "ok",
+      "instructions": 912,
+      "errors": []
+    },
+    {
+      "name": "JAP_MAIN_VOICE_NO_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "JAP_MAIN_VOICE_NO_SCHREIBEN",
+      "status": "ok",
+      "instructions": 912,
+      "errors": []
+    },
+    {
+      "name": "US_ESN_MIN_LESEN",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,1686 @@
+{
+  "file": "champ2r.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 107,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "NORMALER_DATENVERKEHR",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "FS_SPERREN",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "IS_LOESCHEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 82,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "PRUEFCODE_LESEN",
+      "status": "ok",
+      "instructions": 211,
+      "errors": []
+    },
+    {
+      "name": "C_CI_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "C_FG_LESEN",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "C_FG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "C_FG_AUFTRAG",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_SCHREIBEN",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_AUFTRAG",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "C_C_LESEN",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "C_C_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "C_C_AUFTRAG",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 567,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP_LESEN",
+      "status": "ok",
+      "instructions": 513,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "HARDWARE_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "DATEN_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_ZEITEN_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_BLOCKLAENGE_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_ZUFALLSZAHL_LESEN",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_START",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SIGNATUR_PRUEFEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_LOESCHEN",
+      "status": "ok",
+      "instructions": 59,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ADRESSE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ENDE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "AIF_SCHREIBEN",
+      "status": "ok",
+      "instructions": 239,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 95,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 168,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SOFTWARENAME",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VERSION_GATEWAYTABELLE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GATEWAY_WAKEUP_SOURCE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GATEWAY_MOST_DEVICE_COUNT",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GATEWAY_MOST_DEVICES",
+      "status": "ok",
+      "instructions": 239,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GATEWAY_LOCAL_REGISTRY_ELEMENTS",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PRAEPROZESSOR_SWITCH",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_INCLUDED_GW_TAB",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "READ_DEVIDS_CURRENT_REGISTRY",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "READ_DEVIDS_DEFAULT_REGISTRY",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "READ_FBLOCKS_CURRENT_REGISTRY",
+      "status": "ok",
+      "instructions": 91,
+      "errors": []
+    },
+    {
+      "name": "READ_FBLOCKS_DEFAULT_REGISTRY",
+      "status": "ok",
+      "instructions": 91,
+      "errors": []
+    },
+    {
+      "name": "DIAGTUNNELLING_KWP",
+      "status": "ok",
+      "instructions": 183,
+      "errors": []
+    },
+    {
+      "name": "LESEN_TELEFONNUMMERN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "LESEN_TELEFONNUMMER_SDARS",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "READ_CURRENT_REGISTRY",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "READ_DEFAULT_REGISTRY",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "READ_06_DEFAULT_REGISTRY",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "READ_DIFF_REGISTRY",
+      "status": "ok",
+      "instructions": 210,
+      "errors": []
+    },
+    {
+      "name": "SCHREIBEN_BMW_ZERTIFIKAT",
+      "status": "ok",
+      "instructions": 77,
+      "errors": []
+    },
+    {
+      "name": "SCHREIBEN_BROWSER_ZERTIFIKAT",
+      "status": "ok",
+      "instructions": 77,
+      "errors": []
+    },
+    {
+      "name": "SCHREIBEN_TELEFONNUMMER_SDARS",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "SCHREIBEN_TELEFONNUMMERN",
+      "status": "ok",
+      "instructions": 663,
+      "errors": []
+    },
+    {
+      "name": "SER_NR_DOM_LESEN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ABILITY_TO_WAKE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AKTIVE_GAL_KURVE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANALOG_TEMPERATUR",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANT_DC",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANT_EIGEN_DIAG",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANT_QFS",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_APPLICATION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AUDIOKANAELE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AVERAGE_MESSAGE_RECEPTION_RATE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BIT_ERROR_RATE_IBOC",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CD_MD_CDC",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DEMUTE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIRECTION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DREHKNOPF",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DRIVE_CD",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DRIVE_FLASHSPEICHER",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FB_TASTE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FBAND_SCAN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FIND_BEST_STATION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FIND_BEST_STATION_DAB",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FIND_BEST_TMC_STATION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FOT_TEMPERATUR",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FREQUENZ",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GPS",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GPS_DILUTION_OF_POSITION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GPS_POSITION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GPS_RECEIVER_SW_VERSION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GPS_SATINFO",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GPS_TIME",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HIGHSYNCCONNECTION_DETAIL",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HIGHSYNCCONNECTION_TABLE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HORIZONTAL_HEADING",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HW_VARIANTE",
+      "status": "ok",
+      "instructions": 134,
+      "errors": []
+    },
+    {
+      "name": "STATUS_INTERNAL_GYRO",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAUTSPRECHER_IMPEDANZMESSUNG",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_LAUFWERK",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_SYSTEMAUDIO",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LOGISTIC_NR",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MAPMATERIAL_VERSION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MEMORY_USAGE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOST_3DB",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOSTDIAG_DELAY",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_NAVI_CALIBRATION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_NAVI_MAP",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_NEXT_ENTSOURCE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RADON",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RDS",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SDARS_BER",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SDARS_BER_MODE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SDARS_CHANNEL",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SDARS_ESN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SDARS_FACTORY_DEFAULTS",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SDARS_FIRMWARE_VERSIONS",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SDARS_GENERATOR_FREQUENCY",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SDARS_SIGNAL_QUALITY",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SDARS_TUNER_MODE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SEARCH_FBLOCK",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SENSOR_TEMP",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SGBMID_NAVIMAP",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SPEED",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TASTE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TEL_MUTE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TEST_ANTENNE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TMC",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VERSION_MOST_CONTROLLER",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VERSORGUNGSSPANNUNG",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VOLUMEAUDIO",
+      "status": "ok",
+      "instructions": 173,
+      "errors": []
+    },
+    {
+      "name": "STATUS_WAKEUP_STATUS",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_WAKEUP_ABSTIME",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_WAVEBAND",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ABILITY_TO_WAKE",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ANT_EIGEN_DIAG",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ANT_SCAN",
+      "status": "ok",
+      "instructions": 54,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AUDIOKANAELE",
+      "status": "ok",
+      "instructions": 254,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CLEAR_CKMDATA",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CODIERUNG_MASTER_BEREICH",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CODIERUNG_REFERENZ_CRC",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_COPY_CKMDATA",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DELETE_COOKIES",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DEMUTE",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EJECT",
+      "status": "ok",
+      "instructions": 211,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EMERGENCY_EJECT",
+      "status": "ok",
+      "instructions": 197,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FBAND_SCAN",
+      "status": "ok",
+      "instructions": 86,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FBAND_SCAN_STOP",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FIND_BEST_STATION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FIND_BEST_STATION_DAB",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FIND_BEST_TMC_STATION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FREQUENZ",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KLANGZEICHEN",
+      "status": "ok",
+      "instructions": 66,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LINEAR",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LOGISTIC_NR",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_3DB",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_NAVI_MAP",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_NAVI_SPEECH",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_NEXT_ENTSOURCE",
+      "status": "ok",
+      "instructions": 171,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_PDC",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RADON",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RDS",
+      "status": "ok",
+      "instructions": 60,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RINGBRUCH_DIAGNOSE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SDARS_BER_MODE",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SDARS_CHANNEL",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SDARS_FACTORY_DEFAULTS",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SDARS_GENERATOR_FREQUENCY",
+      "status": "ok",
+      "instructions": 130,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SDARS_TUNER_MODE",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SENSOR_TEMP",
+      "status": "ok",
+      "instructions": 251,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SINUSGENERATOR_AUS",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SINUSGENERATOR_EIN",
+      "status": "ok",
+      "instructions": 78,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_START_NAVICHECK",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_STOP_NAVICHECK",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TEST_ANTENNE",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TMC",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACK_NUMBER",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TUNER_SUCHLAUF",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    },
+    {
+      "name": "STATUS_USB_HUB_TEST",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_USB_TEST_TEL",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_USB_TEST_TEL",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "STATUS_USB_STACK_INFO_FOR_DEVICE",
+      "status": "ok",
+      "instructions": 70,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VOLUMEAUDIO",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VOLUMEAUDIO_DEFAULT",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_WATCHDOG_TRIGGER_STOP",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_WAVEBAND",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ZENTRALE_REGISTRY_SOLLKONFIGURATION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TEST_VIDEOEINGANG",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VIDEOVERBINDUNG",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CPU_AUSLASTUNG",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETHERNET_CONNECTION_STATE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GET_IPCONFIG",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LANGUAGE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MENU",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SELBSTTEST",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TEST_VERBAU",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CLEAR_FAULT_TRACKING",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ETHERNET_CONNECTION_STATE",
+      "status": "ok",
+      "instructions": 60,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_INTERNAL_RESET",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LANGUAGE",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LAUTSPRECHER_IMPEDANZMESSUNG",
+      "status": "ok",
+      "instructions": 260,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MENU",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SELBSTTEST",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SIGNALAUSGABE",
+      "status": "ok",
+      "instructions": 122,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SIGNALAUSGABE_AUS",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TEST_VERBAU",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TEST_VIDEOEINGANG",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VERY_HARD_RESET",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VIDEOVERBINDUNG",
+      "status": "ok",
+      "instructions": 202,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VIDEOVERBINDUNG_AUS",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FAN_HISTORY",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LUEFTER",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LUEFTER_CONTROL_DATA",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CLEAR_FAN_HISTORY",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LUEFTER",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LUEFTER_CONTROL_DATA",
+      "status": "ok",
+      "instructions": 580,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AF_TP_DAB",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AKTIVE_ANTENNE_DAB",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BIT_ERROR_RATE_DAB",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FREQUENZ_DAB",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SIGNAL_DAB",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AF_TP_DAB",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AKTIVE_ANTENNE_DAB",
+      "status": "ok",
+      "instructions": 173,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FREQUENZ_DAB",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STATUS_INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RESCUE_MODE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "LESEN_INDIVIDUALDATA_LISTE",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "LESE_INDIVIDUALDATA",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "SCHREIBEN_INDIVIDUALDATA",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HMI_VERSION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_NAVI_SIMULATION",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    },
+    {
+      "name": "STATUS_NAVI_SIMULATION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_NWM_CONFIG_NOTOK",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BT",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BT_ERKENNUNGSMODUS",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BT_FIRMWARE",
+      "status": "ok",
+      "instructions": 152,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BT_GEKOPPELTE_GERAETE_LESEN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BT_GERAETEADRESSE",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BT_GERAETENAME",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BT_READ_PHONE_ID",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BT_DELETE_ALL_PHONE_ID",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BT_ERKENNUNGSMODUS",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BT_GERAETENAME",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RESET_TO_BASIC_STATE",
+      "status": "ok",
+      "instructions": 117,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KOMP_ID",
+      "status": "ok",
+      "instructions": 18,
+      "errors": []
+    },
+    {
+      "name": "START_HDDOWNLOAD_MODE",
+      "status": "ok",
+      "instructions": 191,
+      "errors": []
+    },
+    {
+      "name": "WRITE_DATA_SERVER_ADDRESS",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "READ_HDDOWNLOAD_KENNUNG",
+      "status": "ok",
+      "instructions": 197,
+      "errors": []
+    },
+    {
+      "name": "READ_HDDOWNLOAD_TIMING_PARAMETER",
+      "status": "ok",
+      "instructions": 197,
+      "errors": []
+    },
+    {
+      "name": "READ_HDDOWNLOAD_STATUS",
+      "status": "ok",
+      "instructions": 197,
+      "errors": []
+    },
+    {
+      "name": "READ_HDDOWNLOAD_TIME_TO_COMPLETION",
+      "status": "ok",
+      "instructions": 199,
+      "errors": []
+    },
+    {
+      "name": "START_HDDOWNLOAD_ROUTINE",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "START_HDDOWNLOAD_ROUTINE_A",
+      "status": "ok",
+      "instructions": 43,
+      "errors": []
+    },
+    {
+      "name": "STOP_HDDOWNLOAD_ROUTINE",
+      "status": "ok",
+      "instructions": 191,
+      "errors": []
+    },
+    {
+      "name": "TEST_DATA_ARGUMENT",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "TEST_XDUMP_ARGUMENT",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "NG_AUTHENTISIERUNG_START",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PARAMETER_LESEN",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PARAMETER_SETZEN",
+      "status": "ok",
+      "instructions": 84,
+      "errors": []
+    },
+    {
+      "name": "INTERFACETYPE",
+      "status": "ok",
+      "instructions": 20,
+      "errors": []
+    },
+    {
+      "name": "NG_FLASH_LOESCHEN",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "NG_SIGNATUR_PRUEFEN",
+      "status": "ok",
+      "instructions": 101,
+      "errors": []
+    },
+    {
+      "name": "GETTICKCOUNT",
+      "status": "ok",
+      "instructions": 8,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FAULT_TRACKING",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EQDATA_VERSIONS",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESESTATISTIK_FLASHSPEICHER",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_SYSTEMAUDIO_VARIANTE",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ATC_VERSION",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_PERSISTENCY_CLEAR",
+      "status": "ok",
+      "instructions": 134,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SDARS_ACTIVATION",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SDARS_ACTIVATION",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PKR",
+      "status": "ok",
+      "instructions": 130,
+      "errors": []
+    }
+  ]
+}

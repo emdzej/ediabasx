@@ -1,0 +1,180 @@
+{
+  "file": "08EMS2K.PRG",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 193,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 197,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 273,
+      "errors": []
+    },
+    {
+      "name": "START_DIAGNOSTIC_SESSION",
+      "status": "ok",
+      "instructions": 129,
+      "errors": []
+    },
+    {
+      "name": "START_DIAGNOSTIC_SESSION_HIGHBAUD",
+      "status": "ok",
+      "instructions": 463,
+      "errors": []
+    },
+    {
+      "name": "START_DIAGNOSTIC_SESSION_LOWBAUD",
+      "status": "ok",
+      "instructions": 400,
+      "errors": []
+    },
+    {
+      "name": "STOP_DIAGNOSTIC_SESSION",
+      "status": "ok",
+      "instructions": 210,
+      "errors": []
+    },
+    {
+      "name": "SG_RESET",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "SEED_KEY",
+      "status": "ok",
+      "instructions": 43,
+      "errors": []
+    },
+    {
+      "name": "ACCESS_TIMING_PARAMETERS",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ADRESSE",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ENDE",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "AIF_SCHREIBEN",
+      "status": "ok",
+      "instructions": 369,
+      "errors": []
+    },
+    {
+      "name": "HWNR_SCHREIBEN",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN",
+      "status": "ok",
+      "instructions": 198,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CODIER_CHECKSUMME",
+      "status": "ok",
+      "instructions": 198,
+      "errors": []
+    },
+    {
+      "name": "CHECK_REPROG_DEPENDING",
+      "status": "ok",
+      "instructions": 347,
+      "errors": []
+    },
+    {
+      "name": "FLASH_LOESCHEN",
+      "status": "ok",
+      "instructions": 169,
+      "errors": []
+    },
+    {
+      "name": "BLOCKLAENGE_MAX",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "DATEN_REFERENZ",
+      "status": "ok",
+      "instructions": 66,
+      "errors": []
+    },
+    {
+      "name": "HW_REFERENZ",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "ZIF",
+      "status": "ok",
+      "instructions": 228,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP",
+      "status": "ok",
+      "instructions": 228,
+      "errors": []
+    },
+    {
+      "name": "UPROG_LESEN",
+      "status": "ok",
+      "instructions": 16,
+      "errors": []
+    },
+    {
+      "name": "BAUDRATEN_LESEN",
+      "status": "ok",
+      "instructions": 21,
+      "errors": []
+    },
+    {
+      "name": "TUNE_NR_SCHREIBEN",
+      "status": "ok",
+      "instructions": 86,
+      "errors": []
+    }
+  ]
+}

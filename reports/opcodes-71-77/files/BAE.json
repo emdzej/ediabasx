@@ -1,0 +1,114 @@
+{
+  "file": "BAE.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 101,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN",
+      "status": "ok",
+      "instructions": 96,
+      "errors": []
+    },
+    {
+      "name": "FS_QUICK_LESEN",
+      "status": "ok",
+      "instructions": 96,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "SG_LOGIN",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "TYP_LESEN",
+      "status": "ok",
+      "instructions": 150,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ERHALTEN",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "AUSSTATTUNG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 763,
+      "errors": []
+    },
+    {
+      "name": "AUSSTATTUNG_LESEN",
+      "status": "ok",
+      "instructions": 102,
+      "errors": []
+    },
+    {
+      "name": "PARAMETER_LESEN",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "VERRIEGELUNG_LESEN",
+      "status": "ok",
+      "instructions": 96,
+      "errors": []
+    },
+    {
+      "name": "VERRIEGELUNG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 101,
+      "errors": []
+    },
+    {
+      "name": "HERSTELLDATUM_LESEN",
+      "status": "ok",
+      "instructions": 343,
+      "errors": []
+    }
+  ]
+}

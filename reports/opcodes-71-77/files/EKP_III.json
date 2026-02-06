@@ -1,0 +1,72 @@
+{
+  "file": "EKP_III.PRG",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 54,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "CODIERUNG_LESEN",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "CODIERUNG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "FS_ZAEHLER",
+      "status": "ok",
+      "instructions": 89,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 126,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN",
+      "status": "ok",
+      "instructions": 126,
+      "errors": []
+    },
+    {
+      "name": "ADU_WERTE_LESEN",
+      "status": "ok",
+      "instructions": 89,
+      "errors": []
+    },
+    {
+      "name": "EKP_DATEN_LESEN",
+      "status": "ok",
+      "instructions": 89,
+      "errors": []
+    }
+  ]
+}

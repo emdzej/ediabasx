@@ -1,0 +1,30 @@
+{
+  "file": "CAS_INIT.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 324,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 152,
+      "errors": []
+    },
+    {
+      "name": "CAS_INIT",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    }
+  ]
+}

@@ -17,6 +17,11 @@ export class SimulationInterface extends EdiabasInterface {
   private responses = new Map<string, Uint8Array>();
   private responseQueue: Uint8Array[] = [];
   private pendingReceivers: PendingReceiver[] = [];
+  private ports = new Map<number, number>();
+  private _ignitionVoltage = 0;
+  private _loopTest = 0;
+  private _programVoltage = 0;
+  private _siRelaisTime = 0;
 
   async connect(): Promise<void> {
     this.connected = true;
@@ -54,6 +59,36 @@ export class SimulationInterface extends EdiabasInterface {
       }
       this.pendingReceivers.push(pending);
     });
+  }
+
+  getPort(index: number): number {
+    return this.ports.get(index) ?? 0;
+  }
+
+  setPort(index: number, value: number): void {
+    this.ports.set(index, value);
+  }
+
+  get ignitionVoltage(): number {
+    return this._ignitionVoltage;
+  }
+
+  get loopTest(): number {
+    return this._loopTest;
+  }
+
+  setProgramVoltage(value: number): void {
+    this._programVoltage = value;
+  }
+
+  rawData(request: Uint8Array): Uint8Array {
+    this.assertConnected();
+    const key = this.toKey(request);
+    return this.responses.get(key) ?? new Uint8Array();
+  }
+
+  switchSiRelais(time: number): void {
+    this._siRelaisTime = time;
   }
 
   setResponse(request: Uint8Array | number[], response: Uint8Array | number[]): void {

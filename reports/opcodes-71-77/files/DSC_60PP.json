@@ -1,0 +1,618 @@
+{
+  "file": "DSC_60PP.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 107,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "NORMALER_DATENVERKEHR",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 82,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_ANZAHL_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_IDENT_LESEN",
+      "status": "ok",
+      "instructions": 72,
+      "errors": []
+    },
+    {
+      "name": "CBS_INFO",
+      "status": "ok",
+      "instructions": 182,
+      "errors": []
+    },
+    {
+      "name": "CBS_DATEN_LESEN",
+      "status": "ok",
+      "instructions": 151,
+      "errors": []
+    },
+    {
+      "name": "CBS_RESET",
+      "status": "ok",
+      "instructions": 97,
+      "errors": []
+    },
+    {
+      "name": "PRUEFCODE_LESEN",
+      "status": "ok",
+      "instructions": 211,
+      "errors": []
+    },
+    {
+      "name": "C_CI_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "C_FG_LESEN",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "C_FG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "C_FG_AUFTRAG",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_SCHREIBEN",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_AUFTRAG",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "C_C_LESEN",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "C_C_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "C_C_AUFTRAG",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 567,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP_LESEN",
+      "status": "ok",
+      "instructions": 513,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "HARDWARE_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "DATEN_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_ZEITEN_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_BLOCKLAENGE_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_ZUFALLSZAHL_LESEN",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_START",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SIGNATUR_PRUEFEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_LOESCHEN",
+      "status": "ok",
+      "instructions": 59,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ADRESSE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ENDE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "AIF_SCHREIBEN",
+      "status": "ok",
+      "instructions": 239,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RADGESCHWINDIGKEIT",
+      "status": "ok",
+      "instructions": 145,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIGITAL",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANALOG",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN",
+      "status": "ok",
+      "instructions": 145,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_STOP",
+      "status": "ok",
+      "instructions": 205,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_D_STELLGLIED",
+      "status": "ok",
+      "instructions": 1435,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DX_STELLGLIED",
+      "status": "ok",
+      "instructions": 2347,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_STELLGLIED_DYNAMISCH",
+      "status": "ok",
+      "instructions": 2451,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DREHZAHLFUEHLER_ALLE",
+      "status": "ok",
+      "instructions": 141,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KUPPLUNGS_TEST",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    },
+    {
+      "name": "LAENGSBESCHLEUNIGUNG_DSC_ABGLEICHEN",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KUPPLUNG",
+      "status": "ok",
+      "instructions": 311,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BREMSKLAPPE",
+      "status": "ok",
+      "instructions": 311,
+      "errors": []
+    },
+    {
+      "name": "_ECU_SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "IDENT_SENSORCLUSTER_MM3_X",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "RESET_SENSORCLUSTER_MM3_X",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VAK_BEFUELL",
+      "status": "ok",
+      "instructions": 211,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_REP_ENTLUEFTUNG",
+      "status": "ok",
+      "instructions": 211,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ERGEBNIS_ROUTINE",
+      "status": "ok",
+      "instructions": 472,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 63,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_SCHREIBEN",
+      "status": "ok",
+      "instructions": 59,
+      "errors": []
+    },
+    {
+      "name": "IDENT_VIN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "IDENT_BOSCH_HW_NR",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "IDENT_BOSCH_SW_BB_NR",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "IDENT_BOSCH_SW_VERSION_NR",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "IDENT_BOSCH_HW_NR_SCHREIBEN",
+      "status": "ok",
+      "instructions": 193,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RPA",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RPA_FASTA",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RPA_STANDARDISIERUNG_1",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RPA_STANDARDISIERUNG_2",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RPA_STANDARDISIERUNG_3",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "RPA_SCHREIBEN",
+      "status": "ok",
+      "instructions": 193,
+      "errors": []
+    },
+    {
+      "name": "RPA_FASTA_LOESCHEN",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "RPA_DEFAULT",
+      "status": "ok",
+      "instructions": 141,
+      "errors": []
+    },
+    {
+      "name": "_RPA_STANDARDISIERUNG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    },
+    {
+      "name": "_COD_LESEN",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "_COD_SCHREIBEN",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    },
+    {
+      "name": "_COD_SCHREIBEN_ZUSATZFUNKTIONEN",
+      "status": "ok",
+      "instructions": 159,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AKTUATORIK",
+      "status": "ok",
+      "instructions": 141,
+      "errors": []
+    },
+    {
+      "name": "CBS_ZUSTAND_NEUFAHRZEUG",
+      "status": "ok",
+      "instructions": 141,
+      "errors": []
+    },
+    {
+      "name": "CBS_BASISINITIALISIERUNG",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "_CBS_EEPROM_LESEN",
+      "status": "ok",
+      "instructions": 220,
+      "errors": []
+    },
+    {
+      "name": "_BREMSENTEMPERATUR",
+      "status": "ok",
+      "instructions": 535,
+      "errors": []
+    },
+    {
+      "name": "_CBS_KORREKTURFAKTOR",
+      "status": "ok",
+      "instructions": 158,
+      "errors": []
+    },
+    {
+      "name": "_CBS_MANIPULATIONS_BIT",
+      "status": "ok",
+      "instructions": 220,
+      "errors": []
+    },
+    {
+      "name": "_CBS_TOTALMILAGE_STARTWERTE",
+      "status": "ok",
+      "instructions": 214,
+      "errors": []
+    },
+    {
+      "name": "_CBS_SERVICEZAEHLER",
+      "status": "ok",
+      "instructions": 214,
+      "errors": []
+    },
+    {
+      "name": "_DSC_EEPROM_LESEN",
+      "status": "ok",
+      "instructions": 220,
+      "errors": []
+    },
+    {
+      "name": "_TEST_AUTO_CODIERUNG",
+      "status": "ok",
+      "instructions": 141,
+      "errors": []
+    },
+    {
+      "name": "_SERIENNUMMER_LESEN_EEPROM",
+      "status": "ok",
+      "instructions": 166,
+      "errors": []
+    },
+    {
+      "name": "_FS_LESEN_INPA",
+      "status": "ok",
+      "instructions": 134,
+      "errors": []
+    },
+    {
+      "name": "_FS_LESEN_SAR",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    }
+  ]
+}

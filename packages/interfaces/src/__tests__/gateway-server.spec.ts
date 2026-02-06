@@ -23,6 +23,9 @@ class MockInterface extends EdiabasInterface {
   sent: Uint8Array[] = [];
   responses: Uint8Array[] = [];
   parameters: Array<[number, number]> = [];
+  ports = new Map<number, number>();
+  programVoltage: number | undefined;
+  lastSiRelaisTime: number | undefined;
 
   async connect(): Promise<void> {
     this.connected = true;
@@ -42,6 +45,34 @@ class MockInterface extends EdiabasInterface {
 
   async setParameter(parameter: number, value: number): Promise<void> {
     this.parameters.push([parameter, value]);
+  }
+
+  async getPort(index: number): Promise<number> {
+    return this.ports.get(index) ?? 0;
+  }
+
+  async setPort(index: number, value: number): Promise<void> {
+    this.ports.set(index, value);
+  }
+
+  get ignitionVoltage(): number {
+    return 123;
+  }
+
+  get loopTest(): number {
+    return 7;
+  }
+
+  async setProgramVoltage(value: number): Promise<void> {
+    this.programVoltage = value;
+  }
+
+  async rawData(request: Uint8Array): Promise<Uint8Array> {
+    return Uint8Array.from(request).reverse();
+  }
+
+  async switchSiRelais(time: number): Promise<void> {
+    this.lastSiRelaisTime = time;
   }
 }
 
@@ -107,9 +138,10 @@ describe("GatewayServer", () => {
     }
   });
 
-  it("handles connect, send, receive, info, and setParam", async () => {
+  it("handles connect, send, receive, info, and extended methods", async () => {
     const iface = new MockInterface();
     iface.responses.push(Uint8Array.from([9, 10]));
+    iface.ports.set(2, 99);
 
     server = new GatewayServer({ interface: iface, port: 0, logger });
     await server.start();
@@ -159,6 +191,70 @@ describe("GatewayServer", () => {
 
     expect((setParamResponse as { result: { ok: boolean } }).result.ok).toBe(true);
     expect(iface.parameters).toEqual([[5, 11]]);
+
+    const getPortResponse = await sendRpc({
+      jsonrpc: "2.0",
+      id: 6,
+      method: "getPort",
+      params: { index: 2 }
+    });
+
+    expect((getPortResponse as { result: { value: number } }).result.value).toBe(99);
+
+    const setPortResponse = await sendRpc({
+      jsonrpc: "2.0",
+      id: 7,
+      method: "setPort",
+      params: { index: 3, value: 44 }
+    });
+
+    expect((setPortResponse as { result: { ok: boolean } }).result.ok).toBe(true);
+    expect(iface.ports.get(3)).toBe(44);
+
+    const ignitionResponse = await sendRpc({
+      jsonrpc: "2.0",
+      id: 8,
+      method: "getIgnitionVoltage"
+    });
+
+    expect((ignitionResponse as { result: { value: number } }).result.value).toBe(123);
+
+    const loopTestResponse = await sendRpc({
+      jsonrpc: "2.0",
+      id: 9,
+      method: "getLoopTest"
+    });
+
+    expect((loopTestResponse as { result: { value: number } }).result.value).toBe(7);
+
+    const programResponse = await sendRpc({
+      jsonrpc: "2.0",
+      id: 10,
+      method: "setProgramVoltage",
+      params: { value: 42 }
+    });
+
+    expect((programResponse as { result: { ok: boolean } }).result.ok).toBe(true);
+    expect(iface.programVoltage).toBe(42);
+
+    const rawResponse = await sendRpc({
+      jsonrpc: "2.0",
+      id: 11,
+      method: "rawData",
+      params: { data: [1, 2, 3] }
+    });
+
+    expect((rawResponse as { result: { data: number[] } }).result.data).toEqual([3, 2, 1]);
+
+    const siResponse = await sendRpc({
+      jsonrpc: "2.0",
+      id: 12,
+      method: "switchSiRelais",
+      params: { time: 6 }
+    });
+
+    expect((siResponse as { result: { ok: boolean } }).result.ok).toBe(true);
+    expect(iface.lastSiRelaisTime).toBe(6);
   });
 
   it("queues interface requests sequentially", async () => {

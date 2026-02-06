@@ -117,6 +117,13 @@ Single-table reference of all implemented opcodes sorted by hex value.
 | 0x6e | xbatt | Battery voltage (stub) |
 | 0x6f | tosp | To stack pointer (stub) |
 | 0x70 | xdownl | Download (stub) |
+| 0x71 | xgetport | Get hardware port value |
+| 0x72 | xignit | Get ignition voltage |
+| 0x73 | xloopt | Loop test result |
+| 0x74 | xprog | Set programming voltage |
+| 0x75 | xraw | Raw data send/receive |
+| 0x76 | xsetport | Set hardware port value |
+| 0x77 | xsireset | SI relais reset |
 | 0x78 | xstoptr | Stop transfer (stub) |
 | 0x79 | fix2hex | Integer to hex string |
 | 0x7a | fix2dez | Integer to decimal string |
@@ -182,6 +189,6 @@ Single-table reference of all implemented opcodes sorted by hex value.
 
 ---
 
-**Total: 143 opcodes implemented**
+**Total: 150 opcodes implemented**
 
 For detailed descriptions with argument specifications, see [opcodes.md](./opcodes.md).
