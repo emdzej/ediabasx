@@ -111,6 +111,22 @@ Test PRG/GRP files are in the maintainer's local workspace:
 
 ---
 
+## Opcode Implementation Rules
+
+**Golden rule:** If EdiabasLib has an implementation, we implement it too.
+
+- **Never leave opcodes as no-op** if EdiabasLib has actual logic
+- If something is missing, implement it — don't skip
+- Reference: `EdiabasNet.cs` → `ExecuteJobPrivate()` + `OcList[]`
+- Reference: `EdOperations.cs` → individual `Op*` methods
+
+When auditing opcodes:
+1. Find the EdiabasLib implementation
+2. Match our behavior exactly
+3. If we can't implement (missing infrastructure), create an issue — don't silently no-op
+
+---
+
 ## Reference
 
 - Original: [EdiabasLib](https://github.com/uholeschak/ediabaslib) (C#)
