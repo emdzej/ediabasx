@@ -28,6 +28,8 @@ export type CommunicationInterface = Pick<
     payload: string,
     timeoutMs?: number
   ) => Promise<Uint8Array> | Uint8Array;
+  transmitFrequent?: (data: Uint8Array) => Promise<void>;
+  receiveFrequent?: () => Promise<Uint8Array>;
   stopFrequent?: () => Promise<void> | void;
   readKeyboard?: () => Promise<string> | string;
   getState?: () => number;

@@ -153,6 +153,8 @@ export class Ediabas {
       receive: (timeout?: number) => commInterface.receive(timeout ?? this.config.timeout),
       isConnected: () => commInterface.isConnected(),
       stopFrequent: () => commInterface.stopFrequent(),
+      transmitFrequent: (data: Uint8Array) => commInterface.transmitFrequent(data),
+      receiveFrequent: () => commInterface.receiveFrequent(),
       getPort: (index: number) => commInterface.getPort(index),
       setPort: (index: number, value: number) => commInterface.setPort(index, value),
       get ignitionVoltage() {

@@ -164,6 +164,14 @@ export class SerialInterface extends EdiabasInterface {
     }
   }
 
+  async transmitFrequent(data: Uint8Array): Promise<void> {
+    void data;
+  }
+
+  async receiveFrequent(): Promise<Uint8Array> {
+    return new Uint8Array(0);
+  }
+
   async stopFrequent(): Promise<void> {}
 
   getPort(index: number): number {

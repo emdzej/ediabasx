@@ -16,6 +16,7 @@ type PendingReceiver = {
 export class SimulationInterface extends EdiabasInterface {
   private responses = new Map<string, Uint8Array>();
   private responseQueue: Uint8Array[] = [];
+  private frequentBuffer: Uint8Array | null = null;
   private pendingReceivers: PendingReceiver[] = [];
   private ports = new Map<number, number>();
   private _ignitionVoltage = 0;
@@ -61,7 +62,19 @@ export class SimulationInterface extends EdiabasInterface {
     });
   }
 
-  async stopFrequent(): Promise<void> {}
+  async transmitFrequent(data: Uint8Array): Promise<void> {
+    this.assertConnected();
+    this.frequentBuffer = data;
+  }
+
+  async receiveFrequent(): Promise<Uint8Array> {
+    this.assertConnected();
+    return this.frequentBuffer ?? new Uint8Array(0);
+  }
+
+  async stopFrequent(): Promise<void> {
+    this.frequentBuffer = null;
+  }
 
   getPort(index: number): number {
     return this.ports.get(index) ?? 0;
