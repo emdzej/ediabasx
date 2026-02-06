@@ -8,7 +8,10 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "dev": "turbo run dev --parallel",
-    "cli": "node packages/cli/dist/index.js"
+    "cli": "node packages/cli/dist/index.js",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -19,6 +22,7 @@
     "prettier": "^3.3.2",
     "turbo": "^1.13.4",
     "typescript": "^5.5.4",
+    "vitepress": "^1.6.4",
     "vitest": "^1.6.0"
   }
 }
