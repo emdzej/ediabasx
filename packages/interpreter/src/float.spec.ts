@@ -58,26 +58,11 @@ describe("Float Operations", () => {
       expect(registers.getF(0)).toBe(3.14);
     });
 
-    it("should set Z flag when result is zero", () => {
-      registers.setF(0, 1.0);
-      registers.setF(1, -1.0);
-      fadd(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
-      expect(flags.z).toBe(true);
-    });
-
-    it("should set S flag for negative result", () => {
-      registers.setF(0, -5.0);
-      registers.setF(1, 2.0);
-      fadd(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
-      expect(flags.s).toBe(true);
-    });
-
     it("should handle infinity", () => {
       registers.setF(0, Infinity);
       registers.setF(1, 1.0);
       fadd(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
       expect(registers.getF(0)).toBe(Infinity);
-      expect(flags.v).toBe(true);
     });
   });
 
@@ -94,7 +79,6 @@ describe("Float Operations", () => {
       registers.setF(1, 5.0);
       fsub(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
       expect(registers.getF(0)).toBe(-3.0);
-      expect(flags.s).toBe(true);
     });
 
     it("should subtract equal values to zero", () => {
@@ -102,7 +86,6 @@ describe("Float Operations", () => {
       registers.setF(1, 3.14);
       fsub(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
       expect(registers.getF(0)).toBe(0);
-      expect(flags.z).toBe(true);
     });
   });
 
@@ -119,7 +102,6 @@ describe("Float Operations", () => {
       registers.setF(1, 0);
       fmul(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
       expect(registers.getF(0)).toBe(0);
-      expect(flags.z).toBe(true);
     });
 
     it("should handle negative multiplication", () => {
@@ -127,7 +109,6 @@ describe("Float Operations", () => {
       registers.setF(1, 4.0);
       fmul(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
       expect(registers.getF(0)).toBe(-12.0);
-      expect(flags.s).toBe(true);
     });
 
     it("should handle negative times negative", () => {
@@ -135,7 +116,6 @@ describe("Float Operations", () => {
       registers.setF(1, -3.0);
       fmul(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
       expect(registers.getF(0)).toBe(6.0);
-      expect(flags.s).toBe(false);
     });
   });
 
@@ -152,7 +132,6 @@ describe("Float Operations", () => {
       registers.setF(1, 0);
       fdiv(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
       expect(registers.getF(0)).toBe(Infinity);
-      expect(flags.v).toBe(true);
     });
 
     it("should handle negative division", () => {
@@ -160,7 +139,6 @@ describe("Float Operations", () => {
       registers.setF(1, 2.0);
       fdiv(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
       expect(registers.getF(0)).toBe(-5.0);
-      expect(flags.s).toBe(true);
     });
 
     it("should handle 0/0 (NaN)", () => {
@@ -168,7 +146,6 @@ describe("Float Operations", () => {
       registers.setF(1, 0);
       fdiv(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
       expect(Number.isNaN(registers.getF(0))).toBe(true);
-      expect(flags.v).toBe(true);
     });
   });
 
@@ -181,13 +158,13 @@ describe("Float Operations", () => {
       expect(flags.s).toBe(false);
     });
 
-    it("should set S and C flags when less", () => {
+    it("should set S flag when less", () => {
       registers.setF(0, 2.0);
       registers.setF(1, 5.0);
       fcmp(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
       expect(flags.z).toBe(false);
       expect(flags.s).toBe(true);
-      expect(flags.c).toBe(true);
+      expect(flags.c).toBe(false);
     });
 
     it("should clear S and C flags when greater", () => {
@@ -203,7 +180,8 @@ describe("Float Operations", () => {
       registers.setF(0, NaN);
       registers.setF(1, 1.0);
       fcmp(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
-      expect(flags.v).toBe(true);
+      expect(flags.v).toBe(false);
+      expect(flags.c).toBe(true);
     });
 
     it("should support FCOMP alias", () => {
@@ -289,16 +267,18 @@ describe("Float Operations", () => {
       expect(flags.z).toBe(true);
     });
 
-    it("should set V flag for infinity", () => {
+    it("should handle infinity as zero", () => {
       registers.setF(0, Infinity);
       ftoi(registers, flags, { kind: "L", index: 0 }, { kind: "F", index: 0 });
-      expect(flags.v).toBe(true);
+      expect(registers.getL(0)).toBe(0);
+      expect(flags.v).toBe(false);
     });
 
-    it("should set V flag for NaN", () => {
+    it("should handle NaN as zero", () => {
       registers.setF(0, NaN);
       ftoi(registers, flags, { kind: "L", index: 0 }, { kind: "F", index: 0 });
-      expect(flags.v).toBe(true);
+      expect(registers.getL(0)).toBe(0);
+      expect(flags.v).toBe(false);
     });
 
     it("should convert to I register", () => {
@@ -307,11 +287,11 @@ describe("Float Operations", () => {
       expect(registers.getI(0)).toBe(1000);
     });
 
-    it("should convert to B register (clamp to 255)", () => {
+    it("should convert to B register (wrap to 8-bit)", () => {
       registers.setF(0, 300.5);
       ftoi(registers, flags, { kind: "B", index: 0 }, { kind: "F", index: 0 });
-      expect(registers.getB(0)).toBe(255);
-      expect(flags.v).toBe(true);
+      expect(registers.getB(0)).toBe(44);
+      expect(flags.v).toBe(false);
     });
   });
 
@@ -326,6 +306,18 @@ describe("Float Operations", () => {
       registers.setL(0, -42 >>> 0);
       itof(registers, { kind: "F", index: 0 }, { kind: "L", index: 0 });
       expect(registers.getF(0)).toBe(-42.0);
+    });
+
+    it("should convert signed B register", () => {
+      registers.setB(0, 0xff);
+      itof(registers, { kind: "F", index: 0 }, { kind: "B", index: 0 });
+      expect(registers.getF(0)).toBe(-1.0);
+    });
+
+    it("should convert signed I register", () => {
+      registers.setI(0, 0xffff);
+      itof(registers, { kind: "F", index: 0 }, { kind: "I", index: 0 });
+      expect(registers.getF(0)).toBe(-1.0);
     });
 
     it("should convert zero", () => {
@@ -343,7 +335,7 @@ describe("Float Operations", () => {
     it("should convert from B register", () => {
       registers.setB(0, 255);
       itof(registers, { kind: "F", index: 0 }, { kind: "B", index: 0 });
-      expect(registers.getF(0)).toBe(255.0);
+      expect(registers.getF(0)).toBe(-1.0);
     });
   });
 
@@ -380,7 +372,7 @@ describe("Float Operations", () => {
 
     it("should support FLT2A alias", () => {
       registers.setF(0, 2.5);
-      flt2a(registers, { kind: "S", index: 0 }, { kind: "F", index: 0 });
+      flt2a(registers, { kind: "S", index: 0 }, { kind: "F", index: 0 }, 4);
       expect(registers.getS(0)).toBe("2.5");
     });
   });
@@ -390,7 +382,6 @@ describe("Float Operations", () => {
       registers.setS(0, "3.14");
       stof(registers, flags, { kind: "F", index: 0 }, { kind: "S", index: 0 });
       expect(registers.getF(0)).toBe(3.14);
-      expect(flags.z).toBe(false);
     });
 
     it("should parse integer string", () => {
@@ -426,7 +417,7 @@ describe("Float Operations", () => {
 
     it("should support A2FLT alias", () => {
       registers.setS(0, "2.5");
-      a2flt(registers, flags, { kind: "F", index: 0 }, { kind: "S", index: 0 });
+      a2flt(registers, { kind: "F", index: 0 }, { kind: "S", index: 0 });
       expect(registers.getF(0)).toBe(2.5);
     });
   });

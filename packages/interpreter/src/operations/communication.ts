@@ -30,6 +30,7 @@ export type CommunicationInterface = Pick<
   | "rawData"
   | "switchSiRelais"
 > & {
+  batteryVoltage?: Promise<number> | number;
   reset?: () => Promise<void> | void;
   boot?: () => Promise<void> | void;
   getInterfaceType?: () => string;
@@ -432,6 +433,22 @@ export async function xsetport(
     await setPort(portIndex, portValue);
   } catch (error) {
     wrapInterfaceError(error, "Set port");
+  }
+}
+
+export async function xbatt(
+  registers: RegisterSet,
+  interfaceClass: CommunicationInterface,
+  destination: IntRegisterRef
+): Promise<void> {
+  const batteryVoltage = assertCapability(interfaceClass.batteryVoltage, "Battery voltage");
+  try {
+    const value = await batteryVoltage;
+    if (value !== undefined && value !== null && value !== Number.MIN_SAFE_INTEGER) {
+      setIntValue(registers, destination, value);
+    }
+  } catch (error) {
+    wrapInterfaceError(error, "Battery voltage");
   }
 }
 
