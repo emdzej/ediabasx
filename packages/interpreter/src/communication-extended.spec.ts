@@ -27,7 +27,6 @@ import {
 } from "./operations/communication";
 
 const I0 = { kind: "I", index: 0 } as const;
-const I1 = { kind: "I", index: 1 } as const;
 const S0 = { kind: "S", index: 0 } as const;
 const S1 = { kind: "S", index: 1 } as const;
 
