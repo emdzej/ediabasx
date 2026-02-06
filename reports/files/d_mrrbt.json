@@ -1,0 +1,18 @@
+{
+  "file": "d_mrrbt.grp",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 243,
+      "errors": []
+    },
+    {
+      "name": "IDENTIFIKATION",
+      "status": "ok",
+      "instructions": 140,
+      "errors": []
+    }
+  ]
+}

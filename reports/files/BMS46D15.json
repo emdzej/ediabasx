@@ -1,0 +1,654 @@
+{
+  "file": "BMS46D15.PRG",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "ISN_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "RAM_LESEN",
+      "status": "ok",
+      "instructions": 197,
+      "errors": []
+    },
+    {
+      "name": "ROM_LESEN",
+      "status": "ok",
+      "instructions": 197,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "EDIC_RESET",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "initialisierung",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CODIER_CHECKSUMME",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOTORDREHZAHL",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOTORTEMPERATUR",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANSAUGLUFTTEMPERATUR",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LASTSIGNAL_WRGL",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UBATT",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GESCHWINDIGKEIT",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DKWINKEL",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LASTSIGNAL_SPG",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZUENDWINKEL",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAMBDAREGELFAKTOR",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TE_TASTVERHAELTNIS",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINSPRITZZEIT_P_U",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ML",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LEERLAUFINTEGRATOR",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LEERLAUFSTELLER_SOLL_LUFTMASSE",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADAP_LEERLAUFLUFT_U",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADAP_GEM_MUL_U",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADAP_GEM_ADD_U",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SOLLDREHZAHL_LLR",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADAP_DKP_U",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BSZ",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_US",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UDK_REF",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UHFM_REF",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TKA",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EL_TV",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KFK_TV",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_W_FPDK",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FTEA",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAMBDA_TV",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TAU",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UB_KL15",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LUT1_W",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LUT2_W",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LUT3_W",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LUT4_W",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIGITAL",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UEBERDREH",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_1",
+      "status": "ok",
+      "instructions": 264,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_2",
+      "status": "ok",
+      "instructions": 264,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_3",
+      "status": "ok",
+      "instructions": 264,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_4",
+      "status": "ok",
+      "instructions": 264,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_1_AUS",
+      "status": "ok",
+      "instructions": 264,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_2_AUS",
+      "status": "ok",
+      "instructions": 264,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_3_AUS",
+      "status": "ok",
+      "instructions": 264,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_4_AUS",
+      "status": "ok",
+      "instructions": 264,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DISA",
+      "status": "ok",
+      "instructions": 289,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SSP",
+      "status": "ok",
+      "instructions": 289,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_E_LU",
+      "status": "ok",
+      "instructions": 289,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LSH",
+      "status": "ok",
+      "instructions": 289,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TEV",
+      "status": "ok",
+      "instructions": 289,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KK",
+      "status": "ok",
+      "instructions": 289,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EKP",
+      "status": "ok",
+      "instructions": 264,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ZWD3_2",
+      "status": "ok",
+      "instructions": 294,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KFK",
+      "status": "ok",
+      "instructions": 289,
+      "errors": []
+    },
+    {
+      "name": "FS_QUICK_LESEN",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 119,
+      "errors": []
+    },
+    {
+      "name": "FS_SHADOW_LESEN",
+      "status": "ok",
+      "instructions": 119,
+      "errors": []
+    },
+    {
+      "name": "FS_SHADOW_QUICK_LESEN",
+      "status": "ok",
+      "instructions": 119,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ERHALTEN",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "SYSTEM_ADRESSEN_LESEN",
+      "status": "ok",
+      "instructions": 1029,
+      "errors": []
+    },
+    {
+      "name": "DATENSATZNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 120,
+      "errors": []
+    },
+    {
+      "name": "MAX_BLOCK_LESEN",
+      "status": "ok",
+      "instructions": 120,
+      "errors": []
+    },
+    {
+      "name": "UPROG_EIN",
+      "status": "error",
+      "instructions": 362,
+      "errors": [
+        {
+          "offset": 173324,
+          "opcode": 116,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "UPROG_AUS",
+      "status": "error",
+      "instructions": 3,
+      "errors": [
+        {
+          "offset": 173414,
+          "opcode": 116,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CO_ABGLEICH_LESEN",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "CO_ABGLEICH_VERSTELLEN",
+      "status": "ok",
+      "instructions": 119,
+      "errors": []
+    },
+    {
+      "name": "CO_ABGLEICH_PROGRAMMIEREN",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "LL_ABGLEICH_LESEN",
+      "status": "ok",
+      "instructions": 184,
+      "errors": []
+    },
+    {
+      "name": "LL_ABGLEICH_VERSTELLEN",
+      "status": "ok",
+      "instructions": 119,
+      "errors": []
+    },
+    {
+      "name": "LL_ABGLEICH_PROGRAMMIEREN",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "VERSTELL_LESEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "VERSTELL_TI",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "VERSTELL_ZW",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "VERSTELL_NL",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "ADAPT_LESEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "ADAPT_FRA",
+      "status": "ok",
+      "instructions": 156,
+      "errors": []
+    },
+    {
+      "name": "ADAPT_TRA",
+      "status": "ok",
+      "instructions": 156,
+      "errors": []
+    },
+    {
+      "name": "ADAPT_QAD",
+      "status": "ok",
+      "instructions": 160,
+      "errors": []
+    },
+    {
+      "name": "ADAP_SELEKTIV_ZURUECK1",
+      "status": "ok",
+      "instructions": 120,
+      "errors": []
+    },
+    {
+      "name": "ADAP_SELEKTIV_ZURUECK2",
+      "status": "ok",
+      "instructions": 120,
+      "errors": []
+    },
+    {
+      "name": "ADAP_LOESCHEN",
+      "status": "ok",
+      "instructions": 96,
+      "errors": []
+    },
+    {
+      "name": "SG_STAT_LESEN",
+      "status": "ok",
+      "instructions": 1818,
+      "errors": []
+    },
+    {
+      "name": "SPEZIAL_SYS_INFO_LESEN",
+      "status": "ok",
+      "instructions": 1818,
+      "errors": []
+    },
+    {
+      "name": "SPEZIAL_BOOT_INFO_LESEN",
+      "status": "ok",
+      "instructions": 712,
+      "errors": []
+    },
+    {
+      "name": "SPEZIAL_FLASH_DAT_INFO_LESEN",
+      "status": "ok",
+      "instructions": 779,
+      "errors": []
+    },
+    {
+      "name": "SPEZIAL_RAM_DAT_INFO_LESEN",
+      "status": "ok",
+      "instructions": 459,
+      "errors": []
+    },
+    {
+      "name": "SG_STAT_SYS_DEBUG_LESEN",
+      "status": "ok",
+      "instructions": 2517,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYNC_MODE",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYNC_MODE",
+      "status": "ok",
+      "instructions": 106,
+      "errors": []
+    },
+    {
+      "name": "WECHSELCODE_SYNC_DME",
+      "status": "ok",
+      "instructions": 102,
+      "errors": []
+    },
+    {
+      "name": "PRUEFST_LESEN",
+      "status": "ok",
+      "instructions": 173,
+      "errors": []
+    },
+    {
+      "name": "PRUEFST_SETZEN",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "SP_ZAEHL",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "LUDI_STAT",
+      "status": "ok",
+      "instructions": 136,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    }
+  ]
+}

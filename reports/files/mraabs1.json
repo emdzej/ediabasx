@@ -1,0 +1,78 @@
+{
+  "file": "mraabs1.prg",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 34,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "error",
+      "instructions": 60,
+      "errors": [
+        {
+          "offset": 903,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "error",
+      "instructions": 75,
+      "errors": [
+        {
+          "offset": 1449,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "INIT_FS_LOESCHEN",
+      "status": "error",
+      "instructions": 47,
+      "errors": [
+        {
+          "offset": 5334,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "error",
+      "instructions": 47,
+      "errors": [
+        {
+          "offset": 6339,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "error",
+      "instructions": 20,
+      "errors": [
+        {
+          "offset": 7230,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    }
+  ]
+}

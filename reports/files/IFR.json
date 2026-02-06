@@ -1,0 +1,678 @@
+{
+  "file": "IFR.PRG",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "INIT_IFR",
+      "status": "ok",
+      "instructions": 79,
+      "errors": []
+    },
+    {
+      "name": "START_PRUEFUNG",
+      "status": "ok",
+      "instructions": 100,
+      "errors": []
+    },
+    {
+      "name": "ENDE_PRUEFUNG",
+      "status": "error",
+      "instructions": 52,
+      "errors": [
+        {
+          "offset": 8888,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "SET_COMMUNICATION_PARA",
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
+    },
+    {
+      "name": "GET_COMMUNICATION_PARA",
+      "status": "error",
+      "instructions": 52,
+      "errors": [
+        {
+          "offset": 11063,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "SET_CONFIRMED_COM",
+      "status": "error",
+      "instructions": 69,
+      "errors": [
+        {
+          "offset": 11898,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CPU_PORT_K1_EIN",
+      "status": "error",
+      "instructions": 75,
+      "errors": [
+        {
+          "offset": 12625,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CPU_PORT_K1_AUS",
+      "status": "error",
+      "instructions": 75,
+      "errors": [
+        {
+          "offset": 13189,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CPU_PORT_K1_LESEN",
+      "status": "error",
+      "instructions": 72,
+      "errors": [
+        {
+          "offset": 13748,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CPU_PORT_K2_EIN",
+      "status": "error",
+      "instructions": 75,
+      "errors": [
+        {
+          "offset": 14419,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CPU_PORT_K2_AUS",
+      "status": "error",
+      "instructions": 75,
+      "errors": [
+        {
+          "offset": 14983,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CPU_PORT_K2_LESEN",
+      "status": "error",
+      "instructions": 72,
+      "errors": [
+        {
+          "offset": 15542,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CPU_CAN_EIN",
+      "status": "error",
+      "instructions": 75,
+      "errors": [
+        {
+          "offset": 16236,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CPU_CAN_AUS",
+      "status": "error",
+      "instructions": 75,
+      "errors": [
+        {
+          "offset": 16800,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CPU_CAN_LESEN",
+      "status": "error",
+      "instructions": 72,
+      "errors": [
+        {
+          "offset": 17359,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_CPU_K1_K2_CAN",
+      "status": "error",
+      "instructions": 72,
+      "errors": [
+        {
+          "offset": 18044,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CPU_PORT_STROMREGELUNG_EIN",
+      "status": "error",
+      "instructions": 75,
+      "errors": [
+        {
+          "offset": 20077,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CPU_PORT_STROMREGELUNG_AUS",
+      "status": "error",
+      "instructions": 75,
+      "errors": [
+        {
+          "offset": 20641,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CPU_PORT_STROMREGELUNG_LESEN",
+      "status": "error",
+      "instructions": 72,
+      "errors": [
+        {
+          "offset": 21200,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "ADRESSE_LESEN",
+      "status": "error",
+      "instructions": 63,
+      "errors": [
+        {
+          "offset": 21863,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "ADRESSE_LESEN_MASTER",
+      "status": "error",
+      "instructions": 63,
+      "errors": [
+        {
+          "offset": 22762,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "ADRESSE_LESEN_SLAVE",
+      "status": "error",
+      "instructions": 63,
+      "errors": [
+        {
+          "offset": 23667,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "ADRESSEN_LESEN",
+      "status": "error",
+      "instructions": 63,
+      "errors": [
+        {
+          "offset": 24571,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "SLEEP_IFR",
+      "status": "error",
+      "instructions": 61,
+      "errors": [
+        {
+          "offset": 26420,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "VERSION_LESEN",
+      "status": "error",
+      "instructions": 63,
+      "errors": [
+        {
+          "offset": 26942,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CHECK_SLEEP",
+      "status": "error",
+      "instructions": 63,
+      "errors": [
+        {
+          "offset": 29322,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_KLEMMEN",
+      "status": "error",
+      "instructions": 61,
+      "errors": [
+        {
+          "offset": 30624,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_SLAVE_ZIELNUMMER",
+      "status": "error",
+      "instructions": 57,
+      "errors": [
+        {
+          "offset": 33334,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_STATISTIK_MASTER",
+      "status": "error",
+      "instructions": 57,
+      "errors": [
+        {
+          "offset": 34044,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_STATISTIK_SLAVE",
+      "status": "error",
+      "instructions": 57,
+      "errors": [
+        {
+          "offset": 36733,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "LOESCHEN_STATISTIK_MASTER",
+      "status": "error",
+      "instructions": 57,
+      "errors": [
+        {
+          "offset": 39426,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "LOESCHEN_STATISTIK_SLAVE",
+      "status": "error",
+      "instructions": 57,
+      "errors": [
+        {
+          "offset": 39916,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "ZIEL_MASTER_LESEN",
+      "status": "error",
+      "instructions": 84,
+      "errors": [
+        {
+          "offset": 40539,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "BIN_DOWNLOAD_START",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "BIN_FILE_DOWNLOAD",
+      "status": "ok",
+      "instructions": 152,
+      "errors": []
+    },
+    {
+      "name": "BIN_DOWNLOAD_ENDE",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "START_FLASHEN",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "CHECK_FIRMWARE",
+      "status": "ok",
+      "instructions": 291,
+      "errors": []
+    },
+    {
+      "name": "FORTSCHRITT_FLASHEN",
+      "status": "error",
+      "instructions": 84,
+      "errors": [
+        {
+          "offset": 49787,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "RUECKLESEN_FW_AUS_MDA",
+      "status": "error",
+      "instructions": 84,
+      "errors": [
+        {
+          "offset": 50767,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "FORTSCHRITT_RUECKLESEN",
+      "status": "error",
+      "instructions": 84,
+      "errors": [
+        {
+          "offset": 51672,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "KONFIG_LESEN",
+      "status": "error",
+      "instructions": 111,
+      "errors": [
+        {
+          "offset": 52775,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "KONFIG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 528,
+      "errors": []
+    },
+    {
+      "name": "RESET",
+      "status": "error",
+      "instructions": 111,
+      "errors": [
+        {
+          "offset": 56989,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "KL15_VER_LESEN",
+      "status": "error",
+      "instructions": 84,
+      "errors": [
+        {
+          "offset": 57737,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "KL15_RESET",
+      "status": "error",
+      "instructions": 84,
+      "errors": [
+        {
+          "offset": 59476,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "KL15_START_FLASH",
+      "status": "error",
+      "instructions": 84,
+      "errors": [
+        {
+          "offset": 60220,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "KL15_STATUS_FLASH",
+      "status": "error",
+      "instructions": 84,
+      "errors": [
+        {
+          "offset": 60964,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "KL15_START_DOWNLOAD",
+      "status": "ok",
+      "instructions": 145,
+      "errors": []
+    },
+    {
+      "name": "KL15_DOWNLOAD_PCMDA",
+      "status": "ok",
+      "instructions": 152,
+      "errors": []
+    },
+    {
+      "name": "KL15_ENDE_DOWNLOAD",
+      "status": "ok",
+      "instructions": 145,
+      "errors": []
+    },
+    {
+      "name": "KL15_CHECK_FIRMWARE",
+      "status": "ok",
+      "instructions": 292,
+      "errors": []
+    },
+    {
+      "name": "SET_CAN_ACCEPT_FILTER",
+      "status": "ok",
+      "instructions": 140,
+      "errors": []
+    },
+    {
+      "name": "GET_CAN_MESSAGE",
+      "status": "error",
+      "instructions": 93,
+      "errors": [
+        {
+          "offset": 70420,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "SEND_CAN_MESSAGE",
+      "status": "ok",
+      "instructions": 134,
+      "errors": []
+    },
+    {
+      "name": "SET_AUTO_ASSIGN",
+      "status": "error",
+      "instructions": 78,
+      "errors": [
+        {
+          "offset": 73804,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "WRITE_AUTO_ASSIGN_DATA",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "READ_AUTO_ASSIGN_DATA",
+      "status": "error",
+      "instructions": 75,
+      "errors": [
+        {
+          "offset": 75948,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "READ_AUTO_ASSIGN_STATUS",
+      "status": "error",
+      "instructions": 79,
+      "errors": [
+        {
+          "offset": 76989,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "GET_RUNNING_TIME",
+      "status": "error",
+      "instructions": 87,
+      "errors": [
+        {
+          "offset": 78805,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "GET_ERROR_COUNT",
+      "status": "error",
+      "instructions": 87,
+      "errors": [
+        {
+          "offset": 79826,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "CLR_ERROR_COUNT",
+      "status": "error",
+      "instructions": 87,
+      "errors": [
+        {
+          "offset": 82076,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "_SET_MASTER_COM_MODE",
+      "status": "error",
+      "instructions": 173,
+      "errors": [
+        {
+          "offset": 83261,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    }
+  ]
+}

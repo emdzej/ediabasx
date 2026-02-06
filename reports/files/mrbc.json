@@ -1,0 +1,156 @@
+{
+  "file": "mrbc.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "GP_TESTCOM",
+      "status": "ok",
+      "instructions": 115,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 86,
+      "errors": []
+    },
+    {
+      "name": "GP_TEILENUMMER",
+      "status": "ok",
+      "instructions": 202,
+      "errors": []
+    },
+    {
+      "name": "GP_HARDWARENUMMER",
+      "status": "ok",
+      "instructions": 102,
+      "errors": []
+    },
+    {
+      "name": "GP_CODIERINDEX",
+      "status": "ok",
+      "instructions": 102,
+      "errors": []
+    },
+    {
+      "name": "GP_DIAGNOSEINDEX",
+      "status": "ok",
+      "instructions": 102,
+      "errors": []
+    },
+    {
+      "name": "GP_HERSTELLERDATUM_KW",
+      "status": "ok",
+      "instructions": 122,
+      "errors": []
+    },
+    {
+      "name": "GP_HERSTELLERDATUM_JAHR",
+      "status": "ok",
+      "instructions": 122,
+      "errors": []
+    },
+    {
+      "name": "GP_LIEFERANTENNUMMER",
+      "status": "ok",
+      "instructions": 212,
+      "errors": []
+    },
+    {
+      "name": "GET_AUSSENTEMPERATUR",
+      "status": "ok",
+      "instructions": 197,
+      "errors": []
+    },
+    {
+      "name": "GET_AUSSENTEMPERATUR_F",
+      "status": "ok",
+      "instructions": 221,
+      "errors": []
+    },
+    {
+      "name": "GET_RESET_TASTER",
+      "status": "ok",
+      "instructions": 227,
+      "errors": []
+    },
+    {
+      "name": "GET_MODE_TASTER",
+      "status": "ok",
+      "instructions": 221,
+      "errors": []
+    },
+    {
+      "name": "GET_FERNBEDIENUNGS_TASTER",
+      "status": "ok",
+      "instructions": 227,
+      "errors": []
+    },
+    {
+      "name": "SL_TANKINHALT",
+      "status": "ok",
+      "instructions": 223,
+      "errors": []
+    },
+    {
+      "name": "SL_TANKINHALT_USGAL",
+      "status": "ok",
+      "instructions": 223,
+      "errors": []
+    },
+    {
+      "name": "SL_TANKINHALT_GBGAL",
+      "status": "ok",
+      "instructions": 223,
+      "errors": []
+    },
+    {
+      "name": "SL_KZAHL",
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
+    },
+    {
+      "name": "SL_EINSPRITZZEIT",
+      "status": "ok",
+      "instructions": 140,
+      "errors": []
+    },
+    {
+      "name": "SP_SEGMENTE_ZUSTAND",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "SP_HELLIGKEIT_WERT",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "SP_RESET",
+      "status": "ok",
+      "instructions": 81,
+      "errors": []
+    },
+    {
+      "name": "SP_DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 81,
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,246 @@
+{
+  "file": "mrradio.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 37,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TEILENUMMER",
+      "status": "ok",
+      "instructions": 187,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HARDWARESTAND",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CODIERINDEX",
+      "status": "ok",
+      "instructions": 278,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIAGNOSEINDEX",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BUSINDEX",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HERSTELLUNGSKALENDERWOCHE",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HERSTELLUNGSKALENDERJAHR",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZULIEFERER",
+      "status": "ok",
+      "instructions": 245,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SOFTWARESTAND",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AENDERUNGSINDEX",
+      "status": "ok",
+      "instructions": 200,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GAL_EINSTELLUNG",
+      "status": "ok",
+      "instructions": 180,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VF_MINDESTLAUTSTAERKE",
+      "status": "ok",
+      "instructions": 171,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GAL_SIGNAL_EINHEIT",
+      "status": "ok",
+      "instructions": 211,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GAL_SIGNAL_WERT",
+      "status": "ok",
+      "instructions": 182,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FELDSTAERKE_WERT",
+      "status": "ok",
+      "instructions": 182,
+      "errors": []
+    },
+    {
+      "name": "STATUS_QUALITAET_WERT",
+      "status": "ok",
+      "instructions": 182,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LAUTSPRECHER_ALLE",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LAUTSPRECHER_VL",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LAUTSPRECHER_VR",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LAUTSPRECHER_HR",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LAUTSPRECHER_HL",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LAUTSTARKE_ERHOEHEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LAUTSTARKE_ERNIEDRIGEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SUCHLAUF_TASTENDRUCK_VOR",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SUCHLAUF_TASTENDRUCK_ZURUECK",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MODE_WEITERSCHALTUNG",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FREQUENZ_EINSTELLEN",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RADIO_EINSCHALTEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RADIO_AUSSCHALTEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AUTOSTORE_AUSFUEHREN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LAUSTAERKE_EINSTELLEN",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_GAL_KURVE_VERRINGERN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_GAL_KURVE_ERHOEHEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VF_MINDESTLAUTSTAERKE_VERRINGERN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VF_MINDESTLAUTSTAERKE_ERHOEHEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SERIENNUMMER",
+      "status": "ok",
+      "instructions": 240,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SELBSTTEST_AKTIVIEREN",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    }
+  ]
+}

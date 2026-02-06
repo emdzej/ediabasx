@@ -1,0 +1,126 @@
+{
+  "file": "ZKE1.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 7,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 43,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 184,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 5,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 3,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINGAENGE_0",
+      "status": "ok",
+      "instructions": 250,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINGAENGE_1",
+      "status": "ok",
+      "instructions": 250,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINGAENGE_2",
+      "status": "ok",
+      "instructions": 282,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINGAENGE_3",
+      "status": "ok",
+      "instructions": 217,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINGAENGE_4",
+      "status": "ok",
+      "instructions": 256,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINGAENGE_5",
+      "status": "ok",
+      "instructions": 288,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINGAENGE_6",
+      "status": "ok",
+      "instructions": 315,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINGAENGE_7",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINGAENGE_8",
+      "status": "ok",
+      "instructions": 118,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AUSGAENGE_0",
+      "status": "ok",
+      "instructions": 291,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AUSGAENGE_1",
+      "status": "ok",
+      "instructions": 283,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AUSGAENGE_2",
+      "status": "ok",
+      "instructions": 217,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EINGANG",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AUSGANG",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    }
+  ]
+}

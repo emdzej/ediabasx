@@ -1,0 +1,30 @@
+{
+  "file": "mrcdc.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "FA_STREAM2STRUCT",
+      "status": "ok",
+      "instructions": 56,
+      "errors": []
+    },
+    {
+      "name": "FA_STREAM_FOR_ECU",
+      "status": "ok",
+      "instructions": 56,
+      "errors": []
+    }
+  ]
+}

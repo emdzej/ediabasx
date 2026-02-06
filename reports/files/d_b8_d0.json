@@ -1,0 +1,18 @@
+{
+  "file": "d_b8_d0.grp",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "IDENTIFIKATION",
+      "status": "ok",
+      "instructions": 127,
+      "errors": []
+    }
+  ]
+}

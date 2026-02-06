@@ -1,0 +1,114 @@
+{
+  "file": "rr1_2020.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "IDENT_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1211,
+      "errors": []
+    },
+    {
+      "name": "SVK_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 2194,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1096,
+      "errors": []
+    },
+    {
+      "name": "PROG_FG_NR_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1472,
+      "errors": []
+    },
+    {
+      "name": "PROG_ZAEHLER_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 937,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1205,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 735,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1202,
+      "errors": []
+    },
+    {
+      "name": "IS_LOESCHEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 851,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 844,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ENERGIESPARMODE_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1154,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_ANZAHL_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 843,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_IDENT_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 178,
+      "errors": []
+    },
+    {
+      "name": "GRP2SGADR",
+      "status": "ok",
+      "instructions": 135,
+      "errors": []
+    },
+    {
+      "name": "I_STUFE_LESEN",
+      "status": "ok",
+      "instructions": 202,
+      "errors": []
+    }
+  ]
+}

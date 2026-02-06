@@ -1,0 +1,18 @@
+{
+  "file": "d_0000.grp",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENTIFIKATION",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    }
+  ]
+}
