@@ -46,8 +46,6 @@ import {
 import { clrc, setc, clrv } from "./operations/flags";
 import { pop, pushf, popf, atsp, swap } from "./operations/stack";
 import {
-  scat,
-  slen,
   srev,
   strcmp,
   strlen,
@@ -1082,55 +1080,67 @@ export class Interpreter {
         pop(state.registers, state.dataStack, requireIntRegister(arg0));
       },
       0x20: async (state, arg0, arg1) => {
-        const leftValue = resolveStringValue(state.registers, arg0);
-        const rightValue = resolveStringValue(state.registers, arg1);
-        const cmpResult = leftValue.localeCompare(rightValue);
-        state.flags.z = cmpResult === 0;
-        state.flags.s = cmpResult < 0;
-        state.flags.c = cmpResult < 0;
-        state.flags.v = false;
+        const leftBytes = resolveBinaryValue(state.registers, arg0);
+        const rightBytes = resolveBinaryValue(state.registers, arg1);
+        const equal = leftBytes.length === rightBytes.length
+          && leftBytes.every((value, index) => value === rightBytes[index]);
+        state.flags.z = equal;
       },
       0x21: async (state, arg0, arg1) => {
-        if (arg1.kind === "string" || arg1.kind === "indexed") {
-          const dest = requireStringRegister(arg0);
-          const value = resolveStringValue(state.registers, arg1);
-          setStringValue(state.registers, dest, getStringValue(state.registers, dest) + value);
-          return;
-        }
-        scat(state.registers, requireStringRegister(arg0), requireStringRegister(arg1));
+        const dest = requireStringRegister(arg0);
+        const destBytes = getBinaryValue(state.registers, dest);
+        const sourceBytes = resolveBinaryValue(state.registers, arg1);
+        const result = new Uint8Array(destBytes.length + sourceBytes.length);
+        result.set(destBytes);
+        result.set(sourceBytes, destBytes.length);
+        setBinaryValue(state.registers, dest, result);
       },
       0x22: async (state, arg0, arg1) => {
         const dest = requireStringRegister(arg0);
         const len = Math.max(0, resolveIntValue(state.registers, arg1));
-        const bytes = utf8ToCp1252(getStringValue(state.registers, dest));
+        const bytes = getBinaryValue(state.registers, dest);
         const newBytes = bytes.slice(0, Math.max(0, bytes.length - len));
-        setStringValue(state.registers, dest, cp1252ToUtf8(newBytes));
+        setBinaryValue(state.registers, dest, newBytes);
       },
       0x23: async (state, arg0, arg1) => {
-        slen(state.registers, requireIntRegister(arg0), requireStringRegister(arg1));
+        const dest = requireIntRegister(arg0);
+        const length = resolveBinaryValue(state.registers, arg1).length;
+        setIntValue(state.registers, dest, length);
+        const byteLength = intRegisterByteLength(dest);
+        const mask = byteLength === 1 ? 0xff : byteLength === 2 ? 0xffff : 0xffffffff;
+        const signMask = byteLength === 1 ? 0x80 : byteLength === 2 ? 0x8000 : 0x80000000;
+        const masked = length & mask;
+        state.flags.z = masked === 0;
+        state.flags.s = (masked & signMask) !== 0;
+        state.flags.v = false;
       },
       0x24: async (state, arg0, arg1) => {
         const target = requireIndexed(arg0);
-        const insert = resolveStringValue(state.registers, arg1);
-        const base = getStringValue(state.registers, target.base);
+        const insertBytes = resolveBinaryValue(state.registers, arg1);
+        const baseBytes = getBinaryValue(state.registers, target.base);
         const start = Math.max(0, resolveIntValue(state.registers, target.index) + (target.offset?.value ?? 0));
-        let result = base;
-        if (start <= 0) {
-          result = insert + base;
-        } else if (start >= base.length) {
-          result = base + insert;
-        } else {
-          result = base.substring(0, start) + insert + base.substring(start);
+        if (start >= baseBytes.length) {
+          return;
         }
-        setStringValue(state.registers, target.base, result);
+        const result = new Uint8Array(baseBytes.length + insertBytes.length);
+        result.set(baseBytes.slice(0, start));
+        result.set(insertBytes, start);
+        result.set(baseBytes.slice(start), start + insertBytes.length);
+        setBinaryValue(state.registers, target.base, result);
       },
       0x25: async (state, arg0, arg1) => {
         const target = requireIndexed(arg0);
         const length = Math.max(0, resolveIntValue(state.registers, arg1));
-        const base = getStringValue(state.registers, target.base);
+        const baseBytes = getBinaryValue(state.registers, target.base);
         const start = Math.max(0, resolveIntValue(state.registers, target.index) + (target.offset?.value ?? 0));
-        const result = base.substring(0, start) + base.substring(start + length);
-        setStringValue(state.registers, target.base, result);
+        if (start >= baseBytes.length) {
+          return;
+        }
+        const end = Math.min(baseBytes.length, start + length);
+        const result = new Uint8Array(baseBytes.length - (end - start));
+        result.set(baseBytes.slice(0, start));
+        result.set(baseBytes.slice(end), start);
+        setBinaryValue(state.registers, target.base, result);
       },
       0x26: async (state) => {
         await xconnect(requireCommunicationInterface(state));

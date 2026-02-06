@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Interpreter } from "./interpreter";
 import { RegisterSet } from "./registers";
+import { Flags } from "./flags";
 import type { PrgFile, PrgJob, PrgHeader, PrgMetadata, PrgTable } from "@ediabas/best-parser";
 
 function createHeader(): PrgHeader {
@@ -199,6 +200,68 @@ describe("Interpreter", () => {
     await interpreter.execute("TEST", { registers });
 
     expect(registers.getS(2)).toBe("2");
+  });
+
+  describe("string opcodes (0x20-0x25)", () => {
+    it("scmp only updates Z flag", async () => {
+      const code = new Uint8Array([
+        0x20, 0x11, 0x1c, 0x1d, // scmp S0, S1
+        0x1d, 0x00, // eoj
+      ]);
+
+      const registers = new RegisterSet();
+      const flags = new Flags();
+      registers.setS(0, "ABC");
+      registers.setS(1, "ABD");
+      flags.c = true;
+      flags.s = true;
+      flags.v = true;
+
+      const interpreter = new Interpreter(createPrg(code));
+      await interpreter.execute("TEST", { registers, flags });
+
+      expect(flags.z).toBe(false);
+      expect(flags.c).toBe(true);
+      expect(flags.s).toBe(true);
+      expect(flags.v).toBe(true);
+    });
+
+    it("slen supports indexed operands and updates flags", async () => {
+      const code = new Uint8Array([
+        0x23, 0x3c, 0x10, 0x1c, 0x01, 0x00, 0x02, 0x00, // slen I0, S0[1:len=2]
+        0x1d, 0x00, // eoj
+      ]);
+
+      const registers = new RegisterSet();
+      const flags = new Flags();
+      registers.setS(0, "ABCD");
+      flags.c = true;
+
+      const interpreter = new Interpreter(createPrg(code));
+      await interpreter.execute("TEST", { registers, flags });
+
+      expect(registers.getI(0)).toBe(2);
+      expect(flags.z).toBe(false);
+      expect(flags.s).toBe(false);
+      expect(flags.v).toBe(false);
+      expect(flags.c).toBe(true);
+    });
+
+    it("spaste does nothing when index is past end", async () => {
+      const code = new Uint8Array([
+        0x24, 0x91, 0x1c, 0x0a, 0x00, 0x1d, // spaste S0[10], S1
+        0x1d, 0x00, // eoj
+      ]);
+
+      const registers = new RegisterSet();
+      registers.setS(0, "Hello");
+      registers.setS(1, "X");
+
+      const interpreter = new Interpreter(createPrg(code));
+      await interpreter.execute("TEST", { registers });
+
+      expect(registers.getS(0)).toBe("Hello");
+    });
   });
 
   describe("etag (0x41)", () => {
