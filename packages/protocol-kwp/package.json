@@ -13,5 +13,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
+  },
+  "dependencies": {
+    "@ediabas/protocol-uds": "workspace:*"
   }
 }

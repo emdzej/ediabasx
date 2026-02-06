@@ -2,6 +2,9 @@ import { SerialTransport } from "../types";
 import { CanFlags, Protocols, type CanFlag, type Protocol } from "./constants";
 import { createCanTelegram } from "./telegram";
 
+export { segmentIsoTpPayload } from "@ediabas/protocol-uds";
+export type { IsoTpSegmentationOptions } from "@ediabas/protocol-uds";
+
 export const DCAN_CONCEPT = 0x0110;
 export const DCAN_BAUD_RATE = 500000;
 
@@ -21,11 +24,6 @@ export type DcanSessionOptions = {
   readonly canFlags?: CanFlag;
   readonly baudRate?: number;
   readonly protocol?: Protocol;
-};
-
-export type IsoTpSegmentationOptions = {
-  readonly frameSize?: number;
-  readonly paddingByte?: number;
 };
 
 export async function switchToCanMode(
@@ -86,63 +84,4 @@ export class DcanSession {
     const telegram = this.buildTelegram(payload);
     await transport.write(telegram);
   }
-}
-
-export function segmentIsoTpPayload(
-  payload: Uint8Array,
-  options: IsoTpSegmentationOptions = {}
-): Uint8Array[] {
-  const frameSize = options.frameSize ?? 8;
-  if (frameSize < 8) {
-    throw new Error("ISO-TP frame size must be at least 8 bytes");
-  }
-
-  const paddingByte = options.paddingByte;
-  const totalLength = payload.length;
-
-  if (totalLength <= 7) {
-    const frame = new Uint8Array(1 + totalLength);
-    frame[0] = totalLength & 0x0f;
-    frame.set(payload, 1);
-    return [padFrame(frame, frameSize, paddingByte)];
-  }
-
-  const frames: Uint8Array[] = [];
-  const firstFrame = new Uint8Array(2 + Math.min(6, totalLength));
-  firstFrame[0] = 0x10 | ((totalLength >> 8) & 0x0f);
-  firstFrame[1] = totalLength & 0xff;
-  firstFrame.set(payload.subarray(0, 6), 2);
-  frames.push(padFrame(firstFrame, frameSize, paddingByte));
-
-  let offset = 6;
-  let sequence = 1;
-
-  while (offset < totalLength) {
-    const chunkLength = Math.min(7, totalLength - offset);
-    const frame = new Uint8Array(1 + chunkLength);
-    frame[0] = 0x20 | (sequence & 0x0f);
-    frame.set(payload.subarray(offset, offset + chunkLength), 1);
-    frames.push(padFrame(frame, frameSize, paddingByte));
-
-    offset += chunkLength;
-    sequence = (sequence + 1) & 0x0f;
-  }
-
-  return frames;
-}
-
-function padFrame(
-  frame: Uint8Array,
-  frameSize: number,
-  paddingByte: number | undefined
-): Uint8Array {
-  if (frame.length >= frameSize || paddingByte === undefined) {
-    return frame;
-  }
-
-  const padded = new Uint8Array(frameSize);
-  padded.set(frame);
-  padded.fill(paddingByte, frame.length);
-
-  return padded;
 }

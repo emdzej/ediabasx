@@ -362,6 +362,31 @@ describe("SerialInterface", () => {
     expect(setRtsSpy).toHaveBeenCalledWith(true);
   });
 
+  it("reassembles ISO-TP response payloads", async () => {
+    const transport = new MockSerialTransport();
+    const serialInterface = new SerialInterface({
+      port: PORT,
+      transport
+    });
+
+    serialInterface.setParameter(SerialCommParameterIds.Protocol, SerialProtocols.IsoTp);
+    serialInterface.setParameter(SerialCommParameterIds.TesterCanId, 0x7e0);
+    serialInterface.setParameter(SerialCommParameterIds.EcuCanId, 0x7e8);
+
+    await serialInterface.connect();
+
+    const responsePayload = Uint8Array.from([
+      0x62, 0xf1, 0x90, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
+    ]);
+
+    transport.enqueueRead([0x10, 0x0a, 0x62, 0xf1, 0x90, 0x01, 0x02, 0x03]);
+    transport.enqueueRead([0x21, 0x04, 0x05, 0x06, 0x07]);
+
+    const response = await serialInterface.rawData(Uint8Array.from([0x22, 0xf1, 0x90]));
+
+    expect(response).toEqual(responsePayload);
+  });
+
   it("segments large ISO-TP payloads", async () => {
     const transport = new MockSerialTransport();
     const writeSpy = vi.spyOn(transport, "write");
