@@ -962,6 +962,51 @@ No-op stub.
 **Arguments:**
 - (none)
 
+### 0x71 - xgetport (Get Port)
+Reads a hardware port value from the interface.
+
+**Arguments:**
+- arg0: Destination integer register (port value)
+- arg1: Port index (int register or immediate)
+
+### 0x72 - xignit (Get Ignition Voltage)
+Reads ignition voltage from interface and stores in destination register.
+
+**Arguments:**
+- arg0: Destination integer register (voltage value)
+
+### 0x73 - xloopt (Loop Test)
+Reads loop test result from interface.
+
+**Arguments:**
+- arg0: Destination integer register (test result)
+
+### 0x74 - xprog (Set Program Voltage)
+Sets programming voltage on the interface.
+
+**Arguments:**
+- arg0: Voltage value (int register or immediate)
+
+### 0x75 - xraw (Raw Data)
+Sends raw data to interface and receives response.
+
+**Arguments:**
+- arg0: Request string register (binary input)
+- arg1: Response string register (binary output)
+
+### 0x76 - xsetport (Set Port)
+Sets a hardware port value on the interface.
+
+**Arguments:**
+- arg0: Port index (int register or immediate)
+- arg1: Port value (int register or immediate)
+
+### 0x77 - xsireset (SI Relais Reset)
+Switches the SI relais for a specified time.
+
+**Arguments:**
+- arg0: Time in milliseconds (int register or immediate)
+
 ---
 
 ## Files
