@@ -1039,7 +1039,13 @@ export class Interpreter {
         pop(state.registers, state.dataStack, requireIntRegister(arg0));
       },
       0x20: async (state, arg0, arg1) => {
-        scmp(state.registers, state.flags, requireStringRegister(arg0), requireStringRegister(arg1));
+        const leftValue = resolveStringValue(state.registers, arg0);
+        const rightValue = resolveStringValue(state.registers, arg1);
+        const cmpResult = leftValue.localeCompare(rightValue);
+        state.flags.z = cmpResult === 0;
+        state.flags.s = cmpResult < 0;
+        state.flags.c = cmpResult < 0;
+        state.flags.v = false;
       },
       0x21: async (state, arg0, arg1) => {
         if (arg1.kind === "string" || arg1.kind === "indexed") {
