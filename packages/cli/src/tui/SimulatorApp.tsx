@@ -3,16 +3,22 @@ import { Box, Text, useApp, useInput } from "ink";
 import type { SimulatorServer } from "../simulator/SimulatorServer.js";
 import { useStdoutDimensions } from "./useStdoutDimensions.js";
 
-const SHORTCUTS = "↑/↓: Scroll | Ctrl+R: Focus | Ctrl+C: Exit";
+const SHORTCUTS = "↑/↓: Scroll | Tab: Mode | Ctrl+L: Line Ending | Ctrl+R: Focus | Ctrl+C: Exit";
 
 type SimulatorAppProps = {
   host: string;
   port: number;
   server: SimulatorServer;
+  defaultMode?: InputMode;
+  defaultLineEnding?: LineEnding;
   onExit?: () => Promise<void> | void;
 };
 
 type FocusTarget = "raw" | "hex";
+
+type InputMode = "text" | "hex";
+
+type LineEnding = "crlf" | "lf" | "raw";
 
 function truncate(text: string, maxWidth: number): string {
   if (text.length <= maxWidth) return text;
@@ -77,7 +83,34 @@ function formatHexLines(data: Uint8Array, width: number): string[] {
   return lines.length > 0 ? lines : [""];
 }
 
-export function SimulatorApp({ host, port, server, onExit }: SimulatorAppProps) {
+function parseHexInput(value: string): Uint8Array {
+  const trimmed = value.trim();
+  if (!trimmed) return new Uint8Array();
+  const parts = trimmed.split(/\s+/);
+  const bytes: number[] = [];
+  for (const part of parts) {
+    if (!/^[0-9a-fA-F]{2}$/.test(part)) {
+      throw new Error("Invalid hex input");
+    }
+    bytes.push(Number.parseInt(part, 16));
+  }
+  return Uint8Array.from(bytes);
+}
+
+function appendLineEnding(data: Uint8Array, lineEnding: LineEnding): Uint8Array {
+  if (lineEnding === "raw") return data;
+  const suffix = lineEnding === "crlf" ? "\r\n" : "\n";
+  const suffixBytes = new TextEncoder().encode(suffix);
+  if (data.length === 0) {
+    return suffixBytes;
+  }
+  const merged = new Uint8Array(data.length + suffixBytes.length);
+  merged.set(data, 0);
+  merged.set(suffixBytes, data.length);
+  return merged;
+}
+
+export function SimulatorApp({ host, port, server, defaultMode, defaultLineEnding, onExit }: SimulatorAppProps) {
   const { exit } = useApp();
   const [width, height] = useStdoutDimensions();
   const [isExiting, setIsExiting] = useState(false);
@@ -87,6 +120,10 @@ export function SimulatorApp({ host, port, server, onExit }: SimulatorAppProps) 
   const [rawScroll, setRawScroll] = useState(0);
   const [hexScroll, setHexScroll] = useState(0);
   const [focus, setFocus] = useState<FocusTarget>("raw");
+  const [inputMode, setInputMode] = useState<InputMode>(defaultMode ?? "text");
+  const [lineEnding, setLineEnding] = useState<LineEnding>(defaultLineEnding ?? "crlf");
+  const [inputValue, setInputValue] = useState("");
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const handleExit = useCallback(async () => {
     if (isExiting) return;
@@ -99,7 +136,7 @@ export function SimulatorApp({ host, port, server, onExit }: SimulatorAppProps) 
   const safeHeight = Math.max(7, height || 20);
   const innerWidth = Math.max(0, safeWidth - 2);
   const innerHeight = Math.max(0, safeHeight - 2);
-  const contentHeight = Math.max(0, innerHeight - 2);
+  const contentHeight = Math.max(0, innerHeight - 3);
   const rawContentHeight = Math.max(0, Math.floor(contentHeight / 2));
   const hexContentHeight = Math.max(0, contentHeight - rawContentHeight);
 
@@ -139,6 +176,14 @@ export function SimulatorApp({ host, port, server, onExit }: SimulatorAppProps) 
     };
   }, [innerWidth, server]);
 
+  useEffect(() => {
+    if (!statusMessage) return;
+    const timeout = setTimeout(() => {
+      setStatusMessage(null);
+    }, 1500);
+    return () => clearTimeout(timeout);
+  }, [statusMessage]);
+
   const maxRawScroll = Math.max(0, rawLines.length - rawContentHeight);
   const maxHexScroll = Math.max(0, hexLines.length - hexContentHeight);
 
@@ -159,6 +204,37 @@ export function SimulatorApp({ host, port, server, onExit }: SimulatorAppProps) 
       setFocus((value) => (value === "raw" ? "hex" : "raw"));
       return;
     }
+    if (key.ctrl && (input === "l" || input === "L")) {
+      setLineEnding((value) => {
+        if (value === "crlf") return "lf";
+        if (value === "lf") return "raw";
+        return "crlf";
+      });
+      return;
+    }
+    if (key.tab) {
+      setInputMode((value) => (value === "text" ? "hex" : "text"));
+      return;
+    }
+    if (key.return) {
+      try {
+        const payload =
+          inputMode === "text"
+            ? new TextEncoder().encode(inputValue)
+            : parseHexInput(inputValue);
+        const framed = appendLineEnding(payload, lineEnding);
+        server.queueResponse(framed);
+        setInputValue("");
+        setStatusMessage("Response queued");
+      } catch {
+        setStatusMessage("Invalid hex input");
+      }
+      return;
+    }
+    if (key.backspace || key.delete) {
+      setInputValue((value) => value.slice(0, -1));
+      return;
+    }
     if (key.upArrow) {
       if (focus === "raw") {
         setRawScroll((value) => Math.max(0, value - 1));
@@ -173,18 +249,28 @@ export function SimulatorApp({ host, port, server, onExit }: SimulatorAppProps) 
       } else {
         setHexScroll((value) => Math.min(maxHexScroll, value + 1));
       }
+      return;
+    }
+    if (input) {
+      setInputValue((value) => value + input);
     }
   });
 
   const title = `Simulator · ${host}:${port} · Clients: ${clientCount}`;
   const topBorder = buildTopBorder(truncate(title, innerWidth), safeWidth);
-  const bottomBorder = buildBottomBorder(SHORTCUTS, safeWidth);
+  const shortcuts = statusMessage ? `${SHORTCUTS} | ${statusMessage}` : SHORTCUTS;
+  const bottomBorder = buildBottomBorder(shortcuts, safeWidth);
 
   const rawLabel = focus === "raw" ? " RAW * " : " RAW ";
   const hexLabel = focus === "hex" ? " HEX * " : " HEX ";
 
   const rawHeader = buildContentLine(rawLabel, safeWidth);
   const hexHeader = buildMiddleBorder(hexLabel, safeWidth);
+
+  const modeLabel = inputMode.toUpperCase();
+  const lineEndingLabel = lineEnding.toUpperCase();
+  const promptPrefix = `[${modeLabel}] [${lineEndingLabel}] > `;
+  const promptLine = buildContentLine(`${promptPrefix}${inputValue}_`, safeWidth);
 
   const rawVisibleLines = useMemo(() => {
     const slice = rawLines.slice(rawScroll, rawScroll + rawContentHeight);
@@ -207,6 +293,7 @@ export function SimulatorApp({ host, port, server, onExit }: SimulatorAppProps) 
       {hexVisibleLines.map((line, index) => (
         <Text key={`hex-${index}`}>{buildContentLine(line, safeWidth)}</Text>
       ))}
+      <Text>{promptLine}</Text>
       <Text>{bottomBorder}</Text>
     </Box>
   );

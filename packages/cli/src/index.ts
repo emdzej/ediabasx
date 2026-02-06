@@ -25,6 +25,10 @@ type OutputOptions = {
   table?: boolean;
 };
 
+type SimulatorInputMode = "text" | "hex";
+
+type SimulatorLineEnding = "crlf" | "lf" | "raw";
+
 const DEFAULT_GATEWAY_PORT = 6801;
 const DEFAULT_SIMULATOR_HOST = "127.0.0.1";
 const DEFAULT_SIMULATOR_PORT = 6802;
@@ -40,6 +44,22 @@ function resolveOutputFormat(options: OutputOptions, defaultFormat: OutputFormat
   if (options.json) return "json";
   if (options.table) return "table";
   return defaultFormat;
+}
+
+function parseSimulatorMode(value: string | undefined): SimulatorInputMode {
+  const resolved = (value ?? "text").toLowerCase();
+  if (resolved === "text" || resolved === "hex") {
+    return resolved;
+  }
+  throw new Error(`Invalid simulator mode: ${value ?? ""}`);
+}
+
+function parseSimulatorLineEnding(value: string | undefined): SimulatorLineEnding {
+  const resolved = (value ?? "crlf").toLowerCase();
+  if (resolved === "crlf" || resolved === "lf" || resolved === "raw") {
+    return resolved;
+  }
+  throw new Error(`Invalid simulator line ending: ${value ?? ""}`);
 }
 
 function readPrgFile(filePath: string): PrgFile {
@@ -911,11 +931,15 @@ program
   .command("simulator")
   .option("--host <host>", "host to bind", DEFAULT_SIMULATOR_HOST)
   .option("--port <port>", "port to bind", DEFAULT_SIMULATOR_PORT.toString())
+  .option("--mode <mode>", "default input mode (text|hex)", "text")
+  .option("--line-ending <ending>", "default line ending (crlf|lf|raw)", "crlf")
   .description("Start the interactive simulator")
-  .action(async (options: { host?: string; port?: string }) => {
+  .action(async (options: { host?: string; port?: string; mode?: string; lineEnding?: string }) => {
     try {
       const host = options.host ?? DEFAULT_SIMULATOR_HOST;
       const port = parseNumber(options.port ?? `${DEFAULT_SIMULATOR_PORT}`, "Simulator port");
+      const mode = parseSimulatorMode(options.mode);
+      const lineEnding = parseSimulatorLineEnding(options.lineEnding);
       const server = new SimulatorServer({ host, port, logger: console });
       await server.start();
       const address = server.address;
@@ -932,6 +956,8 @@ program
           host: address.host,
           port: address.port,
           server,
+          defaultMode: mode,
+          defaultLineEnding: lineEnding,
           onExit: stopServer,
         })
       );
