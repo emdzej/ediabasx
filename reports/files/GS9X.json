@@ -1,0 +1,60 @@
+{
+  "file": "GS9X.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 37,
+      "errors": []
+    },
+    {
+      "name": "ENDE",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 111,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 56,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LASTSIGNAL_DKG",
+      "status": "ok",
+      "instructions": 77,
+      "errors": []
+    },
+    {
+      "name": "STATUS_STATUSBYTE3",
+      "status": "ok",
+      "instructions": 67,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 56,
+      "errors": []
+    }
+  ]
+}

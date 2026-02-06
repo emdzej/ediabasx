@@ -1,0 +1,48 @@
+{
+  "file": "C_SM38.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 117,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "C_S_AUFTRAG",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "C_S_SCHREIBEN",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "C_S_LESEN",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 74,
+      "errors": []
+    }
+  ]
+}

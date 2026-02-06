@@ -1,0 +1,258 @@
+{
+  "file": "secur1_2.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 107,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "NORMALER_DATENVERKEHR",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 77,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 567,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP_LESEN",
+      "status": "ok",
+      "instructions": 513,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "HARDWARE_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "DATEN_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_ZEITEN_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_BLOCKLAENGE_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_ZUFALLSZAHL_LESEN",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_START",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SIGNATUR_PRUEFEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_LOESCHEN",
+      "status": "ok",
+      "instructions": 59,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ADRESSE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ENDE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "AIF_SCHREIBEN",
+      "status": "ok",
+      "instructions": 239,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SEC_CAN_SGE",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TRENNRELAIS",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRENNRELAIS",
+      "status": "ok",
+      "instructions": 119,
+      "errors": []
+    },
+    {
+      "name": "SPANNUNG_BATTERIE",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BLITZLEUCHTE",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BLITZLEUCHTE",
+      "status": "ok",
+      "instructions": 146,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TONFOLGE",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TONFOLGE",
+      "status": "ok",
+      "instructions": 113,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VERSORGUNG_SBA",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    }
+  ]
+}

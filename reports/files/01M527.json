@@ -1,0 +1,84 @@
+{
+  "file": "01M527.prg",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "EDIC_RESET",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "initialisierung",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "READ_DOMINANTE",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "CHECK_MEM_CLEAR",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "UPROG_LESEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "UPROG_EIN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "UPROG_AUS",
+      "status": "error",
+      "instructions": 3,
+      "errors": [
+        {
+          "offset": 7192,
+          "opcode": 116,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "EPROM_SCHREIBEN",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    }
+  ]
+}

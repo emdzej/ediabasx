@@ -1,0 +1,48 @@
+{
+  "file": "c_lws5.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 37,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "C_C_AUFTRAG",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "C_C_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "C_FG_LESEN",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "C_FG_AUFTRAG",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "file": "EWSIKDME.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IMMO",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IMMO_SK",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "WRITE_IMMO",
+      "status": "ok",
+      "instructions": 306,
+      "errors": []
+    },
+    {
+      "name": "WRITE_IMMO_AUTH",
+      "status": "ok",
+      "instructions": 111,
+      "errors": []
+    }
+  ]
+}

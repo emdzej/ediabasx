@@ -1,0 +1,96 @@
+{
+  "file": "e81.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 324,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 272,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 198,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1317,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 644,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 556,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 642,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 196,
+      "errors": []
+    },
+    {
+      "name": "I_STUFE_LESEN",
+      "status": "ok",
+      "instructions": 500,
+      "errors": []
+    },
+    {
+      "name": "I_STUFE_SCHREIBEN",
+      "status": "ok",
+      "instructions": 67,
+      "errors": []
+    }
+  ]
+}

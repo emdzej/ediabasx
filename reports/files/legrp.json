@@ -1,0 +1,18 @@
+{
+  "file": "legrp.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "LESEN_GRUPPE",
+      "status": "ok",
+      "instructions": 392,
+      "errors": []
+    }
+  ]
+}

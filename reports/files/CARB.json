@@ -1,0 +1,132 @@
+{
+  "file": "CARB.PRG",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 75,
+      "errors": []
+    },
+    {
+      "name": "SET_PARAMETER",
+      "status": "ok",
+      "instructions": 57,
+      "errors": []
+    },
+    {
+      "name": "Start_Bus_Communication",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "_MODE1_ReqCurrentPowertrainDiagnosticData",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "_MODE2_ReqPowertrainFreezeFrameData",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "_MODE3_ReqEmissionReleatedPowertrainDTC",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "_MODE4_ClearResetEmissionReleatedDiagnosticInformation",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "_MODE5_ReqOxygenSensorMonitoringTestResults",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "_MODEX_TransparentMode",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "_ReqRawMode",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "DiagnosticEnd",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "START_BUS_COMMUNICATION",
+      "status": "ok",
+      "instructions": 501,
+      "errors": []
+    },
+    {
+      "name": "_MODE1_REQCURRENTPOWERTRAINDIAGNOSTICDATA",
+      "status": "ok",
+      "instructions": 111,
+      "errors": []
+    },
+    {
+      "name": "_MODE2_REQPOWERTRAINFREEZEFRAMEDATA",
+      "status": "ok",
+      "instructions": 141,
+      "errors": []
+    },
+    {
+      "name": "_MODE3_REQEMISSIONRELEATEDPOWERTRAINDTC",
+      "status": "ok",
+      "instructions": 75,
+      "errors": []
+    },
+    {
+      "name": "_MODE4_CLEARRESETEMISSIONRELEATEDDIAGNOSTICINFORMATION",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "_MODE5_REQOXYGENSENSORMONITORINGTESTRESULTS",
+      "status": "ok",
+      "instructions": 135,
+      "errors": []
+    },
+    {
+      "name": "_MODEX_TRANSPARENTMODE",
+      "status": "ok",
+      "instructions": 591,
+      "errors": []
+    },
+    {
+      "name": "_REQRAWMODE",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSTICEND",
+      "status": "ok",
+      "instructions": 21,
+      "errors": []
+    }
+  ]
+}

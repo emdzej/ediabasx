@@ -1,0 +1,636 @@
+{
+  "file": "OMI_TEST.prg",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 19,
+      "errors": []
+    },
+    {
+      "name": "ifvers",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "iftype",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "ifreset",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "ifboot",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "get_battery_voltage",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "get_ignition_voltage",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "set_protocol",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "set_ds1",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "set_ds2",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "set_bmw_fast",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "set_kwp2000star",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "set_kwp2000",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "set_kwp2000can",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "sendtelegram",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "send",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "receive",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "recv_keybytes",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "ifsetport",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "ifgetport",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "ifloopt",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "send_frequent",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "recv_frequent",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "stop_frequent",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "set_program_voltage",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "ifsireset",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "ifrequeststate",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "set_answer_length",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "setconfigstring",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "getconfigstring",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "ifrawmode",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "SG_SIMULATOR_PARAM_DS1",
+      "status": "ok",
+      "instructions": 23,
+      "errors": []
+    },
+    {
+      "name": "SG_SIMULATOR_PARAM_DS2",
+      "status": "ok",
+      "instructions": 23,
+      "errors": []
+    },
+    {
+      "name": "SG_SIMULATOR_PARAM_BMW_FAST",
+      "status": "ok",
+      "instructions": 23,
+      "errors": []
+    },
+    {
+      "name": "SG_SIMULATOR_PARAM_KWP2000star",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "SG_SIMULATOR_PARAM_KWP2000",
+      "status": "ok",
+      "instructions": 23,
+      "errors": []
+    },
+    {
+      "name": "SG_SIMULATOR_DS1",
+      "status": "ok",
+      "instructions": 2842,
+      "errors": []
+    },
+    {
+      "name": "SG_SIMULATOR_DS2",
+      "status": "ok",
+      "instructions": 2842,
+      "errors": []
+    },
+    {
+      "name": "SG_SIMULATOR_BMW_FAST",
+      "status": "ok",
+      "instructions": 12957,
+      "errors": []
+    },
+    {
+      "name": "SG_SIMULATOR_KWP2000star",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "SG_SIMULATOR_KWP2000",
+      "status": "ok",
+      "instructions": 73,
+      "errors": []
+    },
+    {
+      "name": "SG_MONITOR_DS1",
+      "status": "ok",
+      "instructions": 80,
+      "errors": []
+    },
+    {
+      "name": "SG_MONITOR_DS2",
+      "status": "ok",
+      "instructions": 80,
+      "errors": []
+    },
+    {
+      "name": "SG_MONITOR_BMW_FAST",
+      "status": "ok",
+      "instructions": 80,
+      "errors": []
+    },
+    {
+      "name": "SG_MONITOR_KWP2000star",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "SG_MONITOR_KWP2000",
+      "status": "ok",
+      "instructions": 73,
+      "errors": []
+    },
+    {
+      "name": "GetFirmwareVersion",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "GetAutomaticMode",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "SetAutomaticMode",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "SendCanMessage",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "SetCanAcceptanceFilter",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "GetCanMessage",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "IFVERS",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "IFTYPE",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "IFRESET",
+      "status": "ok",
+      "instructions": 19,
+      "errors": []
+    },
+    {
+      "name": "IFBOOT",
+      "status": "ok",
+      "instructions": 19,
+      "errors": []
+    },
+    {
+      "name": "GET_BATTERY_VOLTAGE",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "GET_IGNITION_VOLTAGE",
+      "status": "error",
+      "instructions": 0,
+      "errors": [
+        {
+          "offset": 1247,
+          "opcode": 114,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "SET_PROTOCOL",
+      "status": "ok",
+      "instructions": 156,
+      "errors": []
+    },
+    {
+      "name": "SET_DS1",
+      "status": "ok",
+      "instructions": 269,
+      "errors": []
+    },
+    {
+      "name": "SET_DS2",
+      "status": "ok",
+      "instructions": 269,
+      "errors": []
+    },
+    {
+      "name": "SET_BMW_FAST",
+      "status": "ok",
+      "instructions": 292,
+      "errors": []
+    },
+    {
+      "name": "SET_KWP2000STAR",
+      "status": "ok",
+      "instructions": 294,
+      "errors": []
+    },
+    {
+      "name": "SET_KWP2000",
+      "status": "ok",
+      "instructions": 294,
+      "errors": []
+    },
+    {
+      "name": "SET_KWP2000CAN",
+      "status": "ok",
+      "instructions": 461,
+      "errors": []
+    },
+    {
+      "name": "SENDTELEGRAM",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "SEND",
+      "status": "ok",
+      "instructions": 49,
+      "errors": []
+    },
+    {
+      "name": "RECEIVE",
+      "status": "ok",
+      "instructions": 49,
+      "errors": []
+    },
+    {
+      "name": "RECV_KEYBYTES",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "IFSETPORT",
+      "status": "error",
+      "instructions": 24,
+      "errors": [
+        {
+          "offset": 22702,
+          "opcode": 118,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "IFGETPORT",
+      "status": "error",
+      "instructions": 11,
+      "errors": [
+        {
+          "offset": 22934,
+          "opcode": 113,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "IFLOOPT",
+      "status": "error",
+      "instructions": 1,
+      "errors": [
+        {
+          "offset": 23138,
+          "opcode": 115,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "SEND_FREQUENT",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "RECV_FREQUENT",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "STOP_FREQUENT",
+      "status": "ok",
+      "instructions": 19,
+      "errors": []
+    },
+    {
+      "name": "SET_PROGRAM_VOLTAGE",
+      "status": "error",
+      "instructions": 12,
+      "errors": [
+        {
+          "offset": 23793,
+          "opcode": 116,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "IFSIRESET",
+      "status": "error",
+      "instructions": 12,
+      "errors": [
+        {
+          "offset": 23997,
+          "opcode": 119,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "IFREQUESTSTATE",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "SET_ANSWER_LENGTH",
+      "status": "ok",
+      "instructions": 72,
+      "errors": []
+    },
+    {
+      "name": "SETCONFIGSTRING",
+      "status": "error",
+      "instructions": 147,
+      "errors": [
+        {
+          "offset": 25261,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "GETCONFIGSTRING",
+      "status": "error",
+      "instructions": 99,
+      "errors": [
+        {
+          "offset": 25811,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "IFRAWMODE",
+      "status": "error",
+      "instructions": 27,
+      "errors": [
+        {
+          "offset": 26074,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "SG_SIMULATOR_PARAM_KWP2000STAR",
+      "status": "ok",
+      "instructions": 23,
+      "errors": []
+    },
+    {
+      "name": "SG_SIMULATOR_KWP2000STAR",
+      "status": "ok",
+      "instructions": 5420,
+      "errors": []
+    },
+    {
+      "name": "SG_MONITOR_KWP2000STAR",
+      "status": "ok",
+      "instructions": 80,
+      "errors": []
+    },
+    {
+      "name": "GETFIRMWAREVERSION",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 162432,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "GETAUTOMATICMODE",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 163917,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "SETAUTOMATICMODE",
+      "status": "ok",
+      "instructions": 59,
+      "errors": []
+    },
+    {
+      "name": "SENDCANMESSAGE",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "SETCANACCEPTANCEFILTER",
+      "status": "error",
+      "instructions": 109,
+      "errors": [
+        {
+          "offset": 168556,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "GETCANMESSAGE",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 168841,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    }
+  ]
+}

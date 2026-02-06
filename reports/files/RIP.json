@@ -1,0 +1,72 @@
+{
+  "file": "RIP.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 108,
+      "errors": []
+    },
+    {
+      "name": "C_FG_LESEN",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "C_FG_AUFTRAG",
+      "status": "ok",
+      "instructions": 200,
+      "errors": []
+    },
+    {
+      "name": "C_S_LESEN",
+      "status": "ok",
+      "instructions": 24,
+      "errors": []
+    },
+    {
+      "name": "C_S_AUFTRAG",
+      "status": "ok",
+      "instructions": 24,
+      "errors": []
+    },
+    {
+      "name": "C_S_SCHREIBEN",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 108,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "HERSTELLERDATEN_LESEN",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    }
+  ]
+}

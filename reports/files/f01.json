@@ -1,0 +1,192 @@
+{
+  "file": "f01.PRG",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "IDENT_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1211,
+      "errors": []
+    },
+    {
+      "name": "SVK_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 2215,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 35,
+      "errors": []
+    },
+    {
+      "name": "HW_MODIFICATION_INDEX_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1017,
+      "errors": []
+    },
+    {
+      "name": "CALID_CVN_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1319,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1096,
+      "errors": []
+    },
+    {
+      "name": "ECU_UID_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 857,
+      "errors": []
+    },
+    {
+      "name": "HERSTELLDATUM_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1894,
+      "errors": []
+    },
+    {
+      "name": "PROG_FG_NR_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1472,
+      "errors": []
+    },
+    {
+      "name": "PROG_ZAEHLER_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 937,
+      "errors": []
+    },
+    {
+      "name": "CPS_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1257,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1205,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 735,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1303,
+      "errors": []
+    },
+    {
+      "name": "IS_LOESCHEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 851,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 844,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ENERGIESPARMODE_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1154,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_ANZAHL_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 843,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_IDENT_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 122,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_IDENT_LESEN_FUNKTIONAL_TRSVC_PROBLEM",
+      "status": "ok",
+      "instructions": 178,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_START_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 429,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_STOP_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 429,
+      "errors": []
+    },
+    {
+      "name": "I_STUFE_LESEN",
+      "status": "ok",
+      "instructions": 6636,
+      "errors": []
+    },
+    {
+      "name": "MSM_INIT_PAIRING_CHECK",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "FSCSM_STATUS_PAIRING_CHECK_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1163,
+      "errors": []
+    },
+    {
+      "name": "FSCSM_STATUS_SECURE_VIN_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1398,
+      "errors": []
+    },
+    {
+      "name": "FSCSM_STATUS_VEHICLE_KEY_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1163,
+      "errors": []
+    },
+    {
+      "name": "GRP2SGADR",
+      "status": "ok",
+      "instructions": 135,
+      "errors": []
+    }
+  ]
+}

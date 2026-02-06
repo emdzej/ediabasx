@@ -1,0 +1,48 @@
+{
+  "file": "virtsg9b.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 324,
+      "errors": []
+    }
+  ]
+}

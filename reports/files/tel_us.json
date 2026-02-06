@@ -1,0 +1,66 @@
+{
+  "file": "tel_us.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 74,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IO_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "C_C_LESEN",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "C_C_AUFTRAG",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_WEITER",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    }
+  ]
+}

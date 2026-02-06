@@ -1,0 +1,24 @@
+{
+  "file": "vvt_anst.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VVT",
+      "status": "ok",
+      "instructions": 296,
+      "errors": []
+    }
+  ]
+}

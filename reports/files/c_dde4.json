@@ -1,0 +1,84 @@
+{
+  "file": "c_dde4.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "initialisierung",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "C_ZCS_D_LESEN",
+      "status": "ok",
+      "instructions": 60,
+      "errors": []
+    },
+    {
+      "name": "C_ZCS_LESEN",
+      "status": "ok",
+      "instructions": 252,
+      "errors": []
+    },
+    {
+      "name": "C_ZCS_D_AUFTRAG",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "C_ZCS_AUFTRAG",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "START_DIAGNOSTIC_SESSION",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "SECURITY_ACCESS",
+      "status": "ok",
+      "instructions": 220,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "C_FG_LESEN",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "C_C_AUFTRAG",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    }
+  ]
+}

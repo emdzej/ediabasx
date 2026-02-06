@@ -1,0 +1,24 @@
+{
+  "file": "AIR_E36.PRG",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "NUMMERN_CHECK",
+      "status": "ok",
+      "instructions": 302,
+      "errors": []
+    }
+  ]
+}

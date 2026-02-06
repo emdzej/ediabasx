@@ -1,0 +1,480 @@
+{
+  "file": "KBM_60.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 324,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 152,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "NORMALER_DATENVERKEHR",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "FS_SPERREN",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN",
+      "status": "ok",
+      "instructions": 166,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 156,
+      "errors": []
+    },
+    {
+      "name": "IS_LOESCHEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 82,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_SCHREIBEN",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 77,
+      "errors": []
+    },
+    {
+      "name": "C_CI_LESEN",
+      "status": "ok",
+      "instructions": 311,
+      "errors": []
+    },
+    {
+      "name": "C_FG_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "C_FG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "C_FG_AUFTRAG",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_SCHREIBEN",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_AUFTRAG",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "C_C_LESEN",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "C_C_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "C_C_AUFTRAG",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 334,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 232,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP_LESEN",
+      "status": "ok",
+      "instructions": 232,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN",
+      "status": "ok",
+      "instructions": 285,
+      "errors": []
+    },
+    {
+      "name": "HARDWARE_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 232,
+      "errors": []
+    },
+    {
+      "name": "DATEN_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "FLASH_ZEITEN_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "FLASH_BLOCKLAENGE_LESEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_ZUFALLSZAHL_LESEN",
+      "status": "ok",
+      "instructions": 35,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_START",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 140,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SIGNATUR_PRUEFEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "FLASH_LOESCHEN",
+      "status": "ok",
+      "instructions": 59,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ADRESSE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ENDE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 78,
+      "errors": []
+    },
+    {
+      "name": "AIF_SCHREIBEN",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "PRUEFCODE_LESEN",
+      "status": "ok",
+      "instructions": 173,
+      "errors": []
+    },
+    {
+      "name": "LESEN_DIGITAL_ARG",
+      "status": "ok",
+      "instructions": 63,
+      "errors": []
+    },
+    {
+      "name": "LESEN_ANALOG_ARG",
+      "status": "ok",
+      "instructions": 63,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DIGITAL",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "CFL_INITIALIZATION",
+      "status": "ok",
+      "instructions": 38,
+      "errors": []
+    },
+    {
+      "name": "CFL_INITIALIZATION_DELAY",
+      "status": "ok",
+      "instructions": 123,
+      "errors": []
+    },
+    {
+      "name": "CFL_INVALID",
+      "status": "ok",
+      "instructions": 57,
+      "errors": []
+    },
+    {
+      "name": "CFL_150N",
+      "status": "ok",
+      "instructions": 57,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CFL_NAECHSTE_150N_INIT",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "IL_CONTROL",
+      "status": "ok",
+      "instructions": 38,
+      "errors": []
+    },
+    {
+      "name": "WIPER_CONTROL",
+      "status": "ok",
+      "instructions": 80,
+      "errors": []
+    },
+    {
+      "name": "CDL_CONTROL",
+      "status": "ok",
+      "instructions": 38,
+      "errors": []
+    },
+    {
+      "name": "MK_CONTROL",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "STATUS_INPUT_DIGITAL_KBM",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_OUTPUT_DIGITAL_KBM",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_INPUT_ANALOG_KBM",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_OUT_WISH_MOT_1_2",
+      "status": "ok",
+      "instructions": 84,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FENSTERHEBER",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CFL_LOESCHEN",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CFL_150N",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LOESCHEN_DENORM_REASON",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DENORM_REASON",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CFL_INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FENSTERHEBER_NEU",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "SDIAG",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ICT_BYTE",
+      "status": "ok",
+      "instructions": 139,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ICT_BYTE",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "AENDERUNG_CFL_BEREICH",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    }
+  ]
+}

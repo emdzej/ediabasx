@@ -1,0 +1,18 @@
+{
+  "file": "d_sba.grp",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 450,
+      "errors": []
+    },
+    {
+      "name": "IDENTIFIKATION",
+      "status": "ok",
+      "instructions": 821,
+      "errors": []
+    }
+  ]
+}
