@@ -77,6 +77,8 @@ import {
   ergr,
   ergs,
   ergy,
+  ergc,
+  ergl,
 } from "./operations/result";
 import { ParameterSet, parb, parw, parl, pars, parr, pary, parn } from "./operations/parameters";
 import {
@@ -246,6 +248,8 @@ type InterpreterState = {
   progressText: string;
   progressRange: number;
   progressPos: number;
+  // System init request flag (set by ergsysi)
+  requestInit: boolean;
   // Results filter (for etag)
   resultsRequest: Set<string>;
 };
@@ -825,6 +829,7 @@ export class Interpreter {
       progressText: "",
       progressRange: 0,
       progressPos: -1,
+      requestInit: false,
       resultsRequest: options.resultsRequest ?? new Set(),
     };
   }
@@ -1288,12 +1293,9 @@ export class Interpreter {
       0x4c: async (state) => {
         clrv(state.flags);
       },
-      // 0x4d: eerr - error result (F_ERRORTEXT, F_ERRORCODE)
-      0x4d: async (state, arg0, arg1) => {
-        const errorCode = resolveIntValue(state.registers, arg0);
-        const errorText = resolveStringValue(state.registers, arg1);
-        state.results.record("F_ERRORCODE", "dword", errorCode);
-        state.results.record("F_ERRORTEXT", "string", errorText);
+      // 0x4d: eerr - make error (execute)
+      0x4d: async () => {
+        // Error trap handling not implemented; no-op.
       },
       0x4e: async (state) => {
         popf(state.dataStack, state.flags);
@@ -1486,17 +1488,17 @@ export class Interpreter {
       0x80: async (state, arg0) => {
         parn(state.registers, state.parameters, requireIntRegister(arg0));
       },
-      // 0x81: ergc - result char (byte)
+      // 0x81: ergc - result char (signed byte)
       0x81: async (state, arg0, arg1) => {
         const name = resolveStringValue(state.registers, arg0);
-        const value = resolveIntValue(state.registers, arg1) & 0xff;
-        state.results.record(name, "byte", value);
+        const value = resolveIntValue(state.registers, arg1);
+        ergc(state.registers, state.results, name, value);
       },
-      // 0x82: ergl - result long (dword)
+      // 0x82: ergl - result long (signed dword)
       0x82: async (state, arg0, arg1) => {
         const name = resolveStringValue(state.registers, arg0);
-        const value = resolveIntValue(state.registers, arg1) >>> 0;
-        state.results.record(name, "dword", value);
+        const value = resolveIntValue(state.registers, arg1);
+        ergl(state.registers, state.results, name, value);
       },
       0x83: async (state, arg0, arg1) => {
         const delimiter = arg1.kind === "register" && arg1.ref.kind === "S" ? arg1.ref : undefined;
@@ -1581,8 +1583,14 @@ export class Interpreter {
       // 0x95: ergsysi - system info result
       0x95: async (state, arg0, arg1) => {
         const name = resolveStringValue(state.registers, arg0);
-        const value = resolveStringValue(state.registers, arg1);
-        state.results.record(name, "string", value);
+        const value = resolveIntValue(state.registers, arg1) & 0xffff;
+        if (name === "!INITIALISIERUNG") {
+          if (value !== 0) {
+            state.requestInit = true;
+          }
+          return;
+        }
+        state.results.record(name, "int", value);
       },
       0x96: async (state, arg0, arg1) => {
         flt2fix(state.registers, state.flags, requireIntRegister(arg0), requireFloatRegister(arg1));
@@ -1701,13 +1709,9 @@ export class Interpreter {
         ufix2dez(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
       },
       // 0xac: generr - generate/throw error
-      0xac: async (state, arg0, arg1) => {
+      0xac: async (state, arg0) => {
         const errorCode = resolveIntValue(state.registers, arg0);
-        const errorText = resolveStringValue(state.registers, arg1);
-        // Store error info in results and throw with UNKNOWN code
-        state.results.record("F_ERRORCODE", "dword", errorCode);
-        state.results.record("F_ERRORTEXT", "string", errorText);
-        throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, `GENERR ${errorCode}: ${errorText}`);
+        throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, `GENERR ${errorCode}`);
       },
       // 0xad: ticks - get system ticks (ms since epoch)
       0xad: async (state, arg0) => {

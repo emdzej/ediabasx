@@ -20,7 +20,16 @@ export type {
 
 export interface JobResult {
   name: string;
-  type: "byte" | "word" | "dword" | "int" | "real" | "string" | "binary";
+  type:
+    | "byte"
+    | "word"
+    | "dword"
+    | "char"
+    | "int"
+    | "long"
+    | "real"
+    | "string"
+    | "binary";
   value: number | string | Uint8Array;
   unit?: string;
   comment?: string;
@@ -113,10 +122,26 @@ function maskUnsigned(value: number, bits: 8 | 16 | 32): number {
   }
 }
 
+function toSigned8(value: number): number {
+  const masked = maskUnsigned(value, 8);
+  if ((masked & 0x80) !== 0) {
+    return masked - 0x100;
+  }
+  return masked;
+}
+
 function toSigned16(value: number): number {
   const masked = maskUnsigned(value, 16);
   if ((masked & 0x8000) !== 0) {
     return masked - 0x10000;
+  }
+  return masked;
+}
+
+function toSigned32(value: number): number {
+  const masked = maskUnsigned(value, 32);
+  if ((masked & 0x80000000) !== 0) {
+    return masked - 0x1_0000_0000;
   }
   return masked;
 }
@@ -206,4 +231,26 @@ export function ergy(
 ): void {
   const resultName = resolveString(registers, name);
   collector.record(resultName, "binary", value);
+}
+
+export function ergc(
+  registers: RegisterSet,
+  collector: ResultCollector,
+  name: StringSource,
+  value: IntRegisterRef | number
+): void {
+  const resultName = resolveString(registers, name);
+  const raw = typeof value === "number" ? value : getIntValue(registers, value);
+  collector.record(resultName, "char", toSigned8(raw));
+}
+
+export function ergl(
+  registers: RegisterSet,
+  collector: ResultCollector,
+  name: StringSource,
+  value: IntRegisterRef | number
+): void {
+  const resultName = resolveString(registers, name);
+  const raw = typeof value === "number" ? value : getIntValue(registers, value);
+  collector.record(resultName, "long", toSigned32(raw));
 }
