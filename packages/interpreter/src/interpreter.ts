@@ -48,7 +48,6 @@ import { pop, pushf, popf, atsp, swap } from "./operations/stack";
 import {
   scat,
   slen,
-  scmp,
   srev,
   strcmp,
   strlen,
