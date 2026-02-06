@@ -6,6 +6,12 @@ export abstract class EdiabasInterface {
   abstract send(data: Uint8Array): Promise<void>;
   abstract receive(timeoutMs?: number): Promise<Uint8Array>;
 
+  async transmitFrequent(data: Uint8Array): Promise<void> {
+    void data;
+  }
+  async receiveFrequent(): Promise<Uint8Array> {
+    return new Uint8Array(0);
+  }
   async stopFrequent(): Promise<void> {}
 
   abstract getPort(index: number): number | Promise<number>;
