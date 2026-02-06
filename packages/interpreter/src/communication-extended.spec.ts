@@ -47,7 +47,7 @@ describe("Extended communication operations", () => {
       setAnswerLength: vi.fn(),
       sendFormatted: vi.fn(),
       requestFormatted: vi.fn().mockResolvedValue(Uint8Array.from([0x42])),
-      stopFormatted: vi.fn(),
+      stopFrequent: vi.fn(),
       readKeyboard: vi.fn().mockResolvedValue("X"),
       getState: () => 7,
       boot: vi.fn(),
@@ -97,7 +97,7 @@ describe("Extended communication operations", () => {
 
   it("xstopf stops formatted communication", async () => {
     await xstopf(iface);
-    expect(iface.stopFormatted).toHaveBeenCalled();
+    expect(iface.stopFrequent).toHaveBeenCalled();
   });
 
   it("xkeyb reads keyboard input", async () => {

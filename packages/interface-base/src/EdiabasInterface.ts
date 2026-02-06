@@ -6,6 +6,8 @@ export abstract class EdiabasInterface {
   abstract send(data: Uint8Array): Promise<void>;
   abstract receive(timeoutMs?: number): Promise<Uint8Array>;
 
+  async stopFrequent(): Promise<void> {}
+
   abstract getPort(index: number): number | Promise<number>;
   abstract setPort(index: number, value: number): void | Promise<void>;
   abstract get ignitionVoltage(): number | Promise<number>;
