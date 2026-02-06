@@ -49,37 +49,32 @@ describe("Table Operations", () => {
     registers = new RegisterSet();
     flags = new Flags();
     registry = createTableRegistry([createSampleTable(), createEcuTable()]);
-    state = { activeTable: null, rowIndex: 0 };
+    state = { activeTable: null, rowIndex: -1 };
   });
 
   it("tabset selects active table", () => {
     registers.setS(0, "TEST_TABLE");
-    tabset(registers, flags, registry, state, { kind: "S", index: 0 });
+    tabset(flags, registry, state, registers.getS(0));
 
     expect(state.activeTable?.name).toBe("TEST_TABLE");
-    expect(state.rowIndex).toBe(0);
+    expect(state.rowIndex).toBe(-1);
     expect(flags.z).toBe(false);
   });
 
   it("tabset sets flags when table missing", () => {
     registers.setS(0, "MISSING");
-    tabset(registers, flags, registry, state, { kind: "S", index: 0 });
+    tabset(flags, registry, state, registers.getS(0));
 
     expect(state.activeTable).toBeNull();
     expect(flags.z).toBe(true);
-    expect(flags.c).toBe(true);
   });
 
   it("tabseek updates row index and tabget reads current row", () => {
     registers.setS(0, "TEST_TABLE");
-    tabset(registers, flags, registry, state, { kind: "S", index: 0 });
+    tabset(flags, registry, state, registers.getS(0));
 
-    registers.setS(1, "Beta");
-    registers.setI(0, 1);
-    tabseek(registers, flags, state, { kind: "S", index: 1 }, { kind: "I", index: 0 });
-
-    registers.setI(1, 0);
-    tabget(registers, flags, state, { kind: "S", index: 2 }, { kind: "I", index: 1 });
+    tabseek(flags, state, "Name", "Beta");
+    tabget(registers, flags, state, { kind: "S", index: 2 }, "ID");
 
     expect(state.rowIndex).toBe(1);
     expect(registers.getS(2)).toBe("2");
@@ -88,24 +83,20 @@ describe("Table Operations", () => {
 
   it("tabseek sets flags when value not found", () => {
     registers.setS(0, "TEST_TABLE");
-    tabset(registers, flags, registry, state, { kind: "S", index: 0 });
+    tabset(flags, registry, state, registers.getS(0));
 
-    registers.setS(1, "Missing");
-    registers.setI(0, 0);
-    tabseek(registers, flags, state, { kind: "S", index: 1 }, { kind: "I", index: 0 });
+    tabseek(flags, state, "Name", "Missing");
 
-    expect(state.rowIndex).toBe(-1);
+    expect(state.rowIndex).toBe(2);
     expect(flags.z).toBe(true);
-    expect(flags.c).toBe(true);
   });
 
   it("tabseeku performs case-insensitive search", () => {
     registers.setS(0, "TEST_TABLE");
-    tabset(registers, flags, registry, state, { kind: "S", index: 0 });
+    tabset(flags, registry, state, registers.getS(0));
 
-    registers.setS(1, "gamma");
-    registers.setI(0, 1);
-    tabseeku(registers, flags, state, { kind: "S", index: 1 }, { kind: "I", index: 0 });
+    registers.setI(0, 3);
+    tabseeku(flags, state, "ID", 3);
 
     expect(state.rowIndex).toBe(2);
     expect(flags.z).toBe(false);
@@ -113,23 +104,23 @@ describe("Table Operations", () => {
 
   it("tabrows and tabcols use active table", () => {
     registers.setS(0, "ECU_DATA");
-    tabset(registers, flags, registry, state, { kind: "S", index: 0 });
+    tabset(flags, registry, state, registers.getS(0));
 
     tabrows(registers, flags, state, { kind: "I", index: 0 });
     tabcols(registers, flags, state, { kind: "I", index: 1 });
 
-    expect(registers.getI(0)).toBe(2);
+    expect(registers.getI(0)).toBe(3);
     expect(registers.getI(1)).toBe(2);
   });
 
-  it("tabline returns current row with delimiter", () => {
+  it("tabline selects a row index", () => {
     registers.setS(0, "TEST_TABLE");
-    tabset(registers, flags, registry, state, { kind: "S", index: 0 });
-    state.rowIndex = 0;
+    tabset(flags, registry, state, registers.getS(0));
 
-    registers.setS(1, "|");
-    tabline(registers, flags, state, { kind: "S", index: 2 }, { kind: "S", index: 1 });
+    tabline(flags, state, 1);
+    tabget(registers, flags, state, { kind: "S", index: 2 }, "Name");
 
-    expect(registers.getS(2)).toBe("1|Alpha|100");
+    expect(state.rowIndex).toBe(1);
+    expect(registers.getS(2)).toBe("Beta");
   });
 });

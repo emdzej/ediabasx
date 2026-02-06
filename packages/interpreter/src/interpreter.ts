@@ -44,7 +44,7 @@ import {
   jnt,
 } from "./operations/control-flow";
 import { clrc, setc, clrv } from "./operations/flags";
-import { pop, pushf, popf, atsp, swap } from "./operations/stack";
+import { pop, push, pushf, popf, atsp, swap } from "./operations/stack";
 import {
   srev,
   strcmp,
@@ -196,6 +196,7 @@ type RegisterOperand = {
 type ImmediateOperand = {
   kind: "immediate";
   value: number;
+  width?: 1 | 2 | 4;
 };
 
 type StringOperand = {
@@ -548,15 +549,15 @@ function decodeOperand(
     }
     case OpAddrModes.IMM8: {
       const value = code[offset];
-      return { operand: { kind: "immediate", value }, nextOffset: offset + 1 };
+      return { operand: { kind: "immediate", value, width: 1 }, nextOffset: offset + 1 };
     }
     case OpAddrModes.IMM16: {
       const value = readInt16(view, offset);
-      return { operand: { kind: "immediate", value }, nextOffset: offset + 2 };
+      return { operand: { kind: "immediate", value, width: 2 }, nextOffset: offset + 2 };
     }
     case OpAddrModes.IMM32: {
       const value = readInt32(view, offset);
-      return { operand: { kind: "immediate", value }, nextOffset: offset + 4 };
+      return { operand: { kind: "immediate", value, width: 4 }, nextOffset: offset + 4 };
     }
     case OpAddrModes.IMM_STR: {
       const length = readInt16(view, offset);
@@ -805,7 +806,7 @@ export class Interpreter {
     const timer = options.timer ?? new Timer();
     const procedureRegistry = options.procedureRegistry ?? new ProcedureRegistry();
     const procedureStack = options.procedureStack ?? new ProcedureStack();
-    const tableState = options.tableState ?? { activeTable: null, rowIndex: 0 };
+    const tableState = options.tableState ?? { activeTable: null, rowIndex: -1 };
 
     this.context = {
       pc: offset,
@@ -1079,12 +1080,32 @@ export class Interpreter {
       },
       0x1d: async () => ({ halted: true }),
       0x1e: async (state, arg0) => {
-        // push accepts register or immediate value
-        const value = resolveIntValue(state.registers, arg0);
-        state.dataStack.push(value);
+        if (arg0.kind === "register") {
+          push(state.registers, state.dataStack, requireIntRegister(arg0));
+          return;
+        }
+        if (arg0.kind === "immediate") {
+          let value = arg0.value >>> 0;
+          const length = arg0.width ?? 4;
+          for (let i = 0; i < length; i += 1) {
+            state.dataStack.pushByte(value & 0xff);
+            value >>>= 8;
+          }
+          return;
+        }
+        throw new EdiabasError(EdiabasErrorCodes.INVALID_INSTRUCTION, "Expected integer operand");
       },
       0x1f: async (state, arg0) => {
-        pop(state.registers, state.dataStack, requireIntRegister(arg0));
+        const dest = requireIntRegister(arg0);
+        pop(state.registers, state.dataStack, dest);
+        const length = intRegisterByteLength(dest);
+        const value = getIntValue(state.registers, dest);
+        const mask = length === 4 ? 0xffffffff : (1 << (length * 8)) - 1;
+        const signMask = 1 << (length * 8 - 1);
+        const masked = value & mask;
+        state.flags.z = masked === 0;
+        state.flags.s = (masked & signMask) !== 0;
+        state.flags.v = false;
       },
       0x20: async (state, arg0, arg1) => {
         const leftBytes = resolveBinaryValue(state.registers, arg0);
@@ -1307,10 +1328,27 @@ export class Interpreter {
       },
       0x50: async (state, arg0, arg1) => {
         const offset = resolveIntValue(state.registers, arg1);
-        atsp(state.registers, state.dataStack, requireIntRegister(arg0), offset);
+        const dest = requireIntRegister(arg0);
+        atsp(state.registers, state.dataStack, dest, offset);
+        const length = intRegisterByteLength(dest);
+        const value = getIntValue(state.registers, dest);
+        const mask = length === 4 ? 0xffffffff : (1 << (length * 8)) - 1;
+        const signMask = 1 << (length * 8 - 1);
+        const masked = value & mask;
+        state.flags.z = masked === 0;
+        state.flags.s = (masked & signMask) !== 0;
+        state.flags.v = false;
       },
-      0x51: async (state) => {
-        swap(state.dataStack);
+      0x51: async (state, arg0) => {
+        if (arg0.kind === "indexed") {
+          const start = resolveIntValue(state.registers, arg0.index) + (arg0.offset?.value ?? 0);
+          const length = arg0.length ? resolveIntValue(state.registers, arg0.length) : 1;
+          swap(state.registers, arg0.base, start, length);
+          return;
+        }
+        const dest = requireStringRegister(arg0);
+        const data = getBinaryValue(state.registers, dest);
+        swap(state.registers, dest, 0, data.length);
       },
       0x52: async (state, arg0, arg1) => {
         state.tokenSeparator = resolveStringValue(state.registers, arg0);
@@ -1338,16 +1376,16 @@ export class Interpreter {
         state.flags.z = false;
       },
       0x55: async (state, arg0, arg1) => {
-        parb(state.registers, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
+        parb(state.registers, state.flags, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
       },
       0x56: async (state, arg0, arg1) => {
-        parw(state.registers, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
+        parw(state.registers, state.flags, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
       },
       0x57: async (state, arg0, arg1) => {
-        parl(state.registers, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
+        parl(state.registers, state.flags, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
       },
       0x58: async (state, arg0, arg1) => {
-        pars(state.registers, state.parameters, requireStringRegister(arg0), resolveIntValue(state.registers, arg1));
+        pars(state.registers, state.flags, state.parameters, requireStringRegister(arg0), resolveIntValue(state.registers, arg1));
       },
       0x59: async (state, arg0) => {
         fclose(requireFileSystem(state), state.registers, requireIntRegister(arg0));
@@ -1389,7 +1427,7 @@ export class Interpreter {
         fix2flt(state.registers, requireFloatRegister(arg0), requireIntRegister(arg1));
       },
       0x69: async (state, arg0, arg1) => {
-        parr(state.registers, state.parameters, requireFloatRegister(arg0), resolveIntValue(state.registers, arg1));
+        parr(state.registers, state.flags, state.parameters, requireFloatRegister(arg0), resolveIntValue(state.registers, arg1));
       },
       0x6a: async (state, arg0, arg1) => {
         test(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
@@ -1467,13 +1505,13 @@ export class Interpreter {
         fix2dez(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
       },
       0x7b: async (state, arg0) => {
-        tabsetOp(state.registers, state.flags, this.tableRegistry, state.tableState, requireStringRegister(arg0));
+        tabsetOp(state.flags, this.tableRegistry, state.tableState, resolveStringValue(state.registers, arg0));
       },
       0x7c: async (state, arg0, arg1) => {
-        tabseekOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), requireIntRegister(arg1));
+        tabseekOp(state.flags, state.tableState, resolveStringValue(state.registers, arg0), resolveStringValue(state.registers, arg1));
       },
       0x7d: async (state, arg0, arg1) => {
-        tabgetOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), requireIntRegister(arg1));
+        tabgetOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), resolveStringValue(state.registers, arg1));
       },
       0x7e: async (state, arg0, arg1) => {
         if (arg1.kind === "string" || arg1.kind === "indexed") {
@@ -1484,11 +1522,11 @@ export class Interpreter {
         }
         strcat(state.registers, requireStringRegister(arg0), requireStringRegister(arg1));
       },
-      0x7f: async (state, arg0, arg1) => {
-        pary(state.registers, state.parameters, requireStringRegister(arg0), resolveIntValue(state.registers, arg1));
+      0x7f: async (state, arg0) => {
+        pary(state.registers, state.flags, state.parameters, requireStringRegister(arg0));
       },
       0x80: async (state, arg0) => {
-        parn(state.registers, state.parameters, requireIntRegister(arg0));
+        parn(state.registers, state.flags, state.parameters, requireIntRegister(arg0));
       },
       // 0x81: ergc - result char (signed byte)
       0x81: async (state, arg0, arg1) => {
@@ -1502,9 +1540,8 @@ export class Interpreter {
         const value = resolveIntValue(state.registers, arg1);
         ergl(state.registers, state.results, name, value);
       },
-      0x83: async (state, arg0, arg1) => {
-        const delimiter = arg1.kind === "register" && arg1.ref.kind === "S" ? arg1.ref : undefined;
-        tablineOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), delimiter);
+      0x83: async (state, arg0) => {
+        tablineOp(state.flags, state.tableState, resolveIntValue(state.registers, arg0));
       },
       // 0x86: xinfo - interface info (stub: returns empty string)
       0x86: async (state, arg0) => {
@@ -1618,7 +1655,7 @@ export class Interpreter {
         }
       },
       0x9a: async (state, arg0, arg1) => {
-        tabseekuOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), requireIntRegister(arg1));
+        tabseekuOp(state.flags, state.tableState, resolveStringValue(state.registers, arg0), resolveIntValue(state.registers, arg1));
       },
       // 0x9b: flt2y4 - float to 4-byte Y (IEEE 754 single)
       0x9b: async (state, arg0, arg1) => {
@@ -1699,9 +1736,9 @@ export class Interpreter {
       0xa9: async () => {
         // Jump to subroutine - not implemented
       },
-      // 0xaa: tabsetex - table set extended (same as tabset)
+      // 0xaa: tabsetex - table set extended (same registry)
       0xaa: async (state, arg0) => {
-        tabsetOp(state.registers, state.flags, this.tableRegistry, state.tableState, requireStringRegister(arg0));
+        tabsetOp(state.flags, this.tableRegistry, state.tableState, resolveStringValue(state.registers, arg0));
       },
       0xa1: async (state, arg0, arg1) => {
         fcomp(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));

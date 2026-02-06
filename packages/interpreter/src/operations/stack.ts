@@ -1,21 +1,33 @@
 import { RegisterSet } from "../registers";
 import { Flags } from "../flags";
 import { DataStack } from "../stack";
-import type { IntRegisterRef } from "./register-refs";
-import { getIntValue, setIntValue } from "./register-values";
+import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
+import { getBinaryValue, getIntValue, setBinaryValue, setIntValue } from "./register-values";
 
 function encodeFlags(flags: Flags): number {
-  return (flags.z ? 1 : 0)
-    | (flags.c ? 2 : 0)
-    | (flags.v ? 4 : 0)
-    | (flags.s ? 8 : 0);
+  return (flags.c ? 1 : 0)
+    | (flags.z ? 2 : 0)
+    | (flags.s ? 4 : 0)
+    | (flags.v ? 8 : 0);
 }
 
 function decodeFlags(flags: Flags, value: number): void {
-  flags.z = (value & 1) !== 0;
-  flags.c = (value & 2) !== 0;
-  flags.v = (value & 4) !== 0;
-  flags.s = (value & 8) !== 0;
+  flags.c = (value & 1) !== 0;
+  flags.z = (value & 2) !== 0;
+  flags.s = (value & 4) !== 0;
+  flags.v = (value & 8) !== 0;
+}
+
+function registerByteLength(source: IntRegisterRef): number {
+  switch (source.kind) {
+    case "B":
+    case "A":
+      return 1;
+    case "I":
+      return 2;
+    case "L":
+      return 4;
+  }
 }
 
 export function push(
@@ -23,7 +35,13 @@ export function push(
   stack: DataStack,
   source: IntRegisterRef
 ): void {
-  stack.push(getIntValue(registers, source));
+  let value = getIntValue(registers, source) >>> 0;
+  const length = registerByteLength(source);
+
+  for (let i = 0; i < length; i += 1) {
+    stack.pushByte(value & 0xff);
+    value >>>= 8;
+  }
 }
 
 export function pop(
@@ -31,23 +49,42 @@ export function pop(
   stack: DataStack,
   destination: IntRegisterRef
 ): void {
-  const value = stack.pop();
-  setIntValue(registers, destination, value);
+  const length = registerByteLength(destination);
+  if (stack.depth() < length) {
+    throw new RangeError("Stack underflow");
+  }
+
+  let value = 0;
+  for (let i = 0; i < length; i += 1) {
+    value = (value << 8) | stack.popByte();
+  }
+
+  setIntValue(registers, destination, value >>> 0);
 }
 
 export function pushf(
   stack: DataStack,
   flags: Flags
 ): void {
-  stack.push(encodeFlags(flags));
+  let value = encodeFlags(flags) >>> 0;
+  for (let i = 0; i < 4; i += 1) {
+    stack.pushByte(value & 0xff);
+    value >>>= 8;
+  }
 }
 
 export function popf(
   stack: DataStack,
   flags: Flags
 ): void {
-  const value = stack.pop();
-  decodeFlags(flags, value);
+  if (stack.depth() < 4) {
+    throw new RangeError("Stack underflow");
+  }
+  let value = 0;
+  for (let i = 0; i < 4; i += 1) {
+    value = (value << 8) | stack.popByte();
+  }
+  decodeFlags(flags, value >>> 0);
 }
 
 export function atsp(
@@ -56,14 +93,45 @@ export function atsp(
   destination: IntRegisterRef,
   offset: number = 0
 ): void {
-  const value = stack.peek(offset) ?? 0;
-  setIntValue(registers, destination, value);
+  const length = registerByteLength(destination);
+  const index = offset - length;
+  if (index < 0) {
+    throw new RangeError("Invalid stack index");
+  }
+
+  let value = 0;
+  for (let i = 0; i < length; i += 1) {
+    const byte = stack.peekByte(index + i) ?? 0;
+    value = (value << 8) | byte;
+  }
+
+  setIntValue(registers, destination, value >>> 0);
 }
 
 export function swap(
-  stack: DataStack
+  registers: RegisterSet,
+  destination: StringRegisterRef,
+  start: number,
+  length: number
 ): void {
-  stack.swap();
+  if (length <= 0) {
+    return;
+  }
+
+  const maxSize = registers.getMaxStringSize();
+  if (start + length > maxSize) {
+    throw new Error("Swap exceeds maximum string size");
+  }
+
+  const current = getBinaryValue(registers, destination);
+  const requiredLength = Math.max(current.length, start + length);
+  const buffer = new Uint8Array(Math.min(requiredLength, maxSize));
+  buffer.set(current.slice(0, buffer.length));
+
+  const slice = buffer.slice(start, start + length).reverse();
+  buffer.set(slice, start);
+
+  setBinaryValue(registers, destination, buffer);
 }
 
 export function setspc(
