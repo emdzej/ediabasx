@@ -129,6 +129,26 @@ INFO @ 0xA0
   000001EF: eoj
 ```
 
+### Run - Execute a job with hardware interfaces
+
+```bash
+# Serial K-Line
+ediabas run file.prg IDENT --interface serial --serial-port /dev/ttyUSB0 --serial-baud 9600 --serial-protocol kwp
+
+# K+DCAN (ISO-TP)
+ediabas run file.prg IDENT --interface kdcan --serial-port /dev/ttyUSB0 --serial-protocol isotp --serial-tester-can-id 0x7e0 --serial-ecu-can-id 0x7e8
+
+# Run via remote gateway
+ediabas run file.prg IDENT --interface gateway --gateway-host 192.168.1.50 --gateway-port 6801
+```
+
+### Gateway - Start a gateway server
+
+```bash
+# Expose a serial interface via JSON-RPC
+ediabas gateway --interface serial --serial-port /dev/ttyUSB0 --serial-baud 9600
+```
+
 ## Package Structure
 
 This is a pnpm monorepo managed with Turborepo.

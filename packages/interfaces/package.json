@@ -15,7 +15,9 @@
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
   },
   "dependencies": {
-    "@ediabas/interface-base": "workspace:*"
+    "@ediabas/interface-base": "workspace:*",
+    "@ediabas/interface-enet": "workspace:*",
+    "@ediabas/interface-serial": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.2.1"
