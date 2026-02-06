@@ -145,14 +145,27 @@ export class Ediabas {
     }
 
     // Create communication interface adapter
-    const commAdapter: CommunicationInterface | undefined = this.commInterface ? {
-      connect: () => this.commInterface!.connect(),
-      disconnect: () => this.commInterface!.disconnect(),
-      send: (data: Uint8Array) => this.commInterface!.send(data),
-      receive: (timeout?: number) => this.commInterface!.receive(timeout ?? this.config.timeout),
-      isConnected: () => this.commInterface!.isConnected(),
-      sendExtended: (data: Uint8Array) => this.commInterface!.send(data),
-      receiveExtended: (timeout?: number) => this.commInterface!.receive(timeout ?? this.config.timeout),
+    const commInterface = this.commInterface;
+    const commAdapter: CommunicationInterface | undefined = commInterface ? {
+      connect: () => commInterface.connect(),
+      disconnect: () => commInterface.disconnect(),
+      send: (data: Uint8Array) => commInterface.send(data),
+      receive: (timeout?: number) => commInterface.receive(timeout ?? this.config.timeout),
+      isConnected: () => commInterface.isConnected(),
+      stopFrequent: () => commInterface.stopFrequent(),
+      getPort: (index: number) => commInterface.getPort(index),
+      setPort: (index: number, value: number) => commInterface.setPort(index, value),
+      get ignitionVoltage() {
+        return commInterface.ignitionVoltage;
+      },
+      get loopTest() {
+        return commInterface.loopTest;
+      },
+      setProgramVoltage: (value: number) => commInterface.setProgramVoltage(value),
+      rawData: (payload: Uint8Array) => commInterface.rawData(payload),
+      switchSiRelais: (time: number) => commInterface.switchSiRelais(time),
+      sendExtended: (data: Uint8Array) => commInterface.send(data),
+      receiveExtended: (timeout?: number) => commInterface.receive(timeout ?? this.config.timeout),
     } : undefined;
 
     // Create interpreter
