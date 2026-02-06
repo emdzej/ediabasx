@@ -50,6 +50,9 @@ importers:
       '@ediabas/ediabas':
         specifier: workspace:*
         version: link:../ediabas
+      '@ediabas/interface-base':
+        specifier: workspace:*
+        version: link:../interface-base
       '@ediabas/interfaces':
         specifier: workspace:*
         version: link:../interfaces

@@ -199,7 +199,7 @@ export class GatewayClient extends EdiabasInterface {
     };
 
     return new Promise<T>((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
+      this.pending.set(id, { resolve: resolve as (value: unknown) => void, reject });
       socket.write(`${JSON.stringify(payload)}\n`);
     });
   }
