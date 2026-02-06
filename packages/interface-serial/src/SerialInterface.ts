@@ -3,12 +3,21 @@ import { EdiabasInterface, EdiabasTimeoutError } from "@ediabas/interface-base";
 import { SerialTimeoutError } from "./errors";
 import { NodeSerialTransport } from "./nodeSerialTransport";
 import {
+  AdapterModes,
+  DCAN_BAUD_RATE,
   DEFAULT_KWP2000_TIMERS,
+  DcanSession,
   Kwp2000Session,
   KwpProtocols,
   parseKeyBytes,
+  Protocols,
+  segmentIsoTpPayload,
   send5BaudInit,
   sendFastInit,
+  switchToCanMode,
+  updateAdapterInfo,
+  type AdapterInfoState,
+  type AdapterMode,
   type KwpProtocol,
   type Kwp2000Timers
 } from "./kdcan";
@@ -60,6 +69,10 @@ export class SerialInterface extends EdiabasInterface {
   private kwpSession: Kwp2000Session | null = null;
   private klineProtocol: KwpProtocol | null = null;
   private klineKeyBytes: Uint8Array | null = null;
+  private dcanSession: DcanSession | null = null;
+  private adapterMode: AdapterMode = AdapterModes.Uart;
+  private adapterInfo: AdapterInfoState = this.createDefaultAdapterInfo();
+  private receiveBuffer: number[] = [];
 
   constructor(config: SerialInterfaceConfig) {
     super();
@@ -114,6 +127,10 @@ export class SerialInterface extends EdiabasInterface {
     this.kwpSession = null;
     this.klineProtocol = null;
     this.klineKeyBytes = null;
+    this.dcanSession = null;
+    this.adapterMode = AdapterModes.Uart;
+    this.adapterInfo = this.createDefaultAdapterInfo();
+    this.receiveBuffer = [];
   }
 
   async send(data: Uint8Array): Promise<void> {
@@ -155,7 +172,21 @@ export class SerialInterface extends EdiabasInterface {
   }
 
   get ignitionVoltage(): number {
-    return this._ignitionVoltage;
+    return this.adapterInfo.adapterVoltage >= 0
+      ? this.adapterInfo.adapterVoltage
+      : this._ignitionVoltage;
+  }
+
+  get ignitionStatus(): number {
+    return this.adapterInfo.ignitionStatus;
+  }
+
+  get adapterType(): number {
+    return this.adapterInfo.adapterType;
+  }
+
+  get adapterVersion(): number {
+    return this.adapterInfo.adapterVersion;
   }
 
   get loopTest(): number {
@@ -225,6 +256,12 @@ export class SerialInterface extends EdiabasInterface {
       case SerialCommParameterIds.SendPulse:
         this.commParameter.sendPulse = value !== 0;
         return;
+      case SerialCommParameterIds.CanFlags:
+        this.commParameter.canFlags = value;
+        return;
+      case SerialCommParameterIds.CanBaudRate:
+        this.commParameter.canBaudRate = value;
+        return;
       default:
         return;
     }
@@ -271,6 +308,9 @@ export class SerialInterface extends EdiabasInterface {
   }
 
   async rawData(request: Uint8Array): Promise<Uint8Array> {
+    if (this.shouldUseCanSession()) {
+      return this.sendCanRequest(request);
+    }
     if (this.shouldUseKlineSession()) {
       return this.sendKlineRequest(request);
     }
@@ -481,5 +521,99 @@ export class SerialInterface extends EdiabasInterface {
     if (!this.connected) {
       throw new Error("Not connected");
     }
+  }
+
+  private createDefaultAdapterInfo(): AdapterInfoState {
+    return {
+      protocol: Protocols.Kwp,
+      adapterType: -1,
+      adapterVersion: 0,
+      adapterSerial: null,
+      adapterVoltage: -1,
+      ignitionStatus: -1,
+      escapeModeRead: false,
+      escapeModeWrite: false,
+      updateAdapterVoltage: true,
+      lastCommTickMs: 0,
+      lastVoltageUpdateMs: 0,
+      reconnectRequired: false
+    };
+  }
+
+  private createAdapterInfoIo() {
+    return {
+      sendData: (data: Uint8Array) => {
+        void this.transport.write(data);
+      },
+      readInBuffer: () => {
+        const result = Uint8Array.from(this.receiveBuffer);
+        this.receiveBuffer = [];
+        return result;
+      },
+      discardInBuffer: () => {
+        this.receiveBuffer = [];
+      },
+      readTimeoutOffsetLongMs: this.config.timeoutMs,
+      nowMs: () => this.now()
+    };
+  }
+
+  async pollAdapterInfo(forceUpdate = false): Promise<boolean> {
+    this.assertConnected();
+    const io = this.createAdapterInfoIo();
+    return updateAdapterInfo(this.adapterInfo, io, { forceUpdate });
+  }
+
+  private shouldUseCanSession(): boolean {
+    const protocol = this.commParameter.protocol;
+    return protocol === SerialProtocols.IsoTp || protocol === SerialProtocols.Tp20;
+  }
+
+  private async ensureCanSession(): Promise<void> {
+    if (this.adapterMode === AdapterModes.Can && this.dcanSession) {
+      return;
+    }
+
+    // Use default adapter type/version if not polled
+    // These defaults support CAN telegrams (type >= 0x0002, version >= 0x0009)
+    const adapterType =
+      this.adapterInfo.adapterType >= 0 ? this.adapterInfo.adapterType : 0x0002;
+    const adapterVersion =
+      this.adapterInfo.adapterVersion > 0
+        ? this.adapterInfo.adapterVersion
+        : 0x0009;
+
+    const baudRate = this.commParameter.canBaudRate ?? DCAN_BAUD_RATE;
+    await switchToCanMode(this.transport, baudRate);
+    this.adapterMode = AdapterModes.Can;
+
+    this.dcanSession = new DcanSession({
+      adapterType,
+      adapterVersion,
+      canTxId: this.commParameter.testerCanId ?? 0x6f1,
+      canRxId: this.commParameter.ecuCanId ?? 0x600,
+      canFlags: this.commParameter.canFlags,
+      baudRate,
+      protocol:
+        this.commParameter.protocol === SerialProtocols.Tp20
+          ? Protocols.Tp20
+          : Protocols.IsoTp
+    });
+  }
+
+  private async sendCanRequest(request: Uint8Array): Promise<Uint8Array> {
+    this.assertConnected();
+    await this.ensureCanSession();
+
+    if (!this.dcanSession) {
+      throw new Error("CAN session not initialized");
+    }
+
+    const segments = segmentIsoTpPayload(request);
+    for (const segment of segments) {
+      await this.dcanSession.sendRequest(this.transport, segment);
+    }
+
+    return this.receive();
   }
 }
