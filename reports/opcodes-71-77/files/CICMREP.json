@@ -1,0 +1,42 @@
+{
+  "file": "CICMREP.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "CICMREPAIR",
+      "status": "ok",
+      "instructions": 221,
+      "errors": []
+    },
+    {
+      "name": "QNX_REPAIR_L6",
+      "status": "ok",
+      "instructions": 385,
+      "errors": []
+    },
+    {
+      "name": "QNX_REPAIR_RUEKO",
+      "status": "ok",
+      "instructions": 283,
+      "errors": []
+    }
+  ]
+}

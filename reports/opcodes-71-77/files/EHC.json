@@ -1,0 +1,150 @@
+{
+  "file": "EHC.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 37,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "FS_QUICK",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 74,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "CODIERUNG_LESEN",
+      "status": "ok",
+      "instructions": 137,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIGITAL_LESEN",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANALOG_LESEN",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ONLINE_LESEN",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICHWERTE_LESEN",
+      "status": "ok",
+      "instructions": 99,
+      "errors": []
+    },
+    {
+      "name": "FAHRZEUG_HOEHE_ABGLEICHEN",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TIMER_LESEN",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VORGEBEN",
+      "status": "ok",
+      "instructions": 49,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_STATUS_VORGEBEN_LOOP",
+      "status": "ok",
+      "instructions": 49,
+      "errors": []
+    },
+    {
+      "name": "KOMPRESSOR_STEUERN",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "MODUS_VORGEBEN",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "FASTFILTER_WERTE_LESEN_SCHREIBEN",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "TIZKL15_SCHREIBEN",
+      "status": "ok",
+      "instructions": 794,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "file": "mcpa72.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_IO",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTINE",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 277,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP_LESEN",
+      "status": "ok",
+      "instructions": 277,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 227,
+      "errors": []
+    },
+    {
+      "name": "_BOOTLOADER_BOOTUPDATER_VER_CHECK",
+      "status": "ok",
+      "instructions": 193,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 275,
+      "errors": []
+    }
+  ]
+}

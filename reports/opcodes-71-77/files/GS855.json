@@ -1,0 +1,78 @@
+{
+  "file": "GS855.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 120,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 97,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 79,
+      "errors": []
+    },
+    {
+      "name": "CODIER_CS_PRUEFEN",
+      "status": "ok",
+      "instructions": 230,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IO_LESEN",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 91,
+      "errors": []
+    },
+    {
+      "name": "RESET_ADAPTION",
+      "status": "ok",
+      "instructions": 79,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_STELLGLIED",
+      "status": "ok",
+      "instructions": 102,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,498 @@
+{
+  "file": "icom_p.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BATT_IGNITION",
+      "status": "ok",
+      "instructions": 50,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TYP_VER",
+      "status": "ok",
+      "instructions": 49,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_KL_15",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRIGGER_AUTOASSIGN_BROADCAST",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BEEP",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MELODY",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HSFZ_ENABLE",
+      "status": "ok",
+      "instructions": 145,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HSFZ_DISABLE",
+      "status": "ok",
+      "instructions": 145,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HSFZ_GET_STATUS",
+      "status": "ok",
+      "instructions": 338,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HSFZ_GET_STATUS_NEU",
+      "status": "ok",
+      "instructions": 1043,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HSFZ_GET_STATUS_DETAIL",
+      "status": "ok",
+      "instructions": 1017,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GET_CANBRIDGE_STATUS",
+      "status": "ok",
+      "instructions": 212,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SET_CANBRIDGE_STATUS",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RESTART_HSFZ_STR",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RESTART_HSFZ_RRR",
+      "status": "ok",
+      "instructions": 440,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CREATE_ECU_ROUTES_STR",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CREATE_ECU_ROUTES_RRR",
+      "status": "ok",
+      "instructions": 106,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SWITCH_ACT_LINE_STR",
+      "status": "ok",
+      "instructions": 35,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SWITCH_ACT_LINE_STP",
+      "status": "ok",
+      "instructions": 94,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SWITCH_ACT_LINE_RRR",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SWITCH_LINK_STR",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SWITCH_LINK_STP",
+      "status": "ok",
+      "instructions": 94,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SWITCH_LINK_RRR",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_INQ_HSFZ_GW_STR",
+      "status": "ok",
+      "instructions": 73,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_INQ_HSFZ_GW_STP",
+      "status": "ok",
+      "instructions": 94,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_INQ_HSFZ_GW_RRR",
+      "status": "ok",
+      "instructions": 440,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CHECK_URL_STR",
+      "status": "ok",
+      "instructions": 73,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CHECK_URL_STP",
+      "status": "ok",
+      "instructions": 94,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CHECK_URL_RRR",
+      "status": "ok",
+      "instructions": 373,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_PIN_CONTROL_STR",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_PIN_CONTROL_RRR",
+      "status": "ok",
+      "instructions": 1452,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GET_VIN",
+      "status": "ok",
+      "instructions": 180,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SET_VIN",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VERIFY_VIN",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VIN_XML_ERASE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GET_VERSIONS",
+      "status": "ok",
+      "instructions": 256,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GET_CONFIG",
+      "status": "ok",
+      "instructions": 383,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GET_CONFIG_DETAIL",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_START_NET_CONFIG",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_UPDATE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GET_IWCONFIG",
+      "status": "ok",
+      "instructions": 977,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MANUAL_ROAMING",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACEON",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACEOFF",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TRACE_STATE",
+      "status": "ok",
+      "instructions": 500,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_BOOT_ENABLE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TRACE_GET_CONFIG",
+      "status": "ok",
+      "instructions": 786,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DCAN_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KL15_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ETHERNET_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_UDP_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ARP_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LS_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_WLANPING_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_IFHENET_TRACE",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_TARGET",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_FILENAMEBASE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_REMOTEURL",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_DCANSIZE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_ETHERNETSIZE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_RETRIEVE",
+      "status": "ok",
+      "instructions": 40,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_RETRIEVE_ALL",
+      "status": "ok",
+      "instructions": 40,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_ERASE",
+      "status": "ok",
+      "instructions": 162,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DEBUGMODE",
+      "status": "ok",
+      "instructions": 294,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DEBUGMODE_GETFILES",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DEBUGMODE_ERASEFILES",
+      "status": "ok",
+      "instructions": 209,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_REBOOT",
+      "status": "ok",
+      "instructions": 125,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SWITCH_OFF",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CONSTANT_CURRENT",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CONSTANT_CURRENT",
+      "status": "ok",
+      "instructions": 141,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SEND_WAKE_UP",
+      "status": "ok",
+      "instructions": 287,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ON_SET_CAN_ID",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SET_CAN_IDLE_TIME",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENABLE_ACC_WAKEUP",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_WAKEUP_TIMER",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FEHLERSPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 218,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FEHLERSPEICHER_LOESCHEN",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_WAKE_ON_EX_TRIGGER",
+      "status": "ok",
+      "instructions": 196,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_WAKE_ON_EX_TRIGGER_FREQ",
+      "status": "ok",
+      "instructions": 95,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SEND_EX_TRIGGER",
+      "status": "ok",
+      "instructions": 95,
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "file": "C_KMB38.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 169,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "SOFTWARE_RESET",
+      "status": "ok",
+      "instructions": 73,
+      "errors": []
+    },
+    {
+      "name": "C_ZEIT_RESET",
+      "status": "ok",
+      "instructions": 119,
+      "errors": []
+    },
+    {
+      "name": "C_S_AUFTRAG",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "C_S_SCHREIBEN",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "C_S_LESEN",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "C_CHECKSUM",
+      "status": "ok",
+      "instructions": 41,
+      "errors": []
+    },
+    {
+      "name": "C_FG_AUFTRAG",
+      "status": "ok",
+      "instructions": 200,
+      "errors": []
+    },
+    {
+      "name": "C_FG_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "C_ZCS_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    }
+  ]
+}

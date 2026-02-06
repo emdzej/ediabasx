@@ -1,0 +1,156 @@
+{
+  "file": "TMode.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 5,
+      "errors": []
+    },
+    {
+      "name": "SETZE_INTERFACE_ZURUECK",
+      "status": "ok",
+      "instructions": 2,
+      "errors": []
+    },
+    {
+      "name": "SETZE_SG_PARAM_ZURUECK",
+      "status": "ok",
+      "instructions": 2,
+      "errors": []
+    },
+    {
+      "name": "SETZE_SG_PARAMETER_ALLG",
+      "status": "ok",
+      "instructions": 3,
+      "errors": []
+    },
+    {
+      "name": "SETZE_SG_PARAMETER_EIDBSS",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "SETZE_ANTWORTLAENGE",
+      "status": "ok",
+      "instructions": 3,
+      "errors": []
+    },
+    {
+      "name": "HOLE_KEYBYTES",
+      "status": "ok",
+      "instructions": 3,
+      "errors": []
+    },
+    {
+      "name": "SENDE_TELEGRAMM",
+      "status": "ok",
+      "instructions": 4,
+      "errors": []
+    },
+    {
+      "name": "SENDE_TELEGR_WIEDERHOLT",
+      "status": "ok",
+      "instructions": 3,
+      "errors": []
+    },
+    {
+      "name": "HOLE_ANTWORT_TELEGR",
+      "status": "ok",
+      "instructions": 3,
+      "errors": []
+    },
+    {
+      "name": "STOPPE_WIEDERH_ANFORDERUNG",
+      "status": "ok",
+      "instructions": 2,
+      "errors": []
+    },
+    {
+      "name": "LESE_INTERFACE_TYP",
+      "status": "ok",
+      "instructions": 9,
+      "errors": []
+    },
+    {
+      "name": "LESE_INTERFACE_VERSION",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "LESE_SPANNUNG_KL30",
+      "status": "ok",
+      "instructions": 8,
+      "errors": []
+    },
+    {
+      "name": "LESE_SPANNUNG_KL15",
+      "status": "ok",
+      "instructions": 8,
+      "errors": []
+    },
+    {
+      "name": "LESE_PORT",
+      "status": "ok",
+      "instructions": 9,
+      "errors": []
+    },
+    {
+      "name": "SETZE_PORT",
+      "status": "ok",
+      "instructions": 4,
+      "errors": []
+    },
+    {
+      "name": "SETZE_PROGRAMMIERSPANNUNG",
+      "status": "ok",
+      "instructions": 4,
+      "errors": []
+    },
+    {
+      "name": "SETZE_SIA_RELAIS",
+      "status": "ok",
+      "instructions": 4,
+      "errors": []
+    },
+    {
+      "name": "TESTE_DIAGNOSELEITUNG",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "HOLE_INTERFACE_STATUS",
+      "status": "ok",
+      "instructions": 3,
+      "errors": []
+    },
+    {
+      "name": "REICHE_AN_INTERFACE_DURCH",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "SETZE_TRAP_MASK_REGISTER",
+      "status": "ok",
+      "instructions": 3,
+      "errors": []
+    },
+    {
+      "name": "LIES_TRAP_MASK_REGISTER",
+      "status": "ok",
+      "instructions": 3,
+      "errors": []
+    }
+  ]
+}

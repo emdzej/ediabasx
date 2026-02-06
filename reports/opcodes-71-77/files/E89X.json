@@ -1,0 +1,150 @@
+{
+  "file": "E89X.PRG",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 129,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 275,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "IS_LOESCHEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 513,
+      "errors": []
+    },
+    {
+      "name": "HS_LOESCHEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 513,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 198,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 1317,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 644,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 727,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 906,
+      "errors": []
+    },
+    {
+      "name": "C_FG_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 561,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 892,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 196,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_ANZAHL_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 546,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_IDENT_LESEN_FUNKTIONAL",
+      "status": "ok",
+      "instructions": 191,
+      "errors": []
+    },
+    {
+      "name": "MOST_CAN_GATEWAY_DISABLE",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "MOST_CAN_GATEWAY_ENABLE",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "GRP2SGADR",
+      "status": "ok",
+      "instructions": 135,
+      "errors": []
+    },
+    {
+      "name": "I_STUFE_LESEN",
+      "status": "ok",
+      "instructions": 806,
+      "errors": []
+    },
+    {
+      "name": "I_STUFE_SCHREIBEN",
+      "status": "ok",
+      "instructions": 133,
+      "errors": []
+    }
+  ]
+}

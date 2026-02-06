@@ -1,0 +1,90 @@
+{
+  "file": "DLE.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DLE_VERSION",
+      "status": "ok",
+      "instructions": 236,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_RESET",
+      "status": "ok",
+      "instructions": 89,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TP_INTERVALL",
+      "status": "ok",
+      "instructions": 77,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_HEADER",
+      "status": "ok",
+      "instructions": 95,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_IOANTWORT",
+      "status": "ok",
+      "instructions": 96,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_TP",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_LADEN",
+      "status": "ok",
+      "instructions": 796,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_BUFFERCLEAR",
+      "status": "ok",
+      "instructions": 44,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DLE",
+      "status": "ok",
+      "instructions": 690,
+      "errors": []
+    },
+    {
+      "name": "WAIT_FOR_DLE",
+      "status": "ok",
+      "instructions": 835,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_ODP",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_SID",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    }
+  ]
+}

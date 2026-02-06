@@ -1,0 +1,204 @@
+{
+  "file": "cidf65_2.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 107,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "NORMALER_DATENVERKEHR",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 567,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP_LESEN",
+      "status": "ok",
+      "instructions": 513,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "HARDWARE_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "FLASH_ZEITEN_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_BLOCKLAENGE_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "READ_TEMPSENSOR",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "READ_BACKLIGHT",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "READ_MONITOR_COUNT",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MONITOR_POS",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DISPLAY_VCC",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "STATUS_INVERTER_VCC",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "READ_PWM",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "READ_PORTS",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_PWM",
+      "status": "ok",
+      "instructions": 125,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_COPY_AIF",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "BETRIEBSSTUNDEN_LESEN",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RESET_BETRIEBSSTUNDEN",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    }
+  ]
+}

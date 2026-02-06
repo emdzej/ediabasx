@@ -1,0 +1,84 @@
+{
+  "file": "AIC.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 54,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 124,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 122,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 57,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 24,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_SCHREIBEN",
+      "status": "ok",
+      "instructions": 24,
+      "errors": []
+    },
+    {
+      "name": "AIC_INIT",
+      "status": "ok",
+      "instructions": 319,
+      "errors": []
+    },
+    {
+      "name": "AIC_INIT_RSK_E46",
+      "status": "ok",
+      "instructions": 107,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN",
+      "status": "ok",
+      "instructions": 145,
+      "errors": []
+    }
+  ]
+}

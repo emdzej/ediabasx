@@ -1,0 +1,78 @@
+{
+  "file": "ASCMK4G1.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 102,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 125,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 125,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IO_LESEN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DIGITAL",
+      "status": "ok",
+      "instructions": 3106,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ANALOG",
+      "status": "ok",
+      "instructions": 150,
+      "errors": []
+    },
+    {
+      "name": "ABS_REGELSIMULATION",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "ASC",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "ASC_SIM_HA",
+      "status": "ok",
+      "instructions": 171,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 125,
+      "errors": []
+    }
+  ]
+}

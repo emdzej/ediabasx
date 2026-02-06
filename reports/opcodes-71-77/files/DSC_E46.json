@@ -1,0 +1,330 @@
+{
+  "file": "DSC_E46.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 97,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 127,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_KB90",
+      "status": "ok",
+      "instructions": 115,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 125,
+      "errors": []
+    },
+    {
+      "name": "FS_INIT",
+      "status": "ok",
+      "instructions": 120,
+      "errors": []
+    },
+    {
+      "name": "STATUS_OFFSET_LESEN",
+      "status": "ok",
+      "instructions": 120,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IO_LESEN",
+      "status": "ok",
+      "instructions": 126,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SENSOREN_LESEN",
+      "status": "ok",
+      "instructions": 126,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SPANNUNGSWERTE_LESEN",
+      "status": "ok",
+      "instructions": 126,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LWS",
+      "status": "ok",
+      "instructions": 209,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DME_DDE_1",
+      "status": "ok",
+      "instructions": 209,
+      "errors": []
+    },
+    {
+      "name": "TRIG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 306,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DIGITAL",
+      "status": "ok",
+      "instructions": 2984,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ANALOG_ASC_LM",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ANALOG_MSR",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "DSC_SIM_VA",
+      "status": "ok",
+      "instructions": 171,
+      "errors": []
+    },
+    {
+      "name": "DSC_SIM_HA",
+      "status": "ok",
+      "instructions": 171,
+      "errors": []
+    },
+    {
+      "name": "DSC_SIM_VA1",
+      "status": "ok",
+      "instructions": 127,
+      "errors": []
+    },
+    {
+      "name": "DSC_SIM_HA1",
+      "status": "ok",
+      "instructions": 127,
+      "errors": []
+    },
+    {
+      "name": "DSC_SIM_VA2",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "DSC_SIM_HA2",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "DSC_SIM_VA3",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "DSC_SIM_HA3",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "DRUCKABBAU_VL",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "DRUCKABBAU_VR",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "DRUCKAUFBAU_VL",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "DRUCKHALTEN",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "PUMPENFOERDERLEISTUNG_VO",
+      "status": "ok",
+      "instructions": 127,
+      "errors": []
+    },
+    {
+      "name": "DRUCKABBAU_HA",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "DRUCKAUFBAU_HA",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "PUMPENFOERDERLEISTUNG_HA",
+      "status": "ok",
+      "instructions": 127,
+      "errors": []
+    },
+    {
+      "name": "ABS_REGELSIMULATION",
+      "status": "ok",
+      "instructions": 120,
+      "errors": []
+    },
+    {
+      "name": "NA_ENTLUEFTUNG_LI",
+      "status": "ok",
+      "instructions": 315,
+      "errors": []
+    },
+    {
+      "name": "NA_ENTLUEFTUNG_RE",
+      "status": "ok",
+      "instructions": 315,
+      "errors": []
+    },
+    {
+      "name": "ENTLUEFTUNG_SERVICE",
+      "status": "ok",
+      "instructions": 599,
+      "errors": []
+    },
+    {
+      "name": "HERSTELLDATEN_LESEN",
+      "status": "ok",
+      "instructions": 166,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICHWERTE_LESEN",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SENSOREN_LESEN_KOMP",
+      "status": "ok",
+      "instructions": 172,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "ID_SCHREIBEN",
+      "status": "ok",
+      "instructions": 170,
+      "errors": []
+    },
+    {
+      "name": "LOGIN_DSC",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "DRUCKSENSOR_DSC_ABGLEICHEN",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "QUERBESCHLEUNIGUNGSSENSOR_DSC_ABGLEICHEN",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "LENKWINKELSENSOR_ID_DSC_SCHREIBEN",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_DDS",
+      "status": "ok",
+      "instructions": 244,
+      "errors": []
+    },
+    {
+      "name": "DDS_RESET",
+      "status": "ok",
+      "instructions": 244,
+      "errors": []
+    },
+    {
+      "name": "DDS_EOL_PASSIV",
+      "status": "ok",
+      "instructions": 244,
+      "errors": []
+    },
+    {
+      "name": "COD_LESEN_CI_5",
+      "status": "ok",
+      "instructions": 120,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_DSC_SENSOREN",
+      "status": "ok",
+      "instructions": 150,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_LWS_AQ_SENSOREN",
+      "status": "ok",
+      "instructions": 150,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 175,
+      "errors": []
+    }
+  ]
+}

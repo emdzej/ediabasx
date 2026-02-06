@@ -1,0 +1,54 @@
+{
+  "file": "can_pl2.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 324,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 577,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN",
+      "status": "ok",
+      "instructions": 692,
+      "errors": []
+    },
+    {
+      "name": "BUS_BEWERTEN",
+      "status": "ok",
+      "instructions": 6907,
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,1044 @@
+{
+  "file": "zgw_01.PRG",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 301,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 156,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 254,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "SVK_LESEN",
+      "status": "ok",
+      "instructions": 112,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STEUERN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "FS_SPERREN",
+      "status": "ok",
+      "instructions": 79,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 171,
+      "errors": []
+    },
+    {
+      "name": "IS_LOESCHEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "HERSTELLINFO_LESEN",
+      "status": "ok",
+      "instructions": 666,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BETRIEBSMODE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BETRIEBSMODE",
+      "status": "ok",
+      "instructions": 62,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VERSION_MOST_CONTROLLER",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VERSORGUNGSSPANNUNG",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_WAKEUP_STATUS",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ABILITY_TO_WAKE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AVERAGE_MESSAGE_RECEPTION_RATE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FOT_TEMPERATUR",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SENSOR_TEMP",
+      "status": "ok",
+      "instructions": 293,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_WATCHDOG_TRIGGER_STOP",
+      "status": "ok",
+      "instructions": 245,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SENSOR_TEMP",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_STOP",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ROE_REPORT",
+      "status": "ok",
+      "instructions": 468,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_START",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_PERSISTENT_STOP",
+      "status": "ok",
+      "instructions": 222,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_PERSISTENT_START",
+      "status": "ok",
+      "instructions": 222,
+      "errors": []
+    },
+    {
+      "name": "DIAG_SESSION_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "FLASH_TP_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "PROG_ZAEHLER_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "PROG_MAX_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IP_CONFIGURATION_LESEN",
+      "status": "ok",
+      "instructions": 241,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_IP_CONFIGURATION_SCHREIBEN",
+      "status": "ok",
+      "instructions": 99,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MAC_LESEN",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_MAC_SCHREIBEN",
+      "status": "ok",
+      "instructions": 67,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VIN_LESEN",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VIN_SCHREIBEN",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VERSION_GATEWAYTABELLE",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LESEN_MASTERVIN",
+      "status": "ok",
+      "instructions": 194,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_SET_GW_ROUTING",
+      "status": "ok",
+      "instructions": 84,
+      "errors": []
+    },
+    {
+      "name": "DIAG_SESSION_LESEN_35UP",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_ADD_DIAG_ROUTING",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_BUILD_NUMMER_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BUILD_NUMMER_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_DEBUG_CAN_UMSCHALTUNG",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_TP_ROUTING_TABELLE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RESET_TP_ROUTING_KONFIGURATION",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_MSM_ZERTIFIKAT",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSM_ZERTIFIKAT_WERK",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HU_LINK_10MBIT_TEMPORARY",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HU_LINK_GESCHW",
+      "status": "ok",
+      "instructions": 108,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_PROGRAMMIERPFAD_BODY_SCHREIBEN",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PROGRAMMIERPFAD_BODY_LESEN",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SNIFFING_AUF_HU_PORT",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETH_GET_NUMBER_OF_PORTS",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETH_PHY_LINK_STATE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CABLE_DIAG",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_ETHERNET_REGISTERS_BR",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_ETHERNET_REGISTERS_BR",
+      "status": "ok",
+      "instructions": 216,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_ETHERNET_MIRROR_MODE_BR",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_FLEXRAY_TP",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_DIAG_SESSION",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RESET_AKTIVIERUNGSLEITUNG",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINSCHLAFMONITOR_SPEICHER",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AKTIVSTE_SG",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EINSCHLAFMONITOR_LOESCHEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETH_PHY_SWITCH_ENGINE_RESET",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETH_PHY_IDENTIFIER",
+      "status": "ok",
+      "instructions": 82,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ETH_PHY_LOOPBACK_TEST",
+      "status": "ok",
+      "instructions": 40,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ETH_RESET_PORT_CONFIGURATION",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETH_GET_PORT_TX_RX_STATS",
+      "status": "ok",
+      "instructions": 40,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ETH_RESET_PORT_TX_RX_STATS",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ETH_ENABLE_TEST_MODE",
+      "status": "ok",
+      "instructions": 40,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETH_LEARN_PORT_CONFIGURATION",
+      "status": "ok",
+      "instructions": 186,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ETH_LEARN_PORT_CONFIGURATION",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ETH_WRITE_PHY_REGISTER",
+      "status": "ok",
+      "instructions": 174,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ETH_PHY_SWITCH_ENGINE_RESET",
+      "status": "ok",
+      "instructions": 44,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETH_ARP_TABLE",
+      "status": "ok",
+      "instructions": 131,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETH_ARL_TABLE",
+      "status": "ok",
+      "instructions": 63,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETH_READ_PHY_REGISTER",
+      "status": "ok",
+      "instructions": 214,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETH_SIGNAL_QUALITY",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETH_IP_CONFIGURATION",
+      "status": "ok",
+      "instructions": 97,
+      "errors": []
+    },
+    {
+      "name": "STATUS_WECKRINGSPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FZM_WECKRINGSPEICHER_LOESCHEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_GETDEFAULTREGISTRY",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DEFAULT_REGISTRY_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CURRENT_REGISTRY_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RINGBRUCH_DIAGNOSE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GATEWAY_WAKEUP_SOURCE",
+      "status": "ok",
+      "instructions": 201,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GATEWAY_OWN_DEVICE_ID",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CURRENT_DIAG_FBLOCKS_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOSTSYSTEM",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETHERNET_REGISTER_LESEN",
+      "status": "ok",
+      "instructions": 211,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETHERNET_INFORMATION",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_ETHERNET_REGISTER_SCHREIBEN",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BUSSE_WACH_HALTEN",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRANSDIAG_SEND_TESTSTAND_ID",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRANSDIAG_SEND_CANFRAME_ONCE",
+      "status": "ok",
+      "instructions": 63,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRANSDIAG_RECEIVE_CANFRAME_ONCE",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRANSDIAG_SEND_RECEIVE_MOST_CTRL_ONCE",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RECEIVE_CAN_FRAME_START",
+      "status": "ok",
+      "instructions": 35,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RECEIVE_CAN_FRAME_STOP",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SEND_CAN_FRAME_START",
+      "status": "ok",
+      "instructions": 35,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SEND_CAN_FRAME_STOP",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ACTIVATE_MESSAGE_LOGGING",
+      "status": "ok",
+      "instructions": 35,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DEACTIVATE_MESSAGE_LOGGING",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TUNNELING_BUSSE",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ZFS_LOESCHEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFS_LESEN_REDUZIERT",
+      "status": "ok",
+      "instructions": 222,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFS_EVENTS_WERK",
+      "status": "ok",
+      "instructions": 248,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFS_LESEN_GESAMT",
+      "status": "ok",
+      "instructions": 223,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANZAHL_SYSTEMKONTEXTE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANZAHL_MAPPINGS",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DM_VERSION_SYSKONTEXTE_MAPPINGS",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DM_ZFS_RINGSPEICHER_STATUSINDIKATOR",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 198,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_INITIALISIERUNG_CHECK",
+      "status": "ok",
+      "instructions": 224,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_INITIALISIERUNG_CHECK2",
+      "status": "ok",
+      "instructions": 224,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_DM_LOCK",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_DM_UNLOCK",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_DM_LOCKSTATE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DM_FSS_MASTER",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DM_FSS_MASTER",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TAS",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_STOP_ROUTINE_TAS_BEAUFTRAGUNG",
+      "status": "ok",
+      "instructions": 229,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ECU_RESET_UEBER_TAS",
+      "status": "ok",
+      "instructions": 198,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_SECURITY",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_SWT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_FA",
+      "status": "ok",
+      "instructions": 226,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_ALL",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_I_STUFE_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_CODINGRELEVANT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_FLASHABLE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_K_CAN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_BODY_CAN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_MOST",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_FA_CAN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_FLEXRAY",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_ISO14229",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GET_ECU_LIST_UNEINDEUTIGES_ROUTING",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_ACTIVE_RESPONSE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VCM_GENERATE_SVT_START",
+      "status": "ok",
+      "instructions": 194,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VCM_GENERATE_SVT_GET_RESULTS",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LEARN_FLEXRAY",
+      "status": "ok",
+      "instructions": 466,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LEARN_FLEXRAY_WERK",
+      "status": "ok",
+      "instructions": 72,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LEARN_FLEXRAY",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RESET_LEARN_FLEXRAY",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DIAG_PLUS_FLEXRAY",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FLEXRAY_PFAD",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FLEXRAY_PFAD",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AUTODETEKT_ABSCHALTUNG",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HU_AKTIVIERUNGSLEITUNG",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RESET_HU_AKTIVIERUNGSLEITUNG",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LIFE_CYCLE_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SIG_TN_MASTER",
+      "status": "ok",
+      "instructions": 44,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SIG_TN_MASTER",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GET_ECU_LIST_BUS_ID",
+      "status": "ok",
+      "instructions": 231,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VCM_GET_ECU_LIST_ETHERNET",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TAS",
+      "status": "ok",
+      "instructions": 248,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ETHERNET_TOPOLOGY",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ETHERNET_TOPOLOGY",
+      "status": "ok",
+      "instructions": 223,
+      "errors": []
+    }
+  ]
+}

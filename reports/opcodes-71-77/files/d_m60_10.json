@@ -1,0 +1,18 @@
+{
+  "file": "d_m60_10.grp",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    },
+    {
+      "name": "IDENTIFIKATION",
+      "status": "ok",
+      "instructions": 125,
+      "errors": []
+    }
+  ]
+}
