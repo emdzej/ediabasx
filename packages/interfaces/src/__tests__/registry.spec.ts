@@ -6,7 +6,7 @@ describe("interface registry", () => {
     const interfaces = listInterfaces();
     const names = interfaces.map((entry) => entry.name);
 
-    expect(names).toEqual(expect.arrayContaining(["simulation", "serial", "kdcan", "enet"]));
+    expect(names).toEqual(expect.arrayContaining(["simulation", "serial", "kdcan", "enet", "gateway"]));
   });
 
   it("exposes metadata for a known interface", () => {

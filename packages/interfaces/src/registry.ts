@@ -92,6 +92,24 @@ const interfaceRegistry: InterfaceMetadata[] = [
         default: 6801
       }
     ]
+  },
+  {
+    name: "gateway",
+    description: "Remote gateway interface (JSON-RPC over TCP).",
+    options: [
+      {
+        name: "host",
+        description: "Gateway host/IP address.",
+        type: "string",
+        default: "127.0.0.1"
+      },
+      {
+        name: "port",
+        description: "Gateway TCP port.",
+        type: "number",
+        default: 6801
+      }
+    ]
   }
 ];
 

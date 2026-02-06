@@ -225,6 +225,11 @@ export class GatewayServer {
       case "send":
         await this.iface.send(this.extractData(params));
         return { ok: true };
+      case "receive": {
+        const timeout = this.extractTimeout(params);
+        const response = await this.iface.receive(timeout);
+        return { data: Array.from(response) };
+      }
       case "sendReceive": {
         const timeout = this.extractTimeout(params);
         const payload = this.extractData(params);

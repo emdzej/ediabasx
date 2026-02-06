@@ -6,3 +6,5 @@ export type {
 export { getInterfaceMetadata, listInterfaces } from "./registry";
 export { GatewayServer } from "./gateway-server";
 export type { GatewayServerOptions } from "./gateway-server";
+export { GatewayClient } from "./gateway-client";
+export type { GatewayClientOptions } from "./gateway-client";

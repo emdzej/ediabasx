@@ -107,7 +107,7 @@ describe("GatewayServer", () => {
     }
   });
 
-  it("handles connect, sendReceive, info, and setParam", async () => {
+  it("handles connect, send, receive, info, and setParam", async () => {
     const iface = new MockInterface();
     iface.responses.push(Uint8Array.from([9, 10]));
 
@@ -125,18 +125,26 @@ describe("GatewayServer", () => {
 
     expect((connectResponse as { result: { connected: boolean } }).result.connected).toBe(true);
 
-    const sendReceiveResponse = await sendRpc({
+    const sendResponse = await sendRpc({
       jsonrpc: "2.0",
       id: 2,
-      method: "sendReceive",
+      method: "send",
       params: { data: [1, 2, 3] }
     });
 
-    expect((sendReceiveResponse as { result: { data: number[] } }).result.data).toEqual([9, 10]);
+    expect((sendResponse as { result: { ok: boolean } }).result.ok).toBe(true);
+
+    const receiveResponse = await sendRpc({
+      jsonrpc: "2.0",
+      id: 3,
+      method: "receive"
+    });
+
+    expect((receiveResponse as { result: { data: number[] } }).result.data).toEqual([9, 10]);
 
     const infoResponse = await sendRpc({
       jsonrpc: "2.0",
-      id: 3,
+      id: 4,
       method: "info"
     });
 
@@ -144,12 +152,10 @@ describe("GatewayServer", () => {
 
     const setParamResponse = await sendRpc({
       jsonrpc: "2.0",
-      id: 4,
+      id: 5,
       method: "setParam",
       params: { parameter: 5, value: 11 }
     });
-
-    console.log("setParamResponse", setParamResponse);
 
     expect((setParamResponse as { result: { ok: boolean } }).result.ok).toBe(true);
     expect(iface.parameters).toEqual([[5, 11]]);
