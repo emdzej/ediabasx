@@ -74,6 +74,11 @@ export class SerialInterface extends EdiabasInterface {
   private adapterMode: AdapterMode = AdapterModes.Uart;
   private adapterInfo: AdapterInfoState = this.createDefaultAdapterInfo();
   private receiveBuffer: number[] = [];
+  private frequentModeActive = false;
+  private frequentSendBuffer: Uint8Array | null = null;
+  private frequentRecvBuffer: Uint8Array | null = null;
+  private frequentTimer: ReturnType<typeof setInterval> | null = null;
+  private frequentIntervalMs = 100;
 
   constructor(config: SerialInterfaceConfig) {
     super();
@@ -123,6 +128,9 @@ export class SerialInterface extends EdiabasInterface {
     if (!this.connected) {
       return;
     }
+    if (this.frequentModeActive) {
+      await this.stopFrequent();
+    }
     await this.transport.close();
     this.connected = false;
     this.kwpSession = null;
@@ -165,14 +173,31 @@ export class SerialInterface extends EdiabasInterface {
   }
 
   async transmitFrequent(data: Uint8Array): Promise<void> {
-    void data;
+    this.assertConnected();
+    this.frequentSendBuffer = Uint8Array.from(data);
+    this.frequentModeActive = true;
+
+    if (!this.frequentTimer) {
+      this.frequentTimer = setInterval(() => {
+        void this.runFrequentCycle();
+      }, this.frequentIntervalMs);
+    }
   }
 
   async receiveFrequent(): Promise<Uint8Array> {
-    return new Uint8Array(0);
+    this.assertConnected();
+    return this.frequentRecvBuffer ?? new Uint8Array(0);
   }
 
-  async stopFrequent(): Promise<void> {}
+  async stopFrequent(): Promise<void> {
+    if (this.frequentTimer) {
+      clearInterval(this.frequentTimer);
+      this.frequentTimer = null;
+    }
+    this.frequentModeActive = false;
+    this.frequentSendBuffer = null;
+    this.frequentRecvBuffer = null;
+  }
 
   getPort(index: number): number {
     return this.ports.get(index) ?? 0;
@@ -339,6 +364,18 @@ export class SerialInterface extends EdiabasInterface {
 
   protected now(): number {
     return Date.now();
+  }
+
+  private async runFrequentCycle(): Promise<void> {
+    if (!this.frequentModeActive || !this.frequentSendBuffer) {
+      return;
+    }
+    try {
+      const response = await this.rawData(this.frequentSendBuffer);
+      this.frequentRecvBuffer = response;
+    } catch {
+      // Ignore frequent mode errors to keep the timer running.
+    }
   }
 
   private clampP1(value: number): number {
