@@ -1,0 +1,270 @@
+{
+  "file": "OPPS.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BATT_IGNITION",
+      "status": "ok",
+      "instructions": 50,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TYP_VER",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTER_AUTOCOMM",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTER_MOST",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTER_OBD",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTER_BYTEFLIGHT",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTER_MOSTMEAS",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTER_PAR_FREE",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTER_RESET",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTER_PAR_OBD",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTER_PAR_MOST",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ROUTER",
+      "status": "ok",
+      "instructions": 441,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTER_TRACEON",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTER_TRACEOFF",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOST_NODES",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_BUILDREGISTRY",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOST_ONOFFTIME",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_MASTER_MODE",
+      "status": "ok",
+      "instructions": 56,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_ASYNCOFF",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_ASYNCON",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_ASYNCMINLENGTH",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOST_SG_ASYNC",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_NOWAKEUP",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_WAKEUP",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOSTCTRL_LLINTERVALL",
+      "status": "ok",
+      "instructions": 41,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOSTCTRL_LLRETRY",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_DIAG_FBLOCK",
+      "status": "ok",
+      "instructions": 41,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOST_DIAG_FBLOCK",
+      "status": "ok",
+      "instructions": 158,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_TESTER_ADRESSE",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "STATUS_THREADS",
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOST_REGISTRY",
+      "status": "ok",
+      "instructions": 483,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_TRACEON",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_TRACEOFF",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MOST_ETHTRACE",
+      "status": "ok",
+      "instructions": 268,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOST_REGISTERS",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOST_ACCLOG",
+      "status": "ok",
+      "instructions": 202,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CAN_MODE",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_MODE",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_KL_15",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "STATUS__OBD_KWP2KS",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_TRACEON",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_TRACEOFF",
+      "status": "ok",
+      "instructions": 116,
+      "errors": []
+    }
+  ]
+}

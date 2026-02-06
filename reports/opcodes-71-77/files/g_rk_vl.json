@@ -1,0 +1,18 @@
+{
+  "file": "g_rk_vl.grp",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENTIFIKATION",
+      "status": "ok",
+      "instructions": 66,
+      "errors": []
+    }
+  ]
+}

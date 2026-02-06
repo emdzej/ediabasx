@@ -1,0 +1,54 @@
+{
+  "file": "edic_c.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 16,
+      "errors": []
+    },
+    {
+      "name": "ENDE",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN",
+      "status": "ok",
+      "instructions": 103,
+      "errors": []
+    },
+    {
+      "name": "SPANNUNG_SG_EIN",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "SPANNUNG_SG_AUS",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "AUFNAHME_AUS",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "AUFNAHME_EIN",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    }
+  ]
+}

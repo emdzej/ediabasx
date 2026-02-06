@@ -1,0 +1,816 @@
+{
+  "file": "FZD_F40.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 488,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 172,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 254,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "SVK_LESEN",
+      "status": "ok",
+      "instructions": 112,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STEUERN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_IO",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROUTINE",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "FS_SPERREN",
+      "status": "ok",
+      "instructions": 79,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN",
+      "status": "ok",
+      "instructions": 313,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "IS_LOESCHEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "HERSTELLINFO_LESEN",
+      "status": "ok",
+      "instructions": 666,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BETRIEBSMODE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BETRIEBSMODE",
+      "status": "ok",
+      "instructions": 62,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_ANZAHL_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_IDENT_LESEN",
+      "status": "ok",
+      "instructions": 151,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ROE_REPORT",
+      "status": "ok",
+      "instructions": 468,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_PERSISTENT_STOP",
+      "status": "ok",
+      "instructions": 222,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_PERSISTENT_START",
+      "status": "ok",
+      "instructions": 222,
+      "errors": []
+    },
+    {
+      "name": "CPS_LESEN",
+      "status": "ok",
+      "instructions": 193,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SHD_ESH_BEWERTUNG_KENNLINIE",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "_USIS_ALARMCOUNTER_READ",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_ALARMMEMORY_READ",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_DTC_MEMORY_READ",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_ECHODOPPLERCOUNTER_READ",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_ENVIRONMENT_READ",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_ADAPTATION_READ",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_NVM_READ",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_VERSION_READ",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_NVM_DEBUG_READ",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_DIO",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AIO",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_SLIDER_LED",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_SLIDER_PWM",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_VALEO_TESTBYTE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_VERSION",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_PCB_DATA",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_RUNIN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_ASSEMBLY_DATA",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_PRODUCTION_DATE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_CHECK_LIN_SIREN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_BMW_TRACEABILITY",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_DWA_ALARMSPEICHER",
+      "status": "ok",
+      "instructions": 230,
+      "errors": []
+    },
+    {
+      "name": "_READ_CPU_LOAD",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_RESET_COUNTER",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_TOTAL_ROOF_INT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_TASK_STACK",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_EMS_TEST_BYTE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_BOOTLOADER_CHECKSUM",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_APPLICATION_CHECKSUM",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_30_F39_VBF",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_30_F108_VBF",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_30F_SW_HALL",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_DIAG_DWA_LED",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_TEMP",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_SENSOR_TEMP",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_LED_TEMP",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_SENSE_RX",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_SENSE_TX",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_ECO1",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_ECO2",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_R2PH90",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_R2PH0",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_R1PH90",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_R1PH0",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_DIAG_ESH_HALL1",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_DIAG_ESH_HALL2",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_DIAG_SHD_HALL1",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_AD_DIAG_SHD_HALL2",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_VALEO_ENABLE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DWA_ALARMSPEICHER_FZD",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DWA_DEAKTIVIERUNG_IRS_NG",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DWA_PANIKSPEICHER",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_CMD_ALARMCOUNTER_RESET",
+      "status": "ok",
+      "instructions": 50,
+      "errors": []
+    },
+    {
+      "name": "_USIS_ECHODOPPLERCOUNTER_RESET",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "_USIS_ENVIRONMENT_SET",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "_USIS_ADAPTATION_SET",
+      "status": "ok",
+      "instructions": 27,
+      "errors": []
+    },
+    {
+      "name": "_USIS_NVM_WRITE",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "_USIS_NVM_DEBUG_WRITE",
+      "status": "ok",
+      "instructions": 44,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_DIO",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_SVK_SUPPLIER",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_SILDER_LED",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_SLIDER_PWM",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_VALEO_TESTBYTE",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_PCB_DATA",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_RUNIN",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_ASSEMBLY_DATA",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_PRODUCTION_DATE",
+      "status": "ok",
+      "instructions": 44,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_BMW_TRACEABLITY",
+      "status": "ok",
+      "instructions": 97,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_EMS_TEST_BYTE",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_VALEO_ENABLE",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DWA_DEAKTIVIERUNG_IRS_NG_LOESCHEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DWA_PANIKSPEICHER_LOESCHEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_FIO_STOP",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_FIO_START",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_FIO_USIS_START",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_WRITE_FIO_USIS_STOP",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_ERASE_EEP_DATA",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_READ_EEP_DATA",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_UART_PINS_TEST_START",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "_UART_PINS_TEST_RESULTS",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_UART_PINS_TEST_STOP",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_LOW_POWER_CONSUMPTION_TEST_STOP",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_LOW_POWER_CONSUMPTION_TEST_START",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_BRIEF_SHUTDOWN_ECU",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_RXPH0_RXPH90_ACQUISITION_READ",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_RXPH0_RXPH90_ACQUISITION_START",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "_RESET_CPU_LOAD",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_RESET_RESET_COUNTER",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_RESET_TOTAL_ROOF_INT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_SLIDER_STATE_MONITORING_START",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_SLIDER_STATE_MONITORING_RESULTS",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_SLIDER_STATE_MONITORING_STOP",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_CONTINOUS_RELAY_CONTROL_START",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "_CONTINOUS_RELAY_CONTROL_RESULTS",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_CONTINOUS_RELAY_CONTROL_STOP",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_FUNCTIONALLOGGER_START",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_FUNCTIONALLOGGER_STOP",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_CMD_SELFTEST_TRIGGER",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_SELFTEST_READ",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_ALARMMEMORY_RESET",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_USIS_DTC_MEMORY_RESET",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    }
+  ]
+}

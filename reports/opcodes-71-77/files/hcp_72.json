@@ -1,0 +1,684 @@
+{
+  "file": "hcp_72.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 254,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 218,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 227,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 269,
+      "errors": []
+    },
+    {
+      "name": "DATEN_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 321,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ABSCHALTVERHINDERER",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOMENTENAUFTEILUNG_BESCHLEUNIGEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AKTIVIERUNG_LADEN_HV_BATTERIE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_APM_JUMPASSIST",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EKK_ABSCHALTBEDINGUNG",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EKK_LEISTUNGSLIMITIERUNG_BOOST",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EKK_LEISTUNGSLIMITIERUNG_REVGRADE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOMENTENAUFTEILUNG_BREMSEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EMPI",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HCP_ANTRIEBSART",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HPMR_STATE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RECUPERATIONSMOMENT",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_WAKE_UP",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HV_ISOLATION",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HVIL",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KL_15",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ANTRIEBSART",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_APM",
+      "status": "ok",
+      "instructions": 247,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_APM_LIMIT",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENGDSRD",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LADEN_HV_BATTERIE",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LL_DREHZAHL",
+      "status": "ok",
+      "instructions": 56,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_NI_MODE_1",
+      "status": "ok",
+      "instructions": 56,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_NI_MODE_2",
+      "status": "ok",
+      "instructions": 56,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RNGDSRD",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANTRIEBSART_ZUGRIFF",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BATT_CONN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_E_MOTOR_CONTROL_CHECK",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IO_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_PWRLNCH_COUNTER",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LL_REGELUNG",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PARKSENSOREN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SOC_ACC_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_COMPLETECONTROL_SCHALTER",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ERZWUNGENE_SCHUBABSCHALTUNG",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KOMPRESSIONSTEST",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KOMPRESSIONSTEST",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_PWRLNCH_CNT_RESET",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SOC_SOLL",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SOC_SOLL_WERT",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DEGRADATION_SOURCE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_STRSTP_ZAEHLER",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HISR_HOS",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HISR_RING",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HISR_AUSLESEN_01",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HISR_AUSLESEN_02",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HISR_AUSLESEN_03",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HISR_AUSLESEN_04",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HISR_AV_RESET_HAEUFIGKEIT",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HISR_AV_RESET_KM_UND_AKTIV",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SOC_STIMUL",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADAPTIONSWERTE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ADAPTIONSWERTE_LOESCHEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BATTERIE_ADAPTIONSWERTE_LOESCHEN",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_COMPLETECONTROL_PIN",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_E_MOTOR_CONTROL_CHECK",
+      "status": "ok",
+      "instructions": 45,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CRASH_DETECTION_SIGNAL",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GESAMTFZG_DEGRADATION",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AKTUELLE_GETRIEBEPOSITION",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EMF_HILFERUF",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VOLTAGE_HCP_HV_SIDE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HCP_TELESERVICE_MONITORING",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BATTERIE_KUEHLUNG",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BATTERIE_KUEHLUNG",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HCP_RBM_RATIOS",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BATTERIE_EQUILIBRIERUNG",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BATTERIE_EQUILIBRIERUNG",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BATTERIE_NUTZUNG",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KURZSCHLUSS_UVW_EMP",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TIMER_BATTERIE_KUEHLUNG",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BATTERIE_ADAPTIONSWERTE_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BATTERIE_ADAPTIONSWERTE_GESCHRIEBEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BATTERIE_ADAPTIONSWERTE_SCHREIBEN",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VM_LEISTUNGSMESSUNG",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VM_LEISTUNG_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VM_LEISTUNGSMESSUNG",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BATTERIE_EQUIL_HISTORIE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HISR_HOS_RESET",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VITAL_VARIABLES_DREHZAHLEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VITAL_VARIABLES_LEISTUNGEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VITAL_VARIABLES_MOMENTE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VITAL_VARIABLES_STATUS",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VITAL_VARIABLES_TEMPERATUREN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "LESEN_INDIVIDUALDATA_LISTE",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "LESE_INDIVIDUALDATA",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "SCHREIBEN_INDIVIDUALDATA",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_FLASHPROG_PRECONDITION_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_PROZESSOR_LESEN_JOBS",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_REMEDIAL_ACTION_HISTORY",
+      "status": "ok",
+      "instructions": 229,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_REMEDIAL_ACTION",
+      "status": "ok",
+      "instructions": 193,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_REMEDIAL_ACTION_RESET",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_BUILD_IDENT_LESEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_STANDLOAD_VERFUEGBAR",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_BATTERIE_AKTIVE_LEISTUNG",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_SOCR_USECASE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_RESET_URSACHE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    }
+  ]
+}

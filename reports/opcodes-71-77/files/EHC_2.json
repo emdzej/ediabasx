@@ -1,0 +1,198 @@
+{
+  "file": "EHC_2.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 37,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "IDENTIFIKATION",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "FS_QUICK_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 90,
+      "errors": []
+    },
+    {
+      "name": "CODE_LESEN",
+      "status": "ok",
+      "instructions": 56,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN",
+      "status": "ok",
+      "instructions": 1308,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SETZEN",
+      "status": "ok",
+      "instructions": 140,
+      "errors": []
+    },
+    {
+      "name": "SG_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 306,
+      "errors": []
+    },
+    {
+      "name": "SG_STATUS_VORGEBEN",
+      "status": "ok",
+      "instructions": 77,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 144,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LOESCHEN",
+      "status": "ok",
+      "instructions": 90,
+      "errors": []
+    },
+    {
+      "name": "SG_RESET",
+      "status": "ok",
+      "instructions": 81,
+      "errors": []
+    },
+    {
+      "name": "FS_SHADOW_LESEN",
+      "status": "ok",
+      "instructions": 81,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICHWERT_LESEN",
+      "status": "ok",
+      "instructions": 818,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICHWERT_PROGRAMMIEREN",
+      "status": "ok",
+      "instructions": 371,
+      "errors": []
+    },
+    {
+      "name": "HERSTELLDATEN_LESEN",
+      "status": "ok",
+      "instructions": 543,
+      "errors": []
+    },
+    {
+      "name": "HERSTELLDATEN_SCHREIBEN",
+      "status": "ok",
+      "instructions": 497,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEMODE_ERHALTEN",
+      "status": "ok",
+      "instructions": 81,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEMODE_BEENDEN",
+      "status": "ok",
+      "instructions": 81,
+      "errors": []
+    },
+    {
+      "name": "SEED_HOLEN",
+      "status": "ok",
+      "instructions": 56,
+      "errors": []
+    },
+    {
+      "name": "KEY_SENDEN_NORMAL",
+      "status": "ok",
+      "instructions": 77,
+      "errors": []
+    },
+    {
+      "name": "KEY_SENDEN_EXPERT",
+      "status": "ok",
+      "instructions": 77,
+      "errors": []
+    },
+    {
+      "name": "FAHRZEUG_HOEHE_ABGLEICHEN",
+      "status": "ok",
+      "instructions": 113,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VORGEBEN",
+      "status": "ok",
+      "instructions": 49,
+      "errors": []
+    },
+    {
+      "name": "SG_STATUS_SETZEN",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 40,
+      "errors": []
+    },
+    {
+      "name": "AKTOREN_VORGEBEN",
+      "status": "ok",
+      "instructions": 65,
+      "errors": []
+    },
+    {
+      "name": "HOEHE_SPEICHERN",
+      "status": "ok",
+      "instructions": 95,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 179,
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "file": "00MDS410.prg",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "<parse>",
+      "status": "error",
+      "instructions": 0,
+      "errors": [
+        {
+          "offset": 0,
+          "message": "Parse error: Offset is outside the bounds of the DataView"
+        }
+      ]
+    }
+  ]
+}

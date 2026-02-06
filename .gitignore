@@ -3,4 +3,3 @@ dist
 .turbo
 *.tsbuildinfo
 packages/interpreter/coverage
-reports/

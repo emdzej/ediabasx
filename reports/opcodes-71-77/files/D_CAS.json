@@ -1,0 +1,18 @@
+{
+  "file": "D_CAS.grp",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 435,
+      "errors": []
+    },
+    {
+      "name": "IDENTIFIKATION",
+      "status": "ok",
+      "instructions": 821,
+      "errors": []
+    }
+  ]
+}

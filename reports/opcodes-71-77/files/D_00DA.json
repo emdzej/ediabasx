@@ -1,0 +1,18 @@
+{
+  "file": "D_00DA.grp",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENTIFIKATION",
+      "status": "ok",
+      "instructions": 38,
+      "errors": []
+    }
+  ]
+}

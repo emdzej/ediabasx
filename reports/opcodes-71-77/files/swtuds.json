@@ -1,0 +1,102 @@
+{
+  "file": "swtuds.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN",
+      "status": "ok",
+      "instructions": 278,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_SWID",
+      "status": "ok",
+      "instructions": 168,
+      "errors": []
+    },
+    {
+      "name": "ZERTIFIKAT_LESEN",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "FREISCHALTCODE_LESEN",
+      "status": "ok",
+      "instructions": 54,
+      "errors": []
+    },
+    {
+      "name": "SG_DATEN_LESEN",
+      "status": "ok",
+      "instructions": 287,
+      "errors": []
+    },
+    {
+      "name": "SWT_PARAMETER_LESEN",
+      "status": "ok",
+      "instructions": 46,
+      "errors": []
+    },
+    {
+      "name": "SWT_PARAMETER_SETZEN",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 88,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 217,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "FAHRGESTELLNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 218,
+      "errors": []
+    },
+    {
+      "name": "FAHRGESTELLNUMMER_SCHREIBEN",
+      "status": "ok",
+      "instructions": 131,
+      "errors": []
+    },
+    {
+      "name": "FREISCHALTCODE_SCHREIBEN",
+      "status": "ok",
+      "instructions": 50,
+      "errors": []
+    },
+    {
+      "name": "FREISCHALTCODE_PRUEFEN",
+      "status": "ok",
+      "instructions": 50,
+      "errors": []
+    }
+  ]
+}
