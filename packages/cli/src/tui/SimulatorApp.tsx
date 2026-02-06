@@ -20,6 +20,20 @@ type InputMode = "text" | "hex";
 
 type LineEnding = "crlf" | "lf" | "raw";
 
+type DialogMode = "number" | "hex";
+
+type DialogRequest = {
+  prompt: string;
+  mode: DialogMode;
+  detail?: string;
+  onSubmit: (value: string) => void;
+  onCancel: () => void;
+};
+
+type DialogState = DialogRequest & {
+  value: string;
+};
+
 function truncate(text: string, maxWidth: number): string {
   if (text.length <= maxWidth) return text;
   if (maxWidth <= 0) return "";
@@ -124,6 +138,7 @@ export function SimulatorApp({ host, port, server, defaultMode, defaultLineEndin
   const [lineEnding, setLineEnding] = useState<LineEnding>(defaultLineEnding ?? "crlf");
   const [inputValue, setInputValue] = useState("");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [dialog, setDialog] = useState<DialogState | null>(null);
 
   const handleExit = useCallback(async () => {
     if (isExiting) return;
@@ -149,7 +164,7 @@ export function SimulatorApp({ host, port, server, defaultMode, defaultLineEndin
   }, [rawContentHeight, hexContentHeight]);
 
   useEffect(() => {
-    const handleData = (data: Uint8Array) => {
+    const appendData = (data: Uint8Array) => {
       setRawLines((prev) => {
         const next = [...prev, ...formatRawLines(data, innerWidth)];
         setRawScroll(Math.max(0, next.length - rawHeightRef.current));
@@ -162,16 +177,34 @@ export function SimulatorApp({ host, port, server, defaultMode, defaultLineEndin
       });
     };
 
+    const handleData = (data: Uint8Array) => {
+      appendData(data);
+    };
+
+    const handleLog = (message: string) => {
+      const bytes = new TextEncoder().encode(message);
+      appendData(bytes);
+    };
+
+    const handleDialog = (request: DialogRequest) => {
+      setDialog({ ...request, value: "" });
+      setStatusMessage(null);
+    };
+
     const handleClientCount = (count: number) => {
       setClientCount(count);
     };
 
     server.on("data", handleData);
+    server.on("log", handleLog);
+    server.on("dialog", handleDialog);
     server.on("clientCount", handleClientCount);
     setClientCount(server.clientCount);
 
     return () => {
       server.off("data", handleData);
+      server.off("log", handleLog);
+      server.off("dialog", handleDialog);
       server.off("clientCount", handleClientCount);
     };
   }, [innerWidth, server]);
@@ -200,6 +233,28 @@ export function SimulatorApp({ host, port, server, defaultMode, defaultLineEndin
       void handleExit();
       return;
     }
+
+    if (dialog) {
+      if (key.escape) {
+        dialog.onCancel();
+        setDialog(null);
+        return;
+      }
+      if (key.return) {
+        dialog.onSubmit(dialog.value);
+        setDialog(null);
+        return;
+      }
+      if (key.backspace || key.delete) {
+        setDialog((current) => (current ? { ...current, value: current.value.slice(0, -1) } : current));
+        return;
+      }
+      if (input) {
+        setDialog((current) => (current ? { ...current, value: current.value + input } : current));
+      }
+      return;
+    }
+
     if (key.ctrl && (input === "r" || input === "R")) {
       setFocus((value) => (value === "raw" ? "hex" : "raw"));
       return;
@@ -258,7 +313,10 @@ export function SimulatorApp({ host, port, server, defaultMode, defaultLineEndin
 
   const title = `Simulator · ${host}:${port} · Clients: ${clientCount}`;
   const topBorder = buildTopBorder(truncate(title, innerWidth), safeWidth);
-  const shortcuts = statusMessage ? `${SHORTCUTS} | ${statusMessage}` : SHORTCUTS;
+  const dialogHint = dialog ? "Enter: Submit | Esc: Cancel" : null;
+  const shortcuts = statusMessage
+    ? `${SHORTCUTS} | ${statusMessage}`
+    : dialogHint ?? SHORTCUTS;
   const bottomBorder = buildBottomBorder(shortcuts, safeWidth);
 
   const rawLabel = focus === "raw" ? " RAW * " : " RAW ";
@@ -270,7 +328,11 @@ export function SimulatorApp({ host, port, server, defaultMode, defaultLineEndin
   const modeLabel = inputMode.toUpperCase();
   const lineEndingLabel = lineEnding.toUpperCase();
   const promptPrefix = `[${modeLabel}] [${lineEndingLabel}] > `;
-  const promptLine = buildContentLine(`${promptPrefix}${inputValue}_`, safeWidth);
+  const dialogPrefix = dialog
+    ? `[${dialog.mode.toUpperCase()}] ${dialog.prompt} `
+    : promptPrefix;
+  const promptValue = dialog ? dialog.value : inputValue;
+  const promptLine = buildContentLine(`${dialogPrefix}${promptValue}_`, safeWidth);
 
   const rawVisibleLines = useMemo(() => {
     const slice = rawLines.slice(rawScroll, rawScroll + rawContentHeight);
