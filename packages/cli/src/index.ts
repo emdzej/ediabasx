@@ -336,6 +336,38 @@ function resolveInterfaceSelection(options: InterfaceCliOptions, fallback: strin
   return { name, options: interfaceOptions };
 }
 
+function formatInterfaceSummary(name: string, options: InterfaceOptions): string {
+  const optionValue = (value: InterfaceOptions[string]): string | undefined => {
+    if (value === undefined) return undefined;
+    return String(value);
+  };
+
+  switch (name) {
+    case "gateway": {
+      const host = optionValue(options.host) ?? "127.0.0.1";
+      const port = optionValue(options.port) ?? "6801";
+      return `Gateway · ${host}:${port}`;
+    }
+    case "serial": {
+      const port = optionValue(options.port) ?? "unknown";
+      const baud = optionValue(options.baudRate) ?? "9600";
+      return `Serial · ${port} @ ${baud}`;
+    }
+    case "kdcan": {
+      const port = optionValue(options.port) ?? "unknown";
+      const baud = optionValue(options.baudRate) ?? "115200";
+      return `KDCAN · ${port} @ ${baud}`;
+    }
+    case "enet": {
+      const host = optionValue(options.host) ?? "unknown";
+      const port = optionValue(options.port) ?? "6801";
+      return `ENET · ${host}:${port}`;
+    }
+    default:
+      return "Simulation";
+  }
+}
+
 function formatInterfaceOption(option: InterfaceOptionMetadata, widths: { name: number; type: number }): string {
   const name = option.name.padEnd(widths.name);
   const type = option.type.padEnd(widths.type);
@@ -1044,7 +1076,7 @@ const runCommand = program
       if (!jobName) {
         const selection = resolveInterfaceSelection(options, "simulation");
         const jobs = prg.jobs.length > 0 ? prg.jobs.map((job) => job.name) : prg.binaryJobs.map((job) => job.name);
-        const interfaceLabel = selection.name.charAt(0).toUpperCase() + selection.name.slice(1);
+        const interfaceLabel = formatInterfaceSummary(selection.name, selection.options);
         render(React.createElement(RunnerApp, { filePath, jobs, interfaceLabel }));
         return;
       }

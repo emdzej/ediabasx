@@ -104,7 +104,7 @@ export function RunnerApp({ filePath, jobs, interfaceLabel }: RunnerAppProps) {
     }
   });
 
-  const interfaceText = useMemo(() => `Type: ${interfaceLabel ?? "Simulation"}`,[interfaceLabel]);
+  const interfaceText = useMemo(() => interfaceLabel ?? "Simulation", [interfaceLabel]);
   const interfaceWidth = innerWidth;
   const interfaceTop = buildPanelTop("Interface", interfaceWidth);
   const interfaceLine = buildPanelLine(interfaceText, interfaceWidth);
