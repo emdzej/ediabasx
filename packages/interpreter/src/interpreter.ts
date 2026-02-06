@@ -1148,21 +1148,25 @@ export class Interpreter {
       0x27: async (state) => {
         await xhangup(requireCommunicationInterface(state));
       },
-      0x28: async (state, arg0, arg1) => {
-        await xsetpar(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0), requireIntRegister(arg1));
+      0x28: async (state, arg0) => {
+        await xsetpar(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
       0x29: async (state, arg0) => {
-        await xawlen(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
+        await xawlen(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
-      0x2a: async (state, arg0) => {
-        await xsend(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
+      0x2a: async (state, arg0, arg1) => {
+        await xsend(
+          state.registers,
+          requireCommunicationInterface(state),
+          requireStringRegister(arg0),
+          requireStringRegister(arg1)
+        );
       },
-      0x2b: async (state, arg0, arg1) => {
-        await xsendf(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0), requireStringRegister(arg1));
+      0x2b: async (state, arg0) => {
+        await xsendf(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
-      0x2c: async (state, arg0, arg1) => {
-        const target = requireStringRegister(arg1);
-        await xrequf(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0), target, target);
+      0x2c: async (state, arg0) => {
+        await xrequf(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
       0x2d: async (state) => {
         await xstopf(requireCommunicationInterface(state));
@@ -1171,7 +1175,7 @@ export class Interpreter {
         await xkeyb(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
       0x2f: async (state, arg0) => {
-        xstate(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
+        xstate(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
       0x30: async (state) => {
         await xboot(requireCommunicationInterface(state));
@@ -1248,7 +1252,7 @@ export class Interpreter {
         }
       },
       0x42: async (state, arg0) => {
-        await xreps(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
+        await xreps(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
       },
       0x43: async (state, arg0) => {
         gettmr(state.registers, state.timer, requireIntRegister(arg0));

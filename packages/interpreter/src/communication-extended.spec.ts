@@ -42,16 +42,18 @@ describe("Extended communication operations", () => {
       disconnect: vi.fn(),
       send: vi.fn(),
       receive: vi.fn().mockResolvedValue(Uint8Array.from([0x41])),
+      transmitFrequent: vi.fn(),
+      receiveFrequent: vi.fn().mockResolvedValue(Uint8Array.from([0x42])),
       isConnected: () => true,
       setParameter: vi.fn(),
+      setCommParameter: vi.fn(),
+      setAnswerLengths: vi.fn(),
       setAnswerLength: vi.fn(),
-      sendFormatted: vi.fn(),
-      requestFormatted: vi.fn().mockResolvedValue(Uint8Array.from([0x42])),
       stopFrequent: vi.fn(),
-      readKeyboard: vi.fn().mockResolvedValue("X"),
-      getState: () => 7,
+      keyBytes: Uint8Array.from([0x4b]),
+      state: Uint8Array.from([0x01, 0x02]),
       boot: vi.fn(),
-      setResponse: vi.fn(),
+      setRepeatCounter: vi.fn(),
       getPort: vi.fn().mockResolvedValue(3),
       setPort: vi.fn(),
       ignitionVoltage: 1,
@@ -68,31 +70,27 @@ describe("Extended communication operations", () => {
     };
   });
 
-  it("xsetpar forwards parameter and value", async () => {
-    registers.setI(0, 5);
-    registers.setI(1, 11);
-    await xsetpar(registers, iface, I0, I1);
-    expect(iface.setParameter).toHaveBeenCalledWith(5, 11);
+  it("xsetpar forwards communication parameter array", async () => {
+    registers.setSBinary(0, Uint8Array.from([0x01, 0x00]));
+    await xsetpar(registers, iface, S0);
+    expect(iface.setCommParameter).toHaveBeenCalledWith([1]);
   });
 
-  it("xawlen forwards answer length", async () => {
-    registers.setI(0, 128);
-    await xawlen(registers, iface, I0);
-    expect(iface.setAnswerLength).toHaveBeenCalledWith(128);
+  it("xawlen forwards answer lengths", async () => {
+    registers.setSBinary(0, Uint8Array.from([0x02, 0x00]));
+    await xawlen(registers, iface, S0);
+    expect(iface.setAnswerLengths).toHaveBeenCalledWith([2]);
   });
 
-  it("xsendf sends formatted payload", async () => {
-    registers.setS(0, "%d");
-    registers.setS(1, "42");
-    await xsendf(registers, iface, S0, S1);
-    expect(iface.sendFormatted).toHaveBeenCalledWith("%d", "42");
+  it("xsendf sends frequent payload", async () => {
+    registers.setS(0, "A");
+    await xsendf(registers, iface, S0);
+    expect(iface.transmitFrequent).toHaveBeenCalledWith(Uint8Array.from([0x41]));
   });
 
   it("xrequf writes response", async () => {
-    registers.setS(0, "%s");
-    registers.setS(1, "REQ");
-    await xrequf(registers, iface, S0, S1, S1);
-    expect(registers.getS(1)).toBe("B");
+    await xrequf(registers, iface, S0);
+    expect(registers.getS(0)).toBe("B");
   });
 
   it("xstopf stops formatted communication", async () => {
@@ -111,14 +109,14 @@ describe("Extended communication operations", () => {
     expect(frequentState.active).toBe(false);
   });
 
-  it("xkeyb reads keyboard input", async () => {
+  it("xkeyb reads key bytes", async () => {
     await xkeyb(registers, iface, S0);
-    expect(registers.getS(0)).toBe("X");
+    expect(registers.getS(0)).toBe("K");
   });
 
   it("xstate returns interface state", () => {
-    xstate(registers, iface, I0);
-    expect(registers.getI(0)).toBe(7);
+    xstate(registers, iface, S0);
+    expect(registers.getSBinary(0)).toEqual(Uint8Array.from([0x01, 0x02]));
   });
 
   it("xboot triggers boot sequence", async () => {
@@ -126,10 +124,10 @@ describe("Extended communication operations", () => {
     expect(iface.boot).toHaveBeenCalled();
   });
 
-  it("xreps sets response bytes", async () => {
-    registers.setS(0, "A");
-    await xreps(registers, iface, S0);
-    expect(iface.setResponse).toHaveBeenCalledWith(Uint8Array.from([0x41]));
+  it("xreps sets repeat counter", async () => {
+    registers.setI(0, 3);
+    await xreps(registers, iface, I0);
+    expect(iface.setRepeatCounter).toHaveBeenCalledWith(3);
   });
 
   it("xgetport returns port", async () => {
