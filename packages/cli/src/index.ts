@@ -1044,8 +1044,16 @@ const runCommand = program
       if (!jobName) {
         const selection = resolveInterfaceSelection(options, "simulation");
         const jobs = prg.jobs.length > 0 ? prg.jobs.map((job) => job.name) : prg.binaryJobs.map((job) => job.name);
-        const interfaceLabel = selection.name.charAt(0).toUpperCase() + selection.name.slice(1);
-        render(React.createElement(RunnerApp, { filePath, jobs, interfaceLabel }));
+        const timeout = Number.parseInt(options.timeout ?? "5000", 10);
+        render(
+          React.createElement(RunnerApp, {
+            filePath,
+            jobs,
+            interfaceName: selection.name,
+            interfaceOptions: selection.options,
+            timeoutMs: Number.isFinite(timeout) ? timeout : 5000,
+          })
+        );
         return;
       }
 

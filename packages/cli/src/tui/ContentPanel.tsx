@@ -1,9 +1,16 @@
 import React from "react";
 import { Box, Text } from "ink";
 
+type ContentLine = {
+  text: string;
+  color?: string;
+  dimColor?: boolean;
+  bold?: boolean;
+};
+
 type ContentPanelProps = {
   title: string;
-  lines: string[];
+  lines: Array<string | ContentLine>;
   height: number;
   width: number;
   focused?: boolean;
@@ -52,27 +59,33 @@ export function ContentPanel({
   const innerWidth = safeWidth - 2;
   const innerHeight = safeHeight - 2; // space for top and bottom bars
 
-  const visibleLines = lines.slice(scrollOffset, scrollOffset + innerHeight);
+  const normalizedLines: ContentLine[] = lines.map((line) =>
+    typeof line === "string" ? { text: line } : line
+  );
 
-  const count = lines.length > innerHeight 
-    ? `${scrollOffset + 1}-${Math.min(scrollOffset + innerHeight, lines.length)}/${lines.length}`
+  const visibleLines = normalizedLines.slice(scrollOffset, scrollOffset + innerHeight);
+
+  const count = normalizedLines.length > innerHeight 
+    ? `${scrollOffset + 1}-${Math.min(scrollOffset + innerHeight, normalizedLines.length)}/${normalizedLines.length}`
     : null;
   
   const topBar = buildTitleBar(title, count, safeWidth, focused);
   const bottomBar = buildBottomBar(safeWidth, focused);
 
-  const formatLine = (text: string): string => {
-    if (text.length > innerWidth) return text.slice(0, innerWidth - 3) + "...";
-    return text.padEnd(innerWidth);
+  const formatLine = (line: ContentLine): ContentLine => {
+    if (line.text.length > innerWidth) {
+      return { ...line, text: line.text.slice(0, innerWidth - 3) + "..." };
+    }
+    return { ...line, text: line.text.padEnd(innerWidth) };
   };
 
   // Build exactly innerHeight display lines
-  const displayLines: string[] = [];
+  const displayLines: ContentLine[] = [];
   for (let i = 0; i < innerHeight; i++) {
     if (i < visibleLines.length) {
       displayLines.push(formatLine(visibleLines[i]));
     } else {
-      displayLines.push(" ".repeat(innerWidth));
+      displayLines.push({ text: " ".repeat(innerWidth) });
     }
   }
 
@@ -82,7 +95,7 @@ export function ContentPanel({
       {displayLines.map((line, idx) => (
         <Text key={idx}>
           <Text color={focused ? "cyan" : undefined}>{v}</Text>
-          <Text>{line}</Text>
+          <Text color={line.color} dimColor={line.dimColor} bold={line.bold}>{line.text}</Text>
           <Text color={focused ? "cyan" : undefined}>{v}</Text>
           {outerV}
         </Text>
