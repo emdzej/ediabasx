@@ -1,0 +1,132 @@
+{
+  "file": "DLE.prg",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DLE_VERSION",
+      "status": "error",
+      "instructions": 50,
+      "errors": [
+        {
+          "offset": 767,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_DLE_RESET",
+      "status": "error",
+      "instructions": 23,
+      "errors": [
+        {
+          "offset": 1750,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_TP_INTERVALL",
+      "status": "ok",
+      "instructions": 77,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_HEADER",
+      "status": "ok",
+      "instructions": 95,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_IOANTWORT",
+      "status": "ok",
+      "instructions": 96,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_TP",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_LADEN",
+      "status": "error",
+      "instructions": 125,
+      "errors": [
+        {
+          "offset": 6147,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_DLE_BUFFERCLEAR",
+      "status": "error",
+      "instructions": 19,
+      "errors": [
+        {
+          "offset": 9510,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_DLE",
+      "status": "error",
+      "instructions": 19,
+      "errors": [
+        {
+          "offset": 9740,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "WAIT_FOR_DLE",
+      "status": "error",
+      "instructions": 33,
+      "errors": [
+        {
+          "offset": 13179,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_DLE_ODP",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 17154,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_DLE_SID",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    }
+  ]
+}

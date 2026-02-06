@@ -1,0 +1,240 @@
+{
+  "file": "mrma24.prg",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 72,
+      "errors": []
+    },
+    {
+      "name": "START_KOMMUNIKATION",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STOP_KOMMUNIKATION",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DEINIT_KLINE_KOMMUNIKATION",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 2341,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 173,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 927,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 48,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 419,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DKA_ANFANGSPOSITION",
+      "status": "ok",
+      "instructions": 306,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DKA_ENDPOSITION",
+      "status": "ok",
+      "instructions": 306,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UBATT",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TEMPERATUR_LUFT",
+      "status": "ok",
+      "instructions": 253,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TEMPERATUR_MOTOR",
+      "status": "ok",
+      "instructions": 253,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAMBDA_WERT",
+      "status": "ok",
+      "instructions": 214,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DROSSELKLAPPE",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LUFTDRUCK",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DREHZAHL",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EINSPRITZZEIT",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZUENDWINKEL",
+      "status": "ok",
+      "instructions": 214,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SCHLIESSZEIT",
+      "status": "ok",
+      "instructions": 241,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SCHLIESSWINKEL",
+      "status": "ok",
+      "instructions": 214,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIGITAL",
+      "status": "ok",
+      "instructions": 804,
+      "errors": []
+    },
+    {
+      "name": "MOTOR_VARIANTE",
+      "status": "ok",
+      "instructions": 228,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HALLSENSOR_START",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HALLSENSOR_STOP",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HALLSENSOR_RESULT",
+      "status": "ok",
+      "instructions": 205,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RELAIS_KRAFTSTOFFPUMPE_EIN",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RELAIS_KRAFTSTOFFPUMPE_AUS",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DKA_ANFANGSPOSITION_EIN",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DKA_ANFANGSPOSITION_AUS",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LUEFTERMOTOR_EIN",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LUEFTERMOTOR_AUS",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DKA_ENDPOSITION_EIN",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DKA_ENDPOSITION_AUS",
+      "status": "ok",
+      "instructions": 121,
+      "errors": []
+    },
+    {
+      "name": "DIAGNSOE_MODE_EIN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "DIAGNSOE_MODE_AUS",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "SECURITY_ACCESS",
+      "status": "ok",
+      "instructions": 708,
+      "errors": []
+    }
+  ]
+}

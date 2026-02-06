@@ -1,0 +1,288 @@
+{
+  "file": "BFOPTO.prg",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 324,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KOMMUNIKATIONS_MODE",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 2146,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_MOST_MESSMODE",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 2392,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_KOMMUNIKATIONSPARAMETER",
+      "status": "ok",
+      "instructions": 27,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ADS4MOST_MODE",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 2809,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_BYTEFLIGHT_MODE",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 3055,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_SET_MODUS",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FORCE_WAKEUP",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IDENT",
+      "status": "error",
+      "instructions": 22,
+      "errors": [
+        {
+          "offset": 5229,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_SELBSTTEST",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 6578,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_OPPS_RESET",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 7066,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_SPANNUNG_MOST",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 7312,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_SENDELEISTUNG_MESSUNG",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 7812,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_MEASUREOPTICALPOWER",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 8514,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_GETOPTICALPOWER",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 9252,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_TEMPERATUR",
+      "status": "error",
+      "instructions": 10,
+      "errors": [
+        {
+          "offset": 9966,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_SENDELEISTUNG",
+      "status": "ok",
+      "instructions": 19,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KALIBRIERUNG_MOST",
+      "status": "error",
+      "instructions": 30,
+      "errors": [
+        {
+          "offset": 11558,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_POTENTIOMETER_OFFSET_ABGLEICH",
+      "status": "ok",
+      "instructions": 130,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_OPTISCHER_ABGLEICH",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SPANNUNGSVERSORGUNG_UISIS",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SPANNUNG_OPPS_BYTEFLIGHT",
+      "status": "ok",
+      "instructions": 130,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LEITUNGSTEST_OPPS_BYTEFLIGHT",
+      "status": "ok",
+      "instructions": 134,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_GATEWAY_PARAMETER",
+      "status": "ok",
+      "instructions": 80,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SENDELEISTUNG_A_W_DBM",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_START_KOMMUNIKATION",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_NACHRICHTEN_SENDEN_EMPFANGEN",
+      "status": "ok",
+      "instructions": 180,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SLEEP_MODE",
+      "status": "ok",
+      "instructions": 130,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EMPFANGSPEAK_LEISTUNG",
+      "status": "ok",
+      "instructions": 140,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EMPFANGSPEAK_LEISTUNG",
+      "status": "ok",
+      "instructions": 130,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MODUL_INITIALISIEREN",
+      "status": "ok",
+      "instructions": 130,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MODUL_RESET",
+      "status": "ok",
+      "instructions": 130,
+      "errors": []
+    }
+  ]
+}

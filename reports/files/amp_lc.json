@@ -1,0 +1,36 @@
+{
+  "file": "amp_lc.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AUDIOKANAELE_HIFI_LC_UDS",
+      "status": "ok",
+      "instructions": 734,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AUDIOKANAELE_HIFI_LC_KWP",
+      "status": "ok",
+      "instructions": 683,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AUDIOKANAELE_HIFI_LC_RAD2",
+      "status": "ok",
+      "instructions": 683,
+      "errors": []
+    }
+  ]
+}

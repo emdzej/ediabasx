@@ -1,0 +1,108 @@
+{
+  "file": "00MD3_3.prg",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "EDIC_RESET",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "initialisierung",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "CHECK_CS_PROGRAM",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "READ_DOMINANTE",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "CHECK_MEM_CLEAR",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "UPROG_EIN",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "UPROG_LESEN",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "UPROG_AUS",
+      "status": "error",
+      "instructions": 3,
+      "errors": [
+        {
+          "offset": 11355,
+          "opcode": 116,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 21,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CODIER_CHECKSUMME",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 114,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "EPROM_SCHREIBEN",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN",
+      "status": "ok",
+      "instructions": 123,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    }
+  ]
+}

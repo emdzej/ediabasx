@@ -1,0 +1,270 @@
+{
+  "file": "mrehks.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 37,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TEILENUMMER",
+      "status": "ok",
+      "instructions": 187,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HARDWARESTAND",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CODIERINDEX",
+      "status": "ok",
+      "instructions": 158,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIAGNOSEINDEX",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BUSINDEX",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HERSTELLUNGSKALENDERWOCHE",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HERSTELLUNGSKALENDERJAHR",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZULIEFERER",
+      "status": "ok",
+      "instructions": 228,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SOFTWARESTAND",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SERIENNUMMER",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DAUER_MOTORLAUF",
+      "status": "ok",
+      "instructions": 202,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EHKS_TASTER_ENTPRELLZEIT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ENDPOSITIONSSCHALTER_ENTPRELLZEIT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SEITENSTUETZE_ENTPRELLZEIT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BREMSLICHT_ENTPRELLZEIT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LEERLAUF_SIGNAL_ENTRELLZEIT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KLEMME15_ENTRPELLZEIT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KLEMME30_ENTPRELLZEIT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BETAETIGUNG_MIN_PAUSE",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYSTEMUEBERLAST_DAUER",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UEBERLAST_MIN_PAUSE",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RESET_DURCH_KL15_EIN",
+      "status": "ok",
+      "instructions": 231,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LED_FREQUENZ",
+      "status": "ok",
+      "instructions": 240,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KLEMME30",
+      "status": "ok",
+      "instructions": 202,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KLEMME15",
+      "status": "ok",
+      "instructions": 202,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SCHALTER_ENDPOSITION",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EHKS_TASTER",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BREMSLICHTSIGNAL",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GESCHWINDIGKEIT",
+      "status": "ok",
+      "instructions": 146,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SEITENSTUETZSCHALTER",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LEERLAUF_SIGNAL",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "STATUS_WARNLAMPE",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RELAIS",
+      "status": "ok",
+      "instructions": 208,
+      "errors": []
+    },
+    {
+      "name": "FS_ANZAHL",
+      "status": "ok",
+      "instructions": 179,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 932,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_FELD",
+      "status": "ok",
+      "instructions": 81,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LED",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RELAIS",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SELBSTTEST",
+      "status": "ok",
+      "instructions": 216,
+      "errors": []
+    }
+  ]
+}

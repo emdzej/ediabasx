@@ -1,0 +1,54 @@
+{
+  "file": "c_shd_s.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 117,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 100,
+      "errors": []
+    },
+    {
+      "name": "TESTEN_SHD_PATCH",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "SCHREIBEN_BCS_PATCH",
+      "status": "ok",
+      "instructions": 147,
+      "errors": []
+    },
+    {
+      "name": "PATCH_INFO_LESEN",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "PATCH_DATEN_LESEN",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "SHD_INITIALISIERUNG_NACH_PATCH",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    }
+  ]
+}

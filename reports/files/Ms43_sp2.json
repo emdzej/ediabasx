@@ -1,0 +1,132 @@
+{
+  "file": "Ms43_sp2.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "initialisierung",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 89,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MAX_EINGRIFF",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MAX_ZEITEINGRIFF",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANZAHL_EINGRIFFE",
+      "status": "ok",
+      "instructions": 187,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOTORDREHZAHL_EINGRIFF",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOTORTEMP_EINGRIFF",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PEDALWERT_EINGRIFF",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DK_WERT_EINGRIFF",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LL_STELLER_EINGRIFF",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LMM_MASSE_EINGRIFF",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LUFTDRUCK_EINGRIFF",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FUSSHEBELFEHLBETAETIGUNG",
+      "status": "ok",
+      "instructions": 193,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MAX_UEBERDREHZAHL",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BETRIEB_UEBERDREHZAHL",
+      "status": "ok",
+      "instructions": 192,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZAEHLER_UEBERDREHZAHL",
+      "status": "ok",
+      "instructions": 187,
+      "errors": []
+    },
+    {
+      "name": "MOMENTEN_EINGRIFF_LOESCHEN",
+      "status": "ok",
+      "instructions": 102,
+      "errors": []
+    },
+    {
+      "name": "FUSSHEBELFEHLBEDIENUNG_LOESCHEN",
+      "status": "ok",
+      "instructions": 102,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    }
+  ]
+}
