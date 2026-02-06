@@ -1,0 +1,1830 @@
+{
+  "file": "d70bx7a0.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 488,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 172,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 254,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "SVK_LESEN",
+      "status": "ok",
+      "instructions": 112,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STEUERN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "FS_SPERREN",
+      "status": "ok",
+      "instructions": 79,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_PERMANENT",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 187,
+      "errors": []
+    },
+    {
+      "name": "IS_LOESCHEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BLOCK_LESEN",
+      "status": "ok",
+      "instructions": 123,
+      "errors": []
+    },
+    {
+      "name": "HERSTELLINFO_LESEN",
+      "status": "ok",
+      "instructions": 666,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BETRIEBSMODE",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BETRIEBSMODE",
+      "status": "ok",
+      "instructions": 62,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "CBS_INFO",
+      "status": "ok",
+      "instructions": 122,
+      "errors": []
+    },
+    {
+      "name": "CBS_DATEN_LESEN",
+      "status": "ok",
+      "instructions": 301,
+      "errors": []
+    },
+    {
+      "name": "CBS_RESET",
+      "status": "ok",
+      "instructions": 84,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_STOP",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ROE_REPORT",
+      "status": "ok",
+      "instructions": 468,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_START",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_PERSISTENT_STOP",
+      "status": "ok",
+      "instructions": 222,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ROE_PERSISTENT_START",
+      "status": "ok",
+      "instructions": 222,
+      "errors": []
+    },
+    {
+      "name": "CALID_CVN_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "CPS_LESEN",
+      "status": "ok",
+      "instructions": 193,
+      "errors": []
+    },
+    {
+      "name": "DIAG_SESSION_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "FLASH_TP_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "PROG_ZAEHLER_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "PROG_MAX_LESEN",
+      "status": "ok",
+      "instructions": 181,
+      "errors": []
+    },
+    {
+      "name": "_LP_STEUERN_SYSTEMCHECK_LMS",
+      "status": "ok",
+      "instructions": 216,
+      "errors": []
+    },
+    {
+      "name": "_START_AEP_I12_TEST_BATTERYGUARD",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_START_AEP_I12_ZYKNL_HISTOGRAMM_LOESCHEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_START_AEP_I12_ZYKNL_INFOSPEICHER_LOESCHEN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_AEP_I12_TEST_BATTERYGUARD",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_FAHRZEUGZUSTAND",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "_STEUERN_AEP_I12_TEST_LADEENDEGRUND",
+      "status": "ok",
+      "instructions": 32,
+      "errors": []
+    },
+    {
+      "name": "_STOP_AEP_I12_TEST_BATTERYGUARD",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_CSF_LESEN",
+      "status": "ok",
+      "instructions": 223,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_CSF_PROG",
+      "status": "ok",
+      "instructions": 46,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_FBC_LESEN",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_FBC_RUECKSETZEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_IMA_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_KRAFTSTOFFQUALITAET_LESEN",
+      "status": "ok",
+      "instructions": 215,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_LESEN",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_LESEN_AGRKUEHLER",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_LESEN_KF48",
+      "status": "ok",
+      "instructions": 119,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_LESEN_MRV",
+      "status": "ok",
+      "instructions": 211,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_LESEN_VCA",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_LESEN_VCC",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_LSU_LESEN",
+      "status": "ok",
+      "instructions": 65,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_LSU_PROG",
+      "status": "ok",
+      "instructions": 65,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_NMK_LESEN",
+      "status": "ok",
+      "instructions": 505,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_NMK_SCHREIBEN",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_NSC_LESEN",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_NSC_PROG",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_PROG",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_PROG_KF48",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_PROGRAMMIEREN_AGRKUEHLER",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_PROGRAMMIEREN_IMA",
+      "status": "ok",
+      "instructions": 287,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_PROGRAMMIEREN_IMA_ZYL",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_PROGRAMMIEREN_VCA",
+      "status": "ok",
+      "instructions": 24,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_RESET_AGRKUEHLER",
+      "status": "ok",
+      "instructions": 216,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_RUECKSETZEN_VCC",
+      "status": "ok",
+      "instructions": 24,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_VERSTELLEN",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_VERSTELLEN_KF48",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICHWERTE_LESEN",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICHWERTE_SCHREIBEN",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "ADAP_SELEKTIV_LOESCHEN",
+      "status": "ok",
+      "instructions": 317,
+      "errors": []
+    },
+    {
+      "name": "CBS_RESET_DATEN_LESEN",
+      "status": "ok",
+      "instructions": 205,
+      "errors": []
+    },
+    {
+      "name": "DATENSATZ_NAME",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "DIUMPR_OBD_LESEN",
+      "status": "ok",
+      "instructions": 248,
+      "errors": []
+    },
+    {
+      "name": "ECU_CONFIG",
+      "status": "ok",
+      "instructions": 289,
+      "errors": []
+    },
+    {
+      "name": "ECU_CONFIG_BLOCK5",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "ECU_CONFIG_ENABLE",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "ECU_CONFIG_KOMPONENTENRESET",
+      "status": "ok",
+      "instructions": 173,
+      "errors": []
+    },
+    {
+      "name": "ECU_CONFIG_RESET",
+      "status": "ok",
+      "instructions": 417,
+      "errors": []
+    },
+    {
+      "name": "FASTA_MESSWERTBLOCK_LESEN",
+      "status": "ok",
+      "instructions": 108,
+      "errors": []
+    },
+    {
+      "name": "FASTA_MRV_LESEN",
+      "status": "ok",
+      "instructions": 477,
+      "errors": []
+    },
+    {
+      "name": "FASTA_SCR_LESEN",
+      "status": "ok",
+      "instructions": 393,
+      "errors": []
+    },
+    {
+      "name": "FASTA_SCR_STATISTIK_LESEN",
+      "status": "ok",
+      "instructions": 416,
+      "errors": []
+    },
+    {
+      "name": "FLASH_DATEN_LESEN",
+      "status": "ok",
+      "instructions": 211,
+      "errors": []
+    },
+    {
+      "name": "FLASH_DATEN_SCHREIBEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "GEBERRADADAPTION_RESET",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "HFM_DRIFTKOMPENSATION_LESEN",
+      "status": "ok",
+      "instructions": 1226,
+      "errors": []
+    },
+    {
+      "name": "HFM_DRIFTKOMPENSATION_PROGRAMMIEREN",
+      "status": "ok",
+      "instructions": 305,
+      "errors": []
+    },
+    {
+      "name": "IDENT_GEN",
+      "status": "ok",
+      "instructions": 387,
+      "errors": []
+    },
+    {
+      "name": "IDENT_IBS",
+      "status": "ok",
+      "instructions": 195,
+      "errors": []
+    },
+    {
+      "name": "INFO_SYSTEMCHECK_LMS_NG",
+      "status": "ok",
+      "instructions": 587,
+      "errors": []
+    },
+    {
+      "name": "LERNWERTE_RUECKSETZEN",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "LESEN_CODIERWERTE",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "MODE09_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "READ_RUNTIME_STACK",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "RESET_RUNTIME_STACK",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "RESET_STATISTIK_UEBERHITZUNGSSCHUTZ",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "SELBSTERKENNUNG_RUECKSETZEN",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "START_LASTANHEBUNG_NSCREG",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "START_MESSUNG_RAILDRUCK",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "START_MOTORTEST_SOLLDRUCK",
+      "status": "ok",
+      "instructions": 74,
+      "errors": []
+    },
+    {
+      "name": "START_RAM",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "START_SYSTEMCHECK_GLF",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "START_SYSTEMCHECK_IGR_AUS",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "START_SYSTEMCHECK_LLERH",
+      "status": "ok",
+      "instructions": 452,
+      "errors": []
+    },
+    {
+      "name": "START_SYSTEMCHECK_PM_MESSEMODE",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "START_SYSTEMCHECK_ZYL",
+      "status": "ok",
+      "instructions": 253,
+      "errors": []
+    },
+    {
+      "name": "START_WINKELVERSATZDIAGNOSE",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ABGASTEMPERATUR_CSF",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ABGASTEMPERATUR_KAT",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AEP_I12_ZYKLISCHES_NACHLADEN_HISTOGRAMM",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AEP_I12_ZYKLISCHES_NACHLADEN_INFO",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AEPDFMONITOR",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AN_LUFTTEMPERATUR",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANSAUGLUFTTEMPERATUR",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ATMOSPHAERENDRUCK",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BETRIEBSART",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BETRIEBSSTUNDENZAEHLER",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BZEDIAG",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BZEDIAG2",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BZETOMSA",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BZETOMSA2",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CALCVN",
+      "status": "ok",
+      "instructions": 216,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CBS_DATEN_SICHERN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CBSMOTOROELHIST",
+      "status": "ok",
+      "instructions": 236,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CODIERUNG_OEL",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DAROL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DFDSN",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DFDSPROFLE",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIFFERENZDRUCK_CSF",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIGITAL",
+      "status": "ok",
+      "instructions": 495,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIUMPR_RATIO",
+      "status": "ok",
+      "instructions": 84,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DOSIERSTRATEGIE",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DRLGANGWECHSELHFKT",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DRLSTRECKENPROFIL",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DRLTEMPVER1",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DRLTEMPVER2",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DSM_READINESS",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ENTLUEFTUNG_KUEHLKREIS",
+      "status": "ok",
+      "instructions": 209,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ERKENNUNG_RNGS",
+      "status": "ok",
+      "instructions": 216,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EWS",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EWS4_SK",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FPC_MONTAGEMODUS",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FPC_PARAMETER",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GLUEHSTEUERGERAET",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_HANDSHAKE_FAN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IBS_STROMMESSUNG",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IGRINFO_AEP",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_INJEKTORTAUSCH",
+      "status": "ok",
+      "instructions": 103,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KILOMETERSTAND",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KOPPLUNG_SCR_OEL_LESEN",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KRAFTSTOFFTEMPERATUR",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KUEHLMITTELTEMPERATUR",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KUEHLUNG",
+      "status": "ok",
+      "instructions": 4619,
+      "errors": []
+    },
+    {
+      "name": "STATUS_KUP",
+      "status": "ok",
+      "instructions": 213,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LADEDRUCK_IST",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LADEDRUCK_SOLL",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LADELUFTTEMPERATUR",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LASTANHEBUNG_NSCREG",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAUFUNRUHE_DREHZAHL",
+      "status": "ok",
+      "instructions": 282,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAUFUNRUHE_LLR_MENGE",
+      "status": "ok",
+      "instructions": 282,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LEMINFO_AEP",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LLKETA_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LMM_MASSE",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LUFTEMPERATUR",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LUFTMASSE_IST",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LUFTMASSE_SOLL",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MESSUNG_RAILDRUCK",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MESSWERTE_IBS",
+      "status": "ok",
+      "instructions": 229,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MONTAGEMODUS",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOTORDREHZAHL",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOTORTEMPERATUR",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSA2",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSA2_DEAK",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSA2_DEAK_DEAKT",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSA2_DEAK_DFSP",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSA2_DEAK_EA",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSA2_DEAK_EV",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSA2_DEAK_FAV",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSA2_DEAK_SAV",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSA2HISTORIENOSTART",
+      "status": "ok",
+      "instructions": 627,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSA2HISTORIENOSTOP",
+      "status": "ok",
+      "instructions": 2139,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSA2STARTERTAUSCH",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSAINFO_AEP",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MSAINFO2",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_NOX_LESEN",
+      "status": "ok",
+      "instructions": 494,
+      "errors": []
+    },
+    {
+      "name": "STATUS_NOX_SCHREIBEN",
+      "status": "ok",
+      "instructions": 459,
+      "errors": []
+    },
+    {
+      "name": "STATUS_NOXSENSOR_EIGENDIAGNOSE",
+      "status": "ok",
+      "instructions": 722,
+      "errors": []
+    },
+    {
+      "name": "STATUS_NULLGANG_ERKENNUNG",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_OELNIVEAU",
+      "status": "ok",
+      "instructions": 209,
+      "errors": []
+    },
+    {
+      "name": "STATUS_OFFSETLERNEN",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STATUS_OFFSETWERTE",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PEDALWERTGEBER_POTI_1",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PEDALWERTGEBER_POTI_2",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_PWG_POTI_SPANNUNG",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RAILDRUCK_IST",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RAILDRUCK_SOLL",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_REGENERATION_CSF",
+      "status": "ok",
+      "instructions": 229,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RUHESTROMMESSUNG",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SEGELVERHINDERER_LESEN",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SGR",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_STATISTIK_UEBERHITZUNGSSCHUTZ",
+      "status": "ok",
+      "instructions": 220,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYSTEMCHECK_AEP_INFO_1",
+      "status": "ok",
+      "instructions": 233,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYSTEMCHECK_AEP_INFO_2",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYSTEMCHECK_GLF",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYSTEMCHECK_IGR_AUS",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYSTEMCHECK_LMS",
+      "status": "ok",
+      "instructions": 257,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYSTEMCHECK_LMS_NG",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYSTEMCHECK_ODM",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYSTEMCHECK_ODR",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYSTEMCHECK_PM_MESSEMODE",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYSTEMCHECK_ZYL",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TYPPRUEFNR",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UBATT",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UMGEBUNGSTEMPERATUR",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VERBRAUCHERSTROM_EFII",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STATUS_VERBREDINFO",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STATUS_WINKELVERSATZDIAGNOSE",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ADR",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BATTERIETAUSCH_REGISTRIEREN",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_BETRIEBSART",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CBS_DATEN_SICHERN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DAROL_RESET",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DOSIERSTRATEGIE",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_E_LUEFTER",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_E_LUEFTER_AUS",
+      "status": "ok",
+      "instructions": 95,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENDE_BETRIEBSART",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENDE_FPC_MONTAGEMODUS",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENDE_FPC_OHNE_ZL",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENDE_FPC_PARAMETER",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENDE_GLF",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENDE_MONTAGEMODUS",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENDE_MSA2_DEAK",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENDE_MSA2_DEAK_SAV",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENDE_OELDRUCK",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENDE_SELECTIV",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENDE_VERBRAUCHERSTROM_EFII",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENTLUEFTUNG_KUEHLKREIS",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EWS4_SK",
+      "status": "ok",
+      "instructions": 228,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FPC_MONTAGEMODUS",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FPC_OHNE_ZL",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FPC_PARAMETER",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_GLF",
+      "status": "ok",
+      "instructions": 79,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_GLUEHSTEUERGERAET",
+      "status": "ok",
+      "instructions": 78,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HANDSHAKE_FAN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HANDSHAKE_FAN_ENDE",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HYDRAULIKTEST_DDE",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HYDRAULIKTEST_DDE_ENDE",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_IBS_STROMMESSUNG",
+      "status": "ok",
+      "instructions": 548,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KOPPLUNG_SCR_OEL_RESET",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LDS_OFFSET",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LLKETA_RESET",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MONTAGEMODUS",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MSA2_DEAK",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MSA2_DEAK_DAUERHAFT",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MSA2_DEAK_DEAKT",
+      "status": "ok",
+      "instructions": 115,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MSA2_DEAK_DFSP",
+      "status": "ok",
+      "instructions": 115,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MSA2_DEAK_EA",
+      "status": "ok",
+      "instructions": 115,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MSA2_DEAK_EV",
+      "status": "ok",
+      "instructions": 115,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MSA2_DEAK_FAV",
+      "status": "ok",
+      "instructions": 115,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MSA2_DEAK_SAV",
+      "status": "ok",
+      "instructions": 334,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MSA2_DEAKT_STATBITS",
+      "status": "ok",
+      "instructions": 1000,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MSA2HISTORIERESET",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MSA2STARTERTAUSCH",
+      "status": "ok",
+      "instructions": 30,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_NOXSENSOR_EIGENDIAGNOSE",
+      "status": "ok",
+      "instructions": 29,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_NULLGANG_LERNEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_NULLGANG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 373,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_OELDRUCK",
+      "status": "ok",
+      "instructions": 300,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_OFFSETLERNEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_OFFSETWERTE",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_PM_HISTOGRAM_RESET",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RUHESTROMMESSUNG",
+      "status": "ok",
+      "instructions": 635,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SELECTIV",
+      "status": "ok",
+      "instructions": 92,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYSTEMCHECK_KFR_VENTIL",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYSTEMCHECK_KFR_VENTIL_ENDE",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYSTEMCHECK_LMS",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYSTEMCHECK_LMS_ENDE",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYSTEMCHECK_LMS_NG",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYSTEMCHECK_LMS_NG_ENDE",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYSTEMCHECK_ODM",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYSTEMCHECK_ODM_ENDE",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYSTEMCHECK_ODR",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYSTEMCHECK_ODR_ENDE",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VERBRAUCHERSTROM_EFII",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_WERT_LESEN",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "STOP_MESSUNG_RAILDRUCK",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STOP_MOTORTEST_SOLLDRUCK",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STOP_SYSTEMCHECK_GLF",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STOP_SYSTEMCHECK_IGR_AUS",
+      "status": "ok",
+      "instructions": 185,
+      "errors": []
+    },
+    {
+      "name": "STOP_SYSTEMCHECK_LLERH",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STOP_SYSTEMCHECK_PM_MESSEMODE",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "STOP_SYSTEMCHECK_ZYL",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "TEL_ROH",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "ZMS_ZAEHLER_MOTORLAUF_RESET",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "ZMS_ZAEHLER_START_RESET",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "file": "cid_lvds.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LVDS_CID_FRONT_KWP",
+      "status": "ok",
+      "instructions": 106,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LVDS_CID_FRONT_UDS",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    }
+  ]
+}

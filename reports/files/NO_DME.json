@@ -1,0 +1,48 @@
+{
+  "file": "NO_DME.PRG",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 99,
+      "errors": []
+    },
+    {
+      "name": "ISN_LESEN",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 6,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SYNC_MODE",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SYNC_MODE",
+      "status": "ok",
+      "instructions": 16,
+      "errors": []
+    }
+  ]
+}

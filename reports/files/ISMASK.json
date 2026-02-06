@@ -1,0 +1,24 @@
+{
+  "file": "ISMASK.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ISMASK",
+      "status": "ok",
+      "instructions": 136,
+      "errors": []
+    }
+  ]
+}

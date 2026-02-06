@@ -1,0 +1,732 @@
+{
+  "file": "dsc_87.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 107,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "NORMALER_DATENVERKEHR",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 82,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "SPEICHER_LESEN",
+      "status": "ok",
+      "instructions": 64,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_ANZAHL_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "SENSOREN_IDENT_LESEN",
+      "status": "ok",
+      "instructions": 72,
+      "errors": []
+    },
+    {
+      "name": "CBS_INFO",
+      "status": "ok",
+      "instructions": 182,
+      "errors": []
+    },
+    {
+      "name": "CBS_DATEN_LESEN",
+      "status": "ok",
+      "instructions": 151,
+      "errors": []
+    },
+    {
+      "name": "CBS_RESET",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "PRUEFCODE_LESEN",
+      "status": "ok",
+      "instructions": 211,
+      "errors": []
+    },
+    {
+      "name": "C_CI_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "C_FG_LESEN",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "C_FG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "C_FG_AUFTRAG",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_SCHREIBEN",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_AUFTRAG",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "C_C_LESEN",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 567,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP_LESEN",
+      "status": "ok",
+      "instructions": 513,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "HARDWARE_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "DATEN_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_ZEITEN_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_BLOCKLAENGE_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_ZUFALLSZAHL_LESEN",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_START",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SIGNATUR_PRUEFEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_LOESCHEN",
+      "status": "ok",
+      "instructions": 59,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ADRESSE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ENDE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "AIF_SCHREIBEN",
+      "status": "ok",
+      "instructions": 239,
+      "errors": []
+    },
+    {
+      "name": "SEED",
+      "status": "ok",
+      "instructions": 132,
+      "errors": []
+    },
+    {
+      "name": "IDENT_PRODUCTION_DATA",
+      "status": "ok",
+      "instructions": 142,
+      "errors": []
+    },
+    {
+      "name": "IDENT_VIN",
+      "status": "ok",
+      "instructions": 142,
+      "errors": []
+    },
+    {
+      "name": "IDENT_TEVES_ECU_SW_NR",
+      "status": "ok",
+      "instructions": 142,
+      "errors": []
+    },
+    {
+      "name": "IDENT_PROGRAMMING_DATE",
+      "status": "ok",
+      "instructions": 142,
+      "errors": []
+    },
+    {
+      "name": "C_C_SCHREIBEN",
+      "status": "ok",
+      "instructions": 67,
+      "errors": []
+    },
+    {
+      "name": "C_C_AUFTRAG",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "_COD_SCHREIBEN_DSC",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "_COD_SCHREIBEN_ZUSATZFUNKTIONEN",
+      "status": "ok",
+      "instructions": 159,
+      "errors": []
+    },
+    {
+      "name": "_COD_SCHREIBEN_SZL",
+      "status": "ok",
+      "instructions": 132,
+      "errors": []
+    },
+    {
+      "name": "_COD_LESEN",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "STATUS_RADGESCHWINDIGKEIT",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SCHALTER",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SENSOREN",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SENSOREN_OFFSET",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "BET_AKTIV",
+      "status": "ok",
+      "instructions": 132,
+      "errors": []
+    },
+    {
+      "name": "BET_PASSIV",
+      "status": "ok",
+      "instructions": 132,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DIGITAL_DX",
+      "status": "ok",
+      "instructions": 2961,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DIGITAL",
+      "status": "ok",
+      "instructions": 4714,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DIGITAL_BLS",
+      "status": "ok",
+      "instructions": 2137,
+      "errors": []
+    },
+    {
+      "name": "NA_ENTLUEFTUNG_RE_DX",
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
+    },
+    {
+      "name": "NA_ENTLUEFTUNG_LI_DX",
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
+    },
+    {
+      "name": "NA_ENTLUEFTUNG_VA_DX",
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
+    },
+    {
+      "name": "NA_ENTLUEFTUNG_HA_DX",
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
+    },
+    {
+      "name": "_VAKUUM_DX",
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
+    },
+    {
+      "name": "_VAKUUM_PUMPE_DX",
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
+    },
+    {
+      "name": "IDENT_SCHREIBEN",
+      "status": "ok",
+      "instructions": 215,
+      "errors": []
+    },
+    {
+      "name": "IDENT_PROGRAMMING_DATE_SCHREIBEN",
+      "status": "ok",
+      "instructions": 215,
+      "errors": []
+    },
+    {
+      "name": "IDENT_PRODUCTION_DATA_SCHREIBEN",
+      "status": "ok",
+      "instructions": 215,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LWS_LI_RE_MAX",
+      "status": "ok",
+      "instructions": 338,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_RPA",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "RPA_RESET",
+      "status": "ok",
+      "instructions": 132,
+      "errors": []
+    },
+    {
+      "name": "RPA_EOL_PASSIV",
+      "status": "ok",
+      "instructions": 132,
+      "errors": []
+    },
+    {
+      "name": "_FS_LESEN_SAR",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "_ANZAHL_SUBBUS_TEILNEHMER_LESEN",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "DF_AUSGANG_AKTIVIEREN",
+      "status": "ok",
+      "instructions": 132,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CBS_SENSOR_BBV",
+      "status": "ok",
+      "instructions": 151,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CBS_BBV_DICKE",
+      "status": "ok",
+      "instructions": 152,
+      "errors": []
+    },
+    {
+      "name": "DRUCKSENSOR_DSC_ABGLEICHEN",
+      "status": "ok",
+      "instructions": 202,
+      "errors": []
+    },
+    {
+      "name": "QUERBESCHLEUNIGUNG_DSC_ABGLEICHEN",
+      "status": "ok",
+      "instructions": 202,
+      "errors": []
+    },
+    {
+      "name": "LAENGSBESCHLEUNIGUNG_DSC_ABGLEICHEN",
+      "status": "ok",
+      "instructions": 202,
+      "errors": []
+    },
+    {
+      "name": "LENKWINKEL_DSC_ABGLEICHEN",
+      "status": "ok",
+      "instructions": 150,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_ANALOG_EV",
+      "status": "ok",
+      "instructions": 132,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_ANALOG_MCI_V",
+      "status": "ok",
+      "instructions": 132,
+      "errors": []
+    },
+    {
+      "name": "STAT_ERGEBNIS_ABGLEICH_ROUTINE",
+      "status": "ok",
+      "instructions": 533,
+      "errors": []
+    },
+    {
+      "name": "STATUS_F_CAN_TASTER_AUDIO_TEL",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "STATUS_F_CAN_TEMPOMAT_ACC",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "STATUS_F_CAN_WISCHERTASTER",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "_FS_BUS_LOESCHEN",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "_FS_BUS_LESEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "_CCP_MODE",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "_TEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "STATUS_F_CAN_LW",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_F_CAN_TYP_SENSORCLUSTER",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "_FS_LESEN_INPA",
+      "status": "ok",
+      "instructions": 134,
+      "errors": []
+    },
+    {
+      "name": "_EEPROM_LESEN",
+      "status": "ok",
+      "instructions": 146,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_ADCR",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "_FS_LESEN_SELEKTIV",
+      "status": "ok",
+      "instructions": 107,
+      "errors": []
+    },
+    {
+      "name": "BET_AKTIV_1",
+      "status": "ok",
+      "instructions": 132,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EVENT_COUNTER",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "LAENGSBESCHLEUNIGUNG_PLAUSICHECK_PASSIV",
+      "status": "ok",
+      "instructions": 132,
+      "errors": []
+    },
+    {
+      "name": "STATUS_EVENT_LOESCHEN",
+      "status": "ok",
+      "instructions": 141,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IDENT_HYDRAULIK",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IDENT_SENSORCLUSTER",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IDENT_SZL",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IDENT_SENSORCLUSTER_2",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_WLC_ZAEHLER",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "WLC_ZAEHLER_SCHREIBEN",
+      "status": "ok",
+      "instructions": 135,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HYDRO_SPUELEN",
+      "status": "ok",
+      "instructions": 138,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LESEN_RPA_M5",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "_STATUS_LESEN_RPA_M3",
+      "status": "ok",
+      "instructions": 179,
+      "errors": []
+    },
+    {
+      "name": "PRE_VENTIL_KALIBRIERUNG",
+      "status": "ok",
+      "instructions": 132,
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "file": "Kopie von fzgident.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 324,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "STRINGS_LESEN",
+      "status": "ok",
+      "instructions": 38,
+      "errors": []
+    },
+    {
+      "name": "STRINGS_LESEN_TYPSCHLUESSEL",
+      "status": "ok",
+      "instructions": 38,
+      "errors": []
+    },
+    {
+      "name": "ERSTE_BR_ERMITTELN",
+      "status": "ok",
+      "instructions": 38,
+      "errors": []
+    },
+    {
+      "name": "GRUNDMERKMALE_LESEN",
+      "status": "ok",
+      "instructions": 34,
+      "errors": []
+    },
+    {
+      "name": "GM_LESEN_TYPSCHLUESSEL",
+      "status": "ok",
+      "instructions": 34,
+      "errors": []
+    }
+  ]
+}

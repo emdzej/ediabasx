@@ -1,0 +1,246 @@
+{
+  "file": "DM173K20.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "initialisierung",
+      "status": "ok",
+      "instructions": 0,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "ISN_LESEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "PROD_NR_LESEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "RAM_LESEN",
+      "status": "ok",
+      "instructions": 130,
+      "errors": []
+    },
+    {
+      "name": "ROM_LESEN",
+      "status": "ok",
+      "instructions": 135,
+      "errors": []
+    },
+    {
+      "name": "ADC_LESEN",
+      "status": "ok",
+      "instructions": 75,
+      "errors": []
+    },
+    {
+      "name": "CODIER_VARIANTE_LESEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "ABGAS_VARIANTE_LESEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 49,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 57,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 58,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_BANK_1",
+      "status": "ok",
+      "instructions": 58,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EV_BANK_2",
+      "status": "ok",
+      "instructions": 58,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TEV",
+      "status": "ok",
+      "instructions": 58,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LL_STELLER",
+      "status": "ok",
+      "instructions": 58,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LSH",
+      "status": "ok",
+      "instructions": 58,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DISA",
+      "status": "ok",
+      "instructions": 58,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_E_LUEFTER",
+      "status": "ok",
+      "instructions": 58,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KLIMAKOMPRESSOR",
+      "status": "ok",
+      "instructions": 58,
+      "errors": []
+    },
+    {
+      "name": "STATUS_L_SONDE",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOTORDREHZAHL",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MOTORTEMPERATUR",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AN_LUFTTEMPERATUR",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LAST",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LMM_VOLT",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LMM",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DKP_VOLT",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DKP",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_UBATT",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GESCHWINDIGKEIT",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_INT",
+      "status": "ok",
+      "instructions": 172,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADD",
+      "status": "ok",
+      "instructions": 172,
+      "errors": []
+    },
+    {
+      "name": "STATUS_MUL",
+      "status": "ok",
+      "instructions": 172,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TEV",
+      "status": "ok",
+      "instructions": 172,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZUENDWINKEL",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_LL_LUFTBEDARF",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DIGITAL",
+      "status": "ok",
+      "instructions": 43,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 94,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 33,
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,366 @@
+{
+  "file": "40cc6360.prg",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 435,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PARAMETER_LESEN",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PARAMETER_SETZEN",
+      "status": "ok",
+      "instructions": 84,
+      "errors": []
+    },
+    {
+      "name": "MOST_CAN_GATEWAY_DISABLE",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "MOST_CAN_GATEWAY_ENABLE",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 213,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "NORMALER_DATENVERKEHR",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 82,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 567,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 428,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP_LESEN",
+      "status": "ok",
+      "instructions": 428,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "HARDWARE_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 428,
+      "errors": []
+    },
+    {
+      "name": "DATEN_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_ZEITEN_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_BLOCKLAENGE_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_ZUFALLSZAHL_LESEN",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_START",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SIGNATUR_PRUEFEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_LOESCHEN",
+      "status": "ok",
+      "instructions": 59,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ADRESSE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ENDE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "AIF_SCHREIBEN",
+      "status": "ok",
+      "instructions": 239,
+      "errors": []
+    },
+    {
+      "name": "STATUS_DLE_VERSION",
+      "status": "error",
+      "instructions": 50,
+      "errors": [
+        {
+          "offset": 157379,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_DLE_RESET",
+      "status": "error",
+      "instructions": 23,
+      "errors": [
+        {
+          "offset": 158362,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_TP_INTERVALL",
+      "status": "ok",
+      "instructions": 77,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_HEADER",
+      "status": "ok",
+      "instructions": 95,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_IOANTWORT",
+      "status": "ok",
+      "instructions": 96,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_TP",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DLE_LADEN",
+      "status": "error",
+      "instructions": 125,
+      "errors": [
+        {
+          "offset": 162759,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_DLE_BUFFERCLEAR",
+      "status": "error",
+      "instructions": 19,
+      "errors": [
+        {
+          "offset": 166122,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_DLE",
+      "status": "error",
+      "instructions": 19,
+      "errors": [
+        {
+          "offset": 166352,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "WAIT_FOR_DLE",
+      "status": "error",
+      "instructions": 33,
+      "errors": [
+        {
+          "offset": 169791,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "FLASH_SCHREIBEN_XXL",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "HOST_PROGRAMMIER_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 172,
+      "errors": []
+    },
+    {
+      "name": "HOST_STEUERN_INTERNAL_RESET",
+      "status": "ok",
+      "instructions": 159,
+      "errors": []
+    },
+    {
+      "name": "HOST_GENERATE_FIB",
+      "status": "ok",
+      "instructions": 159,
+      "errors": []
+    },
+    {
+      "name": "HOST_STATUS_FIB_CREATE",
+      "status": "ok",
+      "instructions": 203,
+      "errors": []
+    },
+    {
+      "name": "PSGBD_STATUS_HIP_SW_LOADING",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "PSGBD_START_HIP_SW_LOADING",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "PSGBD_STATUS_HIP_HW_VERSION",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "OPPS_STATUS_TYP_VER",
+      "status": "ok",
+      "instructions": 49,
+      "errors": []
+    },
+    {
+      "name": "OPPS_STATUS_ROUTER",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 201157,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    }
+  ]
+}

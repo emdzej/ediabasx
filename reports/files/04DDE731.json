@@ -1,0 +1,372 @@
+{
+  "file": "04DDE731.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "MARK_LO1",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "MARK_LO2",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "MARK_LO3",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICHWERTE_LESEN",
+      "status": "ok",
+      "instructions": 382,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICHWERTE_SCHREIBEN",
+      "status": "ok",
+      "instructions": 486,
+      "errors": []
+    },
+    {
+      "name": "TEL_ROH",
+      "status": "ok",
+      "instructions": 22,
+      "errors": []
+    },
+    {
+      "name": "AGR_NULL",
+      "status": "ok",
+      "instructions": 317,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_IMA_LESEN_HEX",
+      "status": "ok",
+      "instructions": 223,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_IMA_LESEN",
+      "status": "ok",
+      "instructions": 223,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_PROGRAMMIEREN_IMA_HEX",
+      "status": "ok",
+      "instructions": 302,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_PROGRAMMIEREN_IMA",
+      "status": "ok",
+      "instructions": 468,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_PROGRAMMIEREN_IMA_ZYL_HEX",
+      "status": "ok",
+      "instructions": 306,
+      "errors": []
+    },
+    {
+      "name": "FLASH_LOESCHEN_4BYTE",
+      "status": "ok",
+      "instructions": 59,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ADRESSE_4BYTE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ENDE_4BYTE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_LESEN_AGRKUEHLER",
+      "status": "ok",
+      "instructions": 113,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_PROGRAMMIEREN_AGRKUEHLER",
+      "status": "ok",
+      "instructions": 113,
+      "errors": []
+    },
+    {
+      "name": "ABGLEICH_RESET_AGRKUEHLER",
+      "status": "ok",
+      "instructions": 223,
+      "errors": []
+    },
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 426,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PARAMETER_LESEN",
+      "status": "ok",
+      "instructions": 128,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PARAMETER_SETZEN",
+      "status": "ok",
+      "instructions": 84,
+      "errors": []
+    },
+    {
+      "name": "INTERFACETYPE",
+      "status": "ok",
+      "instructions": 20,
+      "errors": []
+    },
+    {
+      "name": "ACCESS_TIMING_PARAMETER",
+      "status": "ok",
+      "instructions": 35,
+      "errors": []
+    },
+    {
+      "name": "SET_PARAMETER",
+      "status": "ok",
+      "instructions": 249,
+      "errors": []
+    },
+    {
+      "name": "MOST_CAN_GATEWAY_DISABLE",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "MOST_CAN_GATEWAY_ENABLE",
+      "status": "ok",
+      "instructions": 61,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "NORMALER_DATENVERKEHR",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 82,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 567,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP_LESEN",
+      "status": "ok",
+      "instructions": 513,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "HARDWARE_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "DATEN_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_ZEITEN_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_BLOCKLAENGE_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_ZUFALLSZAHL_LESEN",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_START",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SIGNATUR_PRUEFEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SIGNATUR_PRUEFEN_TP",
+      "status": "ok",
+      "instructions": 113,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_LOESCHEN",
+      "status": "ok",
+      "instructions": 59,
+      "errors": []
+    },
+    {
+      "name": "FLASH_LOESCHEN_TP",
+      "status": "ok",
+      "instructions": 63,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ADRESSE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_XXL",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ENDE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "AIF_SCHREIBEN",
+      "status": "ok",
+      "instructions": 230,
+      "errors": []
+    },
+    {
+      "name": "NG_AUTHENTISIERUNG_START",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "NG_SIGNATUR_PRUEFEN",
+      "status": "ok",
+      "instructions": 101,
+      "errors": []
+    },
+    {
+      "name": "NG_FLASH_LOESCHEN",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "GETTICKCOUNT",
+      "status": "ok",
+      "instructions": 8,
+      "errors": []
+    }
+  ]
+}

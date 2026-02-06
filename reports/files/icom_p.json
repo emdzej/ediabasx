@@ -1,0 +1,702 @@
+{
+  "file": "icom_p.prg",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "STATUS_BATT_IGNITION",
+      "status": "error",
+      "instructions": 22,
+      "errors": [
+        {
+          "offset": 1196,
+          "opcode": 114,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_TYP_VER",
+      "status": "ok",
+      "instructions": 49,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_KL_15",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 1845,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_TRIGGER_AUTOASSIGN_BROADCAST",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 3555,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_BEEP",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_MELODY",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_HSFZ_ENABLE",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 7985,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_HSFZ_DISABLE",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 8711,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_HSFZ_GET_STATUS",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 9436,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_HSFZ_GET_STATUS_NEU",
+      "status": "error",
+      "instructions": 90,
+      "errors": [
+        {
+          "offset": 11456,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_HSFZ_GET_STATUS_DETAIL",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 16939,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_GET_CANBRIDGE_STATUS",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 22700,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_SET_CANBRIDGE_STATUS",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RESTART_HSFZ_STR",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_RESTART_HSFZ_RRR",
+      "status": "error",
+      "instructions": 40,
+      "errors": [
+        {
+          "offset": 26580,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_CREATE_ECU_ROUTES_STR",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CREATE_ECU_ROUTES_RRR",
+      "status": "error",
+      "instructions": 73,
+      "errors": [
+        {
+          "offset": 31466,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_SWITCH_ACT_LINE_STR",
+      "status": "ok",
+      "instructions": 35,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SWITCH_ACT_LINE_STP",
+      "status": "error",
+      "instructions": 40,
+      "errors": [
+        {
+          "offset": 36612,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_SWITCH_ACT_LINE_RRR",
+      "status": "error",
+      "instructions": 40,
+      "errors": [
+        {
+          "offset": 37116,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_SWITCH_LINK_STR",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SWITCH_LINK_STP",
+      "status": "error",
+      "instructions": 40,
+      "errors": [
+        {
+          "offset": 39527,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_SWITCH_LINK_RRR",
+      "status": "error",
+      "instructions": 40,
+      "errors": [
+        {
+          "offset": 40031,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_INQ_HSFZ_GW_STR",
+      "status": "ok",
+      "instructions": 73,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_INQ_HSFZ_GW_STP",
+      "status": "error",
+      "instructions": 40,
+      "errors": [
+        {
+          "offset": 42481,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_INQ_HSFZ_GW_RRR",
+      "status": "error",
+      "instructions": 40,
+      "errors": [
+        {
+          "offset": 42985,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_CHECK_URL_STR",
+      "status": "ok",
+      "instructions": 73,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CHECK_URL_STP",
+      "status": "error",
+      "instructions": 40,
+      "errors": [
+        {
+          "offset": 47210,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_CHECK_URL_RRR",
+      "status": "error",
+      "instructions": 67,
+      "errors": [
+        {
+          "offset": 47824,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_PIN_CONTROL_STR",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_PIN_CONTROL_RRR",
+      "status": "error",
+      "instructions": 31,
+      "errors": [
+        {
+          "offset": 51269,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_GET_VIN",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 58238,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_SET_VIN",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VERIFY_VIN",
+      "status": "ok",
+      "instructions": 105,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_VIN_XML_ERASE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GET_VERSIONS",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 63519,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_GET_CONFIG",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 64890,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_GET_CONFIG_DETAIL",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_START_NET_CONFIG",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_UPDATE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STATUS_GET_IWCONFIG",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 71175,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_MANUAL_ROAMING",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 75476,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_TRACEON",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 76059,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_TRACEOFF",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 76633,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STATUS_TRACE_STATE",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 77207,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_TRACE_BOOT_ENABLE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TRACE_GET_CONFIG",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 81086,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_DCAN_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_KL15_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ETHERNET_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_UDP_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ARP_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LS_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_WLANPING_TRACE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_IFHENET_TRACE",
+      "status": "ok",
+      "instructions": 26,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_TARGET",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_FILENAMEBASE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_REMOTEURL",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_DCANSIZE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_ETHERNETSIZE",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_RETRIEVE",
+      "status": "ok",
+      "instructions": 40,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_RETRIEVE_ALL",
+      "status": "ok",
+      "instructions": 40,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TRACE_ERASE",
+      "status": "ok",
+      "instructions": 162,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DEBUGMODE",
+      "status": "ok",
+      "instructions": 294,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DEBUGMODE_GETFILES",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_DEBUGMODE_ERASEFILES",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 125448,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_REBOOT",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 126487,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_SWITCH_OFF",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_CONSTANT_CURRENT",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CONSTANT_CURRENT",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 129796,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_SEND_WAKE_UP",
+      "status": "ok",
+      "instructions": 287,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ON_SET_CAN_ID",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SET_CAN_IDLE_TIME",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ENABLE_ACC_WAKEUP",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_WAKEUP_TIMER",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_FEHLERSPEICHER_LESEN",
+      "status": "error",
+      "instructions": 134,
+      "errors": [
+        {
+          "offset": 146574,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_FEHLERSPEICHER_LOESCHEN",
+      "status": "error",
+      "instructions": 46,
+      "errors": [
+        {
+          "offset": 151230,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "STEUERN_WAKE_ON_EX_TRIGGER",
+      "status": "ok",
+      "instructions": 196,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_WAKE_ON_EX_TRIGGER_FREQ",
+      "status": "ok",
+      "instructions": 95,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SEND_EX_TRIGGER",
+      "status": "ok",
+      "instructions": 95,
+      "errors": []
+    }
+  ]
+}

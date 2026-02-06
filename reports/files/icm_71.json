@@ -1,0 +1,600 @@
+{
+  "file": "icm_71.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_LESEN",
+      "status": "ok",
+      "instructions": 207,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSEPROTOKOLL_SETZEN",
+      "status": "ok",
+      "instructions": 52,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 149,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 107,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 83,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 68,
+      "errors": []
+    },
+    {
+      "name": "NORMALER_DATENVERKEHR",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 76,
+      "errors": []
+    },
+    {
+      "name": "FS_SPERREN",
+      "status": "ok",
+      "instructions": 71,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "IS_LESEN_DETAIL",
+      "status": "ok",
+      "instructions": 156,
+      "errors": []
+    },
+    {
+      "name": "IS_LOESCHEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_MODE",
+      "status": "ok",
+      "instructions": 82,
+      "errors": []
+    },
+    {
+      "name": "PRUEFCODE_LESEN",
+      "status": "ok",
+      "instructions": 211,
+      "errors": []
+    },
+    {
+      "name": "C_CI_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "C_FG_LESEN",
+      "status": "ok",
+      "instructions": 110,
+      "errors": []
+    },
+    {
+      "name": "C_FG_SCHREIBEN",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "C_FG_AUFTRAG",
+      "status": "ok",
+      "instructions": 204,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_LESEN",
+      "status": "ok",
+      "instructions": 104,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_SCHREIBEN",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "C_AEI_AUFTRAG",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "C_C_LESEN",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "C_C_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "C_C_AUFTRAG",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "SERIENNUMMER_LESEN",
+      "status": "ok",
+      "instructions": 567,
+      "errors": []
+    },
+    {
+      "name": "ZIF_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "ZIF_BACKUP_LESEN",
+      "status": "ok",
+      "instructions": 513,
+      "errors": []
+    },
+    {
+      "name": "PHYSIKALISCHE_HW_NR_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "HARDWARE_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 481,
+      "errors": []
+    },
+    {
+      "name": "DATEN_REFERENZ_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_ZEITEN_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_BLOCKLAENGE_LESEN",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_ZUFALLSZAHL_LESEN",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "AUTHENTISIERUNG_START",
+      "status": "ok",
+      "instructions": 55,
+      "errors": []
+    },
+    {
+      "name": "FLASH_PROGRAMMIER_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 190,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SIGNATUR_PRUEFEN",
+      "status": "ok",
+      "instructions": 109,
+      "errors": []
+    },
+    {
+      "name": "STEUERGERAETE_RESET",
+      "status": "ok",
+      "instructions": 189,
+      "errors": []
+    },
+    {
+      "name": "FLASH_LOESCHEN",
+      "status": "ok",
+      "instructions": 59,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ADRESSE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN",
+      "status": "ok",
+      "instructions": 47,
+      "errors": []
+    },
+    {
+      "name": "FLASH_SCHREIBEN_ENDE",
+      "status": "ok",
+      "instructions": 51,
+      "errors": []
+    },
+    {
+      "name": "AIF_LESEN",
+      "status": "ok",
+      "instructions": 143,
+      "errors": []
+    },
+    {
+      "name": "AIF_SCHREIBEN",
+      "status": "ok",
+      "instructions": 239,
+      "errors": []
+    },
+    {
+      "name": "C_CHECKSUMME",
+      "status": "ok",
+      "instructions": 53,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SZL",
+      "status": "ok",
+      "instructions": 215,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SUMMENLENKWINKEL",
+      "status": "ok",
+      "instructions": 163,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FAHRERLENKWINKEL",
+      "status": "ok",
+      "instructions": 169,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SG_STATE",
+      "status": "ok",
+      "instructions": 169,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SG_WERK",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "STATUS_QMVH_ZFM_FS_I",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_QMVH_ZFM_ANTEUERUNG",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STATUS_QMVH_ZFM_ZAKT",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STATUS_QMVH_ZFM_SOLL_IST_MOMENT",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_QES_FS_I",
+      "status": "ok",
+      "instructions": 225,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_QES_AB_QMV",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_ZAKT_ABLEN",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_ZEF_FS",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_ZIF_DK_VQ",
+      "status": "ok",
+      "instructions": 171,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_ZIF_DK_FQ",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_ZIF_DK_RL",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_ZIF_DK_SQ",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_ZIF_DK_RQ",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_QIS_DK_VQ",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_QIS_DK_FQ",
+      "status": "ok",
+      "instructions": 161,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_QIS_DK_SQ",
+      "status": "ok",
+      "instructions": 157,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ZFM_QIS_DK_RQ",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "START_AL_LW_CODIERUNG_INIT",
+      "status": "ok",
+      "instructions": 242,
+      "errors": []
+    },
+    {
+      "name": "START_ADAPTIVDATEN_ABGLEICH",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "START_ADAPTIVDATEN_WERKSMODUS",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "START_ADAPTIVDATEN_RUECKSETZEN",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "START_ADAPTIVDATEN_OFFSET_LERNEN",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADAPTIVDATEN_ABGLEICH",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADAPTIVDATEN_WERKSMODUS",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADAPTIVDATEN_RUECKSETZEN",
+      "status": "ok",
+      "instructions": 165,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ADAPTIVDATEN_SETZEN",
+      "status": "ok",
+      "instructions": 35,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADAPTIVDATEN_LESEN",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ADAPTIVDATEN_PU_LESEN",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ECO_VENTIL",
+      "status": "ok",
+      "instructions": 63,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SERVO_VENTIL",
+      "status": "ok",
+      "instructions": 63,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ECO_VENTIL",
+      "status": "ok",
+      "instructions": 172,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SERVO_VENTIL",
+      "status": "ok",
+      "instructions": 172,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AL_WINKELWERTE",
+      "status": "ok",
+      "instructions": 169,
+      "errors": []
+    },
+    {
+      "name": "START_AL_MLW_RUECKSETZEN",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "START_AL_MLWOFFSET_SETZEN",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AL_INITMODE",
+      "status": "ok",
+      "instructions": 35,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AL_INITMODE",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AL_MLW_INIT",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AL_MLWOFFSET_SETZEN",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AL_ICM_VERBUND",
+      "status": "ok",
+      "instructions": 167,
+      "errors": []
+    },
+    {
+      "name": "STATUS_AL_CHECKCONTROL",
+      "status": "ok",
+      "instructions": 155,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_AL_SPANNUNGSVERSORGUNG",
+      "status": "ok",
+      "instructions": 28,
+      "errors": []
+    },
+    {
+      "name": "STATUS_FN_AL",
+      "status": "ok",
+      "instructions": 151,
+      "errors": []
+    },
+    {
+      "name": "START_MODUS_ROLLENPRUEFSTAND",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STOP_MODUS_ROLLENPRUEFSTAND",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ROLLENPRUEFSTAND",
+      "status": "ok",
+      "instructions": 153,
+      "errors": []
+    }
+  ]
+}

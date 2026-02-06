@@ -1,0 +1,48 @@
+{
+  "file": "C_EHC.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "C_C_AUFTRAG",
+      "status": "ok",
+      "instructions": 344,
+      "errors": []
+    },
+    {
+      "name": "C_C_LESEN",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    },
+    {
+      "name": "C_ABGL_AUFTRAG",
+      "status": "ok",
+      "instructions": 317,
+      "errors": []
+    },
+    {
+      "name": "C_ABGL_LESEN",
+      "status": "ok",
+      "instructions": 25,
+      "errors": []
+    }
+  ]
+}

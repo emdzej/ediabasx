@@ -1,0 +1,264 @@
+{
+  "file": "KOMBI39C.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 191,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_LESEN",
+      "status": "ok",
+      "instructions": 113,
+      "errors": []
+    },
+    {
+      "name": "PRUEFSTEMPEL_SCHREIBEN",
+      "status": "ok",
+      "instructions": 98,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 99,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_AUFRECHT",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "SELBSTTEST",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_SELBSTTEST",
+      "status": "ok",
+      "instructions": 69,
+      "errors": []
+    },
+    {
+      "name": "SOFTWARE_RESET",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "SIA_RESET",
+      "status": "ok",
+      "instructions": 119,
+      "errors": []
+    },
+    {
+      "name": "GWSZ_RESET",
+      "status": "ok",
+      "instructions": 91,
+      "errors": []
+    },
+    {
+      "name": "AIF_GWSZ_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "GWSZ_MINUS_OFFSET_LESEN",
+      "status": "ok",
+      "instructions": 85,
+      "errors": []
+    },
+    {
+      "name": "AIF_FG_NR_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "AIF_SIA_DATEN_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "AIF_ZENTRALCODE_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "AIF_DATUM_FZ_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "PROD_DATUM_LESEN",
+      "status": "ok",
+      "instructions": 221,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_ANZEIGE",
+      "status": "ok",
+      "instructions": 94,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_TACHO_A",
+      "status": "ok",
+      "instructions": 66,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_EISWARNUNG",
+      "status": "ok",
+      "instructions": 74,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LICHTSUMMER",
+      "status": "ok",
+      "instructions": 74,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_GONG3",
+      "status": "ok",
+      "instructions": 74,
+      "errors": []
+    },
+    {
+      "name": "STEUERN_LEUCHTE",
+      "status": "ok",
+      "instructions": 224,
+      "errors": []
+    },
+    {
+      "name": "STATUS_IO_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "STATUS_ANALOG_LESEN",
+      "status": "ok",
+      "instructions": 90,
+      "errors": []
+    },
+    {
+      "name": "STATUS_TANKINHALT_LESEN",
+      "status": "ok",
+      "instructions": 99,
+      "errors": []
+    },
+    {
+      "name": "RAM_LESEN",
+      "status": "ok",
+      "instructions": 101,
+      "errors": []
+    },
+    {
+      "name": "EEPROM_LESEN",
+      "status": "ok",
+      "instructions": 65,
+      "errors": []
+    },
+    {
+      "name": "DPRAM_LESEN",
+      "status": "ok",
+      "instructions": 88,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_MOTORDREHZAHL_LESEN",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_KUEHLMITTELTEMP_LESEN",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_GETRIEBEINFO_LESEN",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_EINSPRITZMENGE_LESEN",
+      "status": "ok",
+      "instructions": 93,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_SIGNALE_LESEN",
+      "status": "ok",
+      "instructions": 111,
+      "errors": []
+    },
+    {
+      "name": "STATUS_CAN_FUNKTION_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "STATUS_SIA_FINISH",
+      "status": "ok",
+      "instructions": 136,
+      "errors": []
+    },
+    {
+      "name": "C_ZCS_LESEN",
+      "status": "ok",
+      "instructions": 87,
+      "errors": []
+    },
+    {
+      "name": "CLOCK_ADJUSTMENT_LESEN",
+      "status": "ok",
+      "instructions": 111,
+      "errors": []
+    }
+  ]
+}

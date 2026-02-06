@@ -1,0 +1,36 @@
+{
+  "file": "FS_CHECK.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 42,
+      "errors": []
+    },
+    {
+      "name": "_FS_CHECK",
+      "status": "ok",
+      "instructions": 133,
+      "errors": []
+    },
+    {
+      "name": "_FS_CHECK_FEM",
+      "status": "ok",
+      "instructions": 1685,
+      "errors": []
+    },
+    {
+      "name": "_FS_CHECK_REM",
+      "status": "ok",
+      "instructions": 1375,
+      "errors": []
+    }
+  ]
+}

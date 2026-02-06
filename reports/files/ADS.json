@@ -1,0 +1,66 @@
+{
+  "file": "ADS.PRG",
+  "status": "errors",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 31,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 11,
+      "errors": []
+    },
+    {
+      "name": "POWER_BREAK",
+      "status": "error",
+      "instructions": 51,
+      "errors": [
+        {
+          "offset": 691,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "POWER_OFF",
+      "status": "error",
+      "instructions": 51,
+      "errors": [
+        {
+          "offset": 1114,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "POWER_ON",
+      "status": "error",
+      "instructions": 51,
+      "errors": [
+        {
+          "offset": 1537,
+          "opcode": 117,
+          "message": "Unknown opcode"
+        }
+      ]
+    },
+    {
+      "name": "LOOPTEST",
+      "status": "error",
+      "instructions": 1,
+      "errors": [
+        {
+          "offset": 1759,
+          "opcode": 115,
+          "message": "Unknown opcode"
+        }
+      ]
+    }
+  ]
+}

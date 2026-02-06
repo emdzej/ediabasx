@@ -1,0 +1,72 @@
+{
+  "file": "NAV_JAP.prg",
+  "status": "ok",
+  "jobs": [
+    {
+      "name": "INFO",
+      "status": "ok",
+      "instructions": 36,
+      "errors": []
+    },
+    {
+      "name": "INITIALISIERUNG",
+      "status": "ok",
+      "instructions": 144,
+      "errors": []
+    },
+    {
+      "name": "IDENT",
+      "status": "ok",
+      "instructions": 148,
+      "errors": []
+    },
+    {
+      "name": "FS_LESEN",
+      "status": "ok",
+      "instructions": 154,
+      "errors": []
+    },
+    {
+      "name": "FS_LOESCHEN",
+      "status": "ok",
+      "instructions": 136,
+      "errors": []
+    },
+    {
+      "name": "DIAGNOSE_ENDE",
+      "status": "ok",
+      "instructions": 136,
+      "errors": []
+    },
+    {
+      "name": "SYSTEM_STATUS_LESEN",
+      "status": "ok",
+      "instructions": 136,
+      "errors": []
+    },
+    {
+      "name": "SELBSTTEST",
+      "status": "ok",
+      "instructions": 136,
+      "errors": []
+    },
+    {
+      "name": "ENERGIESPARMODE",
+      "status": "ok",
+      "instructions": 78,
+      "errors": []
+    },
+    {
+      "name": "SLEEP_MODE",
+      "status": "ok",
+      "instructions": 191,
+      "errors": []
+    },
+    {
+      "name": "SYSTEM_RESET",
+      "status": "ok",
+      "instructions": 136,
+      "errors": []
+    }
+  ]
+}
