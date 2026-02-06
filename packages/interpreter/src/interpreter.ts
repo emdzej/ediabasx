@@ -60,7 +60,6 @@ import {
   fsub,
   fmul,
   fdiv,
-  fsetImm,
   fcomp,
   a2flt,
   flt2a,
@@ -120,6 +119,7 @@ import {
   xsireset,
   xopen,
   xclose,
+  xbatt,
   xcloseex,
   xswitch,
   xsendex,
@@ -238,6 +238,7 @@ type InterpreterState = {
   timerFlag: boolean;
   tokenSeparator: string;
   tokenIndex: number;
+  floatPrecision: number;
   tableState: TableState;
   communicationInterface?: CommunicationInterface;
   fileSystem?: FileSystem;
@@ -820,6 +821,7 @@ export class Interpreter {
       timerFlag: false,
       tokenSeparator: "",
       tokenIndex: 0,
+      floatPrecision: 4,
       tableState,
       communicationInterface: options.communicationInterface,
       fileSystem: options.fileSystem,
@@ -1223,7 +1225,7 @@ export class Interpreter {
         ergs(state.registers, state.results, name, requireStringRegister(arg1));
       },
       0x3a: async (state, arg0, arg1) => {
-        a2flt(state.registers, state.flags, requireFloatRegister(arg0), requireStringRegister(arg1));
+        a2flt(state.registers, requireFloatRegister(arg0), requireStringRegister(arg1));
       },
       0x3b: async (state, arg0, arg1) => {
         fadd(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
@@ -1402,9 +1404,9 @@ export class Interpreter {
       0x6d: async (state, arg0) => {
         gettime(state.registers, requireDateTimeDestination(arg0));
       },
-      // 0x6e: xbatt - get battery voltage (stub: returns 12.0V)
+      // 0x6e: xbatt - get battery voltage
       0x6e: async (state, arg0) => {
-        setFloatValue(state.registers, requireFloatRegister(arg0), 12.0);
+        await xbatt(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
       },
       // 0x6f: tosp - to stack pointer (no-op stub)
       0x6f: async () => {
@@ -1509,11 +1511,10 @@ export class Interpreter {
         setStringValue(state.registers, requireStringRegister(arg0), "");
       },
       0x87: async (state, arg0, arg1) => {
-        flt2a(state.registers, requireStringRegister(arg0), requireFloatRegister(arg1));
+        flt2a(state.registers, requireStringRegister(arg0), requireFloatRegister(arg1), state.floatPrecision);
       },
-      0x88: async (state, arg0, arg1) => {
-        const value = resolveFloatValue(state.registers, arg1);
-        fsetImm(state.registers, requireFloatRegister(arg0), value);
+      0x88: async (state, arg0) => {
+        state.floatPrecision = resolveIntValue(state.registers, arg0);
       },
       // 0x89: cfgig - config get int (stub: returns 0)
       0x89: async (state, arg0) => {
@@ -1623,7 +1624,7 @@ export class Interpreter {
       0x9b: async (state, arg0, arg1) => {
         const value = getFloatValue(state.registers, requireFloatRegister(arg1));
         const buffer = new ArrayBuffer(4);
-        new DataView(buffer).setFloat32(0, value, false); // big-endian
+        new DataView(buffer).setFloat32(0, value, true); // little-endian
         const bytes = new Uint8Array(buffer);
         setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
       },
@@ -1631,7 +1632,7 @@ export class Interpreter {
       0x9c: async (state, arg0, arg1) => {
         const value = getFloatValue(state.registers, requireFloatRegister(arg1));
         const buffer = new ArrayBuffer(8);
-        new DataView(buffer).setFloat64(0, value, false); // big-endian
+        new DataView(buffer).setFloat64(0, value, true); // little-endian
         const bytes = new Uint8Array(buffer);
         setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
       },
@@ -1643,7 +1644,7 @@ export class Interpreter {
         for (let i = 0; i < Math.min(4, bytes.length); i++) {
           view.setUint8(i, bytes[i]);
         }
-        setFloatValue(state.registers, requireFloatRegister(arg0), view.getFloat32(0, false));
+        setFloatValue(state.registers, requireFloatRegister(arg0), view.getFloat32(0, true));
       },
       // 0x9e: y82flt - 8-byte Y to float
       0x9e: async (state, arg0, arg1) => {
@@ -1653,7 +1654,7 @@ export class Interpreter {
         for (let i = 0; i < Math.min(8, bytes.length); i++) {
           view.setUint8(i, bytes[i]);
         }
-        setFloatValue(state.registers, requireFloatRegister(arg0), view.getFloat64(0, false));
+        setFloatValue(state.registers, requireFloatRegister(arg0), view.getFloat64(0, true));
       },
       0x9f: async (state, arg0) => {
         const id = resolveIntValue(state.registers, arg0);

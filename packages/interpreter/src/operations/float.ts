@@ -53,19 +53,13 @@ function updateFloatFlags(flags: Flags, value: number): void {
  * Update flags based on float comparison.
  */
 function updateFloatCompareFlags(flags: Flags, left: number, right: number): void {
-  // Handle NaN cases
-  if (Number.isNaN(left) || Number.isNaN(right)) {
-    flags.z = false;
-    flags.s = false;
-    flags.c = true; // Unordered
-    flags.v = true;
-    return;
-  }
-
   const diff = left - right;
-  flags.z = diff === 0;
-  flags.s = diff < 0;
-  flags.c = left < right;
+  if (!Number.isFinite(diff)) {
+    flags.c = true;
+  }
+  // ReSharper disable once CompareOfFloatsByEqualityOperator
+  flags.z = left === right;
+  flags.s = left < right;
   flags.v = false;
 }
 
@@ -96,7 +90,6 @@ export function fadd(
   const srcValue = getFloatValue(registers, source);
   const result = destValue + srcValue;
   setFloatValue(registers, destination, result);
-  updateFloatFlags(flags, result);
 }
 
 /**
@@ -126,7 +119,6 @@ export function fsub(
   const srcValue = getFloatValue(registers, source);
   const result = destValue - srcValue;
   setFloatValue(registers, destination, result);
-  updateFloatFlags(flags, result);
 }
 
 /**
@@ -156,7 +148,6 @@ export function fmul(
   const srcValue = getFloatValue(registers, source);
   const result = destValue * srcValue;
   setFloatValue(registers, destination, result);
-  updateFloatFlags(flags, result);
 }
 
 /**
@@ -187,7 +178,6 @@ export function fdiv(
   const srcValue = getFloatValue(registers, source);
   const result = destValue / srcValue;
   setFloatValue(registers, destination, result);
-  updateFloatFlags(flags, result);
 }
 
 /**
@@ -301,59 +291,13 @@ export function ftoi(
   source: FloatRegisterRef
 ): void {
   const value = getFloatValue(registers, source);
-  
-  // Handle special values
-  if (!Number.isFinite(value)) {
-    setIntValue(registers, destination, 0);
-    flags.z = true;
-    flags.v = true;
-    flags.c = false;
-    flags.s = false;
-    return;
-  }
+  const truncated = Number.isFinite(value) ? Math.trunc(value) : 0;
+  const raw = truncated >>> 0;
 
-  // Truncate toward zero
-  const truncated = Math.trunc(value);
-  
-  // Check for overflow based on register type
-  let maxVal: number;
-  let minVal: number;
-  
-  switch (destination.kind) {
-    case "B":
-    case "A":
-      maxVal = 0xff;
-      minVal = 0;
-      break;
-    case "I":
-      maxVal = 0xffff;
-      minVal = 0;
-      break;
-    case "L":
-      maxVal = 0xffffffff;
-      minVal = -2147483648; // Signed 32-bit min
-      break;
-    default:
-      maxVal = 0xffffffff;
-      minVal = 0;
-  }
-
-  let result = truncated;
-  let overflow = false;
-  
-  if (truncated > maxVal) {
-    result = maxVal;
-    overflow = true;
-  } else if (truncated < minVal) {
-    result = minVal;
-    overflow = true;
-  }
-  
-  setIntValue(registers, destination, result);
-  flags.z = result === 0;
-  flags.v = overflow;
-  flags.c = false;
-  flags.s = result < 0;
+  setIntValue(registers, destination, raw);
+  flags.v = false;
+  flags.z = raw === 0;
+  flags.s = (raw & 0x80000000) !== 0;
 }
 
 /**
@@ -377,14 +321,25 @@ export function itof(
   destination: FloatRegisterRef,
   source: IntRegisterRef
 ): void {
-  let value = getIntValue(registers, source);
-  
-  // For L registers, treat as signed 32-bit
-  if (source.kind === "L") {
-    value = value | 0; // Convert to signed
+  const value = getIntValue(registers, source);
+  let signedValue: number;
+
+  switch (source.kind) {
+    case "B":
+    case "A":
+      signedValue = value & 0x80 ? value - 0x100 : value;
+      break;
+    case "I":
+      signedValue = value & 0x8000 ? value - 0x10000 : value;
+      break;
+    case "L":
+      signedValue = value & 0x80000000 ? value - 0x100000000 : value;
+      break;
+    default:
+      signedValue = value;
   }
-  
-  setFloatValue(registers, destination, value);
+
+  setFloatValue(registers, destination, signedValue);
 }
 
 /**
@@ -701,6 +656,38 @@ export function fsetImm(
   setFloatValue(registers, destination, value);
 }
 
+function stringToFloat(input: string): { result: number; valid: boolean } {
+  let valid = false;
+  let result = 0;
+
+  const asciiOnly = [...input].every((char) => char.charCodeAt(0) <= 0x7f);
+  if (!asciiOnly) {
+    return { result, valid };
+  }
+
+  const normalized = input.replace(/,/g, ".").trim();
+  if (normalized.length === 0) {
+    return { result, valid };
+  }
+
+  const parsed = Number(normalized);
+  if (!Number.isNaN(parsed)) {
+    result = parsed;
+    valid = true;
+  }
+
+  return { result, valid };
+}
+
+function roundToSignificantDigits(value: number, digits: number): number {
+  if (value === 0) {
+    return 0;
+  }
+
+  const scale = Math.pow(10, Math.floor(Math.log10(Math.abs(value))) + 1);
+  return scale * Math.round(value / scale * Math.pow(10, digits)) / Math.pow(10, digits);
+}
+
 // Aliases for EdiabasLib compatibility
 /**
  * FCOMP - Float compare (alias for FCMP).
@@ -708,13 +695,43 @@ export function fsetImm(
 export const fcomp = fcmp;
 
 /**
- * A2FLT - ASCII to float (alias for STOF).
+ * A2FLT - ASCII to float.
  */
-export const a2flt = stof;
+export function a2flt(
+  registers: RegisterSet,
+  destination: FloatRegisterRef,
+  source: StringRegisterRef
+): void {
+  const { result } = stringToFloat(getStringValue(registers, source));
+  setFloatValue(registers, destination, result);
+}
 
 /**
- * FLT2A - Float to ASCII (alias for FTOS).
+ * FLT2A - Float to ASCII.
  */
-export const flt2a = ftos;
+export function flt2a(
+  registers: RegisterSet,
+  destination: StringRegisterRef,
+  source: FloatRegisterRef,
+  precision: number = 4
+): void {
+  const value = getFloatValue(registers, source);
+  const valueConv = roundToSignificantDigits(value, precision);
+
+  let result = `${valueConv}`;
+  let digitCount = 0;
+  for (let i = 0; i < result.length; i++) {
+    if (result[i] >= "0" && result[i] <= "9") {
+      digitCount++;
+      if (digitCount >= precision) {
+        result = result.slice(0, i + 1);
+        break;
+      }
+    }
+  }
+
+  setStringValue(registers, destination, result);
+}
+
 export const fix2flt = itof;
 export const flt2fix = ftoi;
