@@ -921,25 +921,24 @@ program
       const address = server.address;
 
       let shuttingDown = false;
-      let instance: ReturnType<typeof render> | undefined;
       const stopServer = async () => {
         if (shuttingDown) return;
         shuttingDown = true;
         await server.stop();
       };
 
-      const shutdown = async () => {
-        await stopServer();
-        instance?.unmount();
-      };
-
-      instance = render(
+      const instance = render(
         React.createElement(SimulatorApp, {
           host: address.host,
           port: address.port,
           onExit: stopServer,
         })
       );
+
+      const shutdown = async () => {
+        await stopServer();
+        instance.unmount();
+      };
 
       process.on("SIGINT", () => {
         void shutdown();
