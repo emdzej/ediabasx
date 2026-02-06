@@ -1,32 +1,23 @@
 ## Summary
 
-This PR adds comprehensive documentation for the ediabas project, addressing issue #32.
+Adds the gateway client, CLI commands, and run integration for remote EDIABAS communication over JSON-RPC.
 
 ## Changes
 
-### README.md (new)
-
-- **Project overview** - TypeScript port of BMW EdiabasLib for vehicle diagnostics
-- **Installation instructions** - git clone, pnpm install, pnpm build
-- **CLI usage with real examples** - All commands tested against `test-data/d_motor.prg`:
-  - `ediabas parse` - Full JSON output
-  - `ediabas info` - Quick file summary
-  - `ediabas jobs` - List jobs with args/results
-  - `ediabas tables` - List tables
-  - `ediabas disasm` - Disassemble bytecode
-- **Package structure** - Explains all packages and their purposes
-- **Development section** - pnpm turbo commands for build/test/typecheck
-- **Technical details** - PRG/GRP format and XOR decryption
-
-### AGENTS.md
-
-- Added documentation section with note to keep README updated when adding new features or CLI commands
+- Added `GatewayClient` (JSON-RPC over TCP) with tests.
+- Extended gateway server to support `receive` and added coverage.
+- Added `ediabas gateway` CLI command to start the gateway server.
+- Integrated `--gateway host:port` option into `ediabas run`.
+- Updated interface registry to include the gateway interface metadata.
 
 ## Testing
 
-- All CLI commands were run against `test-data/d_motor.prg` to capture real output for examples
-- Examples in README reflect actual command behavior
+- `pnpm test` (interfaces package)
 
 ## Closes
 
-Closes #32
+Closes #126
+Closes #127
+Closes #128
+Closes #129
+Closes #130

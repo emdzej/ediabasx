@@ -1,0 +1,23 @@
+{
+  "name": "@ediabas/interfaces",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
+  },
+  "dependencies": {
+    "@ediabas/interface-base": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.1"
+  }
+}

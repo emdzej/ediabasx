@@ -8,6 +8,9 @@ import React from "react";
 import { disassemble, disassembleJob, formatInstruction, parsePrg } from "@ediabas/best-parser";
 import type { PrgBinaryJob, PrgFile, PrgJob, PrgTable } from "@ediabas/best-parser";
 import type { EdiabasJobResult } from "@ediabas/ediabas";
+import { GatewayClient, GatewayServer, listInterfaces } from "@ediabas/interfaces";
+import type { InterfaceMetadata, InterfaceOptionMetadata } from "@ediabas/interfaces";
+import { SimulationInterface } from "@ediabas/interface-base";
 import { App } from "./tui/App.js";
 
 type OutputFormat = "json" | "table" | "human";
@@ -16,6 +19,8 @@ type OutputOptions = {
   json?: boolean;
   table?: boolean;
 };
+
+const DEFAULT_GATEWAY_PORT = 6801;
 
 const program = new Command();
 
@@ -51,8 +56,98 @@ function printJson(value: unknown): void {
   process.stdout.write(`${jsonStringify(value)}\n`);
 }
 
+function parseGatewayAddress(value: string): { host: string; port: number } {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error("Gateway address cannot be empty");
+  }
+
+  let host = trimmed;
+  let port = DEFAULT_GATEWAY_PORT;
+
+  if (trimmed.startsWith("[")) {
+    const endIndex = trimmed.indexOf("]");
+    if (endIndex < 0) {
+      throw new Error("Invalid gateway address format");
+    }
+    host = trimmed.slice(1, endIndex);
+    const rest = trimmed.slice(endIndex + 1);
+    if (rest.startsWith(":")) {
+      port = Number.parseInt(rest.slice(1), 10);
+    }
+  } else if (trimmed.includes(":")) {
+    const parts = trimmed.split(":");
+    const portPart = parts.pop();
+    host = parts.join(":");
+    if (portPart && portPart.length > 0) {
+      port = Number.parseInt(portPart, 10);
+    }
+  }
+
+  if (!host) {
+    throw new Error("Gateway host is required");
+  }
+  if (!Number.isFinite(port) || port <= 0) {
+    throw new Error("Gateway port must be a positive number");
+  }
+
+  return { host, port };
+}
+
 function printHeading(label: string): void {
   process.stdout.write(`${chalk.bold.cyan(label)}\n`);
+}
+
+function formatInterfaceOption(option: InterfaceOptionMetadata, widths: { name: number; type: number }): string {
+  const name = option.name.padEnd(widths.name);
+  const type = option.type.padEnd(widths.type);
+  const required = option.required ? chalk.red("required") : "optional";
+  const defaultValue = option.default !== undefined ? String(option.default) : "-";
+  const values = option.values ? ` [${option.values.join("|")}]` : "";
+  return `  ${chalk.yellow(name)}  ${chalk.blue(type)}  ${required}  ${chalk.gray(defaultValue)}  ${option.description}${values}`;
+}
+
+function printInterfacesHuman(interfaces: InterfaceMetadata[]): void {
+  printHeading("Interfaces");
+
+  if (interfaces.length === 0) {
+    process.stdout.write("No interfaces registered.\n");
+    return;
+  }
+
+  for (const entry of interfaces) {
+    process.stdout.write(`${chalk.bold(entry.name)}\n`);
+    process.stdout.write(`  ${entry.description}\n`);
+
+    if (entry.options && entry.options.length > 0) {
+      const widths = {
+        name: Math.max(4, ...entry.options.map((option) => option.name.length)),
+        type: Math.max(4, ...entry.options.map((option) => option.type.length))
+      };
+
+      process.stdout.write(`  ${chalk.bold("Options:")}\n`);
+      process.stdout.write(`  ${chalk.gray("Name".padEnd(widths.name))}  ${chalk.gray("Type".padEnd(widths.type))}  ${chalk.gray("Required")}  ${chalk.gray("Default")}  ${chalk.gray("Description")}\n`);
+      process.stdout.write(
+        `  ${chalk.gray("─".repeat(widths.name))}  ${chalk.gray("─".repeat(widths.type))}  ${chalk.gray("─".repeat(8))}  ${chalk.gray("─".repeat(7))}  ${chalk.gray("─".repeat(11))}\n`
+      );
+
+      for (const option of entry.options) {
+        process.stdout.write(`${formatInterfaceOption(option, widths)}\n`);
+      }
+    }
+
+    process.stdout.write("\n");
+  }
+}
+
+function printInterfacesTable(interfaces: InterfaceMetadata[]): void {
+  console.table(
+    interfaces.map((entry) => ({
+      name: entry.name,
+      description: entry.description,
+      options: entry.options?.length ?? 0
+    }))
+  );
 }
 
 function printInfoSummary(filePath: string, prg: PrgFile): void {
@@ -325,6 +420,64 @@ function handleError(error: unknown): void {
 }
 
 program
+  .command("interfaces")
+  .option("--json", "output JSON")
+  .option("--table", "output as table")
+  .description("List available communication interfaces")
+  .action((options: OutputOptions) => {
+    try {
+      const interfaces = listInterfaces();
+      const format = resolveOutputFormat(options, "human");
+
+      if (format === "json") {
+        printJson(interfaces);
+        return;
+      }
+
+      if (format === "table") {
+        printInterfacesTable(interfaces);
+        return;
+      }
+
+      printInterfacesHuman(interfaces);
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
+program
+  .command("gateway")
+  .option("--host <host>", "host to bind the gateway server", "127.0.0.1")
+  .option("--port <port>", "port to bind the gateway server", "6801")
+  .option("-i, --interface <name>", "interface to expose", "simulation")
+  .description("Start the JSON-RPC gateway server")
+  .action(async (options: { host?: string; port?: string; interface?: string }) => {
+    try {
+      const host = options.host ?? "127.0.0.1";
+      const port = Number.parseInt(options.port ?? "6801", 10);
+      if (!Number.isFinite(port) || port <= 0) {
+        throw new Error("Port must be a positive number");
+      }
+
+      const interfaceName = options.interface ?? "simulation";
+      let iface: SimulationInterface;
+
+      switch (interfaceName) {
+        case "simulation":
+          iface = new SimulationInterface();
+          break;
+        default:
+          throw new Error(`Interface "${interfaceName}" is not supported yet`);
+      }
+
+      const server = new GatewayServer({ host, port, interface: iface, logger: console });
+      await server.start();
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
+program
   .command("parse")
   .argument("<file>", "PRG/GRP file to parse")
   .option("--json", "output JSON")
@@ -589,6 +742,7 @@ program
   .argument("[params...]", "Job parameters")
   .option("-s, --simulation", "Run in simulation mode (no hardware required)")
   .option("-t, --timeout <ms>", "Communication timeout in milliseconds", "5000")
+  .option("--gateway <host:port>", "Use a remote gateway server")
   .option("--json", "Output results as JSON")
   .option("--results <names>", "Filter specific results (comma-separated)")
   .option("--info", "Show job info instead of executing")
@@ -596,6 +750,7 @@ program
   .action(async (filePath: string, jobName: string, params: string[], options: {
     simulation?: boolean;
     timeout?: string;
+    gateway?: string;
     json?: boolean;
     results?: string;
     info?: boolean;
@@ -651,9 +806,20 @@ program
       }
 
       const timeout = Number.parseInt(options.timeout ?? "5000", 10);
+      const gatewayAddress = options.gateway ? parseGatewayAddress(options.gateway) : undefined;
+
+      if (gatewayAddress && options.simulation) {
+        throw new Error("--gateway cannot be combined with --simulation");
+      }
+
+      const transport = gatewayAddress
+        ? new GatewayClient({ host: gatewayAddress.host, port: gatewayAddress.port })
+        : undefined;
+
       const ediabas = new Ediabas({
         ecuPath,
-        simulation: options.simulation ?? true,
+        transport,
+        simulation: gatewayAddress ? false : options.simulation ?? true,
         timeout: Number.isFinite(timeout) ? timeout : 5000,
         logging: false,
       });
@@ -673,7 +839,19 @@ program
       }
 
       const startTime = Date.now();
-      const results = await ediabas.executeJob(jobName, { params });
+      let results: EdiabasJobResult[] = [];
+
+      try {
+        if (gatewayAddress) {
+          await ediabas.connect();
+        }
+        results = await ediabas.executeJob(jobName, { params });
+      } finally {
+        if (gatewayAddress) {
+          await ediabas.disconnect();
+        }
+      }
+
       const executionTime = Date.now() - startTime;
 
       const filteredResults = resultsFilter
