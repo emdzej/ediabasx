@@ -633,6 +633,46 @@ function formatResultValueHuman(result: EdiabasJobResult): string {
   return String(result.value);
 }
 
+function formatResultValuePlain(result: EdiabasJobResult): string {
+  if (result.value instanceof Uint8Array) {
+    const hex = Array.from(result.value)
+      .map((byte) => byte.toString(16).padStart(2, "0").toUpperCase())
+      .join(" ");
+    if (hex.length > 60) {
+      return `[${result.value.length} bytes] ${hex.slice(0, 57)}...`;
+    }
+    return `[${result.value.length} bytes] ${hex}`;
+  }
+  if (typeof result.value === "number") {
+    return result.value.toString();
+  }
+  if (typeof result.value === "string") {
+    return result.value;
+  }
+  return String(result.value);
+}
+
+function formatResultsPlain(results: EdiabasJobResult[]): string[] {
+  if (results.length === 0) {
+    return ["No results returned."];
+  }
+
+  const nameWidth = Math.max(6, ...results.map((result) => result.name.length));
+  const typeWidth = Math.max(6, ...results.map((result) => result.type.length));
+
+  const lines: string[] = [];
+  lines.push("Results:");
+  lines.push(`  ${"Name".padEnd(nameWidth)}  ${"Type".padEnd(typeWidth)}  Value`);
+  lines.push(`  ${"-".repeat(nameWidth)}  ${"-".repeat(typeWidth)}  ${"-".repeat(30)}`);
+
+  for (const result of results) {
+    const valueStr = formatResultValuePlain(result);
+    lines.push(`  ${result.name.padEnd(nameWidth)}  ${result.type.padEnd(typeWidth)}  ${valueStr}`);
+  }
+
+  return lines;
+}
+
 function formatResultValueJson(result: EdiabasJobResult): EdiabasJobResult["value"] | number[] {
   if (result.value instanceof Uint8Array) {
     return Array.from(result.value);
@@ -655,6 +695,63 @@ function handleError(error: unknown): void {
   const message = error instanceof Error ? error.message : String(error);
   process.stderr.write(`${chalk.red("Error:")} ${message}\n`);
   process.exitCode = 1;
+}
+
+type RunnerExecutionResult = {
+  results: EdiabasJobResult[];
+  executionTimeMs: number;
+};
+
+async function executeRunnerJob(
+  filePath: string,
+  jobName: string,
+  params: string[],
+  options: InterfaceCliOptions & { results?: string }
+): Promise<RunnerExecutionResult> {
+  const { Ediabas } = await import("@ediabas/ediabas");
+  const ecuPath = path.dirname(path.resolve(filePath));
+  const timeout = Number.parseInt(options.timeout ?? "5000", 10);
+  const selection = resolveInterfaceSelection(options, "simulation");
+  const useSimulation = selection.name === "simulation";
+
+  const transport = useSimulation
+    ? undefined
+    : createInterface(selection.name, selection.options);
+
+  const ediabas = new Ediabas({
+    ecuPath,
+    transport,
+    simulation: useSimulation,
+    timeout: Number.isFinite(timeout) ? timeout : 5000,
+    logging: false,
+  });
+
+  await ediabas.loadSgbd(path.basename(filePath));
+
+  const resultsFilter = options.results
+    ? new Set(options.results.split(",").map((value) => value.trim().toUpperCase()))
+    : undefined;
+
+  const startTime = Date.now();
+  let results: EdiabasJobResult[] = [];
+
+  try {
+    if (!useSimulation) {
+      await ediabas.connect();
+    }
+    results = await ediabas.executeJob(jobName, { params });
+  } finally {
+    if (!useSimulation) {
+      await ediabas.disconnect();
+    }
+  }
+
+  const executionTimeMs = Date.now() - startTime;
+  const filteredResults = resultsFilter
+    ? results.filter((result) => resultsFilter.has(result.name.toUpperCase()))
+    : results;
+
+  return { results: filteredResults, executionTimeMs };
 }
 
 program
@@ -1045,7 +1142,18 @@ const runCommand = program
         const selection = resolveInterfaceSelection(options, "simulation");
         const jobs = prg.jobs.length > 0 ? prg.jobs.map((job) => job.name) : prg.binaryJobs.map((job) => job.name);
         const interfaceLabel = selection.name.charAt(0).toUpperCase() + selection.name.slice(1);
-        render(React.createElement(RunnerApp, { filePath, jobs, interfaceLabel }));
+
+        const runInTui = async (job: string) => {
+          try {
+            const { results, executionTimeMs } = await executeRunnerJob(filePath, job, [], options);
+            return { lines: formatResultsPlain(results), executionTimeMs };
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            return { lines: [`Error: ${message}`], error: message };
+          }
+        };
+
+        render(React.createElement(RunnerApp, { filePath, jobs, interfaceLabel, onRun: runInTui }));
         return;
       }
 
