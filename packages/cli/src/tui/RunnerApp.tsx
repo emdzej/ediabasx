@@ -1,20 +1,27 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Box, Text, useApp, useInput } from "ink";
 import path from "node:path";
-import { Ediabas } from "@ediabas/ediabas";
+import type { PrgJob } from "@ediabas/best-parser";
 import type { EdiabasJobResult } from "@ediabas/ediabas";
-import { createInterface } from "@ediabas/interfaces";
-import type { InterfaceOptions } from "@ediabas/interfaces";
 import { useStdoutDimensions } from "./useStdoutDimensions.js";
 import { ItemsPanel } from "./ItemsPanel.js";
 import { ContentPanel } from "./ContentPanel.js";
 
+type RunnerJob = {
+  name: string;
+  args: PrgJob["args"];
+};
+
+type RunnerExecutionResult = {
+  results: EdiabasJobResult[];
+  executionTimeMs: number;
+};
+
 type RunnerAppProps = {
   filePath: string;
-  jobs: string[];
-  interfaceName: string;
-  interfaceOptions: InterfaceOptions;
-  timeoutMs: number;
+  jobs: RunnerJob[];
+  interfaceSummary?: string;
+  onRun?: (jobName: string, params: string[]) => Promise<RunnerExecutionResult>;
 };
 
 type ResultLine = {
@@ -63,11 +70,6 @@ function buildPanelLine(content: string, width: number): string {
   return `│${text}│`;
 }
 
-function formatInterfaceLabel(name: string): string {
-  if (!name) return "Simulation";
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
-
 function formatResultValue(result: EdiabasJobResult): string {
   if (result.value instanceof Uint8Array) {
     const hex = Array.from(result.value)
@@ -112,79 +114,118 @@ function buildResultsTable(results: EdiabasJobResult[]): ResultLine[] {
   return lines;
 }
 
-export function RunnerApp({ filePath, jobs, interfaceName, interfaceOptions, timeoutMs }: RunnerAppProps) {
+function parseArgsInput(value: string): string[] {
+  const trimmed = value.trim();
+  if (!trimmed) return [];
+  if (trimmed.includes(",")) {
+    return trimmed.split(",").map((item) => item.trim()).filter(Boolean);
+  }
+  return trimmed.split(/\s+/).map((item) => item.trim()).filter(Boolean);
+}
+
+export function RunnerApp({ filePath, jobs, interfaceSummary, onRun }: RunnerAppProps) {
   const { exit } = useApp();
   const [width, height] = useStdoutDimensions();
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [focusedPanel, setFocusedPanel] = useState<"items" | "results">("items");
+  const [results, setResults] = useState<ResultLine[]>([]);
+  const [resultsScroll, setResultsScroll] = useState(0);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [results, setResults] = useState<EdiabasJobResult[] | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dialog, setDialog] = useState<null | { job: RunnerJob; value: string }>(null);
 
   const safeWidth = Math.max(40, width || 80);
   const safeHeight = Math.max(12, height || 20);
   const innerWidth = Math.max(0, safeWidth - 2);
 
-  const interfaceHeight = 3;
+  const interfaceLines = useMemo(() => {
+    const lines = [interfaceSummary ?? "Simulation"];
+    if (dialog) {
+      const argNames = dialog.job.args.map((arg) => arg.name).join(", ");
+      const label = argNames ? `Args (${argNames})` : "Args";
+      lines.push(`${label}: ${dialog.value}_`);
+    } else if (statusMessage) {
+      lines.push(statusMessage);
+    }
+    return lines;
+  }, [dialog, interfaceSummary, statusMessage]);
+
+  const interfaceHeight = Math.max(3, interfaceLines.length + 2);
   const contentHeight = Math.max(6, safeHeight - 2);
   const upperHeight = Math.max(3, contentHeight - interfaceHeight);
+  const resultsViewport = Math.max(1, upperHeight - 2);
 
   const itemsPanelWidth = Math.min(Math.max(22, Math.floor(innerWidth * 0.3)), 40) + 1;
   const rightPanelWidth = innerWidth - itemsPanelWidth + 1;
 
-  const shortcuts = "↑/↓ Navigate  Enter Run  q/Ctrl+C Quit";
+  const filteredJobs = useMemo(() => {
+    if (!searchQuery) return jobs;
+    const lower = searchQuery.toLowerCase();
+    return jobs.filter((job) => job.name.toLowerCase().includes(lower));
+  }, [jobs, searchQuery]);
+
+  const selectedJob = filteredJobs[selectedIndex] ?? null;
+  const maxResultsScroll = Math.max(0, results.length - resultsViewport);
+
+  const baseShortcuts = dialog
+    ? "Enter: Submit | Esc: Cancel | Q/Ctrl+C: Quit"
+    : "↑/↓: Navigate | Enter/R: Run | Tab: Panels | /: Search | Q/Ctrl+C: Quit";
+  const shortcuts = dialog
+    ? baseShortcuts
+    : isSearchActive
+      ? `${baseShortcuts} | Search: ${searchQuery}_`
+      : statusMessage
+        ? `${baseShortcuts} | ${statusMessage}`
+        : baseShortcuts;
+
   const topBorder = buildTopBorder(`Ediabas · ${path.basename(filePath)}`, safeWidth);
   const bottomBorder = buildBottomBorder(shortcuts, safeWidth);
 
   useEffect(() => {
-    if (jobs.length === 0) {
+    if (filteredJobs.length === 0) {
       setSelectedIndex(0);
       return;
     }
-    setSelectedIndex((value) => Math.max(0, Math.min(value, jobs.length - 1)));
-  }, [jobs]);
+    setSelectedIndex((value) => Math.max(0, Math.min(value, filteredJobs.length - 1)));
+  }, [filteredJobs]);
 
-  const runJob = async (jobName: string): Promise<void> => {
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setResultsScroll((value) => Math.min(value, maxResultsScroll));
+  }, [maxResultsScroll]);
+
+  const handleRun = async (job: RunnerJob, params: string[]) => {
+    if (!onRun) {
+      setStatusMessage("Run unavailable");
+      return;
+    }
     if (isRunning) return;
 
     setIsRunning(true);
-    setErrorMessage(null);
-    setResults(null);
-
-    const ecuPath = path.dirname(path.resolve(filePath));
-    const useSimulation = interfaceName === "simulation";
-    const transport = useSimulation ? undefined : createInterface(interfaceName, interfaceOptions);
-
-    const ediabas = new Ediabas({
-      ecuPath,
-      transport,
-      simulation: useSimulation,
-      timeout: Number.isFinite(timeoutMs) ? timeoutMs : 5000,
-      logging: false,
-    });
-
-    let connected = false;
+    setStatusMessage("Running...");
+    setResults([{ text: "Running...", color: "yellow" }]);
 
     try {
-      await ediabas.loadSgbd(path.basename(filePath));
-
-      if (!useSimulation) {
-        await ediabas.connect();
-        connected = true;
-      }
-
-      const jobResults = await ediabas.executeJob(jobName, { params: [] });
-      setResults(jobResults);
+      const result = await onRun(job.name, params);
+      setResults(buildResultsTable(result.results));
+      setResultsScroll(0);
+      setFocusedPanel("results");
+      setStatusMessage(`Done in ${result.executionTimeMs}ms`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      setErrorMessage(message);
+      setResults([
+        { text: "Error:", color: "red", bold: true },
+        { text: message, color: "red" },
+      ]);
+      setResultsScroll(0);
+      setFocusedPanel("results");
+      setStatusMessage(message);
     } finally {
-      if (connected) {
-        try {
-          await ediabas.disconnect();
-        } catch {
-          // ignore disconnect errors in the TUI runner
-        }
-      }
       setIsRunning(false);
     }
   };
@@ -199,56 +240,96 @@ export function RunnerApp({ filePath, jobs, interfaceName, interfaceOptions, tim
       return;
     }
 
-    if (key.return) {
-      const jobName = jobs[selectedIndex];
-      if (!jobName) return;
-      void runJob(jobName);
+    if (dialog) {
+      if (key.escape) {
+        setDialog(null);
+        return;
+      }
+      if (key.return) {
+        const args = parseArgsInput(dialog.value);
+        if (args.length < dialog.job.args.length) {
+          setStatusMessage(`Expected ${dialog.job.args.length} argument(s)`);
+          return;
+        }
+        setDialog(null);
+        void handleRun(dialog.job, args);
+        return;
+      }
+      if (key.backspace || key.delete) {
+        setDialog((current) => (current ? { ...current, value: current.value.slice(0, -1) } : current));
+        return;
+      }
+      if (input) {
+        setDialog((current) => (current ? { ...current, value: current.value + input } : current));
+      }
+      return;
+    }
+
+    if (isSearchActive) {
+      if (key.escape) {
+        setIsSearchActive(false);
+        setSearchQuery("");
+        return;
+      }
+      if (key.return) {
+        setIsSearchActive(false);
+        return;
+      }
+      if (key.backspace || key.delete) {
+        setSearchQuery((value) => value.slice(0, -1));
+        return;
+      }
+      if (input && !key.ctrl && !key.meta) {
+        setSearchQuery((value) => value + input);
+        return;
+      }
+      return;
+    }
+
+    if (input === "/") {
+      setIsSearchActive(true);
+      setSearchQuery("");
+      return;
+    }
+
+    if ((input === "r" || input === "R") || key.return) {
+      if (!selectedJob || isRunning) return;
+      if (selectedJob.args.length > 0) {
+        setDialog({ job: selectedJob, value: "" });
+        return;
+      }
+      void handleRun(selectedJob, []);
+      return;
+    }
+
+    if (key.tab) {
+      setFocusedPanel((current) => (current === "items" ? "results" : "items"));
       return;
     }
 
     if (key.upArrow) {
-      setSelectedIndex((value) => {
-        if (jobs.length === 0) return 0;
-        return Math.max(0, value - 1);
-      });
+      if (focusedPanel === "items") {
+        if (filteredJobs.length === 0) return;
+        setSelectedIndex((value) => Math.max(0, value - 1));
+      } else {
+        setResultsScroll((value) => Math.max(0, value - 1));
+      }
       return;
     }
 
     if (key.downArrow) {
-      setSelectedIndex((value) => {
-        if (jobs.length === 0) return 0;
-        return Math.min(jobs.length - 1, value + 1);
-      });
+      if (focusedPanel === "items") {
+        if (filteredJobs.length === 0) return;
+        setSelectedIndex((value) => Math.min(filteredJobs.length - 1, value + 1));
+      } else {
+        setResultsScroll((value) => Math.min(maxResultsScroll, value + 1));
+      }
     }
   });
 
-  const interfaceText = useMemo(
-    () => `Type: ${formatInterfaceLabel(interfaceName)}`,
-    [interfaceName]
-  );
   const interfaceWidth = innerWidth;
-  const interfaceTop = buildPanelTop("Interface", interfaceWidth);
-  const interfaceLine = buildPanelLine(interfaceText, interfaceWidth);
+  const interfaceTop = buildPanelTop(dialog ? "Input" : "Interface", interfaceWidth);
   const interfaceBottom = buildPanelBottom(interfaceWidth);
-
-  const resultLines = useMemo<ResultLine[]>(() => {
-    if (isRunning) {
-      return [{ text: "Running...", color: "yellow" }];
-    }
-
-    if (errorMessage) {
-      return [
-        { text: "Error:", color: "red", bold: true },
-        { text: errorMessage, color: "red" },
-      ];
-    }
-
-    if (!results) {
-      return [{ text: "Press Enter to run the selected job.", dimColor: true }];
-    }
-
-    return buildResultsTable(results);
-  }, [errorMessage, isRunning, results]);
 
   return (
     <Box flexDirection="column" width={safeWidth} height={safeHeight}>
@@ -257,26 +338,29 @@ export function RunnerApp({ filePath, jobs, interfaceName, interfaceOptions, tim
         <Box flexDirection="row" height={upperHeight}>
           <ItemsPanel
             title="Jobs"
-            items={jobs}
+            items={filteredJobs.map((job) => job.name)}
             selectedIndex={selectedIndex}
             height={upperHeight}
             width={itemsPanelWidth}
-            focused={true}
-            emptyMessage="No jobs"
+            focused={focusedPanel === "items"}
+            emptyMessage={searchQuery ? "No matches" : "No jobs"}
             outerBorderLeft={true}
           />
           <ContentPanel
             title="Results"
-            lines={resultLines}
+            lines={results}
             height={upperHeight}
             width={rightPanelWidth}
-            focused={false}
+            focused={focusedPanel === "results"}
+            scrollOffset={resultsScroll}
             outerBorderRight={true}
           />
         </Box>
         <Box flexDirection="column" height={interfaceHeight}>
           <Text>│{interfaceTop}│</Text>
-          <Text>│{interfaceLine}│</Text>
+          {interfaceLines.map((line, index) => (
+            <Text key={`interface-${index}`}>│{buildPanelLine(line, interfaceWidth)}│</Text>
+          ))}
           <Text>│{interfaceBottom}│</Text>
         </Box>
       </Box>
