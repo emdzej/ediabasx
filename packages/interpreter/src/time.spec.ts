@@ -1,7 +1,8 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import { RegisterSet } from "./registers";
-import { gettmr, settmr, getdate, gettime, wait, sett, clrt } from "./operations/time";
+import { gettmr, settmr, getdate, gettime, wait, sett, clrt, eerr } from "./operations/time";
 import type { ErrorTrapState } from "./operations/time";
+import { EdiabasError, EdiabasErrorCodes } from "@ediabas/core";
 
 const S0 = { kind: "S", index: 0 } as const;
 const S1 = { kind: "S", index: 1 } as const;
@@ -92,5 +93,37 @@ describe("Error trap operations", () => {
     clrt(state);
 
     expect(state.errorTrapBitNr).toBe(-1);
+  });
+
+  it("eerr throws mapped error for trap bit", () => {
+    const state: ErrorTrapState = { errorTrapMask: 0, errorTrapBitNr: 8 };
+
+    try {
+      eerr(state);
+      throw new Error("Expected eerr to throw");
+    } catch (error) {
+      expect(error).toBeInstanceOf(EdiabasError);
+      const ediabasError = error as EdiabasError;
+      expect(ediabasError.code).toBe(EdiabasErrorCodes.EDIABAS_BIP_0011);
+    }
+  });
+
+  it("eerr throws generic error when trap bit has no mapping", () => {
+    const state: ErrorTrapState = { errorTrapMask: 0, errorTrapBitNr: 123 };
+
+    try {
+      eerr(state);
+      throw new Error("Expected eerr to throw");
+    } catch (error) {
+      expect(error).toBeInstanceOf(EdiabasError);
+      const ediabasError = error as EdiabasError;
+      expect(ediabasError.code).toBe(EdiabasErrorCodes.EDIABAS_BIP_0000);
+    }
+  });
+
+  it("eerr does nothing when trap bit is cleared", () => {
+    const state: ErrorTrapState = { errorTrapMask: 0, errorTrapBitNr: -1 };
+
+    expect(() => eerr(state)).not.toThrow();
   });
 });
