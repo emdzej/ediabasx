@@ -1,424 +1,734 @@
-# Ediabas BEST2 Interpreter & Bytecode
+# BEST2 Interpreter Documentation
 
-This document describes the BEST2 interpreter and bytecode format as implemented in this repo (packages/interpreter, packages/best-parser). It is based on the code paths in the interpreter and parser rather than existing documentation.
+This document provides comprehensive documentation for the BEST2 interpreter implementation, including PRG/GRB file structure, register architecture, bytecode reference, and execution model.
 
-## 1. PRG/GRP File Structure
+## Table of Contents
 
-The parser (`packages/best-parser/src/parser.ts`) supports **two formats**:
+1. [PRG/GRB File Structure](#prggr-file-structure)
+2. [Register Architecture](#register-architecture)
+3. [Addressing Modes](#addressing-modes)
+4. [CPU Flags](#cpu-flags)
+5. [Bytecode Reference](#bytecode-reference)
+6. [Stack Operations](#stack-operations)
+7. [String Handling](#string-handling)
+8. [Result Collection](#result-collection)
+9. [Job Execution Flow](#job-execution-flow)
+10. [Error Handling](#error-handling)
 
-### 1.1 Legacy binary PRG/GRP
+## PRG/GRB File Structure
 
-* **Magic**: `0x00475250` (little‑endian for `"PRG\0"`).
-* **Version**: `0 = GRP (group)`, `1 = PRG (program)`.
-* Header layout (all little‑endian uint32):
-  | Offset | Field | Meaning |
-  | --- | --- | --- |
-  | 0x00 | magic | `0x00475250` |
-  | 0x04 | version | 0/1 |
-  | 0x08 | stringTableOffset | start of null‑terminated string table |
-  | 0x0C | stringTableSize | byte length |
-  | 0x10 | jobTableOffset | job table start |
-  | 0x14 | jobCount | number of job entries |
-  | 0x18 | codeOffset | bytecode start |
-  | 0x1C | codeSize | bytecode length |
+### File Formats
 
-* **String table**: concatenated CP‑1252 strings separated by `0x00`.
-* **Job table entries** (12 bytes each):
-  * `nameOffset` (uint32 into string table)
-  * `offset` (uint32 bytecode offset)
-  * `argCount` (uint16)
-  * `resultCount` (uint16)
+BEST2 supports two file formats:
 
-### 1.2 “@EDIABAS OBJECT” (XOR‑encoded) format
-
-* **Magic**: first 16 bytes are `"@EDIABAS OBJECT\0"`.
-* **Version**: uint32 at offset `0x10` (0 = GRP, 1 = PRG).
-* **Data encoding**: bytes **from `0xA0` onward are XOR‑encoded with `0xF7`**.
-* **Decoded text content** (from `0xA0`) includes metadata and JOB/ARG/RESULT definitions:
-  * `ECU:`, `ORIGIN:`, `REVISION:`, `AUTHOR:`, `ECUCOMMENT:`
-  * `JOBNAME:`, `JOBCOMMENT:`, `RESULT:` / `RESULTTYPE:` / `RESULTCOMMENT:`
-  * `ARG:` / `ARGTYPE:` / `ARGCOMMENT:`
-* **Binary job list** (in raw, XOR‑encoded region):
-  * Offset to list stored at `0x88` (uint32, **not XOR‑encoded**).
-  * At list start: `jobCount` (int32, **not XOR‑encoded**).
-  * Each entry is 0x44 bytes (68):
-    * 64‑byte name (XOR‑decoded, null‑terminated)
-    * 4‑byte bytecode offset (XOR‑decoded)
-* **Binary table list** (raw, XOR‑encoded):
-  * Offset stored at `0x84` (uint32, not XOR‑encoded).
-  * At list start: `tableCount` (int32, **may be raw or XOR‑encoded**; parser tries both).
-  * Each entry is 0x50 bytes (80):
-    * 64‑byte name (XOR‑decoded)
-    * `columnOffset` (uint32, XOR‑decoded)
-    * `columns` (uint32, XOR‑decoded)
-    * `rows` (uint32, XOR‑decoded)
-  * Table data is a series of null‑terminated XOR‑encoded CP‑1252 strings (headers + rows).
-
-**Note:** For EDIABAS OBJECT files, `parsePrg` returns `code = []` and keeps the raw buffer; the interpreter uses `rawBuffer` and XOR‑decodes it when needed.
-
-## 2. Registers & Addressing Modes
-
-### 2.1 Register set
-
-The interpreter implements BEST2 register types (`packages/interpreter/src/registers.ts`):
-
-| Type | Count | Size | Purpose |
-| --- | --- | --- | --- |
-| **B0–BF** | 16 | 8‑bit | byte registers |
-| **A0–AF** | 16 | 8‑bit | alternate byte registers |
-| **I0–IF** | 16 | 16‑bit | word registers |
-| **L0–L7** | 8 | 32‑bit | long registers |
-| **S0–SF** | 16 | string | CP‑1252 strings (max length configurable, default 255) |
-| **F0–F7** | 8 | float64 | floating‑point registers |
-
-### 2.2 Register encoding (bytecode)
-
-Register operands are encoded as a single byte. The interpreter maps codes as follows:
+#### 1. Legacy Binary Format (PRG)
 
 ```
-0x00–0x0F  -> B0–BF
-0x10–0x17  -> I0–I7
-0x18–0x1B  -> L0–L3
-0x1C–0x23  -> S0–S7
-0x24–0x2B  -> F0–F7
-0x2C–0x33  -> S8–SF
-0x80–0x8F  -> A0–AF
-0x90–0x97  -> I8–IF
-0x98–0x9B  -> L4–L7
+Header:
+  +0x00: magic      (4 bytes) - 0x00475250 ("PRG\0" little-endian)
+  +0x04: version    (4 bytes) - File type: 0 = GRP, 1 = PRG
+  +0x08: stringTableOffset (4 bytes)
+  +0x0C: stringTableSize   (4 bytes)
+  +0x10: jobTableOffset    (4 bytes)
+  +0x14: jobCount          (4 bytes)
+  +0x18: codeOffset        (4 bytes)
+  +0x1C: codeSize          (4 bytes)
 ```
 
-### 2.3 Addressing mode byte
-
-Each instruction is:
+#### 2. EDIABAS OBJECT Format (Modern)
 
 ```
-[ opcode ][ addrMode ][ operands... ]
+Header (0xA0 bytes):
+  +0x00: magic      (16 bytes) - "@EDIABAS OBJECT\0"
+  +0x10: version    (4 bytes)  - 0 = GRP (group), 1 = PRG (program)
+  +0x84: tableListOffset (4 bytes) - Points to table directory
+  +0x88: jobListOffset   (4 bytes) - Points to job directory
+
+Data Section (from 0xA0 onwards):
+  - XOR encrypted with key 0xF7
+  - Contains text metadata and embedded binary structures
 ```
 
-* `addrMode` high nibble = **arg0** mode, low nibble = **arg1** mode.
-* Integer immediates are **little‑endian signed** (`int16`, `int32`).
-* String immediates are **CP‑1252** and stored as: `len:int16` followed by `len` bytes; if last byte is `0x00`, it is trimmed for the string value.
+### XOR Encoding
 
-**Addressing modes**:
+All data from offset `0xA0` onwards is XOR-encoded with key `0xF7`:
 
-| Mode | Value | Meaning | Operand bytes |
-| --- | --- | --- | --- |
-| NONE | 0x0 | no operand | 0 |
-| REG_S / REG_AB / REG_I / REG_L | 0x1–0x4 | register operand (byte code) | 1 |
-| IMM8 | 0x5 | immediate 8‑bit | 1 |
-| IMM16 | 0x6 | immediate 16‑bit | 2 |
-| IMM32 | 0x7 | immediate 32‑bit | 4 |
-| IMM_STR | 0x8 | immediate string | 2 + len |
-| IDX_IMM | 0x9 | `Sx[imm16]` | 1 + 2 |
-| IDX_REG | 0xA | `Sx[reg]` | 2 |
-| IDX_REG_IMM | 0xB | `Sx[reg, imm16]` | 2 + 2 |
-| IDX_IMM_LEN_IMM | 0xC | `Sx[imm16]#imm16` | 1 + 2 + 2 |
-| IDX_IMM_LEN_REG | 0xD | `Sx[imm16]#reg` | 1 + 2 + 1 |
-| IDX_REG_LEN_IMM | 0xE | `Sx[reg]#imm16` | 2 + 2 |
-| IDX_REG_LEN_REG | 0xF | `Sx[reg]#reg` | 3 |
+```typescript
+decoded[i] = buffer[i] ^ 0xF7  // for i >= 0xA0
+```
 
-Indexed operands **must use an S register as base**. The interpreter treats them as slices of the underlying CP‑1252 byte array.
+### Text Metadata Format
 
-## 3. Bytecode Reference
+After decoding, the data section contains text with key-value pairs:
 
-The table below lists all implemented opcodes (as in `disassembler.ts` and `interpreter.ts`).
+```
+ECU:BMW E46 DME MS43
+ORIGIN:BMW AG
+REVISION:1.2.3
+AUTHOR:Ediabas Team
+ECUCOMMENT:Engine control unit
 
-**Operand notation**:
-* `R` = register operand (type depends on opcode)
-* `I` = integer immediate (`IMM8/16/32`)
-* `S` = string operand (`IMM_STR` or S register)
-* `Y` = binary/string payload (S register or `IMM_STR`)
-* `Idx` = indexed string operand (`Sx[...]`)
+JOBNAME:INIT
+JOBCOMMENT:Initialize ECU communication
+RESULT:ECU_NAME
+RESULTTYPE:STRING
+RESULTCOMMENT:ECU identification
+ARG:BAUDRATE
+ARGTYPE:INT
+ARGCOMMENT:Communication baud rate
+```
 
-### 3.1 Arithmetic / bit ops
+### Binary Job Table
 
-| Hex | Mnemonic | Operands | Description |
-| --- | --- | --- | --- |
-| 0x00 | move | R/Idx, R/I/S/Idx | Universal move. Supports numeric, float, string, and indexed writes; sets flags for numeric moves. |
-| 0x01 | clear | R | Zero register (numeric/float/string). Flags: Z=1, C=0, S=0, V=0. |
-| 0x02 | comp | R, R/I | Compare (CMP). Updates Z/S/C/V. |
-| 0x03 | subb | R, R/I | Subtract (SUB). Updates flags. |
-| 0x04 | adds | R, R/I | Add (ADD). Updates flags. |
-| 0x05 | mult | R, R/I | Multiply. Stores high part into source if source is a register. |
-| 0x06 | divs | R, R/I | Divide. Stores remainder into source if source is a register. |
-| 0x07 | and | R, R/I | Bitwise AND. |
-| 0x08 | or | R, R/I | Bitwise OR. |
-| 0x09 | xor | R, R/I | Bitwise XOR. |
-| 0x0A | not | R | Bitwise NOT. |
-| 0x18 | asr | R, R/I | Shift right. Carry = last shifted bit. |
-| 0x19 | lsl | R, R/I | Shift left. Carry = last shifted bit. |
-| 0x1A | lsr | R, R/I | Alias of shift right. |
-| 0x1B | asl | R, R/I | Alias of shift left. |
-| 0x49 | addc | R, R/I | Add with carry flag. |
-| 0x4A | subc | R, R/I | Subtract with carry/borrow. |
-| 0x6A | test | R, R/I | Bit test (AND into flags only). |
+Job list structure at offset referenced by `0x88`:
 
-### 3.2 Control flow & flags
+```
++0x00: jobCount (4 bytes) - NOT XOR encoded
++0x04: job entries (0x44 bytes each) - XOR encoded
 
-| Hex | Mnemonic | Operands | Description |
-| --- | --- | --- | --- |
-| 0x0B | jump | I/R | Unconditional jump. Immediate is relative offset; register uses `target - pc`. |
-| 0x0C | jtsr | I/R | Call subroutine (push return address, jump). |
-| 0x0D | ret | — | Return from subroutine. |
-| 0x0E | jc | I/R | Jump if carry set. |
-| 0x0F | jae | I/R | Jump if carry clear (unsigned ≥). |
-| 0x10 | jz | I/R | Jump if zero. |
-| 0x11 | jnz | I/R | Jump if not zero. |
-| 0x12 | jv | I/R | Jump if overflow set. |
-| 0x13 | jnv | I/R | Jump if overflow clear. |
-| 0x14 | jmi | I/R | Jump if sign set (minus). |
-| 0x15 | jpl | I/R | Jump if sign clear (plus). |
-| 0x16 | clrc | — | Clear carry flag. |
-| 0x17 | setc | — | Set carry flag. |
-| 0x1C | nop | — | No operation. |
-| 0x1D | eoj | — | End of job (halt). |
-| 0x4C | clrv | — | Clear overflow flag. |
-| 0x47 | jt | I/R, R/I? | Jump if error trap detected (optional test bit in arg1). |
-| 0x48 | jnt | I/R, R/I? | Jump if no error trap detected (optional test bit in arg1). |
-| 0x5A | jg | I/R | Jump if greater (signed). |
-| 0x5B | jge | I/R | Jump if greater or equal (signed). |
-| 0x5C | jl | I/R | Jump if less (signed). |
-| 0x5D | jle | I/R | Jump if less or equal (signed). |
-| 0x5E | ja | I/R | Jump if above (unsigned). |
-| 0x5F | jbe | I/R | Jump if below or equal (unsigned). |
-| 0x4B | break | — | Throws EDIABAS_BIP_0008 error. |
+Job Entry (0x44 bytes):
+  +0x00: name (64 bytes) - Null-terminated string
+  +0x40: bytecodeOffset (4 bytes) - Offset in file where job code starts
+```
 
-### 3.3 Stack & flags on stack
+### Binary Table Structure
 
-| Hex | Mnemonic | Operands | Description |
-| --- | --- | --- | --- |
-| 0x1E | push | R/I | Push integer register or immediate (byte/word/long) to data stack. |
-| 0x1F | pop | R | Pop into integer register; updates Z/S/V. |
-| 0x4E | popf | — | Pop flags from stack (4 bytes). |
-| 0x4F | pushf | — | Push flags to stack (4 bytes). |
-| 0x50 | atsp | R, I | Read stack bytes at offset into register (peek). Updates Z/S/V. |
-| 0x51 | swap | S/Idx | Reverse bytes within string or indexed slice. |
-| 0x6F | tosp | — | Legacy/unused no‑op. |
+Table list at offset referenced by `0x84`:
 
-### 3.4 String & binary operations
+```
++0x00: tableCount (4 bytes) - Encoding varies by file
++0x04: table entries (0x50 bytes each) - XOR encoded
 
-| Hex | Mnemonic | Operands | Description |
-| --- | --- | --- | --- |
-| 0x20 | scmp | Y, Y | Compare binary data; sets Z if equal. |
-| 0x21 | scat | S, Y | Append source bytes to S register. |
-| 0x22 | scut | S, R/I | Remove N bytes from end of S. |
-| 0x23 | slen | R, Y | Byte length of binary/string operand. Updates Z/S. |
-| 0x24 | spaste | Idx, Y | Insert bytes at indexed position. |
-| 0x25 | serase | Idx, R/I | Remove bytes from indexed position. |
-| 0x53 | srevrs | S | Reverse string contents. |
-| 0x54 | stoken | S, S | Extract token using separator set by `setspc` (opcode 0x52). Z=1 if not found. |
-| 0x7E | strcat | S, S/Y | Concatenate strings. Supports immediate or indexed in arg1. |
-| 0x79 | fix2hex | S, R | Integer → hex string (uppercase). |
-| 0x7A | fix2dez | S, R | Integer → decimal string. |
-| 0x8F | strcmp | S, S | Lexicographic compare (flags). |
-| 0x90 | strlen | R, S | String length (character count). Updates Z/S. |
-| 0x8C | a2y | S, S | ASCII string → binary (Y) (CP‑1252). |
-| 0x8E | hex2y | S, S | Hex string → binary (Y). |
-| 0x91 | y2bcd | S, S | Binary (Y) → BCD string. |
-| 0x92 | y2hex | S, S | Binary (Y) → hex string. |
-| 0x9B | flt2y4 | S, F | Float → 4‑byte IEEE 754 (LE) in Y. |
-| 0x9C | flt2y8 | S, F | Float → 8‑byte IEEE 754 (LE) in Y. |
-| 0x9D | y42flt | F, S | Y (4 bytes) → float32. |
-| 0x9E | y82flt | F, S | Y (8 bytes) → float64. |
-| 0xB5 | ssize | R, S | Byte length of string encoded as CP‑1252. |
+Table Entry (0x50 bytes):
+  +0x00: name (64 bytes) - Null-terminated string
+  +0x40: columnOffset (4 bytes) - Offset to table data
+  +0x48: columns (4 bytes) - Number of columns
+  +0x4C: rows (4 bytes) - Number of data rows (excluding header)
 
-### 3.5 Floating‑point ops
+Table Data:
+  - Row 0: Column headers (null-terminated strings)
+  - Rows 1..N: Data cells (null-terminated strings)
+  - All XOR encoded with 0xF7
+```
 
-| Hex | Mnemonic | Operands | Description |
-| --- | --- | --- | --- |
-| 0x3A | a2flt | F, S | Parse string → float. |
-| 0x3B | fadd | F, F | Float add. |
-| 0x3C | fsub | F, F | Float subtract. |
-| 0x3D | fmul | F, F | Float multiply. |
-| 0x3E | fdiv | F, F | Float divide. |
-| 0xA1 | fcomp | F, F | Float compare (flags). |
-| 0x68 | fix2flt | F, R | Integer → float. |
-| 0x96 | flt2fix | R, F | Float → integer (with flags). |
-| 0x87 | flt2a | S, F | Float → string with precision (see `setflt`). |
-| 0x88 | setflt | R/I | Set float string precision (default 4). |
+## Register Architecture
 
-### 3.6 Result collection (ERG*)
+### Register Types
 
-| Hex | Mnemonic | Operands | Description |
-| --- | --- | --- | --- |
-| 0x34 | ergb | S, R/I | Record result: **byte** (unsigned 8‑bit). |
-| 0x35 | ergw | S, R/I | Record result: **word** (unsigned 16‑bit). |
-| 0x36 | ergd | S, R/I | Record result: **dword** (unsigned 32‑bit). |
-| 0x37 | ergi | S, R/I | Record result: **int** (signed 16‑bit). |
-| 0x38 | ergr | S, F | Record result: **real** (float). |
-| 0x39 | ergs | S, S | Record result: **string**. |
-| 0x3F | ergy | S, Y | Record result: **binary**. |
-| 0x81 | ergc | S, R/I | Record result: **char** (signed 8‑bit). |
-| 0x82 | ergl | S, R/I | Record result: **long** (signed 32‑bit). |
-| 0x40 | enewset | — | Clear result set. |
-| 0x41 | etag | I/R, S | Conditional result skip: if `resultsRequest` is set and name not requested, jump. |
-| 0x95 | ergsysi | S, R/I | System result. If name is `!INITIALISIERUNG`, sets `requestInit` when value != 0. |
+The BEST2 interpreter provides multiple register types with different sizes and purposes:
 
-### 3.7 Parameters & configuration
+| Type | Count | Size | Range | Description |
+|------|-------|------|-------|-------------|
+| **B** | 16 (B0-BF) | 8-bit | 0-255 | Byte registers |
+| **A** | 16 (A0-AF) | 8-bit | 0-255 | Auxiliary byte registers |
+| **I** | 16 (I0-IF) | 16-bit | 0-65535 | Integer/Word registers |
+| **L** | 8 (L0-L7) | 32-bit | 0-4294967295 | Long/Double-word registers |
+| **S** | 16 (S0-SF) | Variable | 0-255 chars | String registers |
+| **F** | 8 (F0-F7) | 64-bit | IEEE 754 | Float/Double registers |
 
-| Hex | Mnemonic | Operands | Description |
-| --- | --- | --- | --- |
-| 0x55 | parb | R, I | Read parameter N (1‑based) as int → dest. |
-| 0x56 | parw | R, I | Same as parb. |
-| 0x57 | parl | R, I | Same as parb. |
-| 0x58 | pars | S, I | Read parameter N as string. |
-| 0x69 | parr | F, I | Read parameter N as float. |
-| 0x7F | pary | S | Read binary payload. |
-| 0x80 | parn | R | Read parameter count. Updates Z/S. |
-| 0x89 | cfgig | R, S | Read config int by key. |
-| 0x8A | cfgsg | S, S | Read config string by key. |
-| 0x8B | cfgis | S, R/I | Set config int by key. |
+### Register Encoding in Bytecode
 
-### 3.8 Time / error traps / progress
+Register operands are encoded as single bytes:
 
-| Hex | Mnemonic | Operands | Description |
-| --- | --- | --- | --- |
-| 0x43 | gettmr | R | Read error‑trap mask. Updates Z/S. |
-| 0x44 | settmr | R/I | Set error‑trap mask. |
-| 0x45 | sett | R/I | Set error‑trap bit number. |
-| 0x46 | clrt | — | Clear error‑trap bit. |
-| 0x4D | eerr | — | Trigger trap error (`TrapBitDict` mapping or generic). |
-| 0x6B | wait | R/I | Wait for N seconds (integer). |
-| 0x6C | date | R/S | Get date (`YYYY-MM-DD` or numeric `YYYYMMDD`). |
-| 0x6D | time | R/S | Get time (`HH:MM:SS` or numeric `HHMMSS`). |
-| 0xAD | ticks | R | Store `Date.now()` (ms, lower 32 bits). |
-| 0xAE | waitex | R/I | Wait N milliseconds. |
-| 0x97 | iupdate | S | Set progress text. |
-| 0x98 | irange | R/I | Set progress range; resets position to -1. |
-| 0x99 | iincpos | R/I | Increment progress position. |
+```
+0x00-0x0F : B0-BF  (byte registers)
+0x10-0x17 : I0-I7  (word registers, lower)
+0x18-0x1B : L0-L3  (long registers, lower)
+0x1C-0x23 : S0-S7  (string registers, lower)
+0x24-0x2B : F0-F7  (float registers)
+0x2C-0x33 : S8-SF  (string registers, upper)
+0x80-0x8F : A0-AF  (auxiliary byte registers)
+0x90-0x97 : I8-IF  (word registers, upper)
+0x98-0x9B : L4-L7  (long registers, upper)
+```
 
-### 3.9 Tables
+### String Register Behavior
 
-| Hex | Mnemonic | Operands | Description |
-| --- | --- | --- | --- |
-| 0x7B | tabset | S | Select table by name (Z=1 if not found). |
-| 0x7C | tabseek | S, S | Seek row by column name + string value. |
-| 0x7D | tabget | S, S | Get cell into S register. |
-| 0x83 | tabline | R/I | Set row index. |
-| 0x9A | tabseeku | S, R/I | Seek by column name + numeric value. |
-| 0xAA | tabsetex | S | Same as tabset (extended). |
-| 0xB6 | tabcols | R | Get column count. |
-| 0xB7 | tabrows | R | Get row count (includes header). |
+- Default maximum length: 255 characters (configurable via SSIZE)
+- Stored as UTF-8 internally, converted to/from CP1252 for binary operations
+- Automatically truncated to max length on write
+- Support indexed access: `S0[I0]`, `S1[#$10]#$20`
 
-### 3.10 Communication & file I/O
+## Addressing Modes
+
+Instructions encode operand addressing modes in a single byte following the opcode:
+
+```
+Byte format: [arg0_mode:4][arg1_mode:4]
+  - Upper nibble: arg0 addressing mode
+  - Lower nibble: arg1 addressing mode
+```
+
+### Mode Definitions
+
+| Mode | Value | Format | Example | Description |
+|------|-------|--------|---------|-------------|
+| **NONE** | 0 | - | - | No operand |
+| **REG_S** | 1 | reg | S0 | String register |
+| **REG_AB** | 2 | reg | B0, A5 | Byte register |
+| **REG_I** | 3 | reg | I2 | Word register |
+| **REG_L** | 4 | reg | L0 | Long register |
+| **IMM8** | 5 | byte | #$41.B | 8-bit immediate |
+| **IMM16** | 6 | word | #$1234.I | 16-bit immediate |
+| **IMM32** | 7 | dword | #$ABCD1234.L | 32-bit immediate |
+| **IMM_STR** | 8 | len+data | "Hello" | Inline string |
+| **IDX_IMM** | 9 | reg+word | S0[#$10] | Indexed by immediate |
+| **IDX_REG** | 10 | reg+reg | S0[I0] | Indexed by register |
+| **IDX_REG_IMM** | 11 | reg+reg+word | S0[I0,#$2] | Indexed with offset |
+| **IDX_IMM_LEN_IMM** | 12 | reg+word+word | S0[#$10]#$5 | Slice with immediate length |
+| **IDX_IMM_LEN_REG** | 13 | reg+word+reg | S0[#$10]I1 | Slice with register length |
+| **IDX_REG_LEN_IMM** | 14 | reg+reg+word | S0[I0]#$5 | Indexed slice |
+| **IDX_REG_LEN_REG** | 15 | reg+reg+reg | S0[I0]I1 | Fully dynamic slice |
+
+### Immediate String Format (Mode 8)
+
+```
++0x00: length (2 bytes, little-endian)
++0x02: data (length bytes, null-terminated CP1252)
+```
+
+## CPU Flags
+
+### Flag Register
+
+The interpreter maintains four CPU flags updated by arithmetic and comparison operations:
+
+| Flag | Name | Set When |
+|------|------|----------|
+| **Z** | Zero | Result equals 0 |
+| **C** | Carry | Unsigned overflow/borrow occurred |
+| **V** | Overflow | Signed overflow occurred |
+| **S** | Sign | Result is negative (MSB = 1) |
+
+### Flag Update Rules
+
+**Arithmetic Operations** (`ADD`, `SUB`, `INC`, `DEC`, etc.):
+- **Z**: Set if masked result == 0
+- **C**: Set if result exceeds bit width (unsigned)
+- **S**: Set if MSB of masked result is 1
+- **V**: Set if signed overflow (result outside signed range)
+
+**Comparison** (`CMP`, `TEST`):
+```
+result = a - b  (or a & b for TEST)
+Z = (result == 0)
+C = (a < b)  // unsigned
+S = (result < 0)  // signed
+V = signed overflow occurred
+```
+
+### Conditional Jumps
+
+| Mnemonic | Condition | Description |
+|----------|-----------|-------------|
+| `jz` | Z == 1 | Jump if zero |
+| `jnz` | Z == 0 | Jump if not zero |
+| `jc` | C == 1 | Jump if carry |
+| `jnc` | C == 0 | Jump if no carry |
+| `jmi` | S == 1 | Jump if minus/negative |
+| `jpl` | S == 0 | Jump if plus/positive |
+| `jv` | V == 1 | Jump if overflow |
+| `jnv` | V == 0 | Jump if no overflow |
+| `jg` | Z==0 && S==V | Jump if greater (signed) |
+| `jge` / `jnl` | S == V | Jump if greater or equal (signed) |
+| `jl` | S != V | Jump if less (signed) |
+| `jle` / `jng` | Z==1 \|\| S!=V | Jump if less or equal (signed) |
+| `ja` | C==0 && Z==0 | Jump if above (unsigned) |
+| `jbe` / `jna` | C==1 \|\| Z==1 | Jump if below or equal (unsigned) |
+
+## Bytecode Reference
+
+### Instruction Format
+
+```
++0x00: opcode (1 byte)
++0x01: addressing mode (1 byte) [arg0_mode:4][arg1_mode:4]
++0x02: operand 0 data (variable length)
++0x??: operand 1 data (variable length)
+```
+
+### Opcode Table
+
+#### Data Movement (0x00-0x01)
 
 | Hex | Mnemonic | Operands | Description |
-| --- | --- | --- | --- |
-| 0x26 | xconnect | — | Connect interface. |
-| 0x27 | xhangup | — | Disconnect interface. |
-| 0x28 | xsetpar | S | Set communication parameters (binary). |
-| 0x29 | xawlen | S | Set answer lengths (binary). |
-| 0x2A | xsend | S, S | Send request; receive reply. |
-| 0x2B | xsendf | S | Send frequent data. |
-| 0x2C | xrequf | S | Receive frequent data. |
-| 0x2D | xstopf | — | Stop frequent transfer. |
-| 0x2E | xkeyb | S | Read key bytes. |
-| 0x2F | xstate | S | Read interface state. |
-| 0x30 | xboot | — | Boot interface (if supported). |
-| 0x31 | xreset | — | Reset interface. |
-| 0x32 | xtype | S | Read interface type string. |
-| 0x33 | xvers | R | Read interface version. |
-| 0x42 | xreps | R | Set repeat counter. |
-| 0x6E | xbatt | R | Read battery voltage. |
-| 0x71 | xgetport | R, R/I | Read port value. |
-| 0x72 | xignit | R | Read ignition voltage. |
-| 0x73 | xloopt | R | Loop test. |
-| 0x74 | xprog | R/I | Set program voltage. |
-| 0x75 | xraw | S, S | Raw request/response. |
-| 0x76 | xsetport | S, R/I | Set port value. |
-| 0x77 | xsireset | R/I | Service interval reset. |
-| 0x84 | xsendr | S | Legacy stub (clears response). |
-| 0x85 | xrecv | S | Legacy stub (clears destination). |
-| 0x86 | xinfo | S | Legacy stub (clears destination). |
-| 0x70 | xdownl | — | Legacy no‑op. |
-| 0x78 | xstoptr | — | Legacy no‑op. |
-| 0x8D | xparraw | — | Legacy no‑op. |
-| 0xAF | xopen | — | Legacy no‑op. |
-| 0xB0 | xclose | — | Legacy no‑op. |
-| 0xB1 | xcloseex | — | Legacy no‑op. |
-| 0xB2 | xswitch | — | Legacy no‑op. |
-| 0xB3 | xsendex | — | Legacy no‑op. |
-| 0xB4 | xrecvex | S | Legacy stub (clears destination). |
-| 0x59 | fclose | R | Close file handle. |
-| 0x60 | fopen | R, S | Open file; dest is handle. |
-| 0x61 | fread | R, R | Read bytes into buffer. |
-| 0x62 | freadln | S, R | Read line. |
-| 0x63 | fseek | R, R | Seek to position. |
-| 0x64 | fseekln | R, R | Seek to line. |
-| 0x65 | ftell | R, R | Get position. |
-| 0x66 | ftellln | R, R | Get line number. |
+|-----|----------|----------|-------------|
+| 0x00 | `move` | dst, src | Copy value from src to dst |
+| 0x01 | `clear` | reg | Set register to 0 |
 
-### 3.11 Procedures & shared memory
+#### Arithmetic (0x02-0x06, 0x18-0x1B, 0x49-0x4A)
 
 | Hex | Mnemonic | Operands | Description |
-| --- | --- | --- | --- |
-| 0x9F | plink | R/I | Link procedure id using `procedureLinker`. |
-| 0xA0 | pcall | — | Legacy no‑op (procedure calls not implemented). |
-| 0xA2 | plinkv | R/I | Link procedure id (validation stub). |
-| 0xA3 | ppush | R | Push integer arg to procedure stack. |
-| 0xA4 | ppop | R | Pop integer arg from procedure stack. |
-| 0xA5 | ppushflt | F | Push float arg. |
-| 0xA6 | ppopflt | F | Pop float arg. |
-| 0xA7 | ppushy | S | Push binary arg (CP‑1252 bytes). |
-| 0xA8 | ppopy | S | Pop binary arg into S register. |
-| 0xA9 | pjtsr | — | Legacy no‑op. |
-| 0x93 | shmset | S/Y, Y | Store value in shared memory. |
-| 0x94 | shmget | S, S/Y | Load value from shared memory; sets C if missing. |
-| 0xAC | generr | R/I | Throw generic error (`GENERR`). |
+|-----|----------|----------|-------------|
+| 0x02 | `comp` | a, b | Compare (a - b), update flags only |
+| 0x03 | `subb` | dst, src | dst = dst - src |
+| 0x04 | `adds` | dst, src | dst = dst + src |
+| 0x05 | `mult` | dst, src | dst = dst * src |
+| 0x06 | `divs` | dst, src | dst = dst / src |
+| 0x18 | `asr` | reg, count | Arithmetic shift right (sign-extend) |
+| 0x19 | `lsl` | reg, count | Logical shift left |
+| 0x1A | `lsr` | reg, count | Logical shift right |
+| 0x1B | `asl` | reg, count | Arithmetic shift left |
+| 0x49 | `addc` | dst, src | Add with carry |
+| 0x4A | `subc` | dst, src | Subtract with carry/borrow |
+| 0x6A | `test` | a, b | Bitwise AND (a & b), update flags only |
 
-## 4. Stack, Strings & Results
+#### Bitwise Logic (0x07-0x0A)
 
-### 4.1 Data stack
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x07 | `and` | dst, src | dst = dst & src |
+| 0x08 | `or` | dst, src | dst = dst \| src |
+| 0x09 | `xor` | dst, src | dst = dst ^ src |
+| 0x0A | `not` | reg | reg = ~reg |
 
-* `DataStack` stores **bytes** (little‑endian when pushing multi‑byte registers).
-* Default depth: **256**. Overflow/underflow raise `EdiabasError`.
-* Stack ops: `push`, `pop`, `atsp`, `pushf`, `popf`, `swap`.
+#### Control Flow (0x0B-0x0F, 0x10-0x15, 0x47-0x48, 0x5A-0x5F)
 
-### 4.2 Strings / binary handling
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x0B | `jump` | offset | Unconditional jump (PC += offset) |
+| 0x0C | `jtsr` | offset | Call subroutine (push PC, jump) |
+| 0x0D | `ret` | - | Return from subroutine (pop PC) |
+| 0x0E | `jc` | offset | Jump if carry |
+| 0x0F | `jae` | offset | Jump if above or equal (jnc) |
+| 0x10 | `jz` | offset | Jump if zero |
+| 0x11 | `jnz` | offset | Jump if not zero |
+| 0x12 | `jv` | offset | Jump if overflow |
+| 0x13 | `jnv` | offset | Jump if no overflow |
+| 0x14 | `jmi` | offset | Jump if minus (negative) |
+| 0x15 | `jpl` | offset | Jump if plus (positive) |
+| 0x47 | `jt` | offset | Jump if error trap set |
+| 0x48 | `jnt` | offset | Jump if no error trap |
+| 0x5A | `jg` | offset | Jump if greater (signed) |
+| 0x5B | `jge` / `jnl` | offset | Jump if greater or equal (signed) |
+| 0x5C | `jl` | offset | Jump if less (signed) |
+| 0x5D | `jle` / `jng` | offset | Jump if less or equal (signed) |
+| 0x5E | `ja` | offset | Jump if above (unsigned) |
+| 0x5F | `jbe` / `jna` | offset | Jump if below or equal (unsigned) |
 
-* Strings are stored internally as **UTF‑8** but **encoded/decoded as CP‑1252** when reading/writing binary payloads.
-* Indexed addressing (`Sx[...]`) operates on the **raw CP‑1252 byte array**.
-* `S` registers are limited by `SSIZE` (default 255). Writes are truncated.
+**Note**: Jump offsets are 32-bit signed relative to the instruction after the operand.
 
-### 4.3 Result collection
+#### Flag Manipulation (0x16-0x17, 0x4C)
 
-* Results are stored in a `ResultCollector` keyed by **uppercase name**.
-* Types include: `byte`, `word`, `dword`, `char`, `int`, `long`, `real`, `string`, `binary`.
-* ERG* opcodes **overwrite any existing result with the same name**.
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x16 | `clrc` | - | Clear carry flag |
+| 0x17 | `setc` | - | Set carry flag |
+| 0x4C | `clrv` | - | Clear overflow flag |
 
-## 5. Job Execution Flow & Error Handling
+#### Stack (0x1E-0x1F, 0x4E-0x51, 0x6F)
 
-### 5.1 Job start
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x1E | `push` | src | Push value onto data stack |
+| 0x1F | `pop` | dst | Pop value from data stack |
+| 0x4E | `popf` | - | Pop flags from stack |
+| 0x4F | `pushf` | - | Push flags to stack |
+| 0x50 | `atsp` | dst, offset | Load from stack at offset |
+| 0x51 | `swap` | str[idx]len | Byte-swap string slice |
 
-1. `Interpreter.start(jobName)` resolves job metadata + binary offset.
-2. The program counter (`pc`) is set to the job’s bytecode offset.
-3. Interpreter state is initialized: registers, flags, stacks, parameters, results, shared memory, tables, config, timer, and trap state.
+#### String Operations (0x20-0x25, 0x53-0x54, 0x67, 0x79-0x7A, 0x7E, 0x8C, 0x8E-0x92, 0xAB)
 
-### 5.2 Instruction cycle
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x20 | `scmp` | a, b | String compare (deprecated, use strcmp) |
+| 0x21 | `scat` | dst, src | String concatenate (deprecated, use strcat) |
+| 0x22 | `scut` | str, idx, len | Extract substring |
+| 0x23 | `slen` | dst, str | Get string length (deprecated, use strlen) |
+| 0x24 | `spaste` | dst, src, idx | Insert string at position |
+| 0x25 | `serase` | str, idx, len | Erase substring |
+| 0x52 | `setspc` | sep, idx | Set token separator and index |
+| 0x53 | `srevrs` | str | Reverse string |
+| 0x54 | `stoken` | dst, src | Extract token using separator |
+| 0x67 | `a2fix` | dst, str | Parse ASCII to integer |
+| 0x79 | `fix2hex` | str, val | Convert integer to hex string |
+| 0x7A | `fix2dez` | str, val | Convert integer to decimal string |
+| 0x7E | `strcat` | dst, src | Concatenate strings |
+| 0x8C | `a2y` | dst, src | ASCII string to binary Y-register |
+| 0x8E | `hex2y` | dst, hex | Hex string to binary Y-register |
+| 0x8F | `strcmp` | a, b | Compare strings, set flags |
+| 0x90 | `strlen` | dst, str | Get string length |
+| 0x91 | `y2bcd` | dst, bin | Binary to BCD string |
+| 0x92 | `y2hex` | dst, bin | Binary to hex string |
+| 0xAB | `ufix2dez` | str, val | Unsigned integer to decimal string |
+| 0xB5 | `ssize` | size | Set maximum string size |
 
-For each step:
+#### Floating Point (0x3A-0x3E, 0x68, 0x87-0x88, 0x96, 0x9B-0x9E, 0xA1)
 
-1. Decode `[opcode][addrMode][arg0][arg1]`.
-2. Resolve operands (register, immediate, string, indexed).
-3. Dispatch to handler for that opcode.
-4. Update `pc` (default = next instruction; jumps override).
-5. Stop on `eoj` (0x1D).
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x3A | `a2flt` | dst, str | Parse ASCII to float |
+| 0x3B | `fadd` | dst, src | Float addition |
+| 0x3C | `fsub` | dst, src | Float subtraction |
+| 0x3D | `fmul` | dst, src | Float multiplication |
+| 0x3E | `fdiv` | dst, src | Float division |
+| 0x68 | `fix2flt` | fdst, isrc | Convert integer to float |
+| 0x87 | `flt2a` | str, fsrc | Convert float to ASCII string |
+| 0x88 | `setflt` | precision | Set float-to-string precision |
+| 0x96 | `flt2fix` | idst, fsrc | Convert float to integer |
+| 0x9B | `flt2y4` | ydst, fsrc | Float to 4-byte binary (IEEE 754 single) |
+| 0x9C | `flt2y8` | ydst, fsrc | Float to 8-byte binary (IEEE 754 double) |
+| 0x9D | `y42flt` | fdst, ysrc | 4-byte binary to float |
+| 0x9E | `y82flt` | fdst, ysrc | 8-byte binary to float |
+| 0xA1 | `fcomp` | a, b | Float compare, set flags |
 
-### 5.3 Error handling
+#### Result Collection (0x34-0x39, 0x3F, 0x40-0x41, 0x81-0x82, 0x95)
 
-* **Unknown opcode** ⇒ `EdiabasError(INVALID_INSTRUCTION)`.
-* **Invalid register type** ⇒ `EdiabasError(REGISTER_ERROR)`.
-* **Stack underflow/overflow** ⇒ `EdiabasError(STACK_UNDERFLOW/STACK_OVERFLOW)`.
-* **BREAK (0x4B)** ⇒ `EDIABAS_BIP_0008`.
-* **EERR (0x4D)**: uses `TrapBitDict` to map trap bit → error code, or falls back to `EDIABAS_BIP_0000`.
-* **GENERR (0xAC)**: throws a generic error with the provided code.
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x34 | `ergb` | name, val | Record result (byte) |
+| 0x35 | `ergw` | name, val | Record result (word) |
+| 0x36 | `ergd` | name, val | Record result (dword) |
+| 0x37 | `ergi` | name, val | Record result (integer, auto-detect size) |
+| 0x38 | `ergr` | name, fval | Record result (float) |
+| 0x39 | `ergs` | name, str | Record result (string) |
+| 0x3F | `ergy` | name, binary | Record result (binary data) |
+| 0x40 | `enewset` | - | Clear all results (new result set) |
+| 0x41 | `etag` | offset, name | Skip result if not requested |
+| 0x81 | `ergc` | name, val | Record result (signed char) |
+| 0x82 | `ergl` | name, val | Record result (signed long) |
+| 0x95 | `ergsysi` | name, val | Record system info result |
 
-### 5.4 Error trap logic
+#### Parameters (0x55-0x58, 0x69, 0x7F-0x80)
 
-* `sett` sets an error‑trap bit number (or `0x40000000` when value is 0).
-* `clrt` clears it.
-* `jt` / `jnt` optionally compare against a test bit. If no arg provided, behavior is based on whether *any* trap is active.
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x55 | `parb` | dst, idx | Get parameter byte |
+| 0x56 | `parw` | dst, idx | Get parameter word |
+| 0x57 | `parl` | dst, idx | Get parameter long |
+| 0x58 | `pars` | dst, idx | Get parameter string |
+| 0x69 | `parr` | fdst, idx | Get parameter float |
+| 0x7F | `pary` | dst | Get all parameters as binary |
+| 0x80 | `parn` | dst | Get parameter count |
+
+#### Communication (0x26-0x33, 0x42, 0x6E, 0x71-0x77, 0x84-0x86, 0x8D, 0xAF-0xB4)
+
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x26 | `xconnect` | - | Connect to ECU |
+| 0x27 | `xhangup` | - | Disconnect from ECU |
+| 0x28 | `xsetpar` | param, val | Set communication parameter |
+| 0x29 | `xawlen` | dst | Get response length |
+| 0x2A | `xsend` | data | Send data to ECU |
+| 0x2B | `xsendf` | flags | Send data with flags |
+| 0x2C | `xrequf` | dst, flags | Request data with flags |
+| 0x2D | `xstopf` | - | Stop communication |
+| 0x2E | `xkeyb` | dst | Check keyboard input |
+| 0x2F | `xstate` | dst | Get communication state |
+| 0x30 | `xboot` | mode | Enter bootloader mode |
+| 0x31 | `xreset` | - | Reset ECU |
+| 0x32 | `xtype` | dst | Get interface type |
+| 0x33 | `xvers` | dst | Get interface version |
+| 0x42 | `xreps` | dst | Get number of repetitions |
+| 0x6E | `xbatt` | dst | Get battery voltage |
+| 0x71 | `xgetport` | dst, port | Get port parameter |
+| 0x72 | `xignit` | dst | Get ignition state |
+| 0x73 | `xloopt` | timeout | Set loop timeout |
+| 0x74 | `xprog` | mode | Enter programming mode |
+| 0x75 | `xraw` | resp, req | Raw ECU communication |
+| 0x76 | `xsetport` | param, port | Set port parameter |
+| 0x77 | `xsireset` | mode | Reset SI (serial interface) |
+
+#### File Operations (0x59-0x66)
+
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x59 | `fclose` | handle | Close file |
+| 0x60 | `fopen` | handle, path | Open file |
+| 0x61 | `fread` | handle, dst | Read byte from file |
+| 0x62 | `freadln` | str, handle | Read line from file |
+| 0x63 | `fseek` | handle, pos | Seek to byte position |
+| 0x64 | `fseekln` | handle, line | Seek to line number |
+| 0x65 | `ftell` | dst, handle | Get current byte position |
+| 0x66 | `ftellln` | dst, handle | Get current line number |
+
+#### Time Operations (0x43-0x46, 0x6B-0x6D, 0xAD-0xAE)
+
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x43 | `gettmr` | dst | Get timer value |
+| 0x44 | `settmr` | val | Set timer value |
+| 0x45 | `sett` | bit | Set error trap bit |
+| 0x46 | `clrt` | - | Clear error trap |
+| 0x47 | `jt` | offset | Jump if trap set |
+| 0x48 | `jnt` | offset | Jump if trap not set |
+| 0x4D | `eerr` | - | Execute error (trigger trap) |
+| 0x6B | `wait` | ms | Wait milliseconds |
+| 0x6C | `date` | dst | Get current date |
+| 0x6D | `time` | dst | Get current time |
+| 0xAD | `ticks` | dst | Get system ticks |
+| 0xAE | `waitex` | ticks | Wait for ticks |
+
+#### Table Operations (0x7B-0x7D, 0x83, 0x9A, 0xAA, 0xB6-0xB7)
+
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x7B | `tabset` | name | Set active table |
+| 0x7C | `tabseek` | col, val | Seek row where column == value |
+| 0x7D | `tabget` | dst, col | Get value from current row/column |
+| 0x83 | `tabline` | row | Set current row index |
+| 0x9A | `tabseeku` | col, val | Seek row (unsigned compare) |
+| 0xAA | `tabsetex` | name | Set active table (extended) |
+| 0xB6 | `tabcols` | dst | Get number of columns |
+| 0xB7 | `tabrows` | dst | Get number of rows |
+
+#### Shared Memory (0x93-0x94)
+
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x93 | `shmset` | key, val | Store value in shared memory |
+| 0x94 | `shmget` | dst, key | Retrieve value from shared memory |
+
+#### Configuration (0x89-0x8B)
+
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x89 | `cfgig` | dst, key | Get config value (integer) |
+| 0x8A | `cfgsg` | dst, key | Get config value (string) |
+| 0x8B | `cfgis` | key, val | Set config value (integer) |
+
+#### Procedures (0x9F-0xA9)
+
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x9F | `plink` | id | Link procedure ID to handler |
+| 0xA0 | `pcall` | - | Call procedure (legacy, no-op) |
+| 0xA2 | `plinkv` | id | Link procedure with validation |
+| 0xA3 | `ppush` | val | Push integer to procedure stack |
+| 0xA4 | `ppop` | dst | Pop integer from procedure stack |
+| 0xA5 | `ppushflt` | fval | Push float to procedure stack |
+| 0xA6 | `ppopflt` | fdst | Pop float from procedure stack |
+| 0xA7 | `ppushy` | binary | Push binary data to procedure stack |
+| 0xA8 | `ppopy` | dst | Pop binary data from procedure stack |
+| 0xA9 | `pjtsr` | id | Jump to subroutine via procedure |
+
+#### Progress Reporting (0x97-0x99)
+
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x97 | `iupdate` | text | Update progress message |
+| 0x98 | `irange` | max | Set progress range |
+| 0x99 | `iincpos` | inc | Increment progress position |
+
+#### System (0x1C-0x1D, 0x4B, 0xAC)
+
+| Hex | Mnemonic | Operands | Description |
+|-----|----------|----------|-------------|
+| 0x1C | `nop` | - | No operation |
+| 0x1D | `eoj` | - | End of job (halt execution) |
+| 0x4B | `break` | - | User break (EDIABAS_BIP_0008) |
+| 0xAC | `generr` | code | Generate error with code |
+
+## Stack Operations
+
+### Call Stack
+
+Used for subroutine calls:
+- `jtsr offset`: Push PC, jump to PC+offset
+- `ret`: Pop PC
+
+Maximum depth: 256 entries (configurable)
+
+### Data Stack
+
+Generic value stack for temporary storage:
+
+| Operation | Description |
+|-----------|-------------|
+| `push src` | Push value onto stack |
+| `pop dst` | Pop value from stack into register |
+| `pushf` | Push flag register (Z, C, V, S as bitfield) |
+| `popf` | Pop flag register |
+| `atsp dst, offset` | Load stack value at offset without popping |
+
+**Flag Encoding for `pushf/popf`:**
+```
+Bit 0: Z (Zero)
+Bit 1: C (Carry)
+Bit 2: V (Overflow)
+Bit 3: S (Sign)
+```
+
+Maximum depth: 1024 entries (configurable)
+
+## String Handling
+
+### String Register Storage
+
+- Internally stored as UTF-8
+- Converted to/from CP1252 for binary operations
+- Null-terminated when written to binary
+
+### Binary vs Text Operations
+
+**Text Operations** (UTF-8 aware):
+- `strcmp`, `strlen`, `strcat`, `srev`
+- Operate on character level
+
+**Binary Operations** (byte-level):
+- `ergy`, `a2y`, `hex2y`, `y2hex`, `y2bcd`
+- Operate on raw bytes (CP1252 encoding)
+
+### Indexed String Access
+
+```
+S0[I0]       - Single character at index I0
+S0[#$10]     - Single character at offset 16
+S0[I0]#$5    - 5 characters starting at I0
+S0[#$10]I1   - Length I1 starting at offset 16
+S0[I0,#$2]   - Auto-increment I0 by 2 after access
+```
+
+### Token Parsing
+
+```
+setspc " ", #$1        ; Set separator to space, token index to 1
+stoken S0, S1          ; Extract first token from S1 into S0
+```
+
+## Result Collection
+
+### Result Types
+
+Jobs collect results in a key-value store with typed values:
+
+| Type | Opcode | Description |
+|------|--------|-------------|
+| `byte` | ergb | 8-bit unsigned |
+| `word` | ergw | 16-bit unsigned |
+| `dword` | ergd | 32-bit unsigned |
+| `int` | ergi | Integer (auto-sized) |
+| `char` | ergc | 8-bit signed |
+| `long` | ergl | 32-bit signed |
+| `real` | ergr | Float/double |
+| `string` | ergs | Text string |
+| `binary` | ergy | Binary data |
+
+### Result Set Management
+
+```
+enewset              ; Clear all results (start fresh)
+ergw "STATUS", I0    ; Record STATUS = I0 (word)
+ergs "ECU_NAME", S0  ; Record ECU_NAME = S0 (string)
+```
+
+### Selective Result Collection (etag)
+
+```
+etag __SKIP, "OPTIONAL_RESULT"
+ergd "OPTIONAL_RESULT", L0
+__SKIP:
+```
+
+If `OPTIONAL_RESULT` is not in the results request set, jump to `__SKIP`.
+
+### System Results
+
+```
+ergsysi "!INITIALISIERUNG", #$1  ; Request system initialization
+```
+
+Special result names starting with `!` trigger system actions.
+
+## Job Execution Flow
+
+### Initialization
+
+1. Locate job by name in job table
+2. Resolve bytecode offset (from binary job table)
+3. Initialize interpreter state:
+   - PC = job offset
+   - Reset registers (optional, depending on execution mode)
+   - Clear results (unless chaining jobs)
+   - Set parameters from caller
+
+### Execution Loop
+
+```
+while (!halted):
+  1. Decode instruction at PC
+  2. PC += instruction length
+  3. Execute instruction handler
+  4. Check for halt condition (eoj, break, error)
+```
+
+### Termination
+
+- **Normal**: `eoj` instruction sets halted flag
+- **Break**: `break` instruction throws EDIABAS_BIP_0008 error
+- **Error**: Uncaught exception terminates job
+
+### Inter-Job Communication
+
+**Parameters**: Passed from caller via `parb`, `parw`, `parl`, `pars`, `parr`, `pary`, `parn`
+
+**Results**: Retrieved by caller after job completes
+
+**Shared Memory**: Persistent key-value store across jobs (`shmset`, `shmget`)
+
+## Error Handling
+
+### Error Trap System
+
+The interpreter provides a trap mechanism for error detection:
+
+```
+clrt                    ; Clear trap
+sett #$5                ; Set trap bit 5
+xconnect                ; Communication operation
+jt __ERROR              ; Jump if error occurred
+...
+__ERROR:
+  eerr                  ; Execute error handler
+```
+
+### Trap State
+
+- **errorTrapMask**: Bitmask of trap conditions
+- **errorTrapBitNr**: Most recently triggered trap bit (-1 if none)
+
+### Trap Instructions
+
+| Instruction | Description |
+|-------------|-------------|
+| `sett val` | Set trap bit (1 << val) |
+| `clrt` | Clear all trap bits |
+| `jt offset` | Jump if any trap bit is set |
+| `jnt offset` | Jump if no trap bits set |
+| `eerr` | Execute error (throw exception with trap mask) |
+| `gettmr dst` | Get current trap mask and update flags |
+
+### Error Codes
+
+Defined in `@ediabas/core/EdiabasErrorCodes`:
+
+```typescript
+REGISTER_ERROR          // Invalid register access
+INVALID_INSTRUCTION     // Unknown opcode or malformed instruction
+STACK_OVERFLOW          // Call/data stack overflow
+STACK_UNDERFLOW         // Pop from empty stack
+DIVISION_BY_ZERO        // Arithmetic error
+EDIABAS_BIP_0008        // User break
+UNKNOWN                 // Generic error
+```
+
+### Communication Errors
+
+Communication operations (`xconnect`, `xsend`, etc.) set trap bits on failure:
+- Bit 0: Timeout
+- Bit 1: Protocol error
+- Bit 2: NAK received
+- Bit 3: Interface error
+
+Always check trap after communication operations:
+
+```
+xsend S0
+jt __COMM_ERROR
+```
 
 ---
 
-This document reflects the behavior implemented in the interpreter, parser, and disassembler code in this repository.
+**Generated**: 2025-02-07  
+**Source**: Analyzed from `packages/interpreter/`, `packages/best-parser/`, `packages/core/`  
+**Version**: Based on commit `7d52b83`
