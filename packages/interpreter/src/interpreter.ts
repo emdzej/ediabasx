@@ -118,13 +118,7 @@ import {
   xprog,
   xraw,
   xsireset,
-  xopen,
-  xclose,
   xbatt,
-  xcloseex,
-  xswitch,
-  xsendex,
-  xrecvex,
 } from "./operations/communication";
 import {
   type FileSystem,
@@ -407,19 +401,6 @@ function requireDateTimeDestination(operand: Operand): DateTimeDestination {
     );
   }
   return reg;
-}
-
-function optionalIntRegister(operand: Operand): IntRegisterRef | undefined {
-  if (operand.kind === "none") {
-    return undefined;
-  }
-  if (operand.kind === "register") {
-    return requireIntRegister(operand);
-  }
-  throw new EdiabasError(
-    EdiabasErrorCodes.INVALID_INSTRUCTION,
-    "Expected integer register"
-  );
 }
 
 function requireIndexed(operand: Operand): IndexedOperand {
@@ -1472,9 +1453,9 @@ export class Interpreter {
       0x6f: async () => {
         // To stack pointer - no-op stub
       },
-      // 0x70: xdownl - download (no-op stub)
+      // 0x70: xdownl - download (legacy opcode; EdiabasLib has null)
       0x70: async () => {
-        // Download functionality - no-op stub
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
       0x71: async (state, arg0, arg1) => {
         await xgetport(
@@ -1516,9 +1497,9 @@ export class Interpreter {
       0x77: async (state, arg0) => {
         await xsireset(requireCommunicationInterface(state), resolveIntValue(state.registers, arg0));
       },
-      // 0x78: xstoptr - stop transfer (no-op stub)
+      // 0x78: xstoptr - stop transfer (legacy opcode; EdiabasLib has null)
       0x78: async () => {
-        // Stop transfer - no-op stub
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
       0x79: async (state, arg0, arg1) => {
         fix2hex(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
@@ -1565,8 +1546,19 @@ export class Interpreter {
       0x83: async (state, arg0) => {
         tablineOp(state.flags, state.tableState, resolveIntValue(state.registers, arg0));
       },
-      // 0x86: xinfo - interface info (stub: returns empty string)
+      // 0x84: xsendr - send/receive (legacy opcode; EdiabasLib has null)
+      0x84: async (state, arg0) => {
+        // Legacy/unused in EdiabasLib; clear response for compatibility.
+        setStringValue(state.registers, requireStringRegister(arg0), "");
+      },
+      // 0x85: xrecv - receive (legacy opcode; EdiabasLib has null)
+      0x85: async (state, arg0) => {
+        // Legacy/unused in EdiabasLib; clear destination for compatibility.
+        setStringValue(state.registers, requireStringRegister(arg0), "");
+      },
+      // 0x86: xinfo - interface info (legacy opcode; EdiabasLib has null)
       0x86: async (state, arg0) => {
+        // Legacy/unused in EdiabasLib; return empty string for compatibility.
         setStringValue(state.registers, requireStringRegister(arg0), "");
       },
       0x87: async (state, arg0, arg1) => {
@@ -1593,9 +1585,9 @@ export class Interpreter {
         const bytes = utf8ToCp1252(str);
         setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
       },
-      // 0x8d: xparraw - raw parameters (no-op stub)
+      // 0x8d: xparraw - raw parameters (legacy opcode; EdiabasLib has null)
       0x8d: async () => {
-        // Raw parameters - no-op stub
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
       // 0x8e: hex2y - hex string to Y-register (binary)
       0x8e: async (state, arg0, arg1) => {
@@ -1791,24 +1783,30 @@ export class Interpreter {
         const durationMs = resolveIntValue(state.registers, arg0);
         await new Promise((resolve) => setTimeout(resolve, Math.max(0, durationMs)));
       },
-      0xaf: async (state, arg0) => {
-        await xopen(state.registers, requireCommunicationInterface(state), optionalIntRegister(arg0));
+      // 0xaf: xopen - open communication (legacy opcode; EdiabasLib has null)
+      0xaf: async () => {
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      0xb0: async (state) => {
-        await xclose(requireCommunicationInterface(state));
+      // 0xb0: xclose - close communication (legacy opcode; EdiabasLib has null)
+      0xb0: async () => {
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      0xb1: async (state, arg0) => {
-        await xcloseex(state.registers, requireCommunicationInterface(state), optionalIntRegister(arg0));
+      // 0xb1: xcloseex - close communication extended (legacy opcode; EdiabasLib has null)
+      0xb1: async () => {
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      0xb2: async (state, arg0) => {
-        await xswitch(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
+      // 0xb2: xswitch - switch interface (legacy opcode; EdiabasLib has null)
+      0xb2: async () => {
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      0xb3: async (state, arg0) => {
-        await xsendex(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
+      // 0xb3: xsendex - send extended (legacy opcode; EdiabasLib has null)
+      0xb3: async () => {
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      0xb4: async (state, arg0, arg1) => {
-        const timeout = optionalIntRegister(arg1);
-        await xrecvex(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0), timeout);
+      // 0xb4: xrecvex - receive extended (legacy opcode; EdiabasLib has null)
+      0xb4: async (state, arg0) => {
+        // Legacy/unused in EdiabasLib; clear destination for compatibility.
+        setStringValue(state.registers, requireStringRegister(arg0), "");
       },
       // 0xb5: ssize - string size (length in bytes)
       0xb5: async (state, arg0, arg1) => {
