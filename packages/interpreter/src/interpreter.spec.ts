@@ -80,6 +80,26 @@ describe("Interpreter", () => {
     expect(results[0].value).toBe(0x12);
   });
 
+  it("loads config values with cfgsg", async () => {
+    const keyBytes = encodeImmString("testkey");
+    const code = new Uint8Array([
+      0x8a,
+      0x18,
+      0x1c,
+      ...keyBytes,
+      0x1d,
+      0x00,
+    ]);
+
+    const interpreter = new Interpreter(createPrg(code));
+    const config = new Map([["TestKey", "Hello"]]);
+
+    await interpreter.execute("TEST", { config });
+    const state = interpreter.getState();
+
+    expect(state.registers.s[0]).toBe("Hello");
+  });
+
   it("steps through instructions", async () => {
     const nameBytes = encodeImmString("VALUE");
     const code = new Uint8Array([

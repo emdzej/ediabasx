@@ -229,6 +229,7 @@ type InterpreterState = {
   parameters: ParameterSet;
   results: ResultCollector;
   sharedMemory: SharedMemory;
+  config: Map<string, string>;
   timer: Timer;
   errorTrapMask: number;
   errorTrapBitNr: number;
@@ -259,6 +260,7 @@ export type ExecutionOptions = {
   parameters?: ParameterSet;
   results?: ResultCollector;
   sharedMemory?: SharedMemory;
+  config?: Map<string, string>;
   timer?: Timer;
   tableState?: TableState;
   communicationInterface?: CommunicationInterface;
@@ -289,6 +291,18 @@ function readInt16(view: DataView, offset: number): number {
 
 function readInt32(view: DataView, offset: number): number {
   return view.getInt32(offset, true);
+}
+
+
+function normalizeConfigMap(input?: Map<string, string>): Map<string, string> {
+  if (!input) {
+    return new Map();
+  }
+  const normalized = new Map<string, string>();
+  for (const [key, value] of input.entries()) {
+    normalized.set(key.toUpperCase(), value);
+  }
+  return normalized;
 }
 
 function decodeRegister(byte: number): IntRegisterRef | StringRegisterRef | FloatRegisterRef {
@@ -786,6 +800,7 @@ export class Interpreter {
     const parameters = options.parameters ?? new ParameterSet();
     const results = options.results ?? new ResultCollector();
     const sharedMemory = options.sharedMemory ?? new SharedMemory();
+    const config = normalizeConfigMap(options.config);
     const timer = options.timer ?? new Timer();
     const procedureRegistry = options.procedureRegistry ?? new ProcedureRegistry();
     const procedureStack = options.procedureStack ?? new ProcedureStack();
@@ -801,6 +816,7 @@ export class Interpreter {
       parameters,
       results,
       sharedMemory,
+      config,
       timer,
       errorTrapMask: 0,
       errorTrapBitNr: -1,
@@ -1565,9 +1581,14 @@ export class Interpreter {
       0x89: async (state, arg0) => {
         setIntValue(state.registers, requireIntRegister(arg0), 0);
       },
-      // 0x8a: cfgsg - config set/get (no-op stub)
-      0x8a: async () => {
-        // Config set/get - no-op stub
+      // 0x8a: cfgsg - config get string
+      0x8a: async (state, arg0, arg1) => {
+        const dest = requireStringRegister(arg0);
+        const key = resolveStringValue(state.registers, arg1).toUpperCase();
+        const value = state.config.get(key);
+        if (value != null) {
+          setBinaryValue(state.registers, dest, utf8ToCp1252(value));
+        }
       },
       // 0x8b: cfgis - config is set (stub: returns 0 = not set)
       0x8b: async (state, arg0) => {
