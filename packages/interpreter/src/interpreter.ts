@@ -91,6 +91,7 @@ import {
   wait,
   sett,
   clrt,
+  eerr,
 } from "./operations/time";
 import { SharedMemory, shmset, shmget } from "./operations/shared-memory";
 import {
@@ -286,6 +287,7 @@ export type InterpreterSnapshot = {
   progressText: string;
   progressRange: number;
   progressPos: number;
+  errorTrapBitNr: number;
 };
 
 function readInt16(view: DataView, offset: number): number {
@@ -897,6 +899,7 @@ export class Interpreter {
       progressText: context.progressText,
       progressRange: context.progressRange,
       progressPos: context.progressPos,
+      errorTrapBitNr: context.errorTrapBitNr,
     };
   }
 
@@ -1336,8 +1339,8 @@ export class Interpreter {
         clrv(state.flags);
       },
       // 0x4d: eerr - make error (execute)
-      0x4d: async () => {
-        // Error trap handling not implemented; no-op.
+      0x4d: async (state) => {
+        eerr(state);
       },
       0x4e: async (state) => {
         popf(state.dataStack, state.flags);

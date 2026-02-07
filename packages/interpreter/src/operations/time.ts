@@ -1,6 +1,8 @@
+import { EdiabasError, EdiabasErrorCodes, type EdiabasErrorCode } from "@ediabas/core";
 import { RegisterSet } from "../registers";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 import { getIntValue, setIntValue } from "./register-values";
+import { TrapBitDict } from "../trap-bits";
 
 export type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 
@@ -123,6 +125,28 @@ export function sett(
 /** CLRT - Clear error trap bit */
 export function clrt(state: ErrorTrapState): void {
   state.errorTrapBitNr = -1;
+}
+
+/** EERR - Execute error */
+export function eerr(state: ErrorTrapState): void {
+  if (state.errorTrapBitNr >= 0) {
+    // Check if the current trap bit corresponds to a specific known error
+    // Iterate over known trap bits to find a match
+    for (const [errorCode, bitNr] of Object.entries(TrapBitDict)) {
+      if (bitNr === state.errorTrapBitNr) {
+        const code = Number(errorCode) as EdiabasErrorCode;
+        throw new EdiabasError(
+          code,
+          `Error trap triggered: ${state.errorTrapBitNr}`
+        );
+      }
+    }
+    // Fallback to generic internal error if no specific mapping found
+    throw new EdiabasError(
+      EdiabasErrorCodes.EDIABAS_BIP_0000,
+      `Error trap triggered: ${state.errorTrapBitNr}`
+    );
+  }
 }
 
 export const date = getdate;
