@@ -724,35 +724,40 @@ describe("Control Flow Operations", () => {
     });
   });
 
-  describe("Timer flag jumps (JT/JNT)", () => {
-    it("JT jumps when timer flag is set", () => {
-      const timerState = { timerFlag: true };
-      expect(jt(createState(100), timerState, 20).newPc).toBe(120);
+  describe("Trap jumps (JT/JNT)", () => {
+    it("JT jumps when trap bit matches", () => {
+      const trapState = { errorTrapBitNr: 5 };
+      expect(jt(createState(100), trapState, 20, 5).newPc).toBe(120);
     });
 
-    it("JT does not jump when timer flag is clear", () => {
-      const timerState = { timerFlag: false };
-      expect(jt(createState(100), timerState, 20).newPc).toBe(100);
+    it("JT does not jump when trap bit differs", () => {
+      const trapState = { errorTrapBitNr: 5 };
+      expect(jt(createState(100), trapState, 20, 3).newPc).toBe(100);
     });
 
-    it("JNT jumps when timer flag is clear", () => {
-      const timerState = { timerFlag: false };
-      expect(jnt(createState(100), timerState, 20).newPc).toBe(120);
+    it("JNT jumps when trap bit differs", () => {
+      const trapState = { errorTrapBitNr: 5 };
+      expect(jnt(createState(100), trapState, 20, 3).newPc).toBe(120);
     });
 
-    it("JNT does not jump when timer flag is set", () => {
-      const timerState = { timerFlag: true };
-      expect(jnt(createState(100), timerState, 20).newPc).toBe(100);
+    it("JT without test bit jumps on any error", () => {
+      const trapState = { errorTrapBitNr: 0 };
+      expect(jt(createState(100), trapState, 20).newPc).toBe(120);
     });
 
-    it("JT handles negative offset", () => {
-      const timerState = { timerFlag: true };
-      expect(jt(createState(100), timerState, -30).newPc).toBe(70);
+    it("JT without test bit does not jump when no error", () => {
+      const trapState = { errorTrapBitNr: -1 };
+      expect(jt(createState(100), trapState, 20).newPc).toBe(100);
     });
 
-    it("JNT handles negative offset", () => {
-      const timerState = { timerFlag: false };
-      expect(jnt(createState(100), timerState, -30).newPc).toBe(70);
+    it("JNT without test bit jumps when no severe trap", () => {
+      const trapState = { errorTrapBitNr: 10 };
+      expect(jnt(createState(100), trapState, 20).newPc).toBe(120);
+    });
+
+    it("JNT without test bit does not jump when severe trap", () => {
+      const trapState = { errorTrapBitNr: 0x40000000 };
+      expect(jnt(createState(100), trapState, 20).newPc).toBe(100);
     });
   });
 });

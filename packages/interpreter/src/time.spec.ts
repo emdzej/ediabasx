@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import { RegisterSet } from "./registers";
-import { Timer, gettmr, settmr, getdate, gettime, wait, sett, clrt } from "./operations/time";
+import { gettmr, settmr, getdate, gettime, wait, sett, clrt } from "./operations/time";
+import type { ErrorTrapState } from "./operations/time";
 
 const S0 = { kind: "S", index: 0 } as const;
 const S1 = { kind: "S", index: 1 } as const;
@@ -14,16 +15,21 @@ describe("Time and date operations", () => {
     registers = new RegisterSet();
   });
 
-  it("gettmr returns elapsed time since settmr", () => {
-    let now = 1000;
-    const timer = new Timer(() => now);
-    registers.setI(0, 500);
+  it("gettmr returns error trap mask", () => {
+    const state: ErrorTrapState = { errorTrapMask: 1234, errorTrapBitNr: -1 };
 
-    settmr(registers, timer, I0);
-    now = 1500;
+    gettmr(registers, state, I1);
 
-    gettmr(registers, timer, I1);
-    expect(registers.getI(1)).toBe(1000);
+    expect(registers.getI(1)).toBe(1234);
+  });
+
+  it("settmr updates error trap mask", () => {
+    const state: ErrorTrapState = { errorTrapMask: 0, errorTrapBitNr: -1 };
+    registers.setI(0, 2048);
+
+    settmr(registers, state, I0);
+
+    expect(state.errorTrapMask).toBe(2048);
   });
 
   it("getdate writes formatted string and numeric date", () => {
@@ -48,31 +54,43 @@ describe("Time and date operations", () => {
 
   it("wait resolves after duration", async () => {
     vi.useFakeTimers();
-    const promise = wait(registers, 500);
-    vi.advanceTimersByTime(500);
+    const promise = wait(registers, 1);
+    vi.advanceTimersByTime(1000);
     await promise;
     vi.useRealTimers();
   });
 });
 
-describe("Timer flag operations", () => {
-  it("sett sets timer flag to true", () => {
-    const state = { timerFlag: false };
-    sett(state);
-    expect(state.timerFlag).toBe(true);
+describe("Error trap operations", () => {
+  let registers: RegisterSet;
+
+  beforeEach(() => {
+    registers = new RegisterSet();
   });
 
-  it("clrt clears timer flag to false", () => {
-    const state = { timerFlag: true };
-    clrt(state);
-    expect(state.timerFlag).toBe(false);
+  it("sett sets error trap bit", () => {
+    const state: ErrorTrapState = { errorTrapMask: 0, errorTrapBitNr: -1 };
+    registers.setI(0, 7);
+
+    sett(registers, state, I0);
+
+    expect(state.errorTrapBitNr).toBe(7);
   });
 
-  it("sett then clrt resets flag", () => {
-    const state = { timerFlag: false };
-    sett(state);
-    expect(state.timerFlag).toBe(true);
+  it("sett uses default when bit is zero", () => {
+    const state: ErrorTrapState = { errorTrapMask: 0, errorTrapBitNr: -1 };
+    registers.setI(0, 0);
+
+    sett(registers, state, I0);
+
+    expect(state.errorTrapBitNr).toBe(0x40000000);
+  });
+
+  it("clrt clears error trap bit", () => {
+    const state: ErrorTrapState = { errorTrapMask: 0, errorTrapBitNr: 12 };
+
     clrt(state);
-    expect(state.timerFlag).toBe(false);
+
+    expect(state.errorTrapBitNr).toBe(-1);
   });
 });

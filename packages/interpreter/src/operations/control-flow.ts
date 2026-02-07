@@ -431,45 +431,77 @@ export { jpl as jns }; // JPL is same as JNS (Jump if No Sign)
 export { call as jtsr }; // CALL is same as JTSR (Jump To SubRoutine)
 
 /**
- * Timer flag state for JT/JNT operations.
+ * Error trap state for JT/JNT operations.
  */
-export interface TimerFlagState {
-  timerFlag: boolean;
+export interface ErrorTrapState {
+  errorTrapBitNr: number;
+}
+
+function isTrapErrorDetected(
+  errorTrapBitNr: number,
+  testBit: number | null,
+  hasArg: boolean,
+  noArgUsesAnyError: boolean
+): boolean {
+  if (hasArg && testBit !== null) {
+    if (testBit > 0) {
+      if (errorTrapBitNr === testBit) {
+        return true;
+      }
+      if (errorTrapBitNr === 0 && testBit === 32) {
+        return true;
+      }
+    } else if (errorTrapBitNr >= 0x40000000) {
+      return true;
+    }
+    return false;
+  }
+
+  if (noArgUsesAnyError) {
+    return errorTrapBitNr >= 0;
+  }
+  return errorTrapBitNr >= 0x40000000;
 }
 
 /**
- * Jump if timer flag set (JT).
- *
- * @param state - Current execution state
- * @param timerState - Timer flag state
- * @param offset - Relative offset from current PC
- * @returns New program counter
+ * Jump if trap/error detected (JT).
  */
 export function jt(
   state: ExecutionState,
-  timerState: TimerFlagState,
-  offset: number
+  trapState: ErrorTrapState,
+  offset: number,
+  testBit?: number
 ): ControlFlowResult {
-  if (timerState.timerFlag) {
+  const hasArg = typeof testBit === "number";
+  const detected = isTrapErrorDetected(
+    trapState.errorTrapBitNr,
+    hasArg ? testBit! : null,
+    hasArg,
+    true
+  );
+  if (detected) {
     return { newPc: state.pc + offset };
   }
   return { newPc: state.pc };
 }
 
 /**
- * Jump if timer flag not set (JNT).
- *
- * @param state - Current execution state
- * @param timerState - Timer flag state
- * @param offset - Relative offset from current PC
- * @returns New program counter
+ * Jump if no trap/error detected (JNT).
  */
 export function jnt(
   state: ExecutionState,
-  timerState: TimerFlagState,
-  offset: number
+  trapState: ErrorTrapState,
+  offset: number,
+  testBit?: number
 ): ControlFlowResult {
-  if (!timerState.timerFlag) {
+  const hasArg = typeof testBit === "number";
+  const detected = isTrapErrorDetected(
+    trapState.errorTrapBitNr,
+    hasArg ? testBit! : null,
+    hasArg,
+    false
+  );
+  if (!detected) {
     return { newPc: state.pc + offset };
   }
   return { newPc: state.pc };

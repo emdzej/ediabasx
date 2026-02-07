@@ -25,6 +25,11 @@ export class Timer {
   }
 }
 
+export interface ErrorTrapState {
+  errorTrapMask: number;
+  errorTrapBitNr: number;
+}
+
 function resolveTimeValue(registers: RegisterSet, value: TimeValueRef): number {
   return typeof value === "number" ? value : getIntValue(registers, value);
 }
@@ -47,18 +52,18 @@ function pad2(value: number): string {
 
 export function gettmr(
   registers: RegisterSet,
-  timer: Timer,
+  state: ErrorTrapState,
   destination: IntRegisterRef
 ): void {
-  setIntValue(registers, destination, timer.read());
+  setIntValue(registers, destination, state.errorTrapMask);
 }
 
 export function settmr(
   registers: RegisterSet,
-  timer: Timer,
+  state: ErrorTrapState,
   value: TimeValueRef
 ): void {
-  timer.set(resolveTimeValue(registers, value));
+  state.errorTrapMask = resolveTimeValue(registers, value);
 }
 
 export function getdate(
@@ -91,9 +96,9 @@ export function wait(
   registers: RegisterSet,
   duration: TimeValueRef
 ): Promise<void> {
-  const durationMs = Math.max(0, resolveTimeValue(registers, duration));
+  const durationSeconds = Math.max(0, resolveTimeValue(registers, duration));
   return new Promise((resolve) => {
-    setTimeout(resolve, durationMs);
+    setTimeout(resolve, durationSeconds * 1000);
   });
 }
 
@@ -102,18 +107,22 @@ export function wait(
  * The timer flag is a separate boolean from the timer value.
  */
 
-export interface TimerFlagState {
-  timerFlag: boolean;
+/** SETT - Set error trap bit */
+export function sett(
+  registers: RegisterSet,
+  state: ErrorTrapState,
+  value: TimeValueRef
+): void {
+  let bit = resolveTimeValue(registers, value);
+  if (bit === 0) {
+    bit = 0x40000000;
+  }
+  state.errorTrapBitNr = bit;
 }
 
-/** SETT - Set timer flag */
-export function sett(state: TimerFlagState): void {
-  state.timerFlag = true;
-}
-
-/** CLRT - Clear timer flag */
-export function clrt(state: TimerFlagState): void {
-  state.timerFlag = false;
+/** CLRT - Clear error trap bit */
+export function clrt(state: ErrorTrapState): void {
+  state.errorTrapBitNr = -1;
 }
 
 export const date = getdate;
