@@ -14,20 +14,34 @@
   "dependencies": {
     "@ediabas/best-parser": "workspace:*",
     "@ediabas/ediabas": "workspace:*",
+    "@ediabas/interface-base": "workspace:*",
     "@ediabas/interfaces": "workspace:*",
     "chalk": "^5.4.1",
     "commander": "^12.1.0",
     "ink": "^5.0.0",
     "ink-use-stdout-dimensions": "^1.0.5",
-    "react": "^18.3.1",
-    "@ediabas/interface-base": "workspace:*"
+    "react": "^18.3.1"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",
-    "@types/react": "^18.3.3"
+    "@types/react": "^18.3.3",
+    "pkg": "^5.8.1"
+  },
+  "pkg": {
+    "targets": [
+      "node20-macos-arm64",
+      "node20-macos-x64",
+      "node20-linux-x64",
+      "node20-win-x64"
+    ],
+    "assets": [
+      "dist/**/*"
+    ],
+    "outputPath": "dist/bin"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "build:binary": "pkg . --out-path dist/bin",
     "test": "vitest run --passWithNoTests",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

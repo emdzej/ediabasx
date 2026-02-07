@@ -24,6 +24,20 @@ pnpm install
 pnpm build
 ```
 
+## Binary Usage (no Node.js required)
+
+Build self-contained binaries with `pkg`:
+
+```bash
+# Build all packages
+pnpm build
+
+# Build platform-specific binaries
+pnpm build:binary
+```
+
+Binaries are emitted to `packages/cli/dist/bin/` (Windows builds include `.exe`).
+
 ## CLI Usage
 
 The CLI tool (`ediabas`) provides several commands for analyzing PRG/GRP files.
