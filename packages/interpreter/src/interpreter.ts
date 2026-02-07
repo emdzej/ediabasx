@@ -236,7 +236,8 @@ type InterpreterState = {
   results: ResultCollector;
   sharedMemory: SharedMemory;
   timer: Timer;
-  timerFlag: boolean;
+  errorTrapMask: number;
+  errorTrapBitNr: number;
   tokenSeparator: string;
   tokenIndex: number;
   floatPrecision: number;
@@ -819,7 +820,8 @@ export class Interpreter {
       results,
       sharedMemory,
       timer,
-      timerFlag: false,
+      errorTrapMask: 0,
+      errorTrapBitNr: -1,
       tokenSeparator: "",
       tokenIndex: 0,
       floatPrecision: 4,
@@ -913,12 +915,15 @@ export class Interpreter {
         return { pc: jumpFn(this.controlFlowState(state), offset).newPc };
       };
 
-    const timerJumpHandler = (
-      jumpFn: (flowState: ExecutionState, timerState: { timerFlag: boolean }, offset: number) => { newPc: number }
+    const trapJumpHandler = (
+      jumpFn: (flowState: ExecutionState, trapState: { errorTrapBitNr: number }, offset: number, testBit?: number) => { newPc: number }
     ) =>
-      async (state: InterpreterState, arg0: Operand) => {
+      async (state: InterpreterState, arg0: Operand, arg1: Operand) => {
         const offset = resolveJumpOffset(state, arg0);
-        return { pc: jumpFn(this.controlFlowState(state), state, offset).newPc };
+        const testBit = arg1.kind === "none"
+          ? undefined
+          : (resolveIntValue(state.registers, arg1) & 0xff);
+        return { pc: jumpFn(this.controlFlowState(state), state, offset, testBit).newPc };
       };
 
     const handlers: Record<number, (state: InterpreterState, arg0: Operand, arg1: Operand) => Promise<{ pc?: number; halted?: boolean } | void>> = {
@@ -1283,24 +1288,33 @@ export class Interpreter {
         await xreps(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
       },
       0x43: async (state, arg0) => {
-        gettmr(state.registers, state.timer, requireIntRegister(arg0));
+        const dest = requireIntRegister(arg0);
+        gettmr(state.registers, state, dest);
+        const byteLength = intRegisterByteLength(dest);
+        const mask = byteLength === 1 ? 0xff : byteLength === 2 ? 0xffff : 0xffffffff;
+        const signMask = byteLength === 1 ? 0x80 : byteLength === 2 ? 0x8000 : 0x80000000;
+        const masked = state.errorTrapMask & mask;
+        state.flags.z = masked === 0;
+        state.flags.s = (masked & signMask) !== 0;
+        state.flags.v = false;
       },
       0x44: async (state, arg0) => {
         const value = resolveIntValue(state.registers, arg0);
-        settmr(state.registers, state.timer, value as TimeValueRef);
+        settmr(state.registers, state, value as TimeValueRef);
       },
-      // 0x45: sett - set timer flag
-      0x45: async (state) => {
-        sett(state);
+      // 0x45: sett - set error trap bit
+      0x45: async (state, arg0) => {
+        const value = resolveIntValue(state.registers, arg0);
+        sett(state.registers, state, value as TimeValueRef);
       },
-      // 0x46: clrt - clear timer flag
+      // 0x46: clrt - clear error trap bit
       0x46: async (state) => {
         clrt(state);
       },
-      // 0x47: jt - jump if timer flag set
-      0x47: timerJumpHandler(jt),
-      // 0x48: jnt - jump if timer flag not set
-      0x48: timerJumpHandler(jnt),
+      // 0x47: jt - jump if trap detected
+      0x47: trapJumpHandler(jt),
+      // 0x48: jnt - jump if no trap detected
+      0x48: trapJumpHandler(jnt),
       // 0x49: addc - add with carry
       0x49: async (state, arg0, arg1) => {
         addc(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
@@ -1309,9 +1323,14 @@ export class Interpreter {
       0x4a: async (state, arg0, arg1) => {
         subc(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
-      // 0x4b: break - breakpoint (no-op in normal execution)
-      0x4b: async () => {
-        // Breakpoint - no-op in normal execution
+      // 0x4b: break - user break (sets error trap)
+      0x4b: async (state) => {
+        const bitNr = 0;
+        state.errorTrapBitNr = bitNr;
+        const active = (1 << bitNr) & ~state.errorTrapMask;
+        if (active !== 0) {
+          throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "BREAK");
+        }
       },
       0x4c: async (state) => {
         clrv(state.flags);
@@ -1391,14 +1410,14 @@ export class Interpreter {
         fclose(requireFileSystem(state), state.registers, requireIntRegister(arg0));
       },
       0x60: async (state, arg0, arg1) => {
-        fopen(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireStringRegister(arg1));
+        fopen(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireStringRegister(arg1), undefined, state.flags);
       },
       0x61: async (state, arg0, arg1) => {
-        fread(requireFileSystem(state), state.registers, requireStringRegister(arg0), requireIntRegister(arg1), { kind: "I", index: 0 });
+        fread(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1), state.flags);
       },
       // 0x62: freadln - read line from file
       0x62: async (state, arg0, arg1) => {
-        freadln(requireFileSystem(state), state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
+        freadln(requireFileSystem(state), state.registers, requireStringRegister(arg0), requireIntRegister(arg1), state.flags);
       },
       0x63: async (state, arg0, arg1) => {
         fseek(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
@@ -1588,7 +1607,16 @@ export class Interpreter {
         strcmp(state.registers, state.flags, requireStringRegister(arg0), requireStringRegister(arg1));
       },
       0x90: async (state, arg0, arg1) => {
-        strlen(state.registers, requireIntRegister(arg0), requireStringRegister(arg1));
+        const dest = requireIntRegister(arg0);
+        strlen(state.registers, dest, requireStringRegister(arg1));
+        const length = getIntValue(state.registers, dest);
+        const byteLength = intRegisterByteLength(dest);
+        const mask = byteLength === 1 ? 0xff : byteLength === 2 ? 0xffff : 0xffffffff;
+        const signMask = byteLength === 1 ? 0x80 : byteLength === 2 ? 0x8000 : 0x80000000;
+        const masked = length & mask;
+        state.flags.z = masked === 0;
+        state.flags.s = (masked & signMask) !== 0;
+        state.flags.v = false;
       },
       // 0x91: y2bcd - Y-register to BCD string
       0x91: async (state, arg0, arg1) => {
@@ -1616,7 +1644,7 @@ export class Interpreter {
       0x94: async (state, arg0, arg1) => {
         const destination = requireStringRegister(arg0);
         const key = arg1.kind === "string" ? arg1.value : requireStringRegister(arg1);
-        shmget(state.registers, state.sharedMemory, destination, key);
+        shmget(state.registers, state.sharedMemory, destination, key, state.flags);
       },
       // 0x95: ergsysi - system info result
       0x95: async (state, arg0, arg1) => {
