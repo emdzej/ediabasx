@@ -505,6 +505,43 @@ function resolveStringValue(registers: RegisterSet, operand: Operand): string {
   }
 }
 
+function parseConfigInt(value: string): number {
+  const trimmed = value.trimEnd();
+  if (!trimmed) {
+    return 0;
+  }
+  const lower = trimmed.toLowerCase();
+  try {
+    if (lower.startsWith("0x")) {
+      if (lower.length <= 2) {
+        return 0;
+      }
+      const firstChar = lower[2];
+      if (!/[0-9a-f]/.test(firstChar)) {
+        return 0;
+      }
+      return Number.parseInt(trimmed.slice(2), 16);
+    }
+    if (lower.startsWith("0y")) {
+      return Number.parseInt(trimmed.slice(2), 2);
+    }
+    if (lower === "-" || lower === "--") {
+      return 0;
+    }
+    if (/[a-z]/i.test(lower[0])) {
+      return 0;
+    }
+    let numberConv = trimmed.trimStart();
+    const index = numberConv.search(/[.,]/);
+    if (index >= 0) {
+      numberConv = numberConv.slice(0, index);
+    }
+    return Number.parseInt(numberConv, 10);
+  } catch {
+    return 0;
+  }
+}
+
 function resolveBinaryValue(registers: RegisterSet, operand: Operand): Uint8Array {
   switch (operand.kind) {
     case "string":
@@ -1577,9 +1614,14 @@ export class Interpreter {
       0x88: async (state, arg0) => {
         state.floatPrecision = resolveIntValue(state.registers, arg0);
       },
-      // 0x89: cfgig - config get int (stub: returns 0)
-      0x89: async (state, arg0) => {
-        setIntValue(state.registers, requireIntRegister(arg0), 0);
+      // 0x89: cfgig - config get int
+      0x89: async (state, arg0, arg1) => {
+        const dest = requireIntRegister(arg0);
+        const key = resolveStringValue(state.registers, arg1).toUpperCase();
+        const value = state.config.get(key);
+        if (value != null) {
+          setIntValue(state.registers, dest, parseConfigInt(value));
+        }
       },
       // 0x8a: cfgsg - config get string
       0x8a: async (state, arg0, arg1) => {
@@ -1590,9 +1632,11 @@ export class Interpreter {
           setBinaryValue(state.registers, dest, utf8ToCp1252(value));
         }
       },
-      // 0x8b: cfgis - config is set (stub: returns 0 = not set)
-      0x8b: async (state, arg0) => {
-        setIntValue(state.registers, requireIntRegister(arg0), 0);
+      // 0x8b: cfgis - config set int
+      0x8b: async (state, arg0, arg1) => {
+        const key = resolveStringValue(state.registers, arg0).toUpperCase();
+        const value = resolveIntValue(state.registers, arg1);
+        state.config.set(key, `${value}`);
       },
       // 0x8c: a2y - ASCII string to Y-register (binary)
       0x8c: async (state, arg0, arg1) => {
