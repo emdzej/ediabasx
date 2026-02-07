@@ -680,12 +680,16 @@ If a results filter is configured and `arg1` is not requested, jumps to `arg0`.
 - arg0: Relative offset (int reg or immediate)
 - arg1: Result name (string reg or immediate)
 
-### 0x4d - eerr (Error Result)
-Records `F_ERRORCODE` and `F_ERRORTEXT` results from arguments.
+### 0x4d - eerr (Execute Error)
+Executes an error based on the current error trap bit. If `errorTrapBitNr` is set (≥0), looks up the corresponding error code from the trap bit dictionary and raises that error. If no match is found, raises `EDIABAS_BIP_0000`.
 
 **Arguments:**
-- arg0: Error code (int reg or immediate)
-- arg1: Error text (string reg or immediate)
+- (none)
+
+**Error Trap Bit Mapping:**
+- Bit 8 → `EDIABAS_BIP_0011`
+- Bit 28 → `EDIABAS_IFH_0069`
+- Bit 29 → `EDIABAS_IFH_0074`
 
 ### 0xac - generr (Generate Error)
 Records error info and throws an interpreter error.
@@ -1231,31 +1235,37 @@ Increments progress position by given amount (clamped to range).
 ## Misc / Stubs
 
 ### 0x4b - break (Breakpoint)
-No-op in normal execution.
+Raises `EDIABAS_BIP_0008` error. In EdiabasLib this is used for debugging breakpoints.
 
 **Arguments:**
 - (none)
 
 ### 0x6f - tosp (To Stack Pointer) [Stub]
-No-op stub.
+No-op stub (null in EdiabasLib).
 
 **Arguments:**
 - (none)
 
-### 0x89 - cfgig (Config Get Int) [Stub]
-Returns 0 in destination register.
+### 0x89 - cfgig (Config Get Integer)
+Reads a configuration value by key and parses it as an integer. Supports hex (`0x`), binary (`0y`), and decimal formats. Handles comma/dot decimal separators.
 
 **Arguments:**
 - arg0: Destination integer register
+- arg1: Config key (string)
 
-### 0x8a - cfgsg (Config Set/Get) [Stub]
-No-op stub.
+### 0x8a - cfgsg (Config Get String)
+Reads a configuration value by key into a string register. Returns empty string if key not found.
 
 **Arguments:**
-- (none)
+- arg0: Destination string register
+- arg1: Config key (string)
 
-### 0x8b - cfgis (Config Is Set) [Stub]
-Returns 0 (not set).
+### 0x8b - cfgis (Config Set Integer)
+Sets a configuration value from an integer.
+
+**Arguments:**
+- arg0: Config key (string)
+- arg1: Integer value to set
 
 **Arguments:**
 - arg0: Destination integer register

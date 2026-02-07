@@ -79,9 +79,9 @@ Single-table reference of all implemented opcodes sorted by hex value.
 | 0x48 | jnt | Jump if timer flag not set |
 | 0x49 | addc | Add with carry |
 | 0x4a | subc | Subtract with borrow |
-| 0x4b | break | Breakpoint (no-op) |
+| 0x4b | break | Breakpoint (raises EDIABAS_BIP_0008) |
 | 0x4c | clrv | Clear overflow flag |
-| 0x4d | eerr | Error result |
+| 0x4d | eerr | Execute error (error trap mechanism) |
 | 0x4e | popf | Pop flags from stack |
 | 0x4f | pushf | Push flags to stack |
 | 0x50 | atsp | Read value at stack offset |
@@ -139,9 +139,9 @@ Single-table reference of all implemented opcodes sorted by hex value.
 | 0x86 | xinfo | Interface info (stub) |
 | 0x87 | flt2a | Float to string |
 | 0x88 | setflt | Set float immediate |
-| 0x89 | cfgig | Config get int (stub) |
-| 0x8a | cfgsg | Config set/get (stub) |
-| 0x8b | cfgis | Config is set (stub) |
+| 0x89 | cfgig | Config get integer |
+| 0x8a | cfgsg | Config get string |
+| 0x8b | cfgis | Config set integer |
 | 0x8c | a2y | ASCII to binary (Y) |
 | 0x8d | xparraw | Raw parameters (stub) |
 | 0x8e | hex2y | Hex string to binary |
