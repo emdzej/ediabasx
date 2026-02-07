@@ -136,7 +136,6 @@ import {
   ProcedureRegistry,
   ProcedureStack,
   plink,
-  pcall,
   ppush,
   ppushflt,
   ppushy,
@@ -1307,14 +1306,9 @@ export class Interpreter {
       0x4a: async (state, arg0, arg1) => {
         subc(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
-      // 0x4b: break - user break (sets error trap)
-      0x4b: async (state) => {
-        const bitNr = 0;
-        state.errorTrapBitNr = bitNr;
-        const active = (1 << bitNr) & ~state.errorTrapMask;
-        if (active !== 0) {
-          throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "BREAK");
-        }
+      // 0x4b: break - user break (EdiabasLib: EDIABAS_BIP_0008)
+      0x4b: async () => {
+        throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0008, "BREAK");
       },
       0x4c: async (state) => {
         clrv(state.flags);
@@ -1449,9 +1443,9 @@ export class Interpreter {
       0x6e: async (state, arg0) => {
         await xbatt(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
       },
-      // 0x6f: tosp - to stack pointer (no-op stub)
+      // 0x6f: tosp - to stack pointer (legacy opcode; EdiabasLib has null)
       0x6f: async () => {
-        // To stack pointer - no-op stub
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
       // 0x70: xdownl - download (legacy opcode; EdiabasLib has null)
       0x70: async () => {
@@ -1724,9 +1718,9 @@ export class Interpreter {
         }
         plink(state.procedureRegistry, id, handler);
       },
-      0xa0: async (state, arg0) => {
-        const id = resolveIntValue(state.registers, arg0);
-        pcall(state.procedureRegistry, state.procedureStack, id);
+      // 0xa0: pcall - procedure call (legacy opcode; EdiabasLib has null)
+      0xa0: async () => {
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
       // 0xa2: plinkv - link procedure with validation (stub: same as plink)
       0xa2: async (state, arg0) => {
