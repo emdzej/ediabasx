@@ -47,11 +47,15 @@ export function setFloatValue(
   registers.setF(ref.index, value);
 }
 
+function stripNullTerminator(value: string): string {
+  return value.replace(/\0.*$/, "");
+}
+
 export function getStringValue(
   registers: RegisterSet,
   ref: StringRegisterRef
 ): string {
-  return registers.getS(ref.index);
+  return stripNullTerminator(registers.getS(ref.index));
 }
 
 export function setStringValue(
@@ -91,5 +95,5 @@ export function resolveStringValue(
   registers: RegisterSet,
   ref: StringRegisterRef
 ): string {
-  return registers.getS(ref.index);
+  return stripNullTerminator(registers.getS(ref.index));
 }

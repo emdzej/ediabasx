@@ -2,6 +2,7 @@ import { cp1252ToUtf8, utf8ToCp1252 } from "@ediabas/core";
 import { RegisterSet } from "../registers";
 import type { StringRegisterRef } from "./register-refs";
 import { getStringValue, setStringValue } from "./register-values";
+import type { Flags } from "../flags";
 
 export type { StringRegisterRef } from "./register-refs";
 
@@ -20,10 +21,15 @@ export class SharedMemory {
   get(key: string): Uint8Array {
     return this.entries.get(key) ?? new Uint8Array();
   }
+
+  has(key: string): boolean {
+    return this.entries.has(key);
+  }
 }
 
 function resolveKey(registers: RegisterSet, value: SharedMemoryKey): string {
-  return typeof value === "string" ? value : getStringValue(registers, value);
+  const key = typeof value === "string" ? value : getStringValue(registers, value);
+  return key.toUpperCase();
 }
 
 function resolveValue(registers: RegisterSet, value: SharedMemoryValue): Uint8Array {
@@ -51,9 +57,14 @@ export function shmget(
   registers: RegisterSet,
   memory: SharedMemory,
   destination: StringRegisterRef,
-  key: SharedMemoryKey
+  key: SharedMemoryKey,
+  flags?: Flags
 ): void {
   const resolvedKey = resolveKey(registers, key);
+  const exists = memory.has(resolvedKey);
   const value = memory.get(resolvedKey);
   setStringValue(registers, destination, cp1252ToUtf8(value));
+  if (flags) {
+    flags.c = !exists;
+  }
 }

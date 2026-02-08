@@ -1,6 +1,8 @@
+import { EdiabasError, EdiabasErrorCodes, type EdiabasErrorCode } from "@ediabas/core";
 import { RegisterSet } from "../registers";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 import { getIntValue, setIntValue } from "./register-values";
+import { TrapBitDict } from "../trap-bits";
 
 export type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 
@@ -25,6 +27,11 @@ export class Timer {
   }
 }
 
+export interface ErrorTrapState {
+  errorTrapMask: number;
+  errorTrapBitNr: number;
+}
+
 function resolveTimeValue(registers: RegisterSet, value: TimeValueRef): number {
   return typeof value === "number" ? value : getIntValue(registers, value);
 }
@@ -47,18 +54,18 @@ function pad2(value: number): string {
 
 export function gettmr(
   registers: RegisterSet,
-  timer: Timer,
+  state: ErrorTrapState,
   destination: IntRegisterRef
 ): void {
-  setIntValue(registers, destination, timer.read());
+  setIntValue(registers, destination, state.errorTrapMask);
 }
 
 export function settmr(
   registers: RegisterSet,
-  timer: Timer,
+  state: ErrorTrapState,
   value: TimeValueRef
 ): void {
-  timer.set(resolveTimeValue(registers, value));
+  state.errorTrapMask = resolveTimeValue(registers, value);
 }
 
 export function getdate(
@@ -91,9 +98,9 @@ export function wait(
   registers: RegisterSet,
   duration: TimeValueRef
 ): Promise<void> {
-  const durationMs = Math.max(0, resolveTimeValue(registers, duration));
+  const durationSeconds = Math.max(0, resolveTimeValue(registers, duration));
   return new Promise((resolve) => {
-    setTimeout(resolve, durationMs);
+    setTimeout(resolve, durationSeconds * 1000);
   });
 }
 
@@ -102,18 +109,44 @@ export function wait(
  * The timer flag is a separate boolean from the timer value.
  */
 
-export interface TimerFlagState {
-  timerFlag: boolean;
+/** SETT - Set error trap bit */
+export function sett(
+  registers: RegisterSet,
+  state: ErrorTrapState,
+  value: TimeValueRef
+): void {
+  let bit = resolveTimeValue(registers, value);
+  if (bit === 0) {
+    bit = 0x40000000;
+  }
+  state.errorTrapBitNr = bit;
 }
 
-/** SETT - Set timer flag */
-export function sett(state: TimerFlagState): void {
-  state.timerFlag = true;
+/** CLRT - Clear error trap bit */
+export function clrt(state: ErrorTrapState): void {
+  state.errorTrapBitNr = -1;
 }
 
-/** CLRT - Clear timer flag */
-export function clrt(state: TimerFlagState): void {
-  state.timerFlag = false;
+/** EERR - Execute error */
+export function eerr(state: ErrorTrapState): void {
+  if (state.errorTrapBitNr >= 0) {
+    // Check if the current trap bit corresponds to a specific known error
+    // Iterate over known trap bits to find a match
+    for (const [errorCode, bitNr] of Object.entries(TrapBitDict)) {
+      if (bitNr === state.errorTrapBitNr) {
+        const code = Number(errorCode) as EdiabasErrorCode;
+        throw new EdiabasError(
+          code,
+          `Error trap triggered: ${state.errorTrapBitNr}`
+        );
+      }
+    }
+    // Fallback to generic internal error if no specific mapping found
+    throw new EdiabasError(
+      EdiabasErrorCodes.EDIABAS_BIP_0000,
+      `Error trap triggered: ${state.errorTrapBitNr}`
+    );
+  }
 }
 
 export const date = getdate;

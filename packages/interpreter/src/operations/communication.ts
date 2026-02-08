@@ -1,10 +1,11 @@
-import { cp1252ToUtf8, utf8ToCp1252, EdiabasError, EdiabasErrorCodes } from "@ediabas/core";
+import { EdiabasError, EdiabasErrorCodes } from "@ediabas/core";
 import type { EdiabasInterface } from "@ediabas/interface-base";
 import { RegisterSet } from "../registers";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 import {
+  getBinaryValue,
   getIntValue,
-  getStringValue,
+  setBinaryValue,
   setIntValue,
   setStringValue,
 } from "./register-values";
@@ -13,35 +14,44 @@ export type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 
 export type CommunicationInterface = Pick<
   EdiabasInterface,
-  "connect" | "disconnect" | "send" | "receive" | "isConnected"
+  | "connect"
+  | "disconnect"
+  | "send"
+  | "receive"
+  | "transmitFrequent"
+  | "receiveFrequent"
+  | "stopFrequent"
+  | "isConnected"
+  | "getPort"
+  | "setPort"
+  | "ignitionVoltage"
+  | "loopTest"
+  | "setProgramVoltage"
+  | "rawData"
+  | "switchSiRelais"
 > & {
+  batteryVoltage?: Promise<number> | number;
   reset?: () => Promise<void> | void;
+  boot?: () => Promise<void> | void;
   getInterfaceType?: () => string;
   getInterfaceVersion?: () => number;
+  interfaceType?: string;
+  interfaceVersion?: number;
   type?: string;
   version?: number;
+  keyBytes?: Uint8Array;
+  getKeyBytes?: () => Promise<Uint8Array> | Uint8Array;
+  state?: Uint8Array;
+  getState?: () => Uint8Array | undefined;
+  transmitData?: (payload: Uint8Array) => Promise<Uint8Array> | Uint8Array;
   setParameter?: (parameter: number, value: number) => Promise<void> | void;
+  setCommParameter?: (parameters: number[]) => Promise<void> | void;
+  commParameter?: number[];
+  setAnswerLengths?: (lengths: number[]) => Promise<void> | void;
+  commAnswerLen?: number[];
   setAnswerLength?: (length: number) => Promise<void> | void;
-  sendFormatted?: (format: string, payload: string) => Promise<void> | void;
-  requestFormatted?: (
-    format: string,
-    payload: string,
-    timeoutMs?: number
-  ) => Promise<Uint8Array> | Uint8Array;
-  transmitFrequent?: (data: Uint8Array) => Promise<void>;
-  receiveFrequent?: () => Promise<Uint8Array>;
-  stopFrequent?: () => Promise<void> | void;
-  readKeyboard?: () => Promise<string> | string;
-  getState?: () => number;
-  boot?: () => Promise<void> | void;
-  setResponse?: (response: Uint8Array) => Promise<void> | void;
-  getPort?: (index: number) => Promise<number> | number;
-  setPort?: (index: number, value: number) => Promise<void> | void;
-  ignitionVoltage?: number | Promise<number>;
-  loopTest?: number | Promise<number>;
-  setProgramVoltage?: (value: number) => Promise<void> | void;
-  rawData?: (payload: Uint8Array) => Promise<Uint8Array> | Uint8Array;
-  switchSiRelais?: (time: number) => Promise<void> | void;
+  setRepeatCounter?: (count: number) => Promise<void> | void;
+  commRepeats?: number;
   open?: (mode?: number) => Promise<void> | void;
   close?: () => Promise<void> | void;
   closeEx?: (mode?: number) => Promise<void> | void;
@@ -51,11 +61,11 @@ export type CommunicationInterface = Pick<
 };
 
 function toBytes(registers: RegisterSet, ref: StringRegisterRef): Uint8Array {
-  return utf8ToCp1252(getStringValue(registers, ref));
+  return getBinaryValue(registers, ref);
 }
 
 function fromBytes(registers: RegisterSet, ref: StringRegisterRef, data: Uint8Array): void {
-  setStringValue(registers, ref, cp1252ToUtf8(data));
+  setBinaryValue(registers, ref, data);
 }
 
 function assertConnected(interfaceClass: CommunicationInterface): void {
@@ -101,17 +111,37 @@ export async function xhangup(interfaceClass: CommunicationInterface): Promise<v
   }
 }
 
+async function sendAndReceive(
+  registers: RegisterSet,
+  interfaceClass: CommunicationInterface,
+  response: StringRegisterRef,
+  request: StringRegisterRef,
+  timeoutMs?: IntRegisterRef
+): Promise<void> {
+  assertConnected(interfaceClass);
+  const requestBytes = toBytes(registers, request);
+  const timeout = timeoutMs ? getIntValue(registers, timeoutMs) : undefined;
+  try {
+    if (interfaceClass.transmitData) {
+      const data = await interfaceClass.transmitData(requestBytes);
+      fromBytes(registers, response, data);
+      return;
+    }
+    await interfaceClass.send(requestBytes);
+    const data = await interfaceClass.receive(timeout);
+    fromBytes(registers, response, data);
+  } catch (error) {
+    wrapInterfaceError(error, "Send and receive");
+  }
+}
+
 export async function xsend(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
-  source: StringRegisterRef
+  response: StringRegisterRef,
+  request: StringRegisterRef
 ): Promise<void> {
-  assertConnected(interfaceClass);
-  try {
-    await interfaceClass.send(toBytes(registers, source));
-  } catch (error) {
-    wrapInterfaceError(error, "Send");
-  }
+  await sendAndReceive(registers, interfaceClass, response, request);
 }
 
 export async function xrecv(
@@ -137,8 +167,7 @@ export async function xsendr(
   request: StringRegisterRef,
   timeoutMs?: IntRegisterRef
 ): Promise<void> {
-  await xsend(registers, interfaceClass, request);
-  await xrecv(registers, interfaceClass, response, timeoutMs);
+  await sendAndReceive(registers, interfaceClass, response, request, timeoutMs);
 }
 
 export async function xreset(interfaceClass: CommunicationInterface): Promise<void> {
@@ -159,8 +188,10 @@ export function xtype(
   interfaceClass: CommunicationInterface,
   destination: StringRegisterRef
 ): void {
+  assertConnected(interfaceClass);
   const typeValue =
     (interfaceClass.getInterfaceType && interfaceClass.getInterfaceType()) ??
+    interfaceClass.interfaceType ??
     interfaceClass.type ??
     interfaceClass.constructor?.name ??
     "unknown";
@@ -172,8 +203,10 @@ export function xvers(
   interfaceClass: CommunicationInterface,
   destination: IntRegisterRef
 ): void {
+  assertConnected(interfaceClass);
   const versionValue =
     (interfaceClass.getInterfaceVersion && interfaceClass.getInterfaceVersion()) ??
+    interfaceClass.interfaceVersion ??
     interfaceClass.version ??
     0;
   setIntValue(registers, destination, versionValue);
@@ -182,25 +215,95 @@ export function xvers(
 export async function xsetpar(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
-  parameter: IntRegisterRef,
-  value: IntRegisterRef
+  source: StringRegisterRef
 ): Promise<void> {
-  const setParameter = assertCapability(interfaceClass.setParameter, "Set parameter");
+  assertConnected(interfaceClass);
+  const dataArray = toBytes(registers, source);
+  let dataTypeLen = 0;
+  if (dataArray.length >= 2) {
+    switch (dataArray[1]) {
+      case 0x00:
+        dataTypeLen = 2;
+        break;
+      case 0x01:
+        dataTypeLen = 4;
+        break;
+      case 0xff:
+        dataTypeLen = 1;
+        break;
+    }
+  }
+
+  let parsArray: number[] = [];
+  if (dataTypeLen > 0 && dataArray.length % dataTypeLen === 0) {
+    const length = dataArray.length / dataTypeLen;
+    parsArray = new Array<number>(length);
+    for (let i = 0; i < length; i++) {
+      const offset = i * dataTypeLen;
+      let value = dataArray[offset];
+      if (dataTypeLen >= 2) {
+        value |= dataArray[offset + 1] << 8;
+      }
+      if (dataTypeLen >= 4) {
+        value |= (dataArray[offset + 2] << 16) | (dataArray[offset + 3] << 24);
+      }
+      parsArray[i] = value >>> 0;
+    }
+  }
+
   try {
-    await setParameter(getIntValue(registers, parameter), getIntValue(registers, value));
+    if (interfaceClass.setCommParameter) {
+      await interfaceClass.setCommParameter(parsArray);
+      return;
+    }
+    if ("commParameter" in interfaceClass) {
+      interfaceClass.commParameter = parsArray;
+      return;
+    }
+    if (interfaceClass.setParameter) {
+      for (let i = 0; i < parsArray.length; i++) {
+        await interfaceClass.setParameter(i, parsArray[i]);
+      }
+      return;
+    }
+    throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "Set parameters is not supported");
   } catch (error) {
-    wrapInterfaceError(error, "Set parameter");
+    wrapInterfaceError(error, "Set parameters");
   }
 }
 
 export async function xawlen(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
-  length: IntRegisterRef
+  source: StringRegisterRef
 ): Promise<void> {
-  const setAnswerLength = assertCapability(interfaceClass.setAnswerLength, "Set answer length");
+  assertConnected(interfaceClass);
+  const dataArray = toBytes(registers, source);
+  if (dataArray.length % 2 !== 0) {
+    throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "Invalid answer length data");
+  }
+  const length = dataArray.length / 2;
+  const answerArray = new Array<number>(length);
+  for (let i = 0; i < length; i++) {
+    const offset = i * 2;
+    const value = dataArray[offset] | (dataArray[offset + 1] << 8);
+    answerArray[i] = value;
+  }
+
   try {
-    await setAnswerLength(getIntValue(registers, length));
+    if (interfaceClass.setAnswerLengths) {
+      await interfaceClass.setAnswerLengths(answerArray);
+      return;
+    }
+    if ("commAnswerLen" in interfaceClass) {
+      interfaceClass.commAnswerLen = answerArray;
+      return;
+    }
+    if (interfaceClass.setAnswerLength && answerArray.length > 0) {
+      await interfaceClass.setAnswerLength(answerArray[0]);
+      return;
+    }
+    throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "Set answer length is not supported");
   } catch (error) {
     wrapInterfaceError(error, "Set answer length");
   }
@@ -209,43 +312,34 @@ export async function xawlen(
 export async function xsendf(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
-  format: StringRegisterRef,
   payload: StringRegisterRef
 ): Promise<void> {
-  const sendFormatted = assertCapability(interfaceClass.sendFormatted, "Formatted send");
+  assertConnected(interfaceClass);
   try {
-    await sendFormatted(getStringValue(registers, format), getStringValue(registers, payload));
+    await interfaceClass.transmitFrequent(toBytes(registers, payload));
   } catch (error) {
-    wrapInterfaceError(error, "Formatted send");
+    wrapInterfaceError(error, "Send frequent");
   }
 }
 
 export async function xrequf(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
-  format: StringRegisterRef,
-  payload: StringRegisterRef,
-  response: StringRegisterRef,
-  timeoutMs?: IntRegisterRef
+  response: StringRegisterRef
 ): Promise<void> {
-  const requestFormatted = assertCapability(interfaceClass.requestFormatted, "Formatted request");
-  const timeout = timeoutMs ? getIntValue(registers, timeoutMs) : undefined;
+  assertConnected(interfaceClass);
   try {
-    const data = await requestFormatted(
-      getStringValue(registers, format),
-      getStringValue(registers, payload),
-      timeout
-    );
+    const data = await interfaceClass.receiveFrequent();
     fromBytes(registers, response, data);
   } catch (error) {
-    wrapInterfaceError(error, "Formatted request");
+    wrapInterfaceError(error, "Receive frequent");
   }
 }
 
 export async function xstopf(interfaceClass: CommunicationInterface): Promise<void> {
-  const stopFrequent = assertCapability(interfaceClass.stopFrequent, "Stop frequent");
+  assertConnected(interfaceClass);
   try {
-    await stopFrequent();
+    await interfaceClass.stopFrequent();
   } catch (error) {
     wrapInterfaceError(error, "Stop frequent");
   }
@@ -256,22 +350,28 @@ export async function xkeyb(
   interfaceClass: CommunicationInterface,
   destination: StringRegisterRef
 ): Promise<void> {
-  const readKeyboard = assertCapability(interfaceClass.readKeyboard, "Keyboard read");
   try {
-    const value = await readKeyboard();
-    setStringValue(registers, destination, value);
+    const keyBytes =
+      interfaceClass.keyBytes ??
+      (interfaceClass.getKeyBytes ? await interfaceClass.getKeyBytes() : undefined);
+    if (keyBytes) {
+      fromBytes(registers, destination, keyBytes);
+    }
   } catch (error) {
-    wrapInterfaceError(error, "Keyboard read");
+    wrapInterfaceError(error, "Key bytes");
   }
 }
 
 export function xstate(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
-  destination: IntRegisterRef
+  destination: StringRegisterRef
 ): void {
-  const stateValue = interfaceClass.getState ? interfaceClass.getState() : 0;
-  setIntValue(registers, destination, stateValue);
+  const stateValue =
+    (interfaceClass.getState && interfaceClass.getState()) ?? interfaceClass.state;
+  if (stateValue) {
+    fromBytes(registers, destination, stateValue);
+  }
 }
 
 export async function xboot(interfaceClass: CommunicationInterface): Promise<void> {
@@ -286,13 +386,22 @@ export async function xboot(interfaceClass: CommunicationInterface): Promise<voi
 export async function xreps(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
-  response: StringRegisterRef
+  count: IntRegisterRef
 ): Promise<void> {
-  const setResponse = assertCapability(interfaceClass.setResponse, "Set response");
+  assertConnected(interfaceClass);
+  const value = getIntValue(registers, count);
   try {
-    await setResponse(toBytes(registers, response));
+    if (interfaceClass.setRepeatCounter) {
+      await interfaceClass.setRepeatCounter(value);
+      return;
+    }
+    if ("commRepeats" in interfaceClass) {
+      interfaceClass.commRepeats = value;
+      return;
+    }
+    throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "Set repeat counter is not supported");
   } catch (error) {
-    wrapInterfaceError(error, "Set response");
+    wrapInterfaceError(error, "Set repeat counter");
   }
 }
 
@@ -327,6 +436,22 @@ export async function xsetport(
   }
 }
 
+export async function xbatt(
+  registers: RegisterSet,
+  interfaceClass: CommunicationInterface,
+  destination: IntRegisterRef
+): Promise<void> {
+  const batteryVoltage = assertCapability(interfaceClass.batteryVoltage, "Battery voltage");
+  try {
+    const value = await batteryVoltage;
+    if (value !== undefined && value !== null && value !== Number.MIN_SAFE_INTEGER) {
+      setIntValue(registers, destination, value);
+    }
+  } catch (error) {
+    wrapInterfaceError(error, "Battery voltage");
+  }
+}
+
 export async function xignit(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
@@ -335,7 +460,9 @@ export async function xignit(
   const ignitionVoltage = assertCapability(interfaceClass.ignitionVoltage, "Ignition voltage");
   try {
     const value = await ignitionVoltage;
-    setIntValue(registers, destination, value);
+    if (value !== undefined && value !== null && value !== Number.MIN_SAFE_INTEGER) {
+      setIntValue(registers, destination, value);
+    }
   } catch (error) {
     wrapInterfaceError(error, "Ignition voltage");
   }
@@ -377,6 +504,7 @@ export async function xraw(
   response: StringRegisterRef,
   request: StringRegisterRef
 ): Promise<void> {
+  assertConnected(interfaceClass);
   const rawData = assertCapability(interfaceClass.rawData, "Raw data");
   try {
     const data = await rawData(toBytes(registers, request));
@@ -464,7 +592,12 @@ export async function xsendex(
       wrapInterfaceError(error, "Extended send");
     }
   }
-  await xsend(registers, interfaceClass, source);
+  assertConnected(interfaceClass);
+  try {
+    await interfaceClass.send(toBytes(registers, source));
+  } catch (error) {
+    wrapInterfaceError(error, "Send");
+  }
 }
 
 export async function xrecvex(

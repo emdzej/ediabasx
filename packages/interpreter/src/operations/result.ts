@@ -20,7 +20,16 @@ export type {
 
 export interface JobResult {
   name: string;
-  type: "byte" | "word" | "dword" | "int" | "real" | "string" | "binary";
+  type:
+    | "byte"
+    | "word"
+    | "dword"
+    | "char"
+    | "int"
+    | "long"
+    | "real"
+    | "string"
+    | "binary";
   value: number | string | Uint8Array;
   unit?: string;
   comment?: string;
@@ -29,6 +38,10 @@ export interface JobResult {
 // Types are defined in register-refs.
 
 export type StringSource = string | StringRegisterRef;
+
+function stripNullTerminator(value: string): string {
+  return value.replace(/\0.*$/, "");
+}
 
 function normalizeKey(name: string): string {
   return name.toUpperCase();
@@ -96,9 +109,9 @@ export class ResultCollector {
 
 function resolveString(registers: RegisterSet, source: StringSource): string {
   if (typeof source === "string") {
-    return source;
+    return stripNullTerminator(source);
   }
-  return getStringValue(registers, source);
+  return stripNullTerminator(getStringValue(registers, source));
 }
 
 function maskUnsigned(value: number, bits: 8 | 16 | 32): number {
@@ -113,10 +126,26 @@ function maskUnsigned(value: number, bits: 8 | 16 | 32): number {
   }
 }
 
+function toSigned8(value: number): number {
+  const masked = maskUnsigned(value, 8);
+  if ((masked & 0x80) !== 0) {
+    return masked - 0x100;
+  }
+  return masked;
+}
+
 function toSigned16(value: number): number {
   const masked = maskUnsigned(value, 16);
   if ((masked & 0x8000) !== 0) {
     return masked - 0x10000;
+  }
+  return masked;
+}
+
+function toSigned32(value: number): number {
+  const masked = maskUnsigned(value, 32);
+  if ((masked & 0x80000000) !== 0) {
+    return masked - 0x1_0000_0000;
   }
   return masked;
 }
@@ -195,7 +224,8 @@ export function ergs(
 ): void {
   const resultName = resolveString(registers, name);
   const raw = resolveString(registers, value);
-  collector.record(resultName, "string", raw);
+  const clean = raw.replace(/\0.*$/, "");
+  collector.record(resultName, "string", clean);
 }
 
 export function ergy(
@@ -206,4 +236,26 @@ export function ergy(
 ): void {
   const resultName = resolveString(registers, name);
   collector.record(resultName, "binary", value);
+}
+
+export function ergc(
+  registers: RegisterSet,
+  collector: ResultCollector,
+  name: StringSource,
+  value: IntRegisterRef | number
+): void {
+  const resultName = resolveString(registers, name);
+  const raw = typeof value === "number" ? value : getIntValue(registers, value);
+  collector.record(resultName, "char", toSigned8(raw));
+}
+
+export function ergl(
+  registers: RegisterSet,
+  collector: ResultCollector,
+  name: StringSource,
+  value: IntRegisterRef | number
+): void {
+  const resultName = resolveString(registers, name);
+  const raw = typeof value === "number" ? value : getIntValue(registers, value);
+  collector.record(resultName, "long", toSigned32(raw));
 }

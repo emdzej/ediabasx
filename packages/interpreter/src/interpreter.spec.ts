@@ -80,6 +80,26 @@ describe("Interpreter", () => {
     expect(results[0].value).toBe(0x12);
   });
 
+  it("loads config values with cfgsg", async () => {
+    const keyBytes = encodeImmString("testkey");
+    const code = new Uint8Array([
+      0x8a,
+      0x18,
+      0x1c,
+      ...keyBytes,
+      0x1d,
+      0x00,
+    ]);
+
+    const interpreter = new Interpreter(createPrg(code));
+    const config = new Map([["TestKey", "Hello"]]);
+
+    await interpreter.execute("TEST", { config });
+    const state = interpreter.getState();
+
+    expect(state.registers.s[0]).toBe("Hello");
+  });
+
   it("steps through instructions", async () => {
     const nameBytes = encodeImmString("VALUE");
     const code = new Uint8Array([
@@ -106,19 +126,74 @@ describe("Interpreter", () => {
     expect(second).toBe(false);
   });
 
+  it("jumps to absolute address when target is a register", async () => {
+    const code = new Uint8Array([
+      0x00,
+      0x37,
+      0x10,
+      0x0c,
+      0x00,
+      0x00,
+      0x00,
+      0x0b,
+      0x30,
+      0x10,
+      0x1c,
+      0x00,
+      0x1d,
+      0x00,
+    ]);
+
+    const interpreter = new Interpreter(createPrg(code));
+    interpreter.start("TEST");
+
+    await interpreter.step();
+    await interpreter.step();
+
+    const state = interpreter.getState();
+    expect(state.pc).toBe(12);
+  });
+
+  it("calls absolute address when target is a register", async () => {
+    const code = new Uint8Array([
+      0x00,
+      0x37,
+      0x10,
+      0x0c,
+      0x00,
+      0x00,
+      0x00,
+      0x0c,
+      0x30,
+      0x10,
+      0x1d,
+      0x00,
+    ]);
+
+    const interpreter = new Interpreter(createPrg(code));
+    interpreter.start("TEST");
+
+    await interpreter.step();
+    await interpreter.step();
+
+    const state = interpreter.getState();
+    expect(state.pc).toBe(12);
+    expect(state.callStack).toEqual([10]);
+  });
+
   it("executes table operations with table state", async () => {
     const code = new Uint8Array([
       0x7b,
       0x10,
       0x1c,
       0x7c,
-      0x13,
-      0x1d,
-      0x10,
-      0x7d,
-      0x13,
-      0x1e,
       0x11,
+      0x1d,
+      0x1e,
+      0x7d,
+      0x11,
+      0x1f,
+      0x20,
       0x1d,
       0x00,
     ]);
@@ -137,14 +212,77 @@ describe("Interpreter", () => {
 
     const registers = new RegisterSet();
     registers.setS(0, "TEST_TABLE");
-    registers.setS(1, "Beta");
-    registers.setI(0, 1);
-    registers.setI(1, 0);
+    registers.setS(1, "Name");
+    registers.setS(2, "Beta");
+    registers.setS(3, "");
+    registers.setS(4, "ID");
 
     const interpreter = new Interpreter(createPrg(code, [table]));
     await interpreter.execute("TEST", { registers });
 
-    expect(registers.getS(2)).toBe("2");
+    expect(registers.getS(3)).toBe("2");
+  });
+
+  describe("string opcodes (0x20-0x25)", () => {
+    it("scmp only updates Z flag", async () => {
+      const code = new Uint8Array([
+        0x20, 0x11, 0x1c, 0x1d, // scmp S0, S1
+        0x1d, 0x00, // eoj
+      ]);
+
+      const registers = new RegisterSet();
+      const flags = new Flags();
+      registers.setS(0, "ABC");
+      registers.setS(1, "ABD");
+      flags.c = true;
+      flags.s = true;
+      flags.v = true;
+
+      const interpreter = new Interpreter(createPrg(code));
+      await interpreter.execute("TEST", { registers, flags });
+
+      expect(flags.z).toBe(false);
+      expect(flags.c).toBe(true);
+      expect(flags.s).toBe(true);
+      expect(flags.v).toBe(true);
+    });
+
+    it("slen supports indexed operands and updates flags", async () => {
+      const code = new Uint8Array([
+        0x23, 0x3c, 0x10, 0x1c, 0x01, 0x00, 0x02, 0x00, // slen I0, S0[1:len=2]
+        0x1d, 0x00, // eoj
+      ]);
+
+      const registers = new RegisterSet();
+      const flags = new Flags();
+      registers.setS(0, "ABCD");
+      flags.c = true;
+
+      const interpreter = new Interpreter(createPrg(code));
+      await interpreter.execute("TEST", { registers, flags });
+
+      expect(registers.getI(0)).toBe(2);
+      expect(flags.z).toBe(false);
+      expect(flags.s).toBe(false);
+      expect(flags.v).toBe(false);
+      expect(flags.c).toBe(true);
+    });
+
+    it("spaste does nothing when index is past end", async () => {
+      const code = new Uint8Array([
+        0x24, 0x91, 0x1c, 0x0a, 0x00, 0x1d, // spaste S0[10], S1
+        0x1d, 0x00, // eoj
+      ]);
+
+      const registers = new RegisterSet();
+      registers.setS(0, "Hello");
+      registers.setS(1, "X");
+
+      const interpreter = new Interpreter(createPrg(code));
+      await interpreter.execute("TEST", { registers });
+
+      expect(registers.getS(0)).toBe("Hello");
+    });
   });
 
   describe("string opcodes (0x20-0x25)", () => {

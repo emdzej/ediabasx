@@ -44,7 +44,7 @@ import {
   jnt,
 } from "./operations/control-flow";
 import { clrc, setc, clrv } from "./operations/flags";
-import { pop, pushf, popf, atsp, swap } from "./operations/stack";
+import { pop, push, pushf, popf, atsp, swap } from "./operations/stack";
 import {
   srev,
   strcmp,
@@ -60,7 +60,6 @@ import {
   fsub,
   fmul,
   fdiv,
-  fsetImm,
   fcomp,
   a2flt,
   flt2a,
@@ -77,6 +76,8 @@ import {
   ergr,
   ergs,
   ergy,
+  ergc,
+  ergl,
 } from "./operations/result";
 import { ParameterSet, parb, parw, parl, pars, parr, pary, parn } from "./operations/parameters";
 import {
@@ -90,6 +91,7 @@ import {
   wait,
   sett,
   clrt,
+  eerr,
 } from "./operations/time";
 import { SharedMemory, shmset, shmget } from "./operations/shared-memory";
 import {
@@ -116,12 +118,7 @@ import {
   xprog,
   xraw,
   xsireset,
-  xopen,
-  xclose,
-  xcloseex,
-  xswitch,
-  xsendex,
-  xrecvex,
+  xbatt,
 } from "./operations/communication";
 import {
   type FileSystem,
@@ -139,7 +136,6 @@ import {
   ProcedureRegistry,
   ProcedureStack,
   plink,
-  pcall,
   ppush,
   ppushflt,
   ppushy,
@@ -194,6 +190,7 @@ type RegisterOperand = {
 type ImmediateOperand = {
   kind: "immediate";
   value: number;
+  width?: 1 | 2 | 4;
 };
 
 type StringOperand = {
@@ -232,10 +229,13 @@ type InterpreterState = {
   parameters: ParameterSet;
   results: ResultCollector;
   sharedMemory: SharedMemory;
+  config: Map<string, string>;
   timer: Timer;
-  timerFlag: boolean;
+  errorTrapMask: number;
+  errorTrapBitNr: number;
   tokenSeparator: string;
   tokenIndex: number;
+  floatPrecision: number;
   tableState: TableState;
   communicationInterface?: CommunicationInterface;
   fileSystem?: FileSystem;
@@ -246,6 +246,8 @@ type InterpreterState = {
   progressText: string;
   progressRange: number;
   progressPos: number;
+  // System init request flag (set by ergsysi)
+  requestInit: boolean;
   // Results filter (for etag)
   resultsRequest: Set<string>;
 };
@@ -258,6 +260,7 @@ export type ExecutionOptions = {
   parameters?: ParameterSet;
   results?: ResultCollector;
   sharedMemory?: SharedMemory;
+  config?: Map<string, string>;
   timer?: Timer;
   tableState?: TableState;
   communicationInterface?: CommunicationInterface;
@@ -279,6 +282,7 @@ export type InterpreterSnapshot = {
   progressText: string;
   progressRange: number;
   progressPos: number;
+  errorTrapBitNr: number;
 };
 
 function readInt16(view: DataView, offset: number): number {
@@ -287,6 +291,18 @@ function readInt16(view: DataView, offset: number): number {
 
 function readInt32(view: DataView, offset: number): number {
   return view.getInt32(offset, true);
+}
+
+
+function normalizeConfigMap(input?: Map<string, string>): Map<string, string> {
+  if (!input) {
+    return new Map();
+  }
+  const normalized = new Map<string, string>();
+  for (const [key, value] of input.entries()) {
+    normalized.set(key.toUpperCase(), value);
+  }
+  return normalized;
 }
 
 function decodeRegister(byte: number): IntRegisterRef | StringRegisterRef | FloatRegisterRef {
@@ -400,19 +416,6 @@ function requireDateTimeDestination(operand: Operand): DateTimeDestination {
   return reg;
 }
 
-function optionalIntRegister(operand: Operand): IntRegisterRef | undefined {
-  if (operand.kind === "none") {
-    return undefined;
-  }
-  if (operand.kind === "register") {
-    return requireIntRegister(operand);
-  }
-  throw new EdiabasError(
-    EdiabasErrorCodes.INVALID_INSTRUCTION,
-    "Expected integer register"
-  );
-}
-
 function requireIndexed(operand: Operand): IndexedOperand {
   if (operand.kind !== "indexed") {
     throw new EdiabasError(EdiabasErrorCodes.INVALID_INSTRUCTION, "Expected indexed operand");
@@ -502,6 +505,43 @@ function resolveStringValue(registers: RegisterSet, operand: Operand): string {
   }
 }
 
+function parseConfigInt(value: string): number {
+  const trimmed = value.trimEnd();
+  if (!trimmed) {
+    return 0;
+  }
+  const lower = trimmed.toLowerCase();
+  try {
+    if (lower.startsWith("0x")) {
+      if (lower.length <= 2) {
+        return 0;
+      }
+      const firstChar = lower[2];
+      if (!/[0-9a-f]/.test(firstChar)) {
+        return 0;
+      }
+      return Number.parseInt(trimmed.slice(2), 16);
+    }
+    if (lower.startsWith("0y")) {
+      return Number.parseInt(trimmed.slice(2), 2);
+    }
+    if (lower === "-" || lower === "--") {
+      return 0;
+    }
+    if (/[a-z]/i.test(lower[0])) {
+      return 0;
+    }
+    let numberConv = trimmed.trimStart();
+    const index = numberConv.search(/[.,]/);
+    if (index >= 0) {
+      numberConv = numberConv.slice(0, index);
+    }
+    return Number.parseInt(numberConv, 10);
+  } catch {
+    return 0;
+  }
+}
+
 function resolveBinaryValue(registers: RegisterSet, operand: Operand): Uint8Array {
   switch (operand.kind) {
     case "string":
@@ -543,15 +583,15 @@ function decodeOperand(
     }
     case OpAddrModes.IMM8: {
       const value = code[offset];
-      return { operand: { kind: "immediate", value }, nextOffset: offset + 1 };
+      return { operand: { kind: "immediate", value, width: 1 }, nextOffset: offset + 1 };
     }
     case OpAddrModes.IMM16: {
       const value = readInt16(view, offset);
-      return { operand: { kind: "immediate", value }, nextOffset: offset + 2 };
+      return { operand: { kind: "immediate", value, width: 2 }, nextOffset: offset + 2 };
     }
     case OpAddrModes.IMM32: {
       const value = readInt32(view, offset);
-      return { operand: { kind: "immediate", value }, nextOffset: offset + 4 };
+      return { operand: { kind: "immediate", value, width: 4 }, nextOffset: offset + 4 };
     }
     case OpAddrModes.IMM_STR: {
       const length = readInt16(view, offset);
@@ -797,10 +837,11 @@ export class Interpreter {
     const parameters = options.parameters ?? new ParameterSet();
     const results = options.results ?? new ResultCollector();
     const sharedMemory = options.sharedMemory ?? new SharedMemory();
+    const config = normalizeConfigMap(options.config);
     const timer = options.timer ?? new Timer();
     const procedureRegistry = options.procedureRegistry ?? new ProcedureRegistry();
     const procedureStack = options.procedureStack ?? new ProcedureStack();
-    const tableState = options.tableState ?? { activeTable: null, rowIndex: 0 };
+    const tableState = options.tableState ?? { activeTable: null, rowIndex: -1 };
 
     this.context = {
       pc: offset,
@@ -812,10 +853,13 @@ export class Interpreter {
       parameters,
       results,
       sharedMemory,
+      config,
       timer,
-      timerFlag: false,
+      errorTrapMask: 0,
+      errorTrapBitNr: -1,
       tokenSeparator: "",
       tokenIndex: 0,
+      floatPrecision: 4,
       tableState,
       communicationInterface: options.communicationInterface,
       fileSystem: options.fileSystem,
@@ -825,6 +869,7 @@ export class Interpreter {
       progressText: "",
       progressRange: 0,
       progressPos: -1,
+      requestInit: false,
       resultsRequest: options.resultsRequest ?? new Set(),
     };
   }
@@ -887,26 +932,58 @@ export class Interpreter {
       progressText: context.progressText,
       progressRange: context.progressRange,
       progressPos: context.progressPos,
+      errorTrapBitNr: context.errorTrapBitNr,
     };
   }
 
   private getHandler(opcode: number): ((state: InterpreterState, arg0: Operand, arg1: Operand) => Promise<{ pc?: number; halted?: boolean } | void>) | undefined {
+    const resolveJumpOffset = (state: InterpreterState, operand: Operand): number => {
+      if (operand.kind === "immediate") {
+        return operand.value;
+      }
+      const target = resolveIntValue(state.registers, operand);
+      return target - state.pc;
+    };
+
     const jumpHandler = (jumpFn: (flowState: ExecutionState, offset: number) => { newPc: number }) =>
       async (state: InterpreterState, arg0: Operand) => {
-        const offset = resolveIntValue(state.registers, arg0);
+        const offset = resolveJumpOffset(state, arg0);
         return { pc: jumpFn(this.controlFlowState(state), offset).newPc };
       };
 
-    const timerJumpHandler = (
-      jumpFn: (flowState: ExecutionState, timerState: { timerFlag: boolean }, offset: number) => { newPc: number }
+    const trapJumpHandler = (
+      jumpFn: (flowState: ExecutionState, trapState: { errorTrapBitNr: number }, offset: number, testBit?: number) => { newPc: number }
     ) =>
-      async (state: InterpreterState, arg0: Operand) => {
-        const offset = resolveIntValue(state.registers, arg0);
-        return { pc: jumpFn(this.controlFlowState(state), state, offset).newPc };
+      async (state: InterpreterState, arg0: Operand, arg1: Operand) => {
+        const offset = resolveJumpOffset(state, arg0);
+        const testBit = arg1.kind === "none"
+          ? undefined
+          : (resolveIntValue(state.registers, arg1) & 0xff);
+        return { pc: jumpFn(this.controlFlowState(state), state, offset, testBit).newPc };
       };
 
     const handlers: Record<number, (state: InterpreterState, arg0: Operand, arg1: Operand) => Promise<{ pc?: number; halted?: boolean } | void>> = {
       0x00: async (state, arg0, arg1) => {
+        const setZeroSign = (value: number, length: number) => {
+          const mask = length === 4 ? 0xffffffff : (1 << (length * 8)) - 1;
+          const signMask = 1 << (length * 8 - 1);
+          const masked = value & mask;
+          state.flags.z = masked === 0;
+          state.flags.s = (masked & signMask) !== 0;
+        };
+
+        const clearFlags = () => {
+          state.flags.c = false;
+          state.flags.z = false;
+          state.flags.s = false;
+          state.flags.v = false;
+        };
+
+        const clearCarryOverflow = () => {
+          state.flags.c = false;
+          state.flags.v = false;
+        };
+
         // Universal move - handles int, float, and string registers
         if (arg0.kind === "indexed") {
           const base = arg0.base;
@@ -916,6 +993,7 @@ export class Interpreter {
           let sourceBytes: Uint8Array;
           if (arg1.kind === "string" || arg1.kind === "indexed" || (arg1.kind === "register" && arg1.ref.kind === "S")) {
             sourceBytes = resolveBinaryValue(state.registers, arg1);
+            clearFlags();
           } else {
             const length = arg0.length ? resolveIntValue(state.registers, arg0.length) : 1;
             const value = resolveIntValue(state.registers, arg1);
@@ -923,6 +1001,8 @@ export class Interpreter {
             for (let i = 0; i < sourceBytes.length; i++) {
               sourceBytes[i] = (value >> (i * 8)) & 0xff;
             }
+            clearCarryOverflow();
+            setZeroSign(value, 1);
           }
           const requiredLength = writeStart + sourceBytes.length;
           const updated = new Uint8Array(Math.max(baseBytes.length, requiredLength));
@@ -935,30 +1015,43 @@ export class Interpreter {
         const destRef = requireAnyRegister(arg0);
         if (destRef.kind === "S") {
           // String destination
-          const value = resolveStringValue(state.registers, arg1);
-          state.registers.setS(destRef.index, value);
+          if (arg1.kind === "string" || arg1.kind === "indexed" || (arg1.kind === "register" && arg1.ref.kind === "S")) {
+            const value = resolveBinaryValue(state.registers, arg1);
+            setBinaryValue(state.registers, destRef, value);
+            clearFlags();
+            return;
+          }
+          throw new EdiabasError(EdiabasErrorCodes.INVALID_INSTRUCTION, "Expected string operand");
         } else if (destRef.kind === "F") {
           // Float destination
           const value = resolveFloatValue(state.registers, arg1);
           state.registers.setF(destRef.index, value);
         } else {
           // Integer destination - resolve value from any source
-          if (arg1.kind === "indexed") {
-            const bytes = resolveIndexedBytes(state.registers, arg1);
+          if (arg1.kind === "indexed" || arg1.kind === "string" || (arg1.kind === "register" && arg1.ref.kind === "S")) {
+            const bytes = resolveBinaryValue(state.registers, arg1);
             const length = intRegisterByteLength(destRef);
             let value = 0;
             for (let i = length - 1; i >= 0; i--) {
               value = (value << 8) | (bytes[i] ?? 0);
             }
             setIntValue(state.registers, destRef, value);
+            clearCarryOverflow();
+            setZeroSign(value, length);
             return;
           }
           const value = resolveIntValue(state.registers, arg1);
           setIntValue(state.registers, destRef, value);
+          clearCarryOverflow();
+          setZeroSign(value, intRegisterByteLength(destRef));
         }
       },
       0x01: async (state, arg0) => {
         clear(state.registers, requireAnyRegister(arg0));
+        state.flags.c = false;
+        state.flags.z = true;
+        state.flags.s = false;
+        state.flags.v = false;
       },
       0x02: async (state, arg0, arg1) => {
         cmp(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
@@ -989,7 +1082,7 @@ export class Interpreter {
       },
       0x0b: jumpHandler(jmp),
       0x0c: async (state, arg0) => {
-        const offset = resolveIntValue(state.registers, arg0);
+        const offset = resolveJumpOffset(state, arg0);
         const result = call(this.controlFlowState(state), offset);
         return { pc: result.newPc };
       },
@@ -1028,12 +1121,32 @@ export class Interpreter {
       },
       0x1d: async () => ({ halted: true }),
       0x1e: async (state, arg0) => {
-        // push accepts register or immediate value
-        const value = resolveIntValue(state.registers, arg0);
-        state.dataStack.push(value);
+        if (arg0.kind === "register") {
+          push(state.registers, state.dataStack, requireIntRegister(arg0));
+          return;
+        }
+        if (arg0.kind === "immediate") {
+          let value = arg0.value >>> 0;
+          const length = arg0.width ?? 4;
+          for (let i = 0; i < length; i += 1) {
+            state.dataStack.pushByte(value & 0xff);
+            value >>>= 8;
+          }
+          return;
+        }
+        throw new EdiabasError(EdiabasErrorCodes.INVALID_INSTRUCTION, "Expected integer operand");
       },
       0x1f: async (state, arg0) => {
-        pop(state.registers, state.dataStack, requireIntRegister(arg0));
+        const dest = requireIntRegister(arg0);
+        pop(state.registers, state.dataStack, dest);
+        const length = intRegisterByteLength(dest);
+        const value = getIntValue(state.registers, dest);
+        const mask = length === 4 ? 0xffffffff : (1 << (length * 8)) - 1;
+        const signMask = 1 << (length * 8 - 1);
+        const masked = value & mask;
+        state.flags.z = masked === 0;
+        state.flags.s = (masked & signMask) !== 0;
+        state.flags.v = false;
       },
       0x20: async (state, arg0, arg1) => {
         const leftBytes = resolveBinaryValue(state.registers, arg0);
@@ -1104,21 +1217,25 @@ export class Interpreter {
       0x27: async (state) => {
         await xhangup(requireCommunicationInterface(state));
       },
-      0x28: async (state, arg0, arg1) => {
-        await xsetpar(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0), requireIntRegister(arg1));
+      0x28: async (state, arg0) => {
+        await xsetpar(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
       0x29: async (state, arg0) => {
-        await xawlen(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
+        await xawlen(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
-      0x2a: async (state, arg0) => {
-        await xsend(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
+      0x2a: async (state, arg0, arg1) => {
+        await xsend(
+          state.registers,
+          requireCommunicationInterface(state),
+          requireStringRegister(arg0),
+          requireStringRegister(arg1)
+        );
       },
-      0x2b: async (state, arg0, arg1) => {
-        await xsendf(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0), requireStringRegister(arg1));
+      0x2b: async (state, arg0) => {
+        await xsendf(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
-      0x2c: async (state, arg0, arg1) => {
-        const target = requireStringRegister(arg1);
-        await xrequf(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0), target, target);
+      0x2c: async (state, arg0) => {
+        await xrequf(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
       0x2d: async (state) => {
         await xstopf(requireCommunicationInterface(state));
@@ -1127,7 +1244,7 @@ export class Interpreter {
         await xkeyb(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
       0x2f: async (state, arg0) => {
-        xstate(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
+        xstate(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
       },
       0x30: async (state) => {
         await xboot(requireCommunicationInterface(state));
@@ -1170,7 +1287,7 @@ export class Interpreter {
         ergs(state.registers, state.results, name, requireStringRegister(arg1));
       },
       0x3a: async (state, arg0, arg1) => {
-        a2flt(state.registers, state.flags, requireFloatRegister(arg0), requireStringRegister(arg1));
+        a2flt(state.registers, requireFloatRegister(arg0), requireStringRegister(arg1));
       },
       0x3b: async (state, arg0, arg1) => {
         fadd(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
@@ -1204,27 +1321,36 @@ export class Interpreter {
         }
       },
       0x42: async (state, arg0) => {
-        await xreps(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
+        await xreps(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
       },
       0x43: async (state, arg0) => {
-        gettmr(state.registers, state.timer, requireIntRegister(arg0));
+        const dest = requireIntRegister(arg0);
+        gettmr(state.registers, state, dest);
+        const byteLength = intRegisterByteLength(dest);
+        const mask = byteLength === 1 ? 0xff : byteLength === 2 ? 0xffff : 0xffffffff;
+        const signMask = byteLength === 1 ? 0x80 : byteLength === 2 ? 0x8000 : 0x80000000;
+        const masked = state.errorTrapMask & mask;
+        state.flags.z = masked === 0;
+        state.flags.s = (masked & signMask) !== 0;
+        state.flags.v = false;
       },
       0x44: async (state, arg0) => {
         const value = resolveIntValue(state.registers, arg0);
-        settmr(state.registers, state.timer, value as TimeValueRef);
+        settmr(state.registers, state, value as TimeValueRef);
       },
-      // 0x45: sett - set timer flag
-      0x45: async (state) => {
-        sett(state);
+      // 0x45: sett - set error trap bit
+      0x45: async (state, arg0) => {
+        const value = resolveIntValue(state.registers, arg0);
+        sett(state.registers, state, value as TimeValueRef);
       },
-      // 0x46: clrt - clear timer flag
+      // 0x46: clrt - clear error trap bit
       0x46: async (state) => {
         clrt(state);
       },
-      // 0x47: jt - jump if timer flag set
-      0x47: timerJumpHandler(jt),
-      // 0x48: jnt - jump if timer flag not set
-      0x48: timerJumpHandler(jnt),
+      // 0x47: jt - jump if trap detected
+      0x47: trapJumpHandler(jt),
+      // 0x48: jnt - jump if no trap detected
+      0x48: trapJumpHandler(jnt),
       // 0x49: addc - add with carry
       0x49: async (state, arg0, arg1) => {
         addc(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
@@ -1233,19 +1359,16 @@ export class Interpreter {
       0x4a: async (state, arg0, arg1) => {
         subc(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
       },
-      // 0x4b: break - breakpoint (no-op in normal execution)
+      // 0x4b: break - user break (EdiabasLib: EDIABAS_BIP_0008)
       0x4b: async () => {
-        // Breakpoint - no-op in normal execution
+        throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0008, "BREAK");
       },
       0x4c: async (state) => {
         clrv(state.flags);
       },
-      // 0x4d: eerr - error result (F_ERRORTEXT, F_ERRORCODE)
-      0x4d: async (state, arg0, arg1) => {
-        const errorCode = resolveIntValue(state.registers, arg0);
-        const errorText = resolveStringValue(state.registers, arg1);
-        state.results.record("F_ERRORCODE", "dword", errorCode);
-        state.results.record("F_ERRORTEXT", "string", errorText);
+      // 0x4d: eerr - make error (execute)
+      0x4d: async (state) => {
+        eerr(state);
       },
       0x4e: async (state) => {
         popf(state.dataStack, state.flags);
@@ -1255,10 +1378,27 @@ export class Interpreter {
       },
       0x50: async (state, arg0, arg1) => {
         const offset = resolveIntValue(state.registers, arg1);
-        atsp(state.registers, state.dataStack, requireIntRegister(arg0), offset);
+        const dest = requireIntRegister(arg0);
+        atsp(state.registers, state.dataStack, dest, offset);
+        const length = intRegisterByteLength(dest);
+        const value = getIntValue(state.registers, dest);
+        const mask = length === 4 ? 0xffffffff : (1 << (length * 8)) - 1;
+        const signMask = 1 << (length * 8 - 1);
+        const masked = value & mask;
+        state.flags.z = masked === 0;
+        state.flags.s = (masked & signMask) !== 0;
+        state.flags.v = false;
       },
-      0x51: async (state) => {
-        swap(state.dataStack);
+      0x51: async (state, arg0) => {
+        if (arg0.kind === "indexed") {
+          const start = resolveIntValue(state.registers, arg0.index) + (arg0.offset?.value ?? 0);
+          const length = arg0.length ? resolveIntValue(state.registers, arg0.length) : 1;
+          swap(state.registers, arg0.base, start, length);
+          return;
+        }
+        const dest = requireStringRegister(arg0);
+        const data = getBinaryValue(state.registers, dest);
+        swap(state.registers, dest, 0, data.length);
       },
       0x52: async (state, arg0, arg1) => {
         state.tokenSeparator = resolveStringValue(state.registers, arg0);
@@ -1286,29 +1426,29 @@ export class Interpreter {
         state.flags.z = false;
       },
       0x55: async (state, arg0, arg1) => {
-        parb(state.registers, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
+        parb(state.registers, state.flags, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
       },
       0x56: async (state, arg0, arg1) => {
-        parw(state.registers, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
+        parw(state.registers, state.flags, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
       },
       0x57: async (state, arg0, arg1) => {
-        parl(state.registers, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
+        parl(state.registers, state.flags, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
       },
       0x58: async (state, arg0, arg1) => {
-        pars(state.registers, state.parameters, requireStringRegister(arg0), resolveIntValue(state.registers, arg1));
+        pars(state.registers, state.flags, state.parameters, requireStringRegister(arg0), resolveIntValue(state.registers, arg1));
       },
       0x59: async (state, arg0) => {
         fclose(requireFileSystem(state), state.registers, requireIntRegister(arg0));
       },
       0x60: async (state, arg0, arg1) => {
-        fopen(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireStringRegister(arg1));
+        fopen(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireStringRegister(arg1), undefined, state.flags);
       },
       0x61: async (state, arg0, arg1) => {
-        fread(requireFileSystem(state), state.registers, requireStringRegister(arg0), requireIntRegister(arg1), { kind: "I", index: 0 });
+        fread(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1), state.flags);
       },
       // 0x62: freadln - read line from file
       0x62: async (state, arg0, arg1) => {
-        freadln(requireFileSystem(state), state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
+        freadln(requireFileSystem(state), state.registers, requireStringRegister(arg0), requireIntRegister(arg1), state.flags);
       },
       0x63: async (state, arg0, arg1) => {
         fseek(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
@@ -1337,7 +1477,7 @@ export class Interpreter {
         fix2flt(state.registers, requireFloatRegister(arg0), requireIntRegister(arg1));
       },
       0x69: async (state, arg0, arg1) => {
-        parr(state.registers, state.parameters, requireFloatRegister(arg0), resolveIntValue(state.registers, arg1));
+        parr(state.registers, state.flags, state.parameters, requireFloatRegister(arg0), resolveIntValue(state.registers, arg1));
       },
       0x6a: async (state, arg0, arg1) => {
         test(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
@@ -1352,17 +1492,17 @@ export class Interpreter {
       0x6d: async (state, arg0) => {
         gettime(state.registers, requireDateTimeDestination(arg0));
       },
-      // 0x6e: xbatt - get battery voltage (stub: returns 12.0V)
+      // 0x6e: xbatt - get battery voltage
       0x6e: async (state, arg0) => {
-        setFloatValue(state.registers, requireFloatRegister(arg0), 12.0);
+        await xbatt(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
       },
-      // 0x6f: tosp - to stack pointer (no-op stub)
+      // 0x6f: tosp - to stack pointer (legacy opcode; EdiabasLib has null)
       0x6f: async () => {
-        // To stack pointer - no-op stub
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      // 0x70: xdownl - download (no-op stub)
+      // 0x70: xdownl - download (legacy opcode; EdiabasLib has null)
       0x70: async () => {
-        // Download functionality - no-op stub
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
       0x71: async (state, arg0, arg1) => {
         await xgetport(
@@ -1404,9 +1544,9 @@ export class Interpreter {
       0x77: async (state, arg0) => {
         await xsireset(requireCommunicationInterface(state), resolveIntValue(state.registers, arg0));
       },
-      // 0x78: xstoptr - stop transfer (no-op stub)
+      // 0x78: xstoptr - stop transfer (legacy opcode; EdiabasLib has null)
       0x78: async () => {
-        // Stop transfer - no-op stub
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
       0x79: async (state, arg0, arg1) => {
         fix2hex(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
@@ -1415,13 +1555,13 @@ export class Interpreter {
         fix2dez(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
       },
       0x7b: async (state, arg0) => {
-        tabsetOp(state.registers, state.flags, this.tableRegistry, state.tableState, requireStringRegister(arg0));
+        tabsetOp(state.flags, this.tableRegistry, state.tableState, resolveStringValue(state.registers, arg0));
       },
       0x7c: async (state, arg0, arg1) => {
-        tabseekOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), requireIntRegister(arg1));
+        tabseekOp(state.flags, state.tableState, resolveStringValue(state.registers, arg0), resolveStringValue(state.registers, arg1));
       },
       0x7d: async (state, arg0, arg1) => {
-        tabgetOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), requireIntRegister(arg1));
+        tabgetOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), resolveStringValue(state.registers, arg1));
       },
       0x7e: async (state, arg0, arg1) => {
         if (arg1.kind === "string" || arg1.kind === "indexed") {
@@ -1432,50 +1572,71 @@ export class Interpreter {
         }
         strcat(state.registers, requireStringRegister(arg0), requireStringRegister(arg1));
       },
-      0x7f: async (state, arg0, arg1) => {
-        pary(state.registers, state.parameters, requireStringRegister(arg0), resolveIntValue(state.registers, arg1));
+      0x7f: async (state, arg0) => {
+        pary(state.registers, state.flags, state.parameters, requireStringRegister(arg0));
       },
       0x80: async (state, arg0) => {
-        parn(state.registers, state.parameters, requireIntRegister(arg0));
+        parn(state.registers, state.flags, state.parameters, requireIntRegister(arg0));
       },
-      // 0x81: ergc - result char (byte)
+      // 0x81: ergc - result char (signed byte)
       0x81: async (state, arg0, arg1) => {
         const name = resolveStringValue(state.registers, arg0);
-        const value = resolveIntValue(state.registers, arg1) & 0xff;
-        state.results.record(name, "byte", value);
+        const value = resolveIntValue(state.registers, arg1);
+        ergc(state.registers, state.results, name, value);
       },
-      // 0x82: ergl - result long (dword)
+      // 0x82: ergl - result long (signed dword)
       0x82: async (state, arg0, arg1) => {
         const name = resolveStringValue(state.registers, arg0);
-        const value = resolveIntValue(state.registers, arg1) >>> 0;
-        state.results.record(name, "dword", value);
+        const value = resolveIntValue(state.registers, arg1);
+        ergl(state.registers, state.results, name, value);
       },
-      0x83: async (state, arg0, arg1) => {
-        const delimiter = arg1.kind === "register" && arg1.ref.kind === "S" ? arg1.ref : undefined;
-        tablineOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), delimiter);
+      0x83: async (state, arg0) => {
+        tablineOp(state.flags, state.tableState, resolveIntValue(state.registers, arg0));
       },
-      // 0x86: xinfo - interface info (stub: returns empty string)
+      // 0x84: xsendr - send/receive (legacy opcode; EdiabasLib has null)
+      0x84: async (state, arg0) => {
+        // Legacy/unused in EdiabasLib; clear response for compatibility.
+        setStringValue(state.registers, requireStringRegister(arg0), "");
+      },
+      // 0x85: xrecv - receive (legacy opcode; EdiabasLib has null)
+      0x85: async (state, arg0) => {
+        // Legacy/unused in EdiabasLib; clear destination for compatibility.
+        setStringValue(state.registers, requireStringRegister(arg0), "");
+      },
+      // 0x86: xinfo - interface info (legacy opcode; EdiabasLib has null)
       0x86: async (state, arg0) => {
+        // Legacy/unused in EdiabasLib; return empty string for compatibility.
         setStringValue(state.registers, requireStringRegister(arg0), "");
       },
       0x87: async (state, arg0, arg1) => {
-        flt2a(state.registers, requireStringRegister(arg0), requireFloatRegister(arg1));
+        flt2a(state.registers, requireStringRegister(arg0), requireFloatRegister(arg1), state.floatPrecision);
       },
-      0x88: async (state, arg0, arg1) => {
-        const value = resolveFloatValue(state.registers, arg1);
-        fsetImm(state.registers, requireFloatRegister(arg0), value);
+      0x88: async (state, arg0) => {
+        state.floatPrecision = resolveIntValue(state.registers, arg0);
       },
-      // 0x89: cfgig - config get int (stub: returns 0)
-      0x89: async (state, arg0) => {
-        setIntValue(state.registers, requireIntRegister(arg0), 0);
+      // 0x89: cfgig - config get int
+      0x89: async (state, arg0, arg1) => {
+        const dest = requireIntRegister(arg0);
+        const key = resolveStringValue(state.registers, arg1).toUpperCase();
+        const value = state.config.get(key);
+        if (value != null) {
+          setIntValue(state.registers, dest, parseConfigInt(value));
+        }
       },
-      // 0x8a: cfgsg - config set/get (no-op stub)
-      0x8a: async () => {
-        // Config set/get - no-op stub
+      // 0x8a: cfgsg - config get string
+      0x8a: async (state, arg0, arg1) => {
+        const dest = requireStringRegister(arg0);
+        const key = resolveStringValue(state.registers, arg1).toUpperCase();
+        const value = state.config.get(key);
+        if (value != null) {
+          setBinaryValue(state.registers, dest, utf8ToCp1252(value));
+        }
       },
-      // 0x8b: cfgis - config is set (stub: returns 0 = not set)
-      0x8b: async (state, arg0) => {
-        setIntValue(state.registers, requireIntRegister(arg0), 0);
+      // 0x8b: cfgis - config set int
+      0x8b: async (state, arg0, arg1) => {
+        const key = resolveStringValue(state.registers, arg0).toUpperCase();
+        const value = resolveIntValue(state.registers, arg1);
+        state.config.set(key, `${value}`);
       },
       // 0x8c: a2y - ASCII string to Y-register (binary)
       0x8c: async (state, arg0, arg1) => {
@@ -1483,9 +1644,9 @@ export class Interpreter {
         const bytes = utf8ToCp1252(str);
         setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
       },
-      // 0x8d: xparraw - raw parameters (no-op stub)
+      // 0x8d: xparraw - raw parameters (legacy opcode; EdiabasLib has null)
       0x8d: async () => {
-        // Raw parameters - no-op stub
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
       // 0x8e: hex2y - hex string to Y-register (binary)
       0x8e: async (state, arg0, arg1) => {
@@ -1500,7 +1661,16 @@ export class Interpreter {
         strcmp(state.registers, state.flags, requireStringRegister(arg0), requireStringRegister(arg1));
       },
       0x90: async (state, arg0, arg1) => {
-        strlen(state.registers, requireIntRegister(arg0), requireStringRegister(arg1));
+        const dest = requireIntRegister(arg0);
+        strlen(state.registers, dest, requireStringRegister(arg1));
+        const length = getIntValue(state.registers, dest);
+        const byteLength = intRegisterByteLength(dest);
+        const mask = byteLength === 1 ? 0xff : byteLength === 2 ? 0xffff : 0xffffffff;
+        const signMask = byteLength === 1 ? 0x80 : byteLength === 2 ? 0x8000 : 0x80000000;
+        const masked = length & mask;
+        state.flags.z = masked === 0;
+        state.flags.s = (masked & signMask) !== 0;
+        state.flags.v = false;
       },
       // 0x91: y2bcd - Y-register to BCD string
       0x91: async (state, arg0, arg1) => {
@@ -1528,13 +1698,19 @@ export class Interpreter {
       0x94: async (state, arg0, arg1) => {
         const destination = requireStringRegister(arg0);
         const key = arg1.kind === "string" ? arg1.value : requireStringRegister(arg1);
-        shmget(state.registers, state.sharedMemory, destination, key);
+        shmget(state.registers, state.sharedMemory, destination, key, state.flags);
       },
       // 0x95: ergsysi - system info result
       0x95: async (state, arg0, arg1) => {
         const name = resolveStringValue(state.registers, arg0);
-        const value = resolveStringValue(state.registers, arg1);
-        state.results.record(name, "string", value);
+        const value = resolveIntValue(state.registers, arg1) & 0xffff;
+        if (name === "!INITIALISIERUNG") {
+          if (value !== 0) {
+            state.requestInit = true;
+          }
+          return;
+        }
+        state.results.record(name, "int", value);
       },
       0x96: async (state, arg0, arg1) => {
         flt2fix(state.registers, state.flags, requireIntRegister(arg0), requireFloatRegister(arg1));
@@ -1561,13 +1737,13 @@ export class Interpreter {
         }
       },
       0x9a: async (state, arg0, arg1) => {
-        tabseekuOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), requireIntRegister(arg1));
+        tabseekuOp(state.flags, state.tableState, resolveStringValue(state.registers, arg0), resolveIntValue(state.registers, arg1));
       },
       // 0x9b: flt2y4 - float to 4-byte Y (IEEE 754 single)
       0x9b: async (state, arg0, arg1) => {
         const value = getFloatValue(state.registers, requireFloatRegister(arg1));
         const buffer = new ArrayBuffer(4);
-        new DataView(buffer).setFloat32(0, value, false); // big-endian
+        new DataView(buffer).setFloat32(0, value, true); // little-endian
         const bytes = new Uint8Array(buffer);
         setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
       },
@@ -1575,7 +1751,7 @@ export class Interpreter {
       0x9c: async (state, arg0, arg1) => {
         const value = getFloatValue(state.registers, requireFloatRegister(arg1));
         const buffer = new ArrayBuffer(8);
-        new DataView(buffer).setFloat64(0, value, false); // big-endian
+        new DataView(buffer).setFloat64(0, value, true); // little-endian
         const bytes = new Uint8Array(buffer);
         setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
       },
@@ -1587,7 +1763,7 @@ export class Interpreter {
         for (let i = 0; i < Math.min(4, bytes.length); i++) {
           view.setUint8(i, bytes[i]);
         }
-        setFloatValue(state.registers, requireFloatRegister(arg0), view.getFloat32(0, false));
+        setFloatValue(state.registers, requireFloatRegister(arg0), view.getFloat32(0, true));
       },
       // 0x9e: y82flt - 8-byte Y to float
       0x9e: async (state, arg0, arg1) => {
@@ -1597,7 +1773,7 @@ export class Interpreter {
         for (let i = 0; i < Math.min(8, bytes.length); i++) {
           view.setUint8(i, bytes[i]);
         }
-        setFloatValue(state.registers, requireFloatRegister(arg0), view.getFloat64(0, false));
+        setFloatValue(state.registers, requireFloatRegister(arg0), view.getFloat64(0, true));
       },
       0x9f: async (state, arg0) => {
         const id = resolveIntValue(state.registers, arg0);
@@ -1607,9 +1783,9 @@ export class Interpreter {
         }
         plink(state.procedureRegistry, id, handler);
       },
-      0xa0: async (state, arg0) => {
-        const id = resolveIntValue(state.registers, arg0);
-        pcall(state.procedureRegistry, state.procedureStack, id);
+      // 0xa0: pcall - procedure call (legacy opcode; EdiabasLib has null)
+      0xa0: async () => {
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
       // 0xa2: plinkv - link procedure with validation (stub: same as plink)
       0xa2: async (state, arg0) => {
@@ -1642,9 +1818,9 @@ export class Interpreter {
       0xa9: async () => {
         // Jump to subroutine - not implemented
       },
-      // 0xaa: tabsetex - table set extended (same as tabset)
+      // 0xaa: tabsetex - table set extended (same registry)
       0xaa: async (state, arg0) => {
-        tabsetOp(state.registers, state.flags, this.tableRegistry, state.tableState, requireStringRegister(arg0));
+        tabsetOp(state.flags, this.tableRegistry, state.tableState, resolveStringValue(state.registers, arg0));
       },
       0xa1: async (state, arg0, arg1) => {
         fcomp(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
@@ -1653,13 +1829,9 @@ export class Interpreter {
         ufix2dez(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
       },
       // 0xac: generr - generate/throw error
-      0xac: async (state, arg0, arg1) => {
+      0xac: async (state, arg0) => {
         const errorCode = resolveIntValue(state.registers, arg0);
-        const errorText = resolveStringValue(state.registers, arg1);
-        // Store error info in results and throw with UNKNOWN code
-        state.results.record("F_ERRORCODE", "dword", errorCode);
-        state.results.record("F_ERRORTEXT", "string", errorText);
-        throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, `GENERR ${errorCode}: ${errorText}`);
+        throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, `GENERR ${errorCode}`);
       },
       // 0xad: ticks - get system ticks (ms since epoch)
       0xad: async (state, arg0) => {
@@ -1670,24 +1842,30 @@ export class Interpreter {
         const durationMs = resolveIntValue(state.registers, arg0);
         await new Promise((resolve) => setTimeout(resolve, Math.max(0, durationMs)));
       },
-      0xaf: async (state, arg0) => {
-        await xopen(state.registers, requireCommunicationInterface(state), optionalIntRegister(arg0));
+      // 0xaf: xopen - open communication (legacy opcode; EdiabasLib has null)
+      0xaf: async () => {
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      0xb0: async (state) => {
-        await xclose(requireCommunicationInterface(state));
+      // 0xb0: xclose - close communication (legacy opcode; EdiabasLib has null)
+      0xb0: async () => {
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      0xb1: async (state, arg0) => {
-        await xcloseex(state.registers, requireCommunicationInterface(state), optionalIntRegister(arg0));
+      // 0xb1: xcloseex - close communication extended (legacy opcode; EdiabasLib has null)
+      0xb1: async () => {
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      0xb2: async (state, arg0) => {
-        await xswitch(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
+      // 0xb2: xswitch - switch interface (legacy opcode; EdiabasLib has null)
+      0xb2: async () => {
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      0xb3: async (state, arg0) => {
-        await xsendex(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
+      // 0xb3: xsendex - send extended (legacy opcode; EdiabasLib has null)
+      0xb3: async () => {
+        // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      0xb4: async (state, arg0, arg1) => {
-        const timeout = optionalIntRegister(arg1);
-        await xrecvex(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0), timeout);
+      // 0xb4: xrecvex - receive extended (legacy opcode; EdiabasLib has null)
+      0xb4: async (state, arg0) => {
+        // Legacy/unused in EdiabasLib; clear destination for compatibility.
+        setStringValue(state.registers, requireStringRegister(arg0), "");
       },
       // 0xb5: ssize - string size (length in bytes)
       0xb5: async (state, arg0, arg1) => {

@@ -2,6 +2,7 @@ import { cp1252ToUtf8, utf8ToCp1252 } from "@ediabas/core";
 import { RegisterSet } from "../registers";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 import { getIntValue, getStringValue, setIntValue, setStringValue } from "./register-values";
+import type { Flags } from "../flags";
 
 export type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 
@@ -28,7 +29,8 @@ export function fopen(
   registers: RegisterSet,
   destination: IntRegisterRef,
   pathRef: StringRegisterRef,
-  modeRef?: StringRegisterRef | FileOpenMode
+  modeRef?: StringRegisterRef | FileOpenMode,
+  flags?: Flags
 ): void {
   const path = getStringValue(registers, pathRef);
   const mode = typeof modeRef === "string"
@@ -36,8 +38,18 @@ export function fopen(
     : modeRef
       ? (getStringValue(registers, modeRef) as FileOpenMode)
       : "r";
-  const handle = fileSystem.open(path, mode);
+  let handle = -1;
+  try {
+    handle = fileSystem.open(path, mode);
+  } catch {
+    handle = -1;
+  }
   setIntValue(registers, destination, handle);
+  if (flags) {
+    const masked = handle & 0xff;
+    flags.z = masked === 0;
+    flags.s = (masked & 0x80) !== 0;
+  }
 }
 
 export function fclose(
@@ -52,14 +64,31 @@ export function fclose(
 export function fread(
   fileSystem: FileSystem,
   registers: RegisterSet,
-  destination: StringRegisterRef,
+  destination: IntRegisterRef,
   handleRef: IntRegisterRef,
-  lengthRef: IntRegisterRef
+  flags?: Flags
 ): void {
   const handle = getIntValue(registers, handleRef);
-  const length = getIntValue(registers, lengthRef);
-  const data = fileSystem.read(handle, length);
-  setStringValue(registers, destination, cp1252ToUtf8(data));
+  let value = -1;
+  try {
+    const data = fileSystem.read(handle, 1);
+    if (data.length > 0) {
+      value = data[0];
+    }
+  } catch {
+    value = -1;
+  }
+
+  if (value < 0) {
+    value = 0;
+    if (flags) {
+      flags.c = true;
+    }
+  } else if (flags) {
+    flags.c = false;
+  }
+
+  setIntValue(registers, destination, value);
 }
 
 export function fwrite(
@@ -91,7 +120,32 @@ export function fseekln(
   handleRef: IntRegisterRef,
   offsetRef: IntRegisterRef
 ): void {
-  fseek(fileSystem, registers, handleRef, offsetRef, "current");
+  const handle = getIntValue(registers, handleRef);
+  const line = getIntValue(registers, offsetRef);
+  fileSystem.seek(handle, 0, "start");
+  for (let i = 0; i < line; i++) {
+    if (fileSystem.readLine) {
+      const data = fileSystem.readLine(handle);
+      if (!data) {
+        break;
+      }
+    } else {
+      let readAny = false;
+      while (!fileSystem.eof(handle)) {
+        const byte = fileSystem.read(handle, 1);
+        if (byte.length === 0) {
+          break;
+        }
+        readAny = true;
+        if (byte[0] === 0x0a) {
+          break;
+        }
+      }
+      if (!readAny) {
+        break;
+      }
+    }
+  }
 }
 
 export function feof(
@@ -112,21 +166,41 @@ export function freadln(
   fileSystem: FileSystem,
   registers: RegisterSet,
   destination: StringRegisterRef,
-  handleRef: IntRegisterRef
+  handleRef: IntRegisterRef,
+  flags?: Flags
 ): void {
   const handle = getIntValue(registers, handleRef);
+  let data: Uint8Array | null = null;
+
   if (fileSystem.readLine) {
-    const data = fileSystem.readLine(handle);
-    setStringValue(registers, destination, data ? cp1252ToUtf8(data) : "");
+    data = fileSystem.readLine(handle);
   } else {
     // Fallback: read byte by byte until newline
     const bytes: number[] = [];
+    let readAny = false;
     while (!fileSystem.eof(handle)) {
       const byte = fileSystem.read(handle, 1);
-      if (byte.length === 0 || byte[0] === 0x0a) break;
-      if (byte[0] !== 0x0d) bytes.push(byte[0]);
+      if (byte.length === 0) break;
+      readAny = true;
+      if (byte[0] === 0x0a) break;
+      if (byte[0] !== 0x0d) {
+        bytes.push(byte[0]);
+      }
     }
-    setStringValue(registers, destination, cp1252ToUtf8(new Uint8Array(bytes)));
+    data = readAny ? new Uint8Array(bytes) : null;
+  }
+
+  if (!data) {
+    setStringValue(registers, destination, "");
+    if (flags) {
+      flags.c = true;
+    }
+    return;
+  }
+
+  setStringValue(registers, destination, cp1252ToUtf8(data));
+  if (flags) {
+    flags.c = false;
   }
 }
 
