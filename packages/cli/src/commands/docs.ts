@@ -63,6 +63,10 @@ function slugifyAnchor(value: string): string {
     .replace(/-+$/, "");
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function escapeMarkdownCell(value: string): string {
   return value.replace(/\|/g, "\\|").replace(/\r?\n/g, "<br>");
 }
@@ -140,7 +144,10 @@ function normalizeRow(row: string[], columns: number): string[] {
 }
 
 function formatInfoValueCell(value: string | undefined): string {
-  return value && value.trim().length > 0 ? value : "N/A";
+  if (!value || value.trim().length === 0) {
+    return "N/A";
+  }
+  return escapeHtml(value);
 }
 
 function renderDocsMarkdown(params: {
@@ -194,18 +201,19 @@ function renderDocsMarkdown(params: {
     lines.push("");
     for (const job of prg.jobs) {
       const slug = slugifyAnchor(job.name);
-      const comment = job.comment ? ` - ${job.comment}` : "";
-      lines.push(`- [${job.name}](#job-${slug})${comment}`);
+      const jobName = escapeHtml(job.name);
+      const comment = job.comment ? ` - ${escapeHtml(job.comment)}` : "";
+      lines.push(`- [${jobName}](#job-${slug})${comment}`);
     }
 
     for (const job of prg.jobs) {
       const slug = slugifyAnchor(job.name);
       lines.push("");
       lines.push(`<a id="job-${slug}"></a>`);
-      lines.push(`### ${job.name}`);
+      lines.push(`### ${escapeHtml(job.name)}`);
       if (job.comment) {
         lines.push("");
-        lines.push(job.comment);
+        lines.push(escapeHtml(job.comment));
       }
 
       lines.push("");
@@ -216,9 +224,9 @@ function renderDocsMarkdown(params: {
           renderMarkdownTable(
             ["Name", "Type", "Comment"],
             job.args.map((arg) => [
-              arg.name,
-              arg.type,
-              arg.comment ?? "",
+              escapeHtml(arg.name),
+              escapeHtml(arg.type),
+              escapeHtml(arg.comment ?? ""),
             ])
           )
         );
@@ -234,9 +242,9 @@ function renderDocsMarkdown(params: {
           renderMarkdownTable(
             ["Name", "Type", "Comment"],
             job.results.map((result) => [
-              result.name,
-              result.type,
-              result.comment ?? "",
+              escapeHtml(result.name),
+              escapeHtml(result.type),
+              escapeHtml(result.comment ?? ""),
             ])
           )
         );
@@ -257,14 +265,16 @@ function renderDocsMarkdown(params: {
     lines.push("");
     for (const table of prg.tables) {
       const slug = slugifyAnchor(table.name);
-      lines.push(`- [${table.name}](#table-${slug}) (${table.rows} × ${table.columns})`);
+      lines.push(
+        `- [${escapeHtml(table.name)}](#table-${slug}) (${table.rows} × ${table.columns})`
+      );
     }
 
     for (const table of prg.tables) {
       const slug = slugifyAnchor(table.name);
       lines.push("");
       lines.push(`<a id="table-${slug}"></a>`);
-      lines.push(`### ${table.name}`);
+      lines.push(`### ${escapeHtml(table.name)}`);
       lines.push("");
       lines.push(`Dimensions: ${table.rows} rows × ${table.columns} columns`);
       lines.push("");
@@ -278,11 +288,13 @@ function renderDocsMarkdown(params: {
       const rawHeader = table.values[0] ?? [];
       const header = normalizeRow(
         rawHeader.length > 0
-          ? rawHeader
+          ? rawHeader.map((value) => escapeHtml(value))
           : Array.from({ length: columns }, (_, index) => `Column ${index + 1}`),
         columns
       );
-      const dataRows = table.values.slice(1).map((row) => normalizeRow(row, columns));
+      const dataRows = table.values
+        .slice(1)
+        .map((row) => normalizeRow(row.map((value) => escapeHtml(value)), columns));
 
       lines.push(renderMarkdownTable(header, dataRows));
     }
@@ -296,7 +308,10 @@ function formatIndexValue(infoStatus: InfoLoadResult, value: string | undefined)
   if (infoStatus.status !== "ok") {
     return "N/A";
   }
-  return value && value.trim().length > 0 ? value : "N/A";
+  if (!value || value.trim().length === 0) {
+    return "N/A";
+  }
+  return escapeHtml(value);
 }
 
 function renderIndexMarkdown(entries: DocsIndexEntry[]): string {
