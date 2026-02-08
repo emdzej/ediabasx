@@ -69,6 +69,13 @@ pnpm typecheck        # Type check
 
 ## Core Rules
 
+### Code Organization
+
+- **Keep files small** — aim for ~300 lines per file; not a hard limit, but a signal to consider splitting
+- **One responsibility per file** — commands, utilities, types in separate files
+- **Group by feature** — use subdirectories (`commands/`, `utils/`, `types/`) to organize related code
+- **Barrel exports** — use `index.ts` for re-exports, not for logic
+
 ### Language
 
 - **All code, comments, and commit messages in English**
