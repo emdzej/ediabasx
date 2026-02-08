@@ -340,7 +340,7 @@ export function App({ filePath, buffer, prg }: AppProps) {
   }).join(" ");
   const filterSuffix = searchQuery ? ` /${searchQuery}` : "";
   
-  const mainTitle = `📁 ${path.basename(filePath)}`;
+  const mainTitle = `EdiabasX · explore ${path.basename(filePath)}`;
   const topBorder = buildCustomTopBorder(mainTitle, width);
   const footer = isSearchActive
     ? `Search: ${searchQuery}_`

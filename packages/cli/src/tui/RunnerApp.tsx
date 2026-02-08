@@ -180,7 +180,7 @@ export function RunnerApp({ filePath, jobs, interfaceSummary, onRun }: RunnerApp
         ? `${baseShortcuts} | ${statusMessage}`
         : baseShortcuts;
 
-  const topBorder = buildTopBorder(`Ediabas · ${path.basename(filePath)}`, safeWidth);
+  const topBorder = buildTopBorder(`EdiabasX · run ${path.basename(filePath)}`, safeWidth);
   const bottomBorder = buildBottomBorder(shortcuts, safeWidth);
 
   useEffect(() => {
