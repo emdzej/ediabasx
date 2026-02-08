@@ -1,4 +1,4 @@
-// @ediabas/protocol-kwp - KWP2000/KWP1281 protocol utilities
+// @ediabasx/protocol-kwp - KWP2000/KWP1281 protocol utilities
 // Currently a stub - actual implementation is in interface-serial/kdcan
 
 export const KwpServiceIds = {

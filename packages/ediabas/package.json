@@ -1,5 +1,5 @@
 {
-  "name": "@ediabas/ediabas",
+  "name": "@ediabasx/ediabas",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -15,10 +15,10 @@
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
   },
   "dependencies": {
-    "@ediabas/best-parser": "workspace:*",
-    "@ediabas/core": "workspace:*",
-    "@ediabas/interpreter": "workspace:*",
-    "@ediabas/interface-base": "workspace:*"
+    "@ediabasx/best-parser": "workspace:*",
+    "@ediabasx/core": "workspace:*",
+    "@ediabasx/interpreter": "workspace:*",
+    "@ediabasx/interface-base": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

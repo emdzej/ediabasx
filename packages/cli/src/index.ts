@@ -16,7 +16,7 @@ import { registerTablesCommand } from "./commands/tables.js";
 const program = new Command();
 
 program
-  .name("ediabas")
+  .name("ediabasx")
   .description("CLI for parsing EDIABAS PRG/GRP files")
   .version("0.1.0");
 

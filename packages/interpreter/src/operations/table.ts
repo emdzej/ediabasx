@@ -5,7 +5,7 @@
  * and current row index (similar to EdiabasLib).
  */
 
-import type { PrgTable } from "@ediabas/best-parser";
+import type { PrgTable } from "@ediabasx/best-parser";
 import { RegisterSet } from "../registers";
 import { Flags } from "../flags";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";

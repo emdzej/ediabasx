@@ -1,5 +1,5 @@
-import { cp1252ToUtf8, utf8ToCp1252, EdiabasError, EdiabasErrorCodes } from "@ediabas/core";
-import type { PrgFile, PrgJob } from "@ediabas/best-parser";
+import { cp1252ToUtf8, utf8ToCp1252, EdiabasError, EdiabasErrorCodes } from "@ediabasx/core";
+import type { PrgFile, PrgJob } from "@ediabasx/best-parser";
 import { RegisterSet } from "./registers";
 import { Flags } from "./flags";
 import { CallStack } from "./callstack";

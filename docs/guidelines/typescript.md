@@ -155,7 +155,7 @@ const value = view.getUint32(offset, true); // little-endian
 
 ```typescript
 // ✅ Use typed errors
-import { EdiabasError, ErrorCodes } from '@ediabas/core';
+import { EdiabasError, ErrorCodes } from '@ediabasx/core';
 
 throw new EdiabasError(ErrorCodes.STACK_OVERFLOW, 'Call stack exceeded limit');
 

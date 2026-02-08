@@ -1,4 +1,4 @@
-# AGENTS.md - Ediabas TypeScript
+# AGENTS.md - EdiabasX TypeScript
 
 Guidelines for AI agents working on this codebase.
 
@@ -38,7 +38,7 @@ packages/
 ├── interpreter/    # BEST VM: registers, flags, callstack, ops
 ├── interface-*/    # Communication interfaces (serial, ENET)
 ├── protocol-*/     # Protocols (UDS, KWP, DoIP)
-├── ediabas/        # Main library integration
+├── ediabasx/        # Main library integration
 └── cli/            # CLI tool with TUI
 ```
 
@@ -112,7 +112,7 @@ pnpm lint && pnpm typecheck && pnpm test
 ## Test Data
 
 Test PRG/GRP files are in the maintainer's local workspace:
-`~/.openclaw/workspace/projects/ediabas/test-data/`
+`~/.openclaw/workspace/projects/ediabasx/test-data/`
 
 **DO NOT commit test files** — they contain BMW intellectual property.
 
@@ -137,4 +137,4 @@ When auditing opcodes:
 ## Reference
 
 - Original: [EdiabasLib](https://github.com/uholeschak/ediabaslib) (C#)
-- Issues: https://github.com/emdzej/ediabas/issues
+- Issues: https://github.com/emdzej/ediabasx/issues

@@ -1,5 +1,5 @@
 {
-  "name": "@ediabas/protocol-kwp",
+  "name": "@ediabasx/protocol-kwp",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -15,6 +15,6 @@
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
   },
   "dependencies": {
-    "@ediabas/protocol-uds": "workspace:*"
+    "@ediabasx/protocol-uds": "workspace:*"
   }
 }

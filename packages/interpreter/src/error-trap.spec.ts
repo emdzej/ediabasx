@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { Interpreter } from "./interpreter";
 import { RegisterSet } from "./registers";
-import { EdiabasErrorCodes, EdiabasError } from "@ediabas/core";
-import type { PrgFile, PrgJob, PrgHeader, PrgMetadata, PrgTable } from "@ediabas/best-parser";
+import { EdiabasErrorCodes, EdiabasError } from "@ediabasx/core";
+import type { PrgFile, PrgJob, PrgHeader, PrgMetadata, PrgTable } from "@ediabasx/best-parser";
 
 function createHeader(): PrgHeader {
   return {

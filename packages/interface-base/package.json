@@ -1,5 +1,5 @@
 {
-  "name": "@ediabas/interface-base",
+  "name": "@ediabasx/interface-base",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",

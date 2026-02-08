@@ -1,6 +1,6 @@
 import { createServer, type Socket } from "node:net";
 import type { Server } from "node:net";
-import { EdiabasInterface } from "@ediabas/interface-base";
+import { EdiabasInterface } from "@ediabasx/interface-base";
 
 export interface GatewayLogger {
   info: (message: string) => void;

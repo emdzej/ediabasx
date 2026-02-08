@@ -1,7 +1,7 @@
 import { createConnection, type Socket } from "node:net";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GatewayServer } from "../gateway-server";
-import { EdiabasInterface } from "@ediabas/interface-base";
+import { EdiabasInterface } from "@ediabasx/interface-base";
 
 type Deferred<T> = {
   promise: Promise<T>;

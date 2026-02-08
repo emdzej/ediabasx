@@ -9,7 +9,7 @@
  * - RET (Return): Pop return address and jump back
  */
 
-import { EdiabasError, EdiabasErrorCodes } from "@ediabas/core";
+import { EdiabasError, EdiabasErrorCodes } from "@ediabasx/core";
 
 /** Default maximum call stack depth */
 export const DEFAULT_MAX_DEPTH = 256;

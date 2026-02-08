@@ -1,6 +1,6 @@
 # Prompt: Generate/Update Ediabas User Documentation
 
-You are updating the **ediabas** user documentation. Follow these steps exactly and keep output in Markdown. Use current CLI help and repo docs as the source of truth.
+You are updating the **ediabasx** user documentation. Follow these steps exactly and keep output in Markdown. Use current CLI help and repo docs as the source of truth.
 
 ## Checklist
 1. Read `AGENTS.md` in the repo root.
@@ -26,7 +26,7 @@ You are updating the **ediabas** user documentation. Follow these steps exactly 
 
 ## Required Content
 ### `docs/user/GETTING-STARTED.md`
-- What is ediabas (TypeScript BMW diagnostics)
+- What is ediabasx (TypeScript BMW diagnostics)
 - Installation (npm/pnpm)
 - Quick start example
 - Requirements (Node.js, hardware interfaces)
@@ -43,14 +43,14 @@ You are updating the **ediabas** user documentation. Follow these steps exactly 
 
 ### `docs/user/RUNNING-JOBS.md`
 - What are jobs (PRG files, ECU definitions)
-- Running a job from CLI: `ediabas run <file> <job> [args]`
-- Using the TUI runner: `ediabas run <file>`
+- Running a job from CLI: `ediabasx run <file> <job> [args]`
+- Using the TUI runner: `ediabasx run <file>`
 - Understanding results
 - Common jobs (IDENT, STATUS_LESEN, etc.)
 
 ### `docs/user/SIMULATOR.md`
 - What is the simulator
-- Starting: `ediabas simulator`
+- Starting: `ediabasx simulator`
 - Human-in-the-loop testing
 - RAW/HEX panels
 - Responding to JSON-RPC requests
