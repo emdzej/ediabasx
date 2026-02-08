@@ -651,9 +651,8 @@ function renderDocsMarkdown(params: {
   filePath: string;
   prg: PrgFile;
   infoStatus: InfoLoadResult;
-  maxTableRows: number;
 }): string {
-  const { filePath, prg, infoStatus, maxTableRows } = params;
+  const { filePath, prg, infoStatus } = params;
   const fileName = path.basename(filePath);
   const lines: string[] = [];
 
@@ -788,16 +787,8 @@ function renderDocsMarkdown(params: {
         columns
       );
       const dataRows = table.values.slice(1).map((row) => normalizeRow(row, columns));
-      const rowLimit = Math.max(0, maxTableRows);
-      const rowsToShow = dataRows.slice(0, rowLimit);
 
-      lines.push(renderMarkdownTable(header, rowsToShow));
-
-      if (dataRows.length > rowsToShow.length) {
-        const remaining = dataRows.length - rowsToShow.length;
-        lines.push("");
-        lines.push(`... ${remaining} more rows`);
-      }
+      lines.push(renderMarkdownTable(header, dataRows));
     }
   }
 
@@ -1614,15 +1605,9 @@ program
   .command("docs")
   .argument("<source-dir>", "Directory with PRG/GRP files")
   .argument("<output-dir>", "Directory to write generated Markdown")
-  .option("--max-table-rows <rows>", "Maximum number of table rows to render", "50")
   .description("Generate Markdown documentation for PRG/GRP files")
-  .action(async (sourceDir: string, outputDir: string, options: { maxTableRows?: string }) => {
+  .action(async (sourceDir: string, outputDir: string) => {
     try {
-      const maxTableRows = parseNumber(options.maxTableRows ?? "50", "Max table rows");
-      if (maxTableRows <= 0) {
-        throw new Error("Max table rows must be a positive number");
-      }
-
       const files = await listPrgFiles(sourceDir);
       await mkdir(outputDir, { recursive: true });
 
@@ -1649,7 +1634,7 @@ program
 
         const outputFileName = `${path.basename(filePath, path.extname(filePath))}.md`;
         const outputPath = path.join(outputDir, outputFileName);
-        const markdown = renderDocsMarkdown({ filePath, prg, infoStatus, maxTableRows });
+        const markdown = renderDocsMarkdown({ filePath, prg, infoStatus });
         await writeFile(outputPath, markdown, "utf-8");
 
         entries.push({
