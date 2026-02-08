@@ -1,5 +1,5 @@
 {
-  "name": "@ediabas/interfaces",
+  "name": "@ediabasx/interfaces",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -15,9 +15,9 @@
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
   },
   "dependencies": {
-    "@ediabas/interface-base": "workspace:*",
-    "@ediabas/interface-enet": "workspace:*",
-    "@ediabas/interface-serial": "workspace:*"
+    "@ediabasx/interface-base": "workspace:*",
+    "@ediabasx/interface-enet": "workspace:*",
+    "@ediabasx/interface-serial": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.2.1"

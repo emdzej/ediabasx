@@ -3,8 +3,8 @@ import chalk from "chalk";
 import path from "node:path";
 import { render } from "ink";
 import React from "react";
-import type { EdiabasJobResult } from "@ediabas/ediabas";
-import { createInterface } from "@ediabas/interfaces";
+import type { EdiabasJobResult } from "@ediabasx/ediabas";
+import { createInterface } from "@ediabasx/interfaces";
 import { RunnerApp } from "../tui/RunnerApp.js";
 import { readPrgFile } from "../utils/prg.js";
 import { handleError, printJson } from "../utils/output.js";
@@ -14,7 +14,7 @@ import {
   resolveInterfaceSelection,
 } from "../utils/interface.js";
 import type { InterfaceCliOptions } from "../utils/interface.js";
-import type { PrgJob } from "@ediabas/best-parser";
+import type { PrgJob } from "@ediabasx/best-parser";
 
 function printJobInfo(job: PrgJob): void {
   process.stdout.write(`${chalk.bold.cyan("Job:")} ${chalk.bold(job.name)}\n`);
@@ -123,7 +123,7 @@ async function executeRunnerJob(
   params: string[],
   options: InterfaceCliOptions & { results?: string }
 ): Promise<RunnerExecutionResult> {
-  const { Ediabas } = await import("@ediabas/ediabas");
+  const { Ediabas } = await import("@ediabasx/ediabas");
   const ecuPath = path.dirname(path.resolve(filePath));
   const timeout = Number.parseInt(options.timeout ?? "5000", 10);
   const selection = resolveInterfaceSelection(options, "simulation");
@@ -215,7 +215,7 @@ function registerRunCommand(program: Command): void {
           return;
         }
 
-        const { Ediabas } = await import("@ediabas/ediabas");
+        const { Ediabas } = await import("@ediabasx/ediabas");
         const ecuPath = path.dirname(path.resolve(filePath));
 
         let jobMeta = prg.jobs.find((job) => job.name.toUpperCase() === jobName.toUpperCase());

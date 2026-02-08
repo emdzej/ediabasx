@@ -279,7 +279,7 @@ ediabas/
 
 ```typescript
 // High-level API
-import { Ediabas, EnetInterface } from '@ediabas/ediabas';
+import { Ediabas, EnetInterface } from '@ediabasx/ediabas';
 
 const ediabas = new Ediabas({
   ecuPath: './ecu',
@@ -300,7 +300,7 @@ for (const result of results) {
 }
 
 // Low-level API
-import { PrgParser } from '@ediabas/best-parser';
+import { PrgParser } from '@ediabasx/best-parser';
 
 const parser = new PrgParser();
 const prg = await parser.parse('./d_motor.prg');
@@ -317,8 +317,8 @@ console.log(disasm);
 
 ### Phase 1: Foundation (Week 1-2)
 1. ✅ Set up monorepo with pnpm workspaces + Turborepo
-2. ✅ Implement `@ediabas/core` - types, encoding, crypto
-3. ✅ Implement `@ediabas/best-parser` - file parsing
+2. ✅ Implement `@ediabasx/core` - types, encoding, crypto
+3. ✅ Implement `@ediabasx/best-parser` - file parsing
 4. ✅ Implement disassembler (port BESTDIS)
 5. ✅ Basic CLI for testing parser
 
@@ -332,16 +332,16 @@ console.log(disasm);
 7. Implement table operations
 
 ### Phase 3: Communication (Week 5-7)
-1. Implement `@ediabas/interface-base`
+1. Implement `@ediabasx/interface-base`
 2. Implement simulation interface
-3. Implement `@ediabas/protocol-uds` (ISO 14229)
-4. Implement `@ediabas/protocol-kwp` (ISO 14230)
-5. Implement `@ediabas/protocol-doip` (ISO 13400 + HSFZ)
-6. Implement `@ediabas/interface-serial` (OBD - PRIORITY)
-7. Implement `@ediabas/interface-enet`
+3. Implement `@ediabasx/protocol-uds` (ISO 14229)
+4. Implement `@ediabasx/protocol-kwp` (ISO 14230)
+5. Implement `@ediabasx/protocol-doip` (ISO 13400 + HSFZ)
+6. Implement `@ediabasx/interface-serial` (OBD - PRIORITY)
+7. Implement `@ediabasx/interface-enet`
 
 ### Phase 4: Integration (Week 8-9)
-1. Implement `@ediabas/ediabas` main library
+1. Implement `@ediabasx/ediabas` main library
 2. Implement result generation (erg* operations)
 3. Implement communication operations (x* operations)
 4. End-to-end testing with real ECUs

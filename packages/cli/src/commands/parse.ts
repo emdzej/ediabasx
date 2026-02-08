@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import type { PrgFile } from "@ediabas/best-parser";
+import type { PrgFile } from "@ediabasx/best-parser";
 import { readPrgFile } from "../utils/prg.js";
 import { handleError, printJson, resolveOutputFormat } from "../utils/output.js";
 import type { OutputOptions } from "../utils/output.js";

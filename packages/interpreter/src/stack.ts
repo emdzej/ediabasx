@@ -4,7 +4,7 @@
  * Manages data values pushed/popped by stack-related opcodes.
  */
 
-import { EdiabasError, EdiabasErrorCodes } from "@ediabas/core";
+import { EdiabasError, EdiabasErrorCodes } from "@ediabasx/core";
 
 export const DEFAULT_STACK_DEPTH = 256;
 

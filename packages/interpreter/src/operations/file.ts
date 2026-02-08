@@ -1,4 +1,4 @@
-import { cp1252ToUtf8, utf8ToCp1252 } from "@ediabas/core";
+import { cp1252ToUtf8, utf8ToCp1252 } from "@ediabasx/core";
 import { RegisterSet } from "../registers";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 import { getIntValue, getStringValue, setIntValue, setStringValue } from "./register-values";

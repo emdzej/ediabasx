@@ -2,8 +2,8 @@ import { SerialTransport } from "../types";
 import { CanFlags, Protocols, type CanFlag, type Protocol } from "./constants";
 import { createCanTelegram } from "./telegram";
 
-export { segmentIsoTpPayload } from "@ediabas/protocol-uds";
-export type { IsoTpSegmentationOptions } from "@ediabas/protocol-uds";
+export { segmentIsoTpPayload } from "@ediabasx/protocol-uds";
+export type { IsoTpSegmentationOptions } from "@ediabasx/protocol-uds";
 
 export const DCAN_CONCEPT = 0x0110;
 export const DCAN_BAUD_RATE = 500000;

@@ -1,7 +1,7 @@
 # Prompt: Generate/Update EDIABAS Technical Documentation
 
 ## Goal
-Create or update the technical documentation for the EDIABAS TypeScript monorepo. Produce four documents in `docs/`:
+Create or update the technical documentation for the EdiabasX TypeScript monorepo. Produce four documents in `docs/`:
 
 - `docs/ARCHITECTURE.md`
 - `docs/PACKAGES.md`
@@ -35,18 +35,18 @@ The documentation must reflect the current codebase. Use concrete names and opti
 
 ### `docs/PACKAGES.md`
 - Short description of each package in `packages/`:
-  - `@ediabas/core`
-  - `@ediabas/best-parser`
-  - `@ediabas/interpreter`
-  - `@ediabas/interface-base`
-  - `@ediabas/interface-serial`
-  - `@ediabas/interface-enet`
-  - `@ediabas/interfaces`
-  - `@ediabas/protocol-uds`
-  - `@ediabas/protocol-kwp`
-  - `@ediabas/protocol-doip`
-  - `@ediabas/ediabas`
-  - `@ediabas/cli`
+  - `@ediabasx/core`
+  - `@ediabasx/best-parser`
+  - `@ediabasx/interpreter`
+  - `@ediabasx/interface-base`
+  - `@ediabasx/interface-serial`
+  - `@ediabasx/interface-enet`
+  - `@ediabasx/interfaces`
+  - `@ediabasx/protocol-uds`
+  - `@ediabasx/protocol-kwp`
+  - `@ediabasx/protocol-doip`
+  - `@ediabasx/ediabas`
+  - `@ediabasx/cli`
 
 ### `docs/CLI.md`
 - List all CLI commands with examples:
@@ -58,7 +58,7 @@ The documentation must reflect the current codebase. Use concrete names and opti
 ### `docs/DEVELOPMENT.md`
 - Build, test, lint, typecheck commands (from root `package.json`)
 - How to add new opcodes (where to implement + where to register in interpreter)
-- How to add new interfaces (extend `EdiabasInterface`, register in `@ediabas/interfaces`, update CLI)
+- How to add new interfaces (extend `EdiabasInterface`, register in `@ediabasx/interfaces`, update CLI)
 - Contributing guidelines (branch naming, conventional commits, tests, docs updates)
 
 ## Style & Formatting

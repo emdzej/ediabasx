@@ -1,4 +1,4 @@
-# Ediabas TypeScript
+# EdiabasX TypeScript
 
 A TypeScript implementation of BMW's EDIABAS (Electronic Diagnostic Basic System). This project is a modern port of the [EdiabasLib](https://github.com/uholeschak/ediabaslib) C# library, designed for parsing and analyzing BMW vehicle diagnostic description files (PRG/GRP).
 
@@ -14,8 +14,8 @@ A TypeScript implementation of BMW's EDIABAS (Electronic Diagnostic Basic System
 
 ```bash
 # Clone the repository
-git clone https://github.com/emdzej/ediabas.git
-cd ediabas
+git clone https://github.com/emdzej/ediabasx.git
+cd ediabasx
 
 # Install dependencies
 pnpm install
@@ -26,12 +26,12 @@ pnpm build
 
 ## CLI Usage
 
-The CLI tool (`ediabas`) provides several commands for analyzing PRG/GRP files.
+The CLI tool (`ediabasx`) provides several commands for analyzing PRG/GRP files.
 
 ### Info - Quick file summary
 
 ```bash
-ediabas info file.prg
+ediabasx info file.prg
 ```
 
 Example output:
@@ -51,7 +51,7 @@ ECU comment:
 ### Jobs - List all jobs with arguments and results
 
 ```bash
-ediabas jobs file.prg
+ediabasx jobs file.prg
 ```
 
 Example output:
@@ -89,7 +89,7 @@ ABS_RELAIS
 ### Tables - List tables with row/column counts
 
 ```bash
-ediabas tables file.prg
+ediabasx tables file.prg
 ```
 
 Example output:
@@ -101,7 +101,7 @@ No tables found.
 ### Parse - Full file parsing with JSON output
 
 ```bash
-ediabas parse file.prg --json
+ediabasx parse file.prg --json
 ```
 
 Outputs complete parsed structure including header, metadata, jobs, and tables in JSON format.
@@ -109,7 +109,7 @@ Outputs complete parsed structure including header, metadata, jobs, and tables i
 ### Disasm - Disassemble bytecode
 
 ```bash
-ediabas disasm file.prg
+ediabasx disasm file.prg
 ```
 
 Example output:
@@ -133,20 +133,20 @@ INFO @ 0xA0
 
 ```bash
 # Serial K-Line
-ediabas run file.prg IDENT --interface serial --serial-port /dev/ttyUSB0 --serial-baud 9600 --serial-protocol kwp
+ediabasx run file.prg IDENT --interface serial --serial-port /dev/ttyUSB0 --serial-baud 9600 --serial-protocol kwp
 
 # K+DCAN (ISO-TP)
-ediabas run file.prg IDENT --interface kdcan --serial-port /dev/ttyUSB0 --serial-protocol isotp --serial-tester-can-id 0x7e0 --serial-ecu-can-id 0x7e8
+ediabasx run file.prg IDENT --interface kdcan --serial-port /dev/ttyUSB0 --serial-protocol isotp --serial-tester-can-id 0x7e0 --serial-ecu-can-id 0x7e8
 
 # Run via remote gateway
-ediabas run file.prg IDENT --interface gateway --gateway-host 192.168.1.50 --gateway-port 6801
+ediabasx run file.prg IDENT --interface gateway --gateway-host 192.168.1.50 --gateway-port 6801
 ```
 
 ### Gateway - Start a gateway server
 
 ```bash
 # Expose a serial interface via JSON-RPC
-ediabas gateway --interface serial --serial-port /dev/ttyUSB0 --serial-baud 9600
+ediabasx gateway --interface serial --serial-port /dev/ttyUSB0 --serial-baud 9600
 ```
 
 ## Package Structure
@@ -157,8 +157,8 @@ This is a pnpm monorepo managed with Turborepo.
 packages/
 ├── core/               # Core types, encoding (CP1252), crypto (XOR key: 0xF7)
 ├── best-parser/        # PRG/GRP file parser
-├── cli/                # CLI tool (ediabas command)
-├── ediabas/            # Main library (combines parser + interpreter)
+├── cli/                # CLI tool (ediabasx command)
+├── ediabasx/            # Main library (combines parser + interpreter)
 ├── interpreter/        # BEST/1 VM interpreter (planned)
 ├── interface-base/     # Base interface abstractions
 ├── interface-enet/     # Ethernet/ENET interface
@@ -172,13 +172,13 @@ packages/
 
 | Package | Description |
 |---------|-------------|
-| `@ediabas/core` | Core types, CP1252 encoding, XOR decryption |
-| `@ediabas/best-parser` | Parser for PRG/GRP binary files |
-| `@ediabas/cli` | Command-line interface |
-| `@ediabas/ediabas` | Main library combining all components |
-| `@ediabas/interpreter` | BEST/1 bytecode interpreter (WIP) |
-| `@ediabas/interface-*` | Communication interfaces (ENET, Serial) |
-| `@ediabas/protocol-*` | Diagnostic protocols (UDS, KWP, DoIP) |
+| `@ediabasx/core` | Core types, CP1252 encoding, XOR decryption |
+| `@ediabasx/best-parser` | Parser for PRG/GRP binary files |
+| `@ediabasx/cli` | Command-line interface |
+| `@ediabasx/ediabas` | Main library combining all components |
+| `@ediabasx/interpreter` | BEST/1 bytecode interpreter (WIP) |
+| `@ediabasx/interface-*` | Communication interfaces (ENET, Serial) |
+| `@ediabasx/protocol-*` | Diagnostic protocols (UDS, KWP, DoIP) |
 
 ## Development
 
@@ -235,4 +235,4 @@ MIT
 ## References
 
 - [EdiabasLib](https://github.com/uholeschak/ediabaslib) - Original C# implementation
-- [BMW EDIABAS Documentation](https://www.ediabas.de/) - Official BMW documentation
+- [BMW EDIABAS Documentation](https://www.ediabasx.de/) - Official BMW documentation

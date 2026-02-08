@@ -1,4 +1,4 @@
-import { cp1252ToUtf8 } from "@ediabas/core";
+import { cp1252ToUtf8 } from "@ediabasx/core";
 import type { Instruction } from "./types";
 
 type OpcodeDefinition = {

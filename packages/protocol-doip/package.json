@@ -1,5 +1,5 @@
 {
-  "name": "@ediabas/protocol-doip",
+  "name": "@ediabasx/protocol-doip",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",

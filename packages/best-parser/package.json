@@ -1,5 +1,5 @@
 {
-  "name": "@ediabas/best-parser",
+  "name": "@ediabasx/best-parser",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -8,7 +8,7 @@
     "dist"
   ],
   "dependencies": {
-    "@ediabas/core": "workspace:*"
+    "@ediabasx/core": "workspace:*"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

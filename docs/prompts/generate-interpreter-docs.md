@@ -1,6 +1,6 @@
 # Prompt: Generate EDIABAS Interpreter & Bytecode Documentation
 
-You are tasked with generating **comprehensive** interpreter and bytecode documentation for the BEST2 bytecode interpreter in the `emdzej/ediabas` TypeScript repository.
+You are tasked with generating **comprehensive** interpreter and bytecode documentation for the BEST2 bytecode interpreter in the `emdzej/ediabasx` TypeScript repository.
 
 ## Context
 

@@ -2,9 +2,9 @@ import type { Command } from "commander";
 import path from "node:path";
 import { mkdir, readdir, writeFile } from "node:fs/promises";
 import chalk from "chalk";
-import { cp1252ToUtf8 } from "@ediabas/core";
-import type { PrgFile } from "@ediabas/best-parser";
-import type { EdiabasJobResult } from "@ediabas/ediabas";
+import { cp1252ToUtf8 } from "@ediabasx/core";
+import type { PrgFile } from "@ediabasx/best-parser";
+import type { EdiabasJobResult } from "@ediabasx/ediabas";
 import { readPrgFile } from "../utils/prg.js";
 import { handleError } from "../utils/output.js";
 
@@ -108,7 +108,7 @@ async function loadInfoMetadata(filePath: string, prg: PrgFile): Promise<InfoLoa
   }
 
   try {
-    const { Ediabas } = await import("@ediabas/ediabas");
+    const { Ediabas } = await import("@ediabasx/ediabas");
     const ecuPath = path.dirname(path.resolve(filePath));
     const ediabas = new Ediabas({ ecuPath, simulation: true, logging: false });
     await ediabas.loadSgbd(path.basename(filePath));

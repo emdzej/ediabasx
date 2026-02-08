@@ -1,5 +1,5 @@
 import { createConnection, type Socket } from "node:net";
-import { EdiabasInterface } from "@ediabas/interface-base";
+import { EdiabasInterface } from "@ediabasx/interface-base";
 
 type GatewayClientOptions = {
   host?: string;

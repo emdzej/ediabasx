@@ -1,5 +1,5 @@
 {
-  "name": "@ediabas/interface-serial",
+  "name": "@ediabasx/interface-serial",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -15,9 +15,9 @@
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
   },
   "dependencies": {
-    "@ediabas/core": "workspace:*",
-    "@ediabas/interface-base": "workspace:*",
-    "@ediabas/protocol-uds": "workspace:*",
+    "@ediabasx/core": "workspace:*",
+    "@ediabasx/interface-base": "workspace:*",
+    "@ediabasx/protocol-uds": "workspace:*",
     "serialport": "^12.0.0"
   }
 }
