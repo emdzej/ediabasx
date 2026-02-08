@@ -39,6 +39,10 @@ export interface JobResult {
 
 export type StringSource = string | StringRegisterRef;
 
+function stripNullTerminator(value: string): string {
+  return value.replace(/\0.*$/, "");
+}
+
 function normalizeKey(name: string): string {
   return name.toUpperCase();
 }
@@ -105,9 +109,9 @@ export class ResultCollector {
 
 function resolveString(registers: RegisterSet, source: StringSource): string {
   if (typeof source === "string") {
-    return source;
+    return stripNullTerminator(source);
   }
-  return getStringValue(registers, source);
+  return stripNullTerminator(getStringValue(registers, source));
 }
 
 function maskUnsigned(value: number, bits: 8 | 16 | 32): number {
@@ -220,7 +224,8 @@ export function ergs(
 ): void {
   const resultName = resolveString(registers, name);
   const raw = resolveString(registers, value);
-  collector.record(resultName, "string", raw);
+  const clean = raw.replace(/\0.*$/, "");
+  collector.record(resultName, "string", clean);
 }
 
 export function ergy(
