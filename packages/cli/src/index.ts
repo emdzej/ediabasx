@@ -1605,11 +1605,16 @@ program
   .command("docs")
   .argument("<source-dir>", "Directory with PRG/GRP files")
   .argument("<output-dir>", "Directory to write generated Markdown")
+  .option("--subdir <name>", "subdirectory for per-file docs", "sgbd")
   .description("Generate Markdown documentation for PRG/GRP files")
-  .action(async (sourceDir: string, outputDir: string) => {
+  .action(async (sourceDir: string, outputDir: string, options: { subdir: string }) => {
     try {
       const files = await listPrgFiles(sourceDir);
       await mkdir(outputDir, { recursive: true });
+
+      const docsSubdir = options.subdir?.trim() || "sgbd";
+      const perFileDir = path.join(outputDir, docsSubdir);
+      await mkdir(perFileDir, { recursive: true });
 
       const entries: DocsIndexEntry[] = [];
 
@@ -1633,13 +1638,13 @@ program
         }
 
         const outputFileName = `${path.basename(filePath, path.extname(filePath))}.md`;
-        const outputPath = path.join(outputDir, outputFileName);
+        const outputPath = path.join(perFileDir, outputFileName);
         const markdown = renderDocsMarkdown({ filePath, prg, infoStatus });
         await writeFile(outputPath, markdown, "utf-8");
 
         entries.push({
           fileName: path.basename(filePath),
-          outputFileName,
+          outputFileName: path.posix.join(docsSubdir, outputFileName),
           jobCount: prg.jobs.length,
           tableCount: prg.tables.length,
           infoStatus,
