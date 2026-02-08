@@ -3,3 +3,4 @@ dist
 .turbo
 *.tsbuildinfo
 packages/interpreter/coverage
+.DS_Store
