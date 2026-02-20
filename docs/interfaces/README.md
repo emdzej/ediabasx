@@ -11,7 +11,8 @@ EDIABAS uses pluggable interface drivers (IFH DLLs) for communication with diagn
 | Driver | Purpose | Protocol | Size |
 |--------|---------|----------|------|
 | [XEnet32](./xenet32-analysis.md) | BMW Ethernet diagnostics | HSFZ/ENET | ~36K lines |
-| [XStd32](./xstd32-analysis.md) | Standard serial interface | K-Line, KWP2000 | ~22K lines |
+| [XStd32](./xstd32-analysis.md) | Standard serial wrapper | Loads sub-DLLs | ~22K lines |
+| [OBD32](./obd32-analysis.md) | OBD-II serial interface | K-Line, KWP2000, DS2, KBUS | ~11K lines |
 | [XNul32](./xnul32-analysis.md) | Null/dummy interface | None (simulation) | ~5.7K lines |
 
 ## IFH API
