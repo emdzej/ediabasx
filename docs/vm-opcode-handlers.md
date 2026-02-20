@@ -505,65 +505,50 @@ undefined4 FUN_10025fbd(void) {
 
 ---
 
-## Handler Table Structure
+## Handler Table Structure (Confirmed from Binary)
 
-The opcode handler table starts at `0x10088400` with entries of 28 bytes (0x1C) each.
+The opcode handler table starts at `0x10088400` (file offset `0x88400`).
 
-### Entry Format (28 bytes)
+### Entry Format (28 bytes = 0x1C)
+
+| Offset | Size | Name | Description |
+|--------|------|------|-------------|
+| 0x00 | 1 | default_operand | Default operand type (0=none, 6=any) |
+| 0x01 | 1 | operand_modes | Number of addressing modes (0-10) |
+| 0x02 | 4 | handler_ptr | Pointer to handler function (LE) |
+| 0x06 | 4 | name_ptr | Pointer to mnemonic string (LE) |
+| 0x0A | 1 | reserved | Always 0x00 |
+| 0x0B | 1 | table_marker | Always 0x03 |
+| 0x0C | 1 | sequential_idx | Sequential opcode index (1-186) |
+| 0x0D | 1 | op_type[0] | Operand type for mode 0 |
+| 0x0E | 13 | op_type[1-13] | Operand types for modes 1-13 |
+
+### Operand Types
+
+| Value | Type | Size |
+|-------|------|------|
+| 0x00 | none | 0 |
+| 0x01 | byte | 1 |
+| 0x02 | word | 2 |
+| 0x03 | dword | 4 |
+| 0x04 | string | var |
+| 0x05 | real | 8 |
+| 0x06 | any | var |
+
+### Example: MOVE (opcode 0x00)
+
 ```
-Offset  Size  Name                Description
-0x00    1     default_operand     Default operand type
-0x01    4     handler_ptr         Pointer to handler function
-0x05    4     name_ptr            Pointer to mnemonic string
-0x09    1     operand_type[0]     Operand 0 type for mode 0
-0x0A    1     operand_type[1]     Operand 0 type for mode 1
-...
-0x17    1     operand_type[14]    Operand 0 type for mode 14
-0x18    4     ???                 Unknown (possibly flags)
+00 0A 01 3F 02 10 84 9A 08 10 00 03 01 00 06 06 06 06 00 00 00 00 06 06 06 06 06 06
+│  │  └──────────┘ └──────────┘ │  │  │  └─────────────────────────────────────────┘
+│  │      │            │        │  │  │                    operand types
+│  │      │            │        │  │  sequential index (1)
+│  │      │            │        │  table marker (0x03)
+│  │      │            │        reserved (0x00)
+│  │      │            name_ptr → "MOVE"
+│  │      handler_ptr → FUN_10023f01
+│  operand_modes (10)
+default_operand (0x00)
 ```
-
-### Operand Type Table
-
-Located at `DAT_10089864` and `DAT_10089874` (17 entries × N types).
-
-### Table Access Pattern
-
-```c
-// FUN_10022838 - Get handler for opcode
-undefined* FUN_10022838(uint opcode, byte mode1, byte mode2) {
-    if (opcode >= DAT_10087eba) {
-        error(0x62, opcode);  // Invalid opcode
-    }
-    
-    int entry_offset = opcode * 0x1C;
-    
-    // Get operand type for this mode combination
-    char op_type1 = *(char*)(entry_offset + 0x100883f1 + mode1);  // offset 0x51
-    char op_type2 = (&DAT_10088401)[entry_offset];                 // offset 0x01
-    
-    // Check if operand types are valid
-    if ((&DAT_10089864)[mode2 + op_type1 * 0x11] == 0) {
-        if ((&DAT_10089864)[mode2 + op_type2 * 0x11] == 0) {
-            // ... more checks
-        }
-    }
-    
-    return (&PTR_FUN_10088402)[opcode * 7];  // 7 = 28/4
-}
-```
-
-### Known Base Addresses
-
-| Address | Description |
-|---------|-------------|
-| `0x10088400` | Handler table base |
-| `0x10088401` | First entry: default_operand |
-| `0x10088402` | First entry: handler_ptr |
-| `0x10088406` | First entry: name_ptr |
-| `0x100883f1` | Operand type array (offset 0x51 in entry?) |
-| `0x10089864` | Operand validity table 1 |
-| `0x10089874` | Operand validity table 2 |
-| `0x10087eba` | Number of opcodes (ushort) |
 
 ---
 
