@@ -421,6 +421,39 @@ undefined4 FUN_10025fbd(void) {
 
 ---
 
+## Floating-Point Operations
+
+| Function | Opcode | Mnemonic | Description |
+|----------|--------|----------|-------------|
+| `FUN_1002762f` | ? | **FADD** | Double addition |
+| `FUN_10027670` | ? | **FSUB** | Double subtraction |
+| `FUN_100276b1` | ? | **FMUL** | Double multiplication |
+| `FUN_100276f2` | ? | **FDIV** | Double division |
+
+---
+
+## Wait/Timing Operations
+
+| Function | Opcode | Mnemonic | Description |
+|----------|--------|----------|-------------|
+| `FUN_1002691a` | ? | **WAITS** | Wait seconds (uses Sleep) |
+| `FUN_100269e8` | ? | **WAITMS** | Wait milliseconds |
+| `FUN_10028b69` | ? | **WAIT** | Wait/delay |
+| `FUN_10028cc6` | ? | **GETTICK** | Get system tick count |
+
+---
+
+## Argument Handling
+
+| Function | Opcode | Mnemonic | Description |
+|----------|--------|----------|-------------|
+| `FUN_10026d39` | ? | **GETARG** | Get argument as string |
+| `FUN_10026db0` | ? | **ATODR** | ASCII to double (from arg) |
+| `FUN_10026de7` | ? | **GETARGRAW** | Get raw argument bytes |
+| `FUN_10026e6d` | ? | **ARGCOUNT** | Count arguments (`;` separated) |
+
+---
+
 ## Helper Functions
 
 | Function | Purpose |
@@ -459,13 +492,16 @@ undefined4 FUN_10025fbd(void) {
 | Result Output | 9 | ERG* family |
 | File I/O | 8 | FOPEN, FCLOSE, FREAD, FRDLN, FSEEK, FSLINE, FSIZE, FLINES |
 | Table | 7 | TABSEEK, TABSET, TABGET, etc. |
-| Conversion | 9 | ATOI, HTOB, BTOH, DTOF, FTOD, ITOF, etc. |
-| System | 6 | GETTICK, GETBUFSIZE, etc. |
+| Conversion | 11 | ATOI, ITOA, ATOD, DTOA, HTOB, BTOH, DTOF, FTOD, ITOF, ITOD, SWAP |
+| Floating-Point | 4 | FADD, FSUB, FMUL, FDIV |
+| Wait/Timing | 4 | WAIT, WAITS, WAITMS, GETTICK |
+| Arguments | 4 | GETARG, GETARGRAW, ARGCOUNT, ATODR |
+| System | 4 | GETBUFSIZE, GETCOL, GETROW, SETERR |
 | Register | 6 | LDRG, STRG, SETRG, CLRRG, JRG, JNRG |
 | Error/Control | 2 | ERROR, CHKERR |
 | IFH/Comm | 28+ | ifhConnect, ifhSend, ifhReceive, etc. |
-| Other | 3 | NOP, SWAP, REVERSE |
-| **Total Identified** | **~123** | Out of ~184 total |
+| Other | 2 | NOP, REVERSE |
+| **Total Identified** | **~134** | Out of ~184 total |
 
 ---
 
