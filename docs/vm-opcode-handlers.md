@@ -240,6 +240,82 @@ undefined4 handler_function(void) {
 
 ---
 
+## IFH (Interface Handler) Layer
+
+The VM communicates with hardware through the IFH layer, loaded as a DLL.
+
+### IFH DLL Exports
+```c
+dllCallIFH@8     // Main communication function
+dllExitIFH@0     // Cleanup
+dllCheckIFH@4    // Check status
+dllShutdownIFH@0 // Shutdown
+dllStartupIFH@8  // Startup
+dllUnlockIFH@0   // Unlock
+dllLockIFH@0     // Lock
+```
+
+### IFH Internal Functions (called by VM)
+
+| Function | String | Description |
+|----------|--------|-------------|
+| `FUN_100210aa` | `ifhInit...` | Initialize IFH |
+| `FUN_10021111` | `ifhBreak...` | Break communication |
+| `FUN_1002116a` | `ifhEnd...` | End IFH session |
+| `FUN_100211c6` | `ifhConnect...` | Connect to ECU |
+| `FUN_1002123a` | `ifhDisconnect...` | Disconnect from ECU |
+| `FUN_10021296` | `ifhSysInfo...` | Get system info |
+| ? | `ifhSetParameter...` | Set parameter |
+| ? | `ifhSetParameterRaw...` | Set raw parameter |
+| ? | `ifhSetTelPreface...` | Set telegram preface |
+| ? | `ifhSendTelegram...` | Send telegram |
+| ? | `ifhSendTelegramFrequent...` | Send frequent telegram |
+| ? | `ifhSend...` | Send data |
+| ? | `ifhReceive...` | Receive data |
+| ? | `ifhRequTelegramFrequ...` | Request frequent telegram |
+| ? | `ifhStopFreqTelegram...` | Stop frequent telegram |
+| ? | `ifhRequestKeybytes...` | Request keybytes |
+| ? | `ifhRequestState...` | Request state |
+| ? | `ifhWarmstart...` | Warmstart |
+| ? | `ifhReset...` | Reset |
+| ? | `ifhInterfaceType...` | Get interface type |
+| ? | `ifhVersion...` | Get version |
+| ? | `ifhPowerSupply...` | Check power supply |
+| ? | `ifhDownload...` | Download |
+| ? | `ifhGetPort...` | Get port info |
+| ? | `ifhIgnition...` | Check ignition |
+| ? | `ifhLoopTest...` | Loopback test |
+| ? | `ifhSetProgramVoltage...` | Set programming voltage |
+| ? | `ifhRawMode...` | Raw mode |
+
+### IFH Command Codes
+
+Commands are sent via `_DAT_100d0580`:
+
+| Code | Description |
+|------|-------------|
+| 0x16 | ? |
+| 0x17 | ? |
+| 0x18 | ? |
+| 0x19 | ? |
+| 0x1a | ? |
+| 0x1b | ? (3 params) |
+| 0x1c | ? (3 params) |
+| 0x1d | ? (3 params) |
+| 0x1e | ? (3 params) |
+| 0x31 | ? |
+
+### IFH Channel Management
+
+- Up to 16 channels (`DAT_100d00dc` + 6 bytes each)
+- `FUN_100223b8` - Open channel
+- `FUN_100224ed` - Close channel
+- `FUN_100225a8` - Close all channels
+- `FUN_1002260c` - Get channel by handle
+- `FUN_1002267c` - Get current channel handle
+
+---
+
 ## File I/O Operations
 
 File handle table: `DAT_100d20c0` (6 entries × 8 bytes = handles 0-5)
@@ -379,15 +455,27 @@ undefined4 FUN_10025fbd(void) {
 | Control Flow | 13 | JMP, JTSR, RET, conditional jumps |
 | Stack | 4 | PUSH, POP, PUSHF, POPF |
 | Flags | 2 | CLC, STC |
-| String | 4 | SCMP, SCAT, SCPY, SCUT |
+| String | 6 | SCMP, SCAT, SCPY, SCUT, STRLEN, STRCMP |
 | Result Output | 9 | ERG* family |
 | File I/O | 6 | FREAD, FRDLN, FSEEK, FSLINE, FSIZE, FLINES |
 | Table | 7 | TABSEEK, TABSET, TABGET, etc. |
-| Conversion | 7 | ATOI, HTOB, etc. |
+| Conversion | 9 | ATOI, HTOB, BTOH, DTOF, FTOD, ITOF, etc. |
 | System | 5 | GETTICK, etc. |
 | Register | 6 | LDRG, STRG, SETRG, CLRRG, JRG, JNRG |
+| IFH/Comm | 28+ | ifhConnect, ifhSend, ifhReceive, etc. |
 | Other | 5 | NOP, SWAP, REVERSE, INFO, etc. |
-| **Total Identified** | **~83** | Out of ~184 total |
+| **Total Identified** | **~115** | Out of ~184 total |
+
+---
+
+## Additional String Operations
+
+| Function | Opcode | Mnemonic | Description |
+|----------|--------|----------|-------------|
+| `FUN_10027b53` | ? | **HTOB** | Hex string to bytes |
+| `FUN_10027cbc` | ? | **STRCMP** | String compare |
+| `FUN_10027d8d` | ? | **STRLEN** | Get string length |
+| `FUN_10027e4c` | ? | **BTOH** | Bytes to hex string |
 
 ---
 
@@ -395,6 +483,6 @@ undefined4 FUN_10025fbd(void) {
 
 1. **Trace handler table** - `PTR_FUN_10088402` contains all handlers
 2. **Extract opcode values** - Map function addresses to opcode numbers
-3. **Analyze remaining ~100 handlers** - ~83 identified so far
-4. **Document communication opcodes** - xconnect, xsend, xrecv (in IFH layer)
+3. **Analyze remaining ~70 handlers** - ~115 identified so far
+4. **Document IFH command codes** - Match 0x16-0x31 to functions
 5. **Cross-reference with BEST2 compiler** - Mnemonic strings in Best32.dll
