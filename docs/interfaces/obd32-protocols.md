@@ -593,6 +593,84 @@ if ((format & 0xC0) == 0xC0) {
 }
 ```
 
+### KBUS Mode Configuration
+
+KBUS mode is controlled via EDIABAS.INI configuration file:
+
+```ini
+[OBD]
+; FORMAT determines DS2 communication mode
+; NORMAL = standard DS2 without conversion (default)
+; KBUS   = DS2 with automatic KBUS frame conversion
+FORMAT=KBUS
+```
+
+**Initialization in OBD32.dll:**
+
+```c
+// Global flag for KBUS mode
+int kbus_mode = 0;  // DAT_10011878
+
+// Read from EDIABAS.INI during initialization
+void init_kbus_mode(void) {
+    char buffer[20];
+    
+    kbus_mode = 0;  // Default: disabled
+    
+    GetPrivateProfileStringA(
+        "OBD",              // Section
+        "FORMAT",           // Key (DAT_1000db04)
+        "NORMAL",           // Default value
+        buffer,
+        20,
+        ediabas_ini_path
+    );
+    
+    // Convert to uppercase and compare
+    strupr(buffer);
+    
+    if (strcmp(buffer, "KBUS") == 0) {
+        kbus_mode = 1;      // Enable KBUS conversion
+    }
+    if (strcmp(buffer, "NORMAL") == 0) {
+        kbus_mode = 0;      // Explicit disable
+    }
+}
+```
+
+**Effect on Protocol Handling:**
+
+```c
+// In send/receive function (case 6 = DS2):
+case 6:  // Konzept DS2
+    if (kbus_mode == 1) {
+        // Use KBUS-aware send/receive with format conversion
+        result = ds2_kbus_send_recv(telegram, state);  // FUN_100034f0
+    } else {
+        // Standard DS2 without conversion
+        result = ds2_send_recv(telegram, state);       // FUN_100022d0
+    }
+    break;
+
+// In parameter setup:
+if (kbus_mode == 1) {
+    params[6] = 3;  // Modify retry count for KBUS timing
+}
+```
+
+**Mode Comparison:**
+
+| Setting | `kbus_mode` | TX Behavior | RX Behavior |
+|---------|-------------|-------------|-------------|
+| `FORMAT=NORMAL` | 0 | Send DS2 as-is | Receive DS2 as-is |
+| `FORMAT=KBUS` | 1 | Convert DS2→KBUS (add 0x3F src) | Convert KBUS→DS2 |
+
+**When to Use KBUS Mode:**
+
+- Communicating with body electronics (GM, LCM, IKE, etc.)
+- When ECU expects KBUS frame format with source addressing
+- Interfacing with I-BUS/K-BUS gateway modules
+
 ### Common KBUS Addresses
 
 | Address | Hex | Module | Full Name |
