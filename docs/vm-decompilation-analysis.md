@@ -408,3 +408,589 @@ Offset  Size  Description
 - Register file structure not directly exposed
 - Stack implementation details unclear
 - Communication protocol handlers not analyzed
+
+---
+
+## Detailed Function Pseudocode
+
+### Job Execution Entry (`FUN_10001ce0`)
+
+Main entry point for job execution - handles both sync and async modes.
+
+```c
+void FUN_10001ce0(
+    SessionContext* ctx,    // this
+    int mode,               // 0=simple, 1=data, 2=extended
+    char* ecu_name,
+    char* job_name,
+    void* bin_params,
+    uint bin_params_len,
+    char* str_params,
+    uint str_params_len,
+    char* result_filter,
+    uint flags
+) {
+    // Check if running in thread mode
+    if (ctx->thread_mode == 0) {
+        // Synchronous mode
+        if (ctx->async_mode != 0) {
+            notify_progress(PROGRESS_CONTEXT, 3, 0);
+        }
+        
+        switch (mode) {
+            case 0:  // Simple job
+                execute_simple_job(ecu_name, job_name, str_params, result_filter);
+                return;
+            case 1:  // Data job
+                execute_data_job(ecu_name, job_name, str_params, str_params_len, result_filter);
+                return;
+            case 2:  // Extended job
+                execute_ext_job(ecu_name, job_name, bin_params, bin_params_len,
+                               str_params, str_params_len, result_filter, flags);
+                return;
+        }
+    }
+    else {
+        // Asynchronous mode - copy params to context and signal worker thread
+        WaitForSingleObject(ctx->semaphore, INFINITE);
+        
+        ctx->job_mode = mode;
+        
+        // Copy ECU name (max 64 chars)
+        memccpy(ctx->ecu_name, ecu_name, 0, 0x40);
+        
+        // Copy job name (max 64 chars)
+        memccpy(ctx->job_name, job_name, 0, 0x40);
+        
+        // Copy binary params (max 1024 bytes)
+        if (bin_params_len > 0x400) {
+            bin_params_len = 0x400;
+        }
+        ctx->bin_params_len = bin_params_len;
+        memcpy(ctx->bin_params, bin_params, bin_params_len);
+        
+        // Copy string params (max 64KB)
+        if (str_params_len > 0x10000) {
+            str_params_len = 0x10000;
+        }
+        ctx->str_params_len = str_params_len;
+        memcpy(ctx->str_params, str_params, str_params_len);
+        
+        // Copy result filter (max 256 chars)
+        memccpy(ctx->result_filter, result_filter, 0, 0x100);
+        
+        // Initialize execution state
+        ctx->exec_status = 0;
+        ctx->error_code = 0xFFFFFFFF;
+        strcpy(ctx->error_text, "");
+        
+        // Signal worker thread
+        ResetEvent(ctx->event_done);
+        SetEvent(ctx->event_start);
+    }
+}
+```
+
+---
+
+### Find Job by Name (`FUN_1000d0a4`)
+
+Searches for a job in the loaded SGBD file.
+
+```c
+uint find_job_by_name(byte* job_name) {
+    bool found = false;
+    bool error = false;
+    int index = 0;
+    
+    while (index < job_count && !found && !error) {
+        // Load job entry from file
+        int result = load_job_entry(
+            file_handle,           // DAT_100ae720
+            job_name_buffer,       // DAT_100ae160
+            &job_offset,           // DAT_10083580
+            index
+        );
+        
+        if (result == 0) {
+            error = true;
+        }
+        else {
+            // Case-insensitive compare
+            if (stricmp(job_name, job_name_buffer, 0x40) == 0) {
+                found = true;
+                job_handler = default_handler;  // FUN_1001ea89
+            }
+        }
+        index++;
+    }
+    
+    if (error) {
+        job_offset = 0xFFFFFFFF;
+    }
+    else {
+        job_offset = found ? job_offset : 0;
+    }
+    
+    return job_offset;
+}
+```
+
+---
+
+### Load Job Entry (`FUN_1000d162`)
+
+Reads job metadata from SGBD file.
+
+```c
+int load_job_entry(
+    uint file_handle,
+    char* job_name_out,
+    uint* job_offset_out,
+    int job_index
+) {
+    int result = 0;
+    
+    if (job_index <= job_count) {
+        // Calculate file offset: header_offset + 4 + index * 0x44
+        DWORD seek_pos = header_offset + 4 + job_index * 0x44;
+        
+        // Seek to job entry
+        DWORD actual = file_seek(file_handle, seek_pos, SEEK_SET);
+        
+        if (actual == seek_pos) {
+            // Read job entry (0x44 = 68 bytes)
+            // Format: name[64] + offset[4]
+            int bytes_read = file_read(file_handle, job_entry_buffer, 0x44);
+            
+            if (bytes_read == 0x44) {
+                // Copy job name (max 63 chars + null)
+                strncpy(job_name_out, job_entry_buffer, 0x3F);
+                
+                // Copy job bytecode offset
+                *job_offset_out = *(uint*)(job_entry_buffer + 0x40);
+                
+                result = 1;
+            }
+        }
+    }
+    
+    return result;
+}
+```
+
+---
+
+### Job Handler Dispatch (`FUN_1000d30f`)
+
+Executes job bytecode through handler function.
+
+```c
+uint execute_job_handler() {
+    // Debug: log handler invocation
+    if (is_debug_enabled(0, 7)) {
+        if (handler_mode == 0) {
+            log("  hdlData handler    >");
+        }
+        else {
+            log("Handler input data (new job)...");
+            log_newline();
+            log("jobName: ");
+            log(current_job_name);
+            log_newline();
+            log("jobPara: ");
+            log_int(job_params_len);
+            log(" Bytes: ");
+            if (job_params_len > 0) {
+                log_hex(job_params, job_params_len);
+            }
+            log_newline();
+            log("jobResult: ");
+            log(result_filter);
+        }
+        log_flush();
+    }
+    
+    // Call registered handler function
+    short status = (*job_handler)(handler_mode, &job_context, &result_context);
+    
+    // Debug: log handler result
+    if (is_debug_enabled(0, 7)) {
+        log("  hdlData handler -> ");
+        log_short(status);
+        log_flush();
+    }
+    
+    handler_mode = 0;
+    
+    // Check for special job (VARIANTE)
+    if (result_count > 0 && result_context[0] == '!') {
+        if (stricmp("INITIALISIERUNG", &result_context[1], 0xFE) == 0) {
+            if (result_type == STRING && result_value != 0) {
+                need_init = 1;
+                log("Run INITIALISIERUNG before next job");
+            }
+        }
+    }
+    
+    return status;
+}
+```
+
+---
+
+### Register Lookup (`FUN_10023a0d`)
+
+Finds register entry by ID in register table.
+
+```c
+byte* get_register(byte register_id) {
+    byte* reg_ptr = &register_table;  // DAT_10087ec0
+    
+    // Linear search through register table
+    // Each entry is 14 bytes (0x0E)
+    while (*reg_ptr != register_id) {
+        reg_ptr += 0x0E;
+        
+        if (*reg_ptr == 0xFF) {
+            // End of table - invalid register
+            error(0, 0, ERROR_INVALID_OPCODE, register_id);
+        }
+    }
+    
+    return reg_ptr;
+}
+```
+
+**Register Table Entry Format (14 bytes):**
+```
+Offset  Size  Field
+------  ----  -----
+0x00    1     Register ID
+0x01    1     Type flags
+0x02    4     Data pointer
+0x06    4     Size pointer
+0x0A    4     Reserved
+```
+
+---
+
+### Initialize Register (`FUN_10023a61`)
+
+Allocates and initializes register storage if needed.
+
+```c
+int init_register(int reg_entry) {
+    // Check if already allocated
+    if (*(int*)(reg_entry + 2) == 0) {
+        // Allocate buffer (max_string_size bytes)
+        void* buffer = malloc(max_string_size);  // DAT_10087ebc
+        *(void**)(reg_entry + 2) = buffer;
+        
+        if (buffer == NULL) {
+            error(0, 0, ERROR_MEMORY_ALLOC, 0xFFFF);
+        }
+        
+        // Zero-initialize buffer
+        memset(buffer, 0, max_string_size);
+        
+        // Set length to 0
+        **(uint**)(reg_entry + 6) = 0;
+    }
+    
+    return reg_entry;
+}
+```
+
+---
+
+### Get Program Counter (`FUN_10023b1c`)
+
+Returns current bytecode execution position.
+
+```c
+uint get_program_counter() {
+    return bytecode_position;  // DAT_100d0164
+}
+```
+
+---
+
+### Read Bytecode (`FUN_10023b44`)
+
+Reads bytes from bytecode stream and advances PC.
+
+```c
+void read_bytecode(void* dest, uint count) {
+    // Check if we need to load more data
+    if (bytecode_end <= bytecode_position + count) {
+        // Load next bytecode block
+        load_bytecode_block(bytecode_position);
+    }
+    
+    // Bounds check
+    if (bytecode_end < bytecode_position + count) {
+        error(0, 0, ERROR_BYTECODE_OVERFLOW, 1);
+    }
+    
+    // Copy bytes from bytecode buffer
+    memcpy(dest, 
+           &bytecode_buffer[bytecode_position - bytecode_base],
+           count);
+    
+    // Advance program counter
+    bytecode_position += count;
+}
+```
+
+---
+
+### Error Handler (`FUN_100226a0`)
+
+Reports errors and optionally terminates execution.
+
+```c
+int error_handler(
+    int severity,       // 0=warning, 1=error, 2=fatal
+    int subsystem,      // Module ID
+    int error_code,     // Error number
+    int param           // Additional parameter
+) {
+    // Format error message based on code
+    switch (error_code) {
+        case 0x55:  // String overflow
+            log_error("String buffer overflow");
+            break;
+        case 0x57:  // Table error
+            log_error("Table operation error");
+            break;
+        case 0x58:  // Communication error
+            log_error("Communication error");
+            break;
+        case 0x5B:  // Bytecode overflow
+            log_error("Bytecode read past end");
+            break;
+        case 0x5D:  // Job not found
+            log_error("Job not found");
+            break;
+        case 0x5E:  // IFH error
+            log_error("Interface handler error: %d", param);
+            break;
+        case 0x5F:  // File error
+            log_error("File operation error");
+            break;
+        case 0x60:  // Stack error
+            log_error("Stack %s", param == 1 ? "overflow" : "underflow");
+            break;
+        case 0x62:  // Invalid opcode
+            log_error("Invalid opcode: 0x%02X", param);
+            break;
+        case 0x63:  // Execution error
+            log_error("Job execution error");
+            break;
+        case 0x68:  // Memory allocation
+            log_error("Memory allocation failed");
+            break;
+        case 0x99:  // General error
+            log_error("General error");
+            break;
+        case 0x100: // IFH specific
+            log_error("IFH error code: 0x%02X", param);
+            break;
+    }
+    
+    // Store in context
+    last_error_code = error_code;
+    last_error_param = param;
+    
+    // For fatal errors, longjmp to error handler
+    if (severity >= 2) {
+        longjmp(error_jmpbuf, error_code);
+    }
+    
+    return error_code;
+}
+```
+
+---
+
+### Opcode Handler Lookup (Extended) (`FUN_10022838`)
+
+Full handler lookup with addressing mode validation.
+
+```c
+void* get_opcode_handler(
+    uint opcode,
+    byte addr_mode_0,
+    byte addr_mode_1
+) {
+    // Validate opcode range
+    if (opcode >= max_opcode_count) {  // DAT_10087eba
+        error(0, 0, ERROR_INVALID_OPCODE, opcode);
+    }
+    
+    // Calculate table index (28 bytes per opcode)
+    int table_offset = opcode * 0x1C;
+    
+    // Debug trace
+    if (is_trace_enabled()) {
+        log("PC=");
+        log_hex(program_counter);
+        log(" ");
+        log(opcode_names[opcode]);      // PTR_DAT_10088406
+        log(" ");
+        log_byte(addr_mode_0);
+        log(",");
+        log_byte(addr_mode_1);
+        log_flush();
+    }
+    
+    // Get default operand type for this opcode
+    byte default_operand = handler_table[table_offset];
+    
+    // Validate addressing mode 0
+    if (addr_mode_0 != 0) {
+        byte* valid_modes_0 = &addr_mode_valid_table_0[default_operand * 17];
+        if (valid_modes_0[addr_mode_0] == 0) {
+            // Invalid addressing mode for operand 0
+            error(0, 0, ERROR_INVALID_OPCODE, opcode);
+        }
+    }
+    
+    // Validate addressing mode 1
+    if (addr_mode_1 != 0) {
+        byte* valid_modes_1 = &addr_mode_valid_table_1[default_operand * 17];
+        if (valid_modes_1[addr_mode_1] == 0) {
+            // Check if this opcode allows this mode
+            byte operand_type = handler_table[table_offset + 1 + addr_mode_0];
+            if (addr_mode_valid_table_1[operand_type * 17] == 0) {
+                error(0, 0, ERROR_INVALID_OPCODE, opcode);
+            }
+        }
+    }
+    
+    // Return handler function pointer
+    return handler_table[table_offset + 4];  // PTR_FUN_10088402
+}
+```
+
+---
+
+### Session Context Structure (Complete)
+
+```c
+typedef struct SessionContext {
+    // +0x00
+    uint16_t reserved_0;
+    
+    // +0x02: Thread mode (0=sync, 1=async)
+    int32_t thread_mode;
+    
+    // +0x06: Async notification mode
+    int32_t async_mode;
+    
+    // +0x0A: Reserved
+    byte reserved_1[6];
+    
+    // +0x10: Job mode (0=simple, 1=data, 2=extended)
+    int16_t job_mode;
+    
+    // +0x12: Job status
+    int16_t job_status;
+    
+    // +0x14: Reserved
+    byte reserved_2[2];
+    
+    // +0x16: ECU/SGBD name (64 bytes)
+    char ecu_name[64];
+    
+    // +0x56: Job name (64 bytes)
+    char job_name[64];
+    
+    // +0x96: Binary parameters (1024 bytes max)
+    byte bin_params[1024];
+    
+    // +0x496: Binary params length
+    uint32_t bin_params_len;
+    
+    // +0x49A: String parameters (64KB max)
+    char str_params[0x10000];
+    
+    // +0x1049A: String params length
+    uint32_t str_params_len;
+    
+    // +0x1049E: Result filter (256 bytes)
+    char result_filter[256];
+    
+    // +0x1059E: Execution status
+    int32_t exec_status;
+    
+    // +0x105A2: Error code
+    int32_t error_code;
+    
+    // +0x105A6: Error text (256 bytes)
+    char error_text[256];
+    
+    // +0x106A6: Reserved
+    byte reserved_3[768];
+    
+    // +0x109A6: Critical section (24 bytes)
+    CRITICAL_SECTION critical_section;
+    
+    // +0x109BE: Semaphore handle
+    HANDLE semaphore;
+    
+    // +0x109C2: Reserved
+    byte reserved_4[4];
+    
+    // +0x109C6: Event - job start signal
+    HANDLE event_start;
+    
+    // +0x109CA: Event - job done signal
+    HANDLE event_done;
+    
+} SessionContext;  // Total: ~0x109CE bytes
+```
+
+---
+
+### Register Table Entry
+
+```c
+typedef struct RegisterEntry {
+    byte id;              // +0x00: Register ID (B0-B7, A0-A7, I0-I7, L0-L7, S0-S7, F0-F7)
+    byte type;            // +0x01: Type flags
+    void* data_ptr;       // +0x02: Pointer to data buffer
+    uint32_t* size_ptr;   // +0x06: Pointer to current size
+    uint32_t max_size;    // +0x0A: Maximum size (for strings)
+} RegisterEntry;  // 14 bytes (0x0E)
+```
+
+**Register ID Encoding:**
+- `0x00-0x07`: B0-B7 (byte registers)
+- `0x10-0x17`: A0-A7 (byte aliases)
+- `0x20-0x27`: I0-I7 (word registers)
+- `0x30-0x37`: L0-L7 (long registers)
+- `0x40-0x47`: S0-S7 (string registers)
+- `0x50-0x57`: F0-F7 (float registers)
+- `0xFF`: End of table marker
+
+---
+
+## Error Code Reference (Complete)
+
+| Code | Hex | Name | Description |
+|------|-----|------|-------------|
+| 85 | 0x55 | STRING_OVERFLOW | String buffer overflow |
+| 87 | 0x57 | TABLE_ERROR | Table operation failed |
+| 88 | 0x58 | COMM_ERROR | Communication error |
+| 91 | 0x5B | BYTECODE_OVERFLOW | Read past bytecode end |
+| 93 | 0x5D | JOB_NOT_FOUND | Job name not found |
+| 94 | 0x5E | IFH_ERROR | Interface handler error |
+| 95 | 0x5F | FILE_ERROR | File I/O error |
+| 96 | 0x60 | STACK_ERROR | Stack overflow/underflow |
+| 98 | 0x62 | INVALID_OPCODE | Invalid opcode |
+| 99 | 0x63 | EXEC_ERROR | Execution error |
+| 100 | 0x64 | IFH_SPECIFIC | IFH specific error |
+| 104 | 0x68 | MEMORY_ALLOC | Memory allocation failed |
+| 153 | 0x99 | GENERAL_ERROR | General/unknown error |
