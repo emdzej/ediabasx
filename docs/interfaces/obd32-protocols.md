@@ -13,6 +13,67 @@ Detailed protocol analysis from OBD32.dll decompilation.
 
 ---
 
+## Konzept IDs (Protocol Types)
+
+From decompilation of the protocol selection switch:
+
+| Konzept | Hex | Protocol | Baud Rate | Description |
+|---------|-----|----------|-----------|-------------|
+| 5 | 0x05 | DS2 | 9600 | Converted to 6 internally |
+| **6** | 0x06 | **BMW DS2** | 9600 | Standard DS2 protocol |
+| 11 | 0x0B | Special | varies | Extended protocol |
+| **12** | 0x0C | **KWP2000 + Wakeup** | 10400 | With 5-baud init |
+| 13 | 0x0D | ISO 9141-2 | 10400 | Basic K-Line |
+| **15** | 0x0F | **KWP2000** | 10400/115200 | Fast init |
+| 16 | 0x10 | Extended KWP | varies | Extended protocol |
+
+### Protocol Selection Logic
+
+```c
+switch ((char)*konzept) {
+    case 0x05:
+        *konzept = 6;      // Convert to DS2
+        // fall through
+        
+    case 0x06:             // BMW DS2
+        setup_ds2_params(params, state);
+        if (kbus_mode) {
+            // Use KBUS variant
+            return ds2_kbus_send_recv(telegram, state);
+        }
+        return ds2_send_recv(telegram, state);
+        
+    case 0x0B:             // Extended
+        return extended_protocol(params, state);
+        
+    case 0x0C:             // KWP2000 with wakeup
+        if (!session_active) {
+            do_5baud_wakeup(response, state);
+            session_active = true;
+        }
+        return kwp_send_recv(telegram, state);
+        
+    case 0x0D:             // ISO 9141-2
+        return iso9141_send_recv(telegram, state);
+        
+    case 0x0F:             // KWP2000
+        if (subtype == 0) {
+            setup_kwp_8bit(params, state);
+        } else {
+            setup_kwp_32bit(params, state);
+        }
+        return kwp_send_recv(telegram, state);
+        
+    case 0x10:             // Extended KWP
+        return extended_kwp(params, state);
+        
+    default:
+        *state = 0;
+        return ERROR_INVALID_KONZEPT;
+}
+
+---
+
 ## 1. ISO 9141-2 (K-Line)
 
 ### Overview
@@ -276,53 +337,114 @@ DCB config = {
 └─────────┴─────────┴─────────────┴──────────┘
 
 Address: ECU address (0x00-0xFF)
-Length:  Total message length including header
+Length:  Total message length including header and checksum
 Data:    Command + parameters
 Checksum: XOR of all preceding bytes
 ```
 
-### Checksum Calculation
+### DS2 Frame Structure (Detailed)
+
+```
+Byte:     0        1        2        3...n-1    n
+       ┌────────┬────────┬────────┬──────────┬────────┐
+       │  ADDR  │  LEN   │  CMD   │  DATA    │   CS   │
+       └────────┴────────┴────────┴──────────┴────────┘
+       
+ADDR:  Target ECU address
+LEN:   Total frame length (including ADDR, LEN, and CS)
+CMD:   Command/Service ID
+DATA:  Command parameters (variable length)
+CS:    XOR checksum of bytes 0 to n-1
+```
+
+### DS2 Protocol Parameters
 
 ```c
-// XOR checksum (used for DS2)
-void calculate_xor_checksum(ushort* telegram) {
-    byte checksum = 0;
-    ushort length = *telegram;
-    
-    for (int i = 0; i < length; i++) {
-        checksum ^= ((byte*)telegram)[i + 2];
-    }
-    
-    // Append checksum
-    ((byte*)telegram)[length + 2] = checksum;
-    *telegram = length + 1;
+// DS2 setup (Konzept 6)
+struct DS2_Params {
+    uint16_t konzept;       // [0] = 6
+    uint16_t baudrate;      // [1] = 0x2580 (9600)
+    uint16_t reserved[4];   // [2-5] = 0
+    uint16_t timeout;       // [6] = 100 ms
+    uint16_t retry_delay;   // [7] = 10 ms
+    uint16_t inter_byte;    // [8] = 10 ms
+};
+
+// Internal state structure
+param_3[0]  = konzept;       // Protocol type (6)
+param_3[1]  = baudrate;      // 9600
+param_3[10] = 8;             // Data bits
+param_3[11] = 2;             // Parity (EVEN)
+param_3[14] = 0;             // Flags
+```
+
+### DS2 Auto-Detection Sequence
+
+OBD32 can auto-detect protocol by sending probe telegrams:
+
+```c
+// Step 1: Try DS2 @ 9600 baud
+setup_params = {
+    .konzept = 6,
+    .baudrate = 0x2580,  // 9600
+    .timeout = 100,
+    .retry = 10
+};
+configure_port(setup_params);
+
+// Send probe: [00][55][FF]
+probe_telegram = {0x00, 0x55, 0xFF};
+if (send_receive(probe_telegram) == SUCCESS) {
+    return PROTOCOL_DS2;
 }
 
-// Verify checksum
-bool verify_xor_checksum(ushort* telegram) {
-    byte checksum = 0;
-    ushort length = *telegram;
-    
-    for (int i = 0; i < length; i++) {
-        checksum ^= ((byte*)telegram)[i + 2];
-    }
-    
-    return checksum == 0;  // Valid if XOR of all bytes = 0
+// Step 2: Try KWP2000 @ 115200 baud
+setup_params = {
+    .konzept = 0x0F,
+    .baudrate = 0x1C200,  // 115200
+    .timeout = 100
+};
+configure_port(setup_params);
+
+// Send same probe
+if (send_receive(probe_telegram) == SUCCESS) {
+    return PROTOCOL_KWP;
 }
+
+return PROTOCOL_UNKNOWN;
 ```
+
+### Common DS2 Commands
+
+| Command | Name | Description |
+|---------|------|-------------|
+| 0x00 | IDENT | Read ECU identification |
+| 0x04 | STATUS_LESEN | Read status |
+| 0x05 | DIAGNOSE | Read diagnostic data |
+| 0x06 | ENDE | End diagnostic session |
+| 0x07 | STEUERN | Actuator control |
+| 0x08 | LESEN | Read memory |
+| 0x10 | SCHREIBEN | Write memory |
+| 0x12 | JOB_STATUS | Read job status |
 
 ### Common DS2 ECU Addresses
 
-| Address | Module |
-|---------|--------|
-| 0x00 | DME/DDE (Engine) |
-| 0x08 | EGS (Transmission) |
-| 0x18 | ABS/DSC |
-| 0x20 | EWS (Immobilizer) |
-| 0x44 | Airbag |
-| 0x60 | IKE (Instrument Cluster) |
-| 0x68 | Radio/Navigation |
-| 0x80 | GM (Body Module) |
+| Address | Hex | Module | Description |
+|---------|-----|--------|-------------|
+| 0 | 0x00 | DME/DDE | Engine control |
+| 8 | 0x08 | EGS | Transmission |
+| 16 | 0x10 | ASC | Stability control |
+| 24 | 0x18 | ABS | Anti-lock brakes |
+| 32 | 0x20 | EWS | Immobilizer |
+| 40 | 0x28 | Airbag | SRS |
+| 48 | 0x30 | Steering | Active steering |
+| 68 | 0x44 | SZM | Central body |
+| 96 | 0x60 | IKE | Instrument cluster |
+| 104 | 0x68 | Radio | Audio/Navigation |
+| 128 | 0x80 | GM | General Module |
+| 160 | 0xA0 | LCM | Light check |
+| 176 | 0xB0 | IHKA | Climate control |
+| 208 | 0xD0 | PDC | Parking distance |
 
 ---
 
@@ -330,12 +452,12 @@ bool verify_xor_checksum(ushort* telegram) {
 
 ### Overview
 
-BMW body CAN-like serial bus for comfort electronics.
+BMW body CAN-like serial bus for comfort electronics. KBUS is essentially DS2 with source/destination addressing.
 
 ### Serial Configuration
 
 ```c
-// KBUS configuration
+// KBUS configuration (same as DS2)
 DCB config = {
     .BaudRate = 9600,        // KBUS speed
     .ByteSize = 8,
@@ -352,34 +474,82 @@ DCB config = {
 │ (1 byte)│ (1 byte)│ (1 byte)│  (n bytes)  │ (1 byte) │
 └─────────┴─────────┴─────────┴─────────────┴──────────┘
 
-Source:   Sender address
-Length:   Bytes following (including checksum)
+Source:   Sender module address
+Length:   Bytes following (Dest + Data + Checksum)
 Dest:     Destination address (0x3F = broadcast)
 Data:     Message content
 Checksum: XOR of all preceding bytes
 ```
 
+### KBUS Frame Structure (Detailed)
+
+```
+Byte:     0        1        2        3...n-1    n
+       ┌────────┬────────┬────────┬──────────┬────────┐
+       │  SRC   │  LEN   │  DST   │  DATA    │   CS   │
+       └────────┴────────┴────────┴──────────┴────────┘
+       
+SRC:   Source module address
+LEN:   Number of bytes following (DST + DATA + CS)
+DST:   Destination address (0x3F = broadcast to all)
+DATA:  Message payload
+CS:    XOR checksum of bytes 0 to n-1
+```
+
+### DS2 vs KBUS Format Comparison
+
+```
+DS2 Format:
+┌────────┬────────┬────────────────────────┬────────┐
+│  ADDR  │  LEN   │         DATA           │   CS   │
+└────────┴────────┴────────────────────────┴────────┘
+   ECU     Total              Payload           XOR
+
+KBUS Format:
+┌────────┬────────┬────────┬────────────────┬────────┐
+│  SRC   │  LEN   │  DST   │     DATA       │   CS   │
+└────────┴────────┴────────┴────────────────┴────────┘
+  From     Rest     To          Payload          XOR
+```
+
 ### DS2 ↔ KBUS Format Conversion
 
-OBD32.dll automatically converts between formats:
+OBD32.dll automatically converts between formats based on frame analysis:
 
 ```c
+// Detection: Compare total length with LEN field
+// DS2: total_len == telegram[1]
+// KBUS: total_len == telegram[1] + 2 (SRC + LEN bytes not counted)
+
+bool is_kbus_format(ushort* telegram) {
+    byte len_field = ((byte*)telegram)[3];  // LEN byte
+    ushort total_len = *telegram;
+    
+    // KBUS: length field counts from DST onwards
+    // DS2: length field is total frame length
+    return (total_len == len_field - 1);
+}
+
 // DS2 to KBUS conversion
 void DS2_to_KBUS(ushort* telegram) {
-    // DS2: [Addr][Len][Data...][CS]
-    // KBUS: [Src][Len][Dst][Data...][CS]
+    ushort len = *telegram;
     
-    // Shift data right by 1 byte
-    memmove(&telegram[5], &telegram[2], *telegram - 2);
+    // Check if conversion needed (len > 3 and matches DS2 format)
+    byte ds2_len = ((byte*)telegram)[3];
+    if (ds2_len <= 3) return;
+    if (len != ds2_len && len != ds2_len - 1) return;
     
-    // Insert KBUS header
-    telegram[2] = telegram[1];    // Copy address
-    *telegram += 1;               // Increase length
-    telegram[1] = 0x3F;           // KBUS broadcast address
-    telegram[3]--;                // Adjust inner length
+    // Shift data right to make room for DST byte
+    memmove(&telegram[5], &telegram[4], len - 2);
+    
+    // Build KBUS header
+    ((byte*)telegram)[4] = ((byte*)telegram)[2];  // Copy original addr to DST
+    *telegram += 1;                                // Increase total length
+    ((byte*)telegram)[2] = 0x3F;                   // SRC = broadcast (tester)
+    ((byte*)telegram)[3]--;                        // Adjust LEN field
     
     // Recalculate checksum if needed
-    if (use_checksum) {
+    if (!use_raw_checksum) {
         *telegram -= 1;
         calculate_xor_checksum(telegram);
     }
@@ -389,13 +559,10 @@ void DS2_to_KBUS(ushort* telegram) {
 
 // KBUS to DS2 conversion
 void KBUS_to_DS2(ushort* telegram) {
-    // KBUS: [Src][Len][Dst][Data...][CS]
-    // DS2: [Addr][Len][Data...][CS]
-    
-    // Shift data left by 2 bytes (remove Src and Dst)
-    memmove(&telegram[2], &telegram[5], *telegram);
-    *telegram -= 2;
-    telegram[3]++;                // Adjust length
+    // Remove SRC and DST, keep only ADDR+LEN+DATA+CS
+    memmove(&telegram[4], &telegram[5], *telegram);
+    *telegram -= 2;                    // Decrease total length
+    ((byte*)telegram)[3]++;            // Adjust LEN field
     
     calculate_xor_checksum(telegram);
     
@@ -403,46 +570,141 @@ void KBUS_to_DS2(ushort* telegram) {
 }
 ```
 
-### KBUS Address Detection
+### KBUS Detection in Response
 
-The driver detects KBUS format by checking the second byte:
+The driver detects KBUS responses by checking header patterns:
 
 ```c
-// 0xB8 indicates KBUS format header
-if ((char)telegram[1] == 0xB8) {  // -0x48 signed = 0xB8
-    // KBUS format - parse accordingly
-    parse_kbus_telegram();
+// 0xB8 (signed: -0x48) indicates KBUS-style extended header
+if ((char)telegram[1] == 0xB8) {
+    // Extended KBUS format - different parsing
+    parse_extended_kbus(telegram);
 } else {
-    // DS2 format
-    parse_ds2_telegram();
+    // Standard DS2/KBUS format
+    parse_standard(telegram);
+}
+
+// Also check format byte upper bits for KWP addressing mode
+byte format = telegram[1];
+if ((format & 0xC0) == 0xC0) {
+    // Functional addressing (broadcast)
+} else if ((format & 0xC0) == 0x80) {
+    // Physical addressing
 }
 ```
 
 ### Common KBUS Addresses
 
-| Address | Module |
-|---------|--------|
-| 0x00 | GM (General Module) |
-| 0x08 | SHD (Sunroof) |
-| 0x18 | CDC (CD Changer) |
-| 0x28 | RDC (Tire Pressure) |
-| 0x3F | Broadcast (all modules) |
-| 0x44 | EWS |
-| 0x50 | MFL (Steering Wheel) |
-| 0x60 | PDC (Parking Sensors) |
-| 0x68 | RAD (Radio) |
-| 0x6A | DSP (Audio Amp) |
-| 0x80 | IKE (Cluster) |
-| 0xBF | LCM (Light Module) |
-| 0xC0 | MID (Multi-Info Display) |
-| 0xC8 | TEL (Phone) |
-| 0xE0 | IRIS |
-| 0xED | TV |
-| 0xF0 | NAV (Navigation) |
+| Address | Hex | Module | Full Name |
+|---------|-----|--------|-----------|
+| 0 | 0x00 | GM | General Module (Body) |
+| 8 | 0x08 | SHD | Sunroof Module |
+| 24 | 0x18 | CDC | CD Changer |
+| 40 | 0x28 | RDC | Tire Pressure Monitor |
+| 48 | 0x30 | CCM | Check Control Module |
+| **63** | **0x3F** | **BROADCAST** | **All modules** |
+| 68 | 0x44 | EWS | Immobilizer |
+| 80 | 0x50 | MFL | Steering Wheel Buttons |
+| 96 | 0x60 | PDC | Park Distance Control |
+| 104 | 0x68 | RAD | Radio |
+| 106 | 0x6A | DSP | Audio Amplifier |
+| 128 | 0x80 | IKE | Instrument Cluster |
+| 156 | 0x9C | SES | Seat Memory |
+| 160 | 0xA0 | AHL | Headlight Aim |
+| 176 | 0xB0 | IHKA | Climate Control |
+| 187 | 0xBB | NAV | Navigation Computer |
+| 191 | 0xBF | LCM | Light Control Module |
+| 192 | 0xC0 | MID | Multi-Info Display |
+| 200 | 0xC8 | TEL | Telephone |
+| 210 | 0xD2 | SM | Seat Module |
+| 224 | 0xE0 | IRIS | Integrated Radio Info System |
+| 237 | 0xED | TV | Television Module |
+| 240 | 0xF0 | BM | On-board Monitor |
+| 255 | 0xFF | LOC | Local (internal) |
+
+### KBUS Message Examples
+
+**Lights On (from LCM to all):**
+```
+SRC=0xBF  LEN=0x05  DST=0x3F  DATA=0x4B,0x00  CS=XOR
+[BF] [05] [3F] [4B] [00] [CS]
+```
+
+**Key Status (from GM to IKE):**
+```
+SRC=0x00  LEN=0x05  DST=0x80  DATA=0x11,0x01  CS=XOR
+[00] [05] [80] [11] [01] [CS]
+```
+
+**CD Track Info (from RAD to MID):**
+```
+SRC=0x68  LEN=0x07  DST=0xC0  DATA=0x39,0x02,0x01,0x00  CS=XOR
+[68] [07] [C0] [39] [02] [01] [00] [CS]
+```
 
 ---
 
-## 5. Protocol Parameters Structure
+## 5. Checksum Algorithms
+
+### XOR Checksum (DS2/KBUS)
+
+```c
+// Calculate XOR checksum and append to telegram
+void calculate_xor_checksum(ushort* telegram) {
+    byte checksum = 0;
+    ushort length = *telegram;
+    byte* data = (byte*)(telegram + 1);
+    
+    // XOR all bytes
+    for (int i = 0; i < length; i++) {
+        checksum ^= data[i];
+    }
+    
+    // Append checksum byte
+    data[length] = checksum;
+    *telegram = length + 1;
+}
+
+// Verify XOR checksum (result should be 0)
+bool verify_xor_checksum(ushort* telegram) {
+    byte checksum = 0;
+    ushort length = *telegram;
+    byte* data = (byte*)(telegram + 1);
+    
+    // XOR all bytes including checksum
+    for (int i = 0; i < length; i++) {
+        checksum ^= data[i];
+    }
+    
+    return checksum == 0;  // Valid if all XOR to zero
+}
+```
+
+### ADD Checksum (Alternative)
+
+Some protocols use simple addition:
+
+```c
+// Calculate ADD checksum
+void calculate_add_checksum(ushort* telegram) {
+    char checksum = 0;
+    ushort length = *telegram;
+    byte* data = (byte*)(telegram + 1);
+    
+    // Sum all bytes (with overflow)
+    for (int i = 0; i < length; i++) {
+        checksum += data[i];
+    }
+    
+    // Append checksum
+    data[length] = checksum;
+    *telegram = length + 1;
+}
+```
+
+---
+
+## 6. Protocol Parameters Structure
 
 Based on decompilation, the protocol parameters structure:
 
