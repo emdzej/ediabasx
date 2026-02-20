@@ -891,6 +891,555 @@ void SWAP() {
 
 ---
 
+### TABLINE - Get Table Line (`FUN_10027141`)
+
+Find and position to specific line in table.
+
+```c
+void TABLINE() {
+    table_size = get_table_size();
+    set_position(table_size);
+    read_table_info(&table_info, 4);
+    
+    line_index = 0;
+    while (line_index < table_info.line_count) {
+        read_table_info(&line_data, 0x50);
+        
+        if (compare(operand0, line_data) == 0) {
+            return;  // Found
+        }
+        line_index++;
+    }
+    
+    error(TABLE_ERROR, 0xFFFF);
+}
+```
+
+---
+
+### TABCOL - Iterate Table Columns (`FUN_100271cb`)
+
+Iterate through table columns for matching value.
+
+```c
+void TABCOL(int mode) {
+    if (mode == 1) {
+        // Initialize iteration
+        column_pos = 0;
+        found_column = -1;
+        cached_rows = table_rows;
+        cached_cols = table_cols;
+        ZF = 0;
+        
+        set_position(table_start);
+        
+        for (i = 0; i < table_rows; i++) {
+            read_cell(cell_buffer);
+            if (compare(operand0, cell_buffer) == 0) {
+                found_column = i;
+            }
+        }
+        
+        if (found_column == -1) {
+            error(TABLE_ERROR, 0xFFFF);
+        }
+    }
+    
+    // Continue iteration
+    while (column_pos < cached_rows * cached_cols) {
+        if (column_pos % cached_rows == 0) {
+            save_position();
+        }
+        
+        read_cell(cell_buffer);
+        
+        if (column_pos % cached_rows == found_column) {
+            if (compare(operand1, cell_buffer) == 0) {
+                return;  // Match found
+            }
+        }
+        
+        column_pos++;
+        
+        // Yield periodically
+        if (column_pos % YIELD_INTERVAL == 0) {
+            return YIELD;
+        }
+    }
+    
+    ZF = 1;  // End of iteration
+}
+```
+
+---
+
+### TABROW - Iterate Table Rows (`FUN_1002733a`)
+
+Iterate through table rows starting at specific row.
+
+```c
+void TABROW(int mode) {
+    if (mode == 1) {
+        // Get start row from operand
+        switch (operand_type) {
+            case 1: start_row = read_byte(operand0); break;
+            case 2: start_row = read_word(operand0); break;
+            case 4: start_row = read_long(operand0); break;
+        }
+        
+        row_offset = start_row * table_cols;
+        row_pos = 0;
+        total_cells = table_rows * table_cols;
+        ZF = 0;
+        
+        set_position(table_start);
+        
+        // Skip to start row
+        for (i = 0; i < table_cols; i++) {
+            read_cell(cell_buffer);
+        }
+    }
+    
+    // Continue iteration
+    while (row_pos < total_cells) {
+        if (row_pos % table_cols == 0) {
+            save_position();
+            if (row_pos == row_offset) {
+                return;  // At target row
+            }
+        }
+        
+        read_cell(cell_buffer);
+        row_pos++;
+        
+        // Yield periodically
+        if (row_pos % YIELD_INTERVAL == 0) {
+            return YIELD;
+        }
+    }
+    
+    ZF = 1;  // End of table
+}
+```
+
+---
+
+### TABFIND - Find in Table (`FUN_100274be`)
+
+Find value in table column and return corresponding value.
+
+```c
+void TABFIND() {
+    found_index = -1;
+    
+    set_position(table_start);
+    
+    // Search in first column
+    for (i = 0; i < table_cols; i++) {
+        read_cell(work_buffer);
+        if (compare(operand1, work_buffer) == 0) {
+            found_index = i;
+        }
+    }
+    
+    if (found_index == -1) {
+        error(TABLE_ERROR, 0xFFFF);
+    }
+    
+    // Position to found row
+    set_position(saved_position);
+    for (i = 0; i <= found_index; i++) {
+        read_cell(operand0);
+    }
+    
+    *operand0_len = strlen(operand0) + 1;
+}
+```
+
+---
+
+## Additional Result Output (ERG*)
+
+### ERGL - Output Unsigned Long (`FUN_10025721`)
+
+Output 32-bit unsigned integer result.
+
+```c
+void ERGL() {
+    if (nesting_level == 0) {
+        strncpy(result_buffer.name, operand0, 256);
+        result_buffer.type = UNSIGNED_LONG;  // 5
+        result_buffer.value = read_long(operand1);
+        result_buffer.count = result_count++;
+        result_buffer.valid = 1;
+    }
+}
+```
+
+---
+
+### ERGI - Output Signed Long (`FUN_100257a8`)
+
+Output 32-bit signed integer result.
+
+```c
+void ERGI_LONG() {
+    if (nesting_level == 0) {
+        strncpy(result_buffer.name, operand0, 256);
+        result_buffer.type = SIGNED_LONG;  // 4
+        result_buffer.value = read_long(operand1);
+        result_buffer.count = result_count++;
+        result_buffer.valid = 1;
+    }
+}
+```
+
+---
+
+### ERGR - Output Real/Double (`FUN_1002582f`)
+
+Output 64-bit floating point result.
+
+```c
+void ERGR() {
+    if (nesting_level == 0) {
+        strncpy(result_buffer.name, operand0, 256);
+        result_buffer.type = REAL;  // 8
+        
+        // Copy 8 bytes (double)
+        result_buffer.value_lo = operand1[0];
+        result_buffer.value_hi = operand1[1];
+        
+        result_buffer.count = result_count++;
+        result_buffer.valid = 1;
+    }
+}
+```
+
+---
+
+### ERGS_STR - Output String (`FUN_100258b8`)
+
+Output string result with optional character set conversion.
+
+```c
+void ERGS_STR() {
+    if (nesting_level == 0) {
+        strncpy(result_buffer.name, operand0, 256);
+        result_buffer.type = STRING;  // 6
+        
+        strncpy(result_buffer.string_value, operand1, size);
+        result_buffer.string_value[size] = '\0';
+        
+        // Apply character set conversion if enabled
+        if (charset_conversion_enabled) {
+            ptr = result_buffer.string_value;
+            while (*ptr != '\0') {
+                *ptr = charset_table[*ptr];
+                ptr++;
+            }
+        }
+        
+        result_buffer.count = result_count++;
+        result_buffer.valid = 1;
+    }
+}
+```
+
+---
+
+### ERGY - Output Binary (`FUN_1002599f`)
+
+Output raw binary data result.
+
+```c
+void ERGY() {
+    if (nesting_level == 0) {
+        strncpy(result_buffer.name, operand0, 256);
+        result_buffer.type = BINARY;  // 7
+        
+        // Copy binary data
+        memcpy(result_buffer.binary_data, operand1, size);
+        result_buffer.binary_len = size;
+        
+        result_buffer.count = result_count++;
+        result_buffer.valid = 1;
+    }
+}
+```
+
+---
+
+## Additional String Operations
+
+### SINS - String Insert (`FUN_10025370`)
+
+Insert string at position.
+
+```c
+void SINS() {
+    insert_pos = *operand0_len - offset;
+    
+    if (insert_pos < 1) {
+        return;  // Invalid position
+    }
+    
+    // Check if insert would exceed max
+    overflow = (max_len < *operand0_len + size);
+    if (overflow) {
+        size = max_len - *operand0_len;
+    }
+    CF = overflow ? 1 : 0;
+    
+    // Check tail length
+    tail_len = *operand0_len - offset - size;
+    if (max_len < *operand0_len + size + tail_len) {
+        tail_len = max_len - (*operand0_len + size);
+        CF = 1;
+    }
+    
+    // Move tail to make room
+    memmove(&operand0[size], operand0, tail_len);
+    
+    // Insert new content
+    memmove(operand0, operand1, size);
+    
+    *operand0_len += size;
+    update_flags(operand0, size);
+}
+```
+
+---
+
+### SDEL - String Delete (`FUN_10025477`)
+
+Delete characters from string.
+
+```c
+void SDEL() {
+    available = *operand0_len - offset;
+    
+    if (available < 1) {
+        return;  // Nothing to delete
+    }
+    
+    // Calculate remaining after delete
+    remaining = available - indexed_offset;
+    if (remaining < 1) {
+        remaining = 0;
+    }
+    
+    *operand0_len = offset + remaining;
+    
+    // Move remaining content
+    memmove(operand0, &operand0[indexed_offset], remaining);
+    
+    // Zero out deleted area
+    memset(&operand0[remaining], 0, indexed_offset);
+}
+```
+
+---
+
+### STRCMP - String Compare (`FUN_10027cbc`)
+
+Compare two null-terminated strings.
+
+```c
+void STRCMP() {
+    ZF = 0;
+    CF = 0;
+    i = 0;
+    
+    while (operand1[i] != '\0' && 
+           operand1[i] == operand0[i] && 
+           i < max_len - 1) {
+        i++;
+    }
+    
+    if (i >= max_len - 1) {
+        error(STRING_OVERFLOW);
+    }
+    
+    if (operand0[i] != operand1[i]) {
+        ZF = 1;  // Strings differ
+        if (operand0[i] < operand1[i]) {
+            CF = 1;  // operand0 < operand1
+        }
+    }
+}
+```
+
+---
+
+### STRLEN - Get String Length (`FUN_10027d8d`)
+
+Get length of null-terminated string.
+
+```c
+void STRLEN() {
+    len = 0;
+    
+    while (operand1[len] != '\0' && len < max_len - 1) {
+        len++;
+    }
+    
+    if (len >= max_len - 1) {
+        error(STRING_OVERFLOW);
+    }
+    
+    // Store based on operand type
+    switch (operand_type) {
+        case 2:  // Word
+            store_word(operand0, len);
+            update_flags(operand0, 2);
+            break;
+        case 4:  // Long
+            store_long(operand0, len);
+            update_flags(operand0, 4);
+            break;
+    }
+}
+```
+
+---
+
+## Conversion Operations (Extended)
+
+### HTOB - Hex String to Bytes (`FUN_10027b53`)
+
+Convert hex string to binary bytes.
+
+```c
+void HTOB() {
+    src = operand1;
+    dest_pos = 0;
+    CF = 0;
+    
+    // Check output buffer size
+    if (max_len - 2 < size / 2) {
+        error(STRING_OVERFLOW);
+    }
+    
+    while (*src != '\0') {
+        // Validate high nibble
+        if (!is_hex_char(*src)) {
+            CF = 1;  // Invalid character
+            break;
+        }
+        
+        high = *src;
+        src++;
+        
+        if (*src == '\0') break;
+        
+        // Validate low nibble
+        if (!is_hex_char(*src)) {
+            CF = 1;
+            break;
+        }
+        
+        low = *src;
+        src++;
+        
+        // Convert hex pair to byte
+        operand0[dest_pos] = hex_to_byte(high, low);
+        dest_pos++;
+    }
+    
+    *operand0_len = dest_pos;
+}
+
+bool is_hex_char(char c) {
+    return (c >= '0' && c <= '9') ||
+           (c >= 'A' && c <= 'F') ||
+           (c >= 'a' && c <= 'f');
+}
+```
+
+---
+
+### BTOH - Bytes to Hex String (`FUN_10027e4c`)
+
+Convert binary bytes to hex string (digits only, 0-9).
+
+```c
+void BTOH() {
+    src = operand1;
+    dest_pos = 0;
+    
+    // Check sizes
+    if (size == 0 || (size * 2 > max_len - 2)) {
+        error(STRING_OVERFLOW);
+    }
+    
+    for (i = 0; i < size; i++) {
+        high_nibble = (src[i] >> 4) & 0x0F;
+        low_nibble = src[i] & 0x0F;
+        
+        // Convert to ASCII (0-9 only, * for A-F)
+        operand0[dest_pos] = (high_nibble < 10) ? 
+                             ('0' + high_nibble) : '*';
+        operand0[dest_pos + 1] = (low_nibble < 10) ? 
+                                 ('0' + low_nibble) : '*';
+        
+        dest_pos += 2;
+    }
+    
+    operand0[dest_pos] = '\0';
+    *operand0_len = dest_pos + 1;
+}
+```
+
+---
+
+### BTOHEX - Bytes to Hex String Full (`FUN_10027f71`)
+
+Convert binary bytes to full hex string (0-9, A-F).
+
+```c
+void BTOHEX() {
+    src = operand1;
+    dest_pos = 0;
+    
+    if (size == 0 || (size * 2 > max_len - 2)) {
+        error(STRING_OVERFLOW);
+    }
+    
+    for (i = 0; i < size; i++) {
+        high_nibble = (src[i] >> 4) & 0x0F;
+        low_nibble = src[i] & 0x0F;
+        
+        // Convert to ASCII (0-9, A-F)
+        operand0[dest_pos] = (high_nibble < 10) ? 
+                             ('0' + high_nibble) : 
+                             ('A' + high_nibble - 10);
+        operand0[dest_pos + 1] = (low_nibble < 10) ? 
+                                 ('0' + low_nibble) : 
+                                 ('A' + low_nibble - 10);
+        
+        dest_pos += 2;
+    }
+    
+    operand0[dest_pos] = '\0';
+    *operand0_len = dest_pos + 1;
+}
+```
+
+---
+
+### ITOF - Integer to Float (`FUN_10027598`)
+
+Convert integer to double.
+
+```c
+void ITOF() {
+    *(double*)operand0 = (double)indexed_offset;
+}
+```
+
+---
+
 ## File I/O Operations
 
 ### FOPEN - Open File (`FUN_10025e89`)
@@ -1522,21 +2071,21 @@ int get_current_pc() {
 | Control Flow | 3 | JMP, JTSR, RET |
 | Conditionals | 8 | JC, JNC, JZ, JNZ, JO, JNO, JS, JNS |
 | Stack | 6 | PUSH, POP, PEEK, POKE, PUSHF, POPF |
-| String | 4 | SCMP, SCAT, SCPY, SCUT |
-| Conversion | 2 | ATOI, ITOA |
+| String | 8 | SCMP, SCAT, SCPY, SCUT, SINS, SDEL, STRCMP, STRLEN |
+| Conversion | 6 | ATOI, ITOA, HTOB, BTOH, BTOHEX, ITOF |
 | Float | 4 | FADD, FSUB, FMUL, FDIV |
-| Result | 4 | ERGB, ERGS, ERGW, ERGI |
+| Result | 9 | ERGB, ERGS, ERGW, ERGI, ERGL, ERGI_LONG, ERGR, ERGS_STR, ERGY |
 | Logical | 5 | AND, ANDS, OR, XOR, NOT |
 | Shift | 3 | ASR, LSR, ASL |
 | Data | 2 | MOVE, CLEAR |
-| Table | 4 | TABSEEK, TABSET, TABGET, REVERSE, SWAP |
+| Table | 8 | TABSEEK, TABSET, TABGET, REVERSE, SWAP, TABLINE, TABCOL, TABROW, TABFIND |
 | File I/O | 8 | FOPEN, FCLOSE, FREAD, FRDLN, FSEEK, FSLINE, FSIZE, FLINES |
 | IFH | 10 | ifhBreak, ifhEnd, ifhConnect, ifhDisconnect, ifhSysInfo, ifhSetParameter, ifhSetTelPreface, ifhSendTelegram, ifhSend, ifhReceive |
 | Wait/Timing | 4 | WAIT, WAITS, WAITMS, GETTICK |
 | Arguments | 2 | GETARG, ARGCOUNT |
 | Misc | 3 | NOP, BREAK, CLRO |
 
-**Total: 77 opcodes with pseudocode**
+**Total: 94 opcodes with pseudocode**
 
 ---
 
