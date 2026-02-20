@@ -453,18 +453,81 @@ undefined4 FUN_10025fbd(void) {
 | Logical | 5 | AND, ANDS, OR, XOR, NOT |
 | Shift | 3 | ASR, LSR, ASL |
 | Control Flow | 13 | JMP, JTSR, RET, conditional jumps |
-| Stack | 4 | PUSH, POP, PUSHF, POPF |
-| Flags | 2 | CLC, STC |
-| String | 6 | SCMP, SCAT, SCPY, SCUT, STRLEN, STRCMP |
+| Stack | 6 | PUSH, POP, PUSHF, POPF, PEEK, POKE |
+| Flags | 3 | CLC, STC, CLO |
+| String | 8 | SCMP, SCAT, SCPY, SCUT, STRLEN, STRCMP, SINS, SDEL |
 | Result Output | 9 | ERG* family |
-| File I/O | 6 | FREAD, FRDLN, FSEEK, FSLINE, FSIZE, FLINES |
+| File I/O | 8 | FOPEN, FCLOSE, FREAD, FRDLN, FSEEK, FSLINE, FSIZE, FLINES |
 | Table | 7 | TABSEEK, TABSET, TABGET, etc. |
 | Conversion | 9 | ATOI, HTOB, BTOH, DTOF, FTOD, ITOF, etc. |
-| System | 5 | GETTICK, etc. |
+| System | 6 | GETTICK, GETBUFSIZE, etc. |
 | Register | 6 | LDRG, STRG, SETRG, CLRRG, JRG, JNRG |
+| Error/Control | 2 | ERROR, CHKERR |
 | IFH/Comm | 28+ | ifhConnect, ifhSend, ifhReceive, etc. |
-| Other | 5 | NOP, SWAP, REVERSE, INFO, etc. |
-| **Total Identified** | **~115** | Out of ~184 total |
+| Other | 3 | NOP, SWAP, REVERSE |
+| **Total Identified** | **~123** | Out of ~184 total |
+
+---
+
+## Handler Table Structure
+
+The opcode handler table starts at `0x10088400` with entries of 28 bytes (0x1C) each.
+
+### Entry Format (28 bytes)
+```
+Offset  Size  Name                Description
+0x00    1     default_operand     Default operand type
+0x01    4     handler_ptr         Pointer to handler function
+0x05    4     name_ptr            Pointer to mnemonic string
+0x09    1     operand_type[0]     Operand 0 type for mode 0
+0x0A    1     operand_type[1]     Operand 0 type for mode 1
+...
+0x17    1     operand_type[14]    Operand 0 type for mode 14
+0x18    4     ???                 Unknown (possibly flags)
+```
+
+### Operand Type Table
+
+Located at `DAT_10089864` and `DAT_10089874` (17 entries × N types).
+
+### Table Access Pattern
+
+```c
+// FUN_10022838 - Get handler for opcode
+undefined* FUN_10022838(uint opcode, byte mode1, byte mode2) {
+    if (opcode >= DAT_10087eba) {
+        error(0x62, opcode);  // Invalid opcode
+    }
+    
+    int entry_offset = opcode * 0x1C;
+    
+    // Get operand type for this mode combination
+    char op_type1 = *(char*)(entry_offset + 0x100883f1 + mode1);  // offset 0x51
+    char op_type2 = (&DAT_10088401)[entry_offset];                 // offset 0x01
+    
+    // Check if operand types are valid
+    if ((&DAT_10089864)[mode2 + op_type1 * 0x11] == 0) {
+        if ((&DAT_10089864)[mode2 + op_type2 * 0x11] == 0) {
+            // ... more checks
+        }
+    }
+    
+    return (&PTR_FUN_10088402)[opcode * 7];  // 7 = 28/4
+}
+```
+
+### Known Base Addresses
+
+| Address | Description |
+|---------|-------------|
+| `0x10088400` | Handler table base |
+| `0x10088401` | First entry: default_operand |
+| `0x10088402` | First entry: handler_ptr |
+| `0x10088406` | First entry: name_ptr |
+| `0x100883f1` | Operand type array (offset 0x51 in entry?) |
+| `0x10089864` | Operand validity table 1 |
+| `0x10089874` | Operand validity table 2 |
+| `0x10087eba` | Number of opcodes (ushort) |
 
 ---
 
@@ -472,10 +535,72 @@ undefined4 FUN_10025fbd(void) {
 
 | Function | Opcode | Mnemonic | Description |
 |----------|--------|----------|-------------|
+| `FUN_10025370` | ? | **SINS** | String insert |
+| `FUN_10025477` | ? | **SDEL** | String delete |
 | `FUN_10027b53` | ? | **HTOB** | Hex string to bytes |
 | `FUN_10027cbc` | ? | **STRCMP** | String compare |
 | `FUN_10027d8d` | ? | **STRLEN** | Get string length |
 | `FUN_10027e4c` | ? | **BTOH** | Bytes to hex string |
+
+---
+
+## Stack Operations (Extended)
+
+| Function | Opcode | Mnemonic | Description |
+|----------|--------|----------|-------------|
+| `FUN_10024ff5` | ? | **PUSH** | Push operand onto stack |
+| `FUN_10025068` | ? | **POP** | Pop operand from stack |
+| `FUN_1002658c` | ? | **PUSHF** | Push all flags (14 bytes) |
+| `FUN_100265df` | ? | **POPF** | Pop all flags (14 bytes) |
+| `FUN_10025da7` | ? | **PEEK** | Read from stack (no pop) |
+| `FUN_10025df7` | ? | **POKE** | Write to stack (no push) |
+
+---
+
+## File I/O Operations (Complete)
+
+| Function | Opcode | Mnemonic | Description |
+|----------|--------|----------|-------------|
+| `FUN_10025ee2` | ? | **FOPEN** | Open file (returns handle 0-5) |
+| `FUN_10025ea1` | ? | **FCLOSE** | Close file by handle |
+| `FUN_10025fbd` | ? | **FREAD** | Read bytes from file |
+| `FUN_1002606b` | ? | **FRDLN** | Read line from file |
+| `FUN_1002618e` | ? | **FSEEK** | Seek to position |
+| `FUN_1002621e` | ? | **FSLINE** | Seek to line number |
+| `FUN_10026394` | ? | **FSIZE** | Get file size |
+| `FUN_10026415` | ? | **FLINES** | Count lines in file |
+
+---
+
+## Flag Operations (Complete)
+
+| Function | Opcode | Mnemonic | Description |
+|----------|--------|----------|-------------|
+| `FUN_10024d7e` | ? | **CLC** | Clear Carry flag |
+| `FUN_10024d90` | ? | **STC** | Set Carry flag |
+| `FUN_10025e5f` | ? | **CLO** | Clear Overflow flag |
+
+---
+
+## Error/Control Operations
+
+| Function | Opcode | Mnemonic | Description |
+|----------|--------|----------|-------------|
+| `FUN_10025e46` | ? | **ERROR** | Raise user error (code 0x5A) |
+| `FUN_10025e71` | ? | **CHKERR** | Check error flag |
+
+---
+
+## System Operations (Extended)
+
+| Function | Opcode | Mnemonic | Description |
+|----------|--------|----------|-------------|
+| `FUN_10025352` | ? | **GETBUFSIZE** | Get buffer size (DAT_10087ebc) |
+| `FUN_10028cc6` | ? | **GETTICK** | Get system tick count |
+| `FUN_10028cee` | ? | **GETCOL** | Get table columns count |
+| `FUN_10028d15` | ? | **GETROW** | Get table rows count |
+| `FUN_10028b69` | ? | **WAIT** | Wait/delay |
+| `FUN_10028c16` | ? | **SETERR** | Set error code |
 
 ---
 
