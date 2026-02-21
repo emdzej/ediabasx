@@ -111,6 +111,9 @@ importers:
       '@ediabasx/interface-serial':
         specifier: workspace:^
         version: link:../interface-serial
+      '@ediabasx/interfaces':
+        specifier: workspace:^
+        version: link:../interfaces
       '@ediabasx/interpreter':
         specifier: workspace:*
         version: link:../interpreter

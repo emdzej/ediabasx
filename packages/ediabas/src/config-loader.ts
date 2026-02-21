@@ -16,6 +16,7 @@ import {
 import { EdiabasInterface, SimulationInterface } from '@ediabasx/interface-base';
 import { SerialInterface } from '@ediabasx/interface-serial';
 import { EnetInterface } from '@ediabasx/interface-enet';
+import { GatewayClient } from '@ediabasx/interfaces';
 import { Ediabas, type EdiabasConfig } from './ediabas.js';
 
 /**
@@ -173,6 +174,12 @@ export const defaultInterfaceFactory: InterfaceFactory = async (config: Interfac
       // EnetInterface not fully implemented yet, store config for future use
       console.warn('EnetInterface not fully implemented yet');
       return new EnetInterface();
+    
+    case 'gateway':
+      return new GatewayClient({
+        host: config.gateway?.host,
+        port: config.gateway?.port,
+      });
     
     case 'icom':
       // ICOM not yet implemented, fall back to simulation

@@ -13,6 +13,7 @@ export const InterfaceTypeSchema = z.enum([
   'simulation',
   'serial',
   'enet',
+  'gateway',
   'icom',
 ]);
 
@@ -71,12 +72,23 @@ export const SimulationConfigSchema = z.object({
 export type SimulationConfig = z.infer<typeof SimulationConfigSchema>;
 
 /**
+ * Gateway interface configuration (remote JSON-RPC connection)
+ */
+export const GatewayConfigSchema = z.object({
+  host: z.string().default('127.0.0.1').describe('Gateway server IP or hostname'),
+  port: z.number().int().min(1).max(65535).default(6801).describe('Gateway server port'),
+});
+
+export type GatewayConfig = z.infer<typeof GatewayConfigSchema>;
+
+/**
  * Interface configuration (discriminated union)
  */
 export const InterfaceConfigSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('simulation'), simulation: SimulationConfigSchema.optional() }),
   z.object({ type: z.literal('serial'), serial: SerialConfigSchema }),
   z.object({ type: z.literal('enet'), enet: EnetConfigSchema }),
+  z.object({ type: z.literal('gateway'), gateway: GatewayConfigSchema.optional() }),
   z.object({ type: z.literal('icom'), icom: IcomConfigSchema }),
 ]);
 
