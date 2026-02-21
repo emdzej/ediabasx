@@ -12,6 +12,22 @@ A TypeScript implementation of BMW's EDIABAS (Electronic Diagnostic Basic System
 
 ## Installation
 
+### From GitHub Packages
+
+```bash
+# Create .npmrc in your project
+echo "@ediabasx:registry=https://npm.pkg.github.com" >> .npmrc
+
+# Install packages
+npm install @ediabasx/ediabas
+# or
+pnpm add @ediabasx/ediabas
+```
+
+> **Note:** You need to authenticate with GitHub Packages. See [GitHub docs](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-to-github-packages).
+
+### From Source
+
 ```bash
 # Clone the repository
 git clone https://github.com/emdzej/ediabasx.git
@@ -148,6 +164,54 @@ ediabasx run file.prg IDENT --interface gateway --gateway-host 192.168.1.50 --ga
 # Expose a serial interface via JSON-RPC
 ediabasx gateway --interface serial --serial-port /dev/ttyUSB0 --serial-baud 9600
 ```
+
+## Library Usage
+
+```typescript
+import { createFromConfigFile, Ediabas } from '@ediabasx/ediabas';
+
+// From config file
+const ediabas = await createFromConfigFile('./ediabas.config.json');
+
+// Or manually
+const ediabas = new Ediabas({
+  ecuPath: './ecu',
+  simulation: true,
+});
+
+// Load SGBD and execute job
+await ediabas.loadSgbd('D_MOTOR.prg');
+const results = await ediabas.executeJob('IDENT');
+
+console.log(results);
+// [{ name: 'ECU', type: 'string', value: 'DME' }, ...]
+```
+
+### Configuration File
+
+Create `ediabas.config.json`:
+
+```json
+{
+  "version": 1,
+  "interface": {
+    "type": "serial",
+    "serial": {
+      "port": "/dev/ttyUSB0",
+      "baudRate": 9600
+    }
+  },
+  "paths": {
+    "sgbd": "./ecu"
+  },
+  "timeouts": {
+    "connect": 5000,
+    "response": 2000
+  }
+}
+```
+
+Supported interface types: `simulation`, `serial`, `gateway`, `enet` (WIP), `icom` (WIP).
 
 ## Package Structure
 
