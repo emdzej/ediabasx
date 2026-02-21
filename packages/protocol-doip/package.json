@@ -1,7 +1,6 @@
 {
   "name": "@ediabasx/protocol-doip",
   "version": "0.1.0",
-  "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -13,5 +12,13 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emdzej/ediabasx.git",
+    "directory": "packages/protocol-doip"
   }
 }

@@ -1,7 +1,6 @@
 {
   "name": "@ediabasx/interfaces",
   "version": "0.1.0",
-  "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -21,5 +20,13 @@
   },
   "devDependencies": {
     "@types/node": "^25.2.1"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emdzej/ediabasx.git",
+    "directory": "packages/interfaces"
   }
 }

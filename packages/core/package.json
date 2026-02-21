@@ -1,7 +1,6 @@
 {
   "name": "@ediabasx/core",
   "version": "0.1.0",
-  "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -17,5 +16,13 @@
   "devDependencies": {
     "@types/node": "^25.2.0",
     "iconv-lite": "^0.7.2"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emdzej/ediabasx.git",
+    "directory": "packages/core"
   }
 }

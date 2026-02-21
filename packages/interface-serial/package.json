@@ -1,7 +1,6 @@
 {
   "name": "@ediabasx/interface-serial",
   "version": "0.1.0",
-  "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -19,5 +18,13 @@
     "@ediabasx/interface-base": "workspace:*",
     "@ediabasx/protocol-uds": "workspace:*",
     "serialport": "^12.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emdzej/ediabasx.git",
+    "directory": "packages/interface-serial"
   }
 }

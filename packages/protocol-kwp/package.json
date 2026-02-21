@@ -1,7 +1,6 @@
 {
   "name": "@ediabasx/protocol-kwp",
   "version": "0.1.0",
-  "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -16,5 +15,13 @@
   },
   "dependencies": {
     "@ediabasx/protocol-uds": "workspace:*"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emdzej/ediabasx.git",
+    "directory": "packages/protocol-kwp"
   }
 }
