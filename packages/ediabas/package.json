@@ -17,8 +17,11 @@
   "dependencies": {
     "@ediabasx/best-parser": "workspace:*",
     "@ediabasx/core": "workspace:*",
+    "@ediabasx/interface-base": "workspace:*",
+    "@ediabasx/interface-enet": "workspace:^",
+    "@ediabasx/interface-serial": "workspace:^",
     "@ediabasx/interpreter": "workspace:*",
-    "@ediabasx/interface-base": "workspace:*"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
