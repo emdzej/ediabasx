@@ -41,25 +41,25 @@ importers:
 
   packages/best-parser:
     dependencies:
-      '@ediabasx/core':
+      '@emdzej/ediabasx-core':
         specifier: workspace:*
         version: link:../core
 
   packages/cli:
     dependencies:
-      '@ediabasx/best-parser':
+      '@emdzej/ediabasx-best-parser':
         specifier: workspace:*
         version: link:../best-parser
-      '@ediabasx/core':
+      '@emdzej/ediabasx-core':
         specifier: workspace:*
         version: link:../core
-      '@ediabasx/ediabas':
+      '@emdzej/ediabasx-ediabas':
         specifier: workspace:*
         version: link:../ediabas
-      '@ediabasx/interface-base':
+      '@emdzej/ediabasx-interface-base':
         specifier: workspace:*
         version: link:../interface-base
-      '@ediabasx/interfaces':
+      '@emdzej/ediabasx-interfaces':
         specifier: workspace:*
         version: link:../interfaces
       chalk:
@@ -96,25 +96,25 @@ importers:
 
   packages/ediabas:
     dependencies:
-      '@ediabasx/best-parser':
+      '@emdzej/ediabasx-best-parser':
         specifier: workspace:*
         version: link:../best-parser
-      '@ediabasx/core':
+      '@emdzej/ediabasx-core':
         specifier: workspace:*
         version: link:../core
-      '@ediabasx/interface-base':
+      '@emdzej/ediabasx-interface-base':
         specifier: workspace:*
         version: link:../interface-base
-      '@ediabasx/interface-enet':
+      '@emdzej/ediabasx-interface-enet':
         specifier: workspace:^
         version: link:../interface-enet
-      '@ediabasx/interface-serial':
+      '@emdzej/ediabasx-interface-serial':
         specifier: workspace:^
         version: link:../interface-serial
-      '@ediabasx/interfaces':
+      '@emdzej/ediabasx-interfaces':
         specifier: workspace:^
         version: link:../interfaces
-      '@ediabasx/interpreter':
+      '@emdzej/ediabasx-interpreter':
         specifier: workspace:*
         version: link:../interpreter
       zod:
@@ -132,19 +132,19 @@ importers:
 
   packages/interface-enet:
     dependencies:
-      '@ediabasx/interface-base':
+      '@emdzej/ediabasx-interface-base':
         specifier: workspace:*
         version: link:../interface-base
 
   packages/interface-serial:
     dependencies:
-      '@ediabasx/core':
+      '@emdzej/ediabasx-core':
         specifier: workspace:*
         version: link:../core
-      '@ediabasx/interface-base':
+      '@emdzej/ediabasx-interface-base':
         specifier: workspace:*
         version: link:../interface-base
-      '@ediabasx/protocol-uds':
+      '@emdzej/ediabasx-protocol-uds':
         specifier: workspace:*
         version: link:../protocol-uds
       serialport:
@@ -153,13 +153,13 @@ importers:
 
   packages/interfaces:
     dependencies:
-      '@ediabasx/interface-base':
+      '@emdzej/ediabasx-interface-base':
         specifier: workspace:*
         version: link:../interface-base
-      '@ediabasx/interface-enet':
+      '@emdzej/ediabasx-interface-enet':
         specifier: workspace:*
         version: link:../interface-enet
-      '@ediabasx/interface-serial':
+      '@emdzej/ediabasx-interface-serial':
         specifier: workspace:*
         version: link:../interface-serial
     devDependencies:
@@ -169,13 +169,13 @@ importers:
 
   packages/interpreter:
     dependencies:
-      '@ediabasx/best-parser':
+      '@emdzej/ediabasx-best-parser':
         specifier: workspace:*
         version: link:../best-parser
-      '@ediabasx/core':
+      '@emdzej/ediabasx-core':
         specifier: workspace:*
         version: link:../core
-      '@ediabasx/interface-base':
+      '@emdzej/ediabasx-interface-base':
         specifier: workspace:*
         version: link:../interface-base
 
@@ -183,7 +183,7 @@ importers:
 
   packages/protocol-kwp:
     dependencies:
-      '@ediabasx/protocol-uds':
+      '@emdzej/ediabasx-protocol-uds':
         specifier: workspace:*
         version: link:../protocol-uds
 
