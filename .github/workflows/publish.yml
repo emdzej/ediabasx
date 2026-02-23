@@ -39,12 +39,12 @@ jobs:
       
       - name: Publish packages
         if: ${{ github.event.inputs.dry_run != 'true' }}
-        run: pnpm -r publish --access public --no-git-checks
+        run: pnpm -r publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Dry run
         if: ${{ github.event.inputs.dry_run == 'true' }}
-        run: pnpm -r publish --access public --no-git-checks --dry-run
+        run: pnpm -r publish --no-git-checks --dry-run
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
