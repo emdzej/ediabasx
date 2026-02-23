@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Box, Text, useApp, useInput } from "ink";
 import path from "node:path";
-import type { PrgJob } from "@ediabasx/best-parser";
-import type { EdiabasJobResult } from "@ediabasx/ediabas";
+import type { PrgJob } from "@emdzej/ediabasx-best-parser";
+import type { EdiabasJobResult } from "@emdzej/ediabasx-ediabas";
 import { useStdoutDimensions } from "./useStdoutDimensions.js";
 import { ItemsPanel } from "./ItemsPanel.js";
 import { ContentPanel } from "./ContentPanel.js";
