@@ -1,4 +1,4 @@
-import { EdiabasInterface } from "@ediabasx/interface-base";
+import { EdiabasInterface } from "@emdzej/ediabasx-interface-base";
 
 export class EnetInterface extends EdiabasInterface {
   async connect(): Promise<void> {

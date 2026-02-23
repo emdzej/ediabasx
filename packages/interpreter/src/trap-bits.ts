@@ -1,5 +1,5 @@
 
-import { EdiabasErrorCodes } from "@ediabasx/core";
+import { EdiabasErrorCodes } from "@emdzej/ediabasx-core";
 
 export const TrapBitDict: Record<number, number> = {
   [EdiabasErrorCodes.EDIABAS_BIP_0002]: 2,

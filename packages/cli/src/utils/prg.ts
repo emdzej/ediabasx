@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
-import { parsePrg } from "@ediabasx/best-parser";
-import type { PrgFile } from "@ediabasx/best-parser";
+import { parsePrg } from "@emdzej/ediabasx-best-parser";
+import type { PrgFile } from "@emdzej/ediabasx-best-parser";
 
 function readPrgFile(filePath: string): PrgFile {
   const buffer = readFileSync(filePath);

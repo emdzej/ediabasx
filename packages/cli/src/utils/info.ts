@@ -1,6 +1,6 @@
 import path from "node:path";
 import chalk from "chalk";
-import type { PrgFile } from "@ediabasx/best-parser";
+import type { PrgFile } from "@emdzej/ediabasx-best-parser";
 import { printHeading } from "./output.js";
 
 function printInfoSummary(filePath: string, prg: PrgFile): void {

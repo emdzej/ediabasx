@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import chalk from "chalk";
-import { disassemble, disassembleJob, formatInstruction, parsePrg } from "@ediabasx/best-parser";
-import type { PrgBinaryJob, PrgFile } from "@ediabasx/best-parser";
+import { disassemble, disassembleJob, formatInstruction, parsePrg } from "@emdzej/ediabasx-best-parser";
+import type { PrgBinaryJob, PrgFile } from "@emdzej/ediabasx-best-parser";
 import { readFileBuffer } from "../utils/prg.js";
 import { handleError } from "../utils/output.js";
 

@@ -1,4 +1,4 @@
-import { cp1252ToUtf8, xorDecrypt } from "@ediabasx/core";
+import { cp1252ToUtf8, xorDecrypt } from "@emdzej/ediabasx-core";
 import { BinaryReader } from "./reader";
 import type { PrgArg, PrgBinaryJob, PrgFile, PrgHeader, PrgJob, PrgMetadata, PrgResult, PrgTable } from "./types";
 

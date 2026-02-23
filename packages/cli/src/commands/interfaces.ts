@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import chalk from "chalk";
-import { listInterfaces } from "@ediabasx/interfaces";
-import type { InterfaceMetadata, InterfaceOptionMetadata } from "@ediabasx/interfaces";
+import { listInterfaces } from "@emdzej/ediabasx-interfaces";
+import type { InterfaceMetadata, InterfaceOptionMetadata } from "@emdzej/ediabasx-interfaces";
 import { handleError, printHeading, printJson, resolveOutputFormat } from "../utils/output.js";
 import type { OutputOptions } from "../utils/output.js";
 

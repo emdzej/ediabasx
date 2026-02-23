@@ -1,5 +1,5 @@
 {
-  "name": "@ediabasx/ediabas",
+  "name": "@emdzej/ediabasx-ediabas",
   "version": "0.1.0-alpha.213",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,13 +14,13 @@
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
   },
   "dependencies": {
-    "@ediabasx/best-parser": "workspace:*",
-    "@ediabasx/core": "workspace:*",
-    "@ediabasx/interface-base": "workspace:*",
-    "@ediabasx/interface-enet": "workspace:^",
-    "@ediabasx/interface-serial": "workspace:^",
-    "@ediabasx/interfaces": "workspace:^",
-    "@ediabasx/interpreter": "workspace:*",
+    "@emdzej/ediabasx-best-parser": "workspace:*",
+    "@emdzej/ediabasx-core": "workspace:*",
+    "@emdzej/ediabasx-interface-base": "workspace:*",
+    "@emdzej/ediabasx-interface-enet": "workspace:^",
+    "@emdzej/ediabasx-interface-serial": "workspace:^",
+    "@emdzej/ediabasx-interfaces": "workspace:^",
+    "@emdzej/ediabasx-interpreter": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {
