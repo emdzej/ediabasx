@@ -1,5 +1,66 @@
 import { cp1252ToUtf8 } from "@emdzej/ediabasx-core";
+import chalk, { type ChalkInstance } from "chalk";
 import type { Instruction } from "./types";
+
+/** Color scheme for disassembly output */
+export interface ColorScheme {
+  offset: (s: string) => string;
+  mnemonic: (s: string) => string;
+  register: (s: string) => string;
+  number: (s: string) => string;
+  string: (s: string) => string;
+  label: (s: string) => string;
+  separator: (s: string) => string;
+  comment: (s: string) => string;
+}
+
+/** Disassembly formatting options */
+export interface DisassemblyOptions {
+  /** Enable colored output (default: true) */
+  color?: boolean;
+  /** Show instruction offset (default: true) */
+  showOffset?: boolean;
+  /** Offset format: 'hex' or 'decimal' (default: 'hex') */
+  offsetFormat?: 'hex' | 'decimal';
+  /** Custom color scheme */
+  colors?: Partial<ColorScheme>;
+}
+
+const DEFAULT_OPTIONS: Required<Omit<DisassemblyOptions, 'colors'>> = {
+  color: true,
+  showOffset: true,
+  offsetFormat: 'hex',
+};
+
+function createColorScheme(enabled: boolean, custom?: Partial<ColorScheme>): ColorScheme {
+  const id = (s: string) => s;
+  
+  if (!enabled) {
+    return {
+      offset: id,
+      mnemonic: id,
+      register: id,
+      number: id,
+      string: id,
+      label: id,
+      separator: id,
+      comment: id,
+      ...custom,
+    };
+  }
+
+  return {
+    offset: (chalk as ChalkInstance).gray,
+    mnemonic: (chalk as ChalkInstance).cyan.bold,
+    register: (chalk as ChalkInstance).yellow,
+    number: (chalk as ChalkInstance).green,
+    string: (chalk as ChalkInstance).magenta,
+    label: (chalk as ChalkInstance).blue,
+    separator: (chalk as ChalkInstance).white,
+    comment: (chalk as ChalkInstance).gray.italic,
+    ...custom,
+  };
+}
 
 type OpcodeDefinition = {
   mnemonic: string;
@@ -457,7 +518,107 @@ export function disassemble(code: Uint8Array): Instruction[] {
   return instructions;
 }
 
-export function formatInstruction(instr: Instruction): string {
+export function formatInstruction(instr: Instruction, options: DisassemblyOptions = {}): string {
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const c = createColorScheme(opts.color ?? true, options.colors);
+
+  const parts: string[] = [];
+
+  // Offset
+  if (opts.showOffset) {
+    const offsetStr = opts.offsetFormat === 'hex'
+      ? instr.offset.toString(16).toUpperCase().padStart(8, '0')
+      : instr.offset.toString().padStart(8, ' ');
+    parts.push(c.offset(`[${offsetStr}]`));
+  }
+
+  // Mnemonic
+  parts.push(c.mnemonic(instr.mnemonic.padEnd(10)));
+
+  // Operands with coloring
+  if (instr.operands.length > 0) {
+    const coloredOperands = instr.operands.map(op => colorizeOperand(op, c));
+    parts.push(coloredOperands.join(c.separator(',')));
+  }
+
+  return parts.join(' ');
+}
+
+/** Colorize a single operand based on its type */
+function colorizeOperand(operand: string, c: ColorScheme): string {
+  // Label (starts with __)
+  if (operand.startsWith('__')) {
+    return c.label(operand);
+  }
+  
+  // String literal
+  if (operand.startsWith('"') && operand.endsWith('"')) {
+    return c.string(operand);
+  }
+  
+  // Immediate value
+  if (operand.startsWith('#')) {
+    return c.number(operand);
+  }
+  
+  // Array/byte sequence
+  if (operand.startsWith('{') && operand.endsWith('}')) {
+    return c.number(operand);
+  }
+  
+  // Register or indexed access
+  if (operand.match(/^[A-Z][0-9A-F](\[|$)/)) {
+    // Has indexing?
+    const bracketIdx = operand.indexOf('[');
+    if (bracketIdx !== -1) {
+      const reg = operand.slice(0, bracketIdx);
+      const rest = operand.slice(bracketIdx);
+      // Parse indexed access
+      return c.register(reg) + colorizeIndexedAccess(rest, c);
+    }
+    return c.register(operand);
+  }
+  
+  // Unknown - return as-is
+  return operand;
+}
+
+/** Colorize indexed access like [#$100] or [I0,#$10] */
+function colorizeIndexedAccess(access: string, c: ColorScheme): string {
+  // Replace registers and numbers within brackets
+  return access
+    .replace(/([A-Z][0-9A-F])/g, (match) => c.register(match))
+    .replace(/(#\$[0-9A-Fa-f]+\.?[BIL]?)/g, (match) => c.number(match))
+    .replace(/(\[|\]|,)/g, (match) => c.separator(match));
+}
+
+/**
+ * Format multiple instructions with optional header
+ */
+export function formatInstructions(
+  instructions: Instruction[],
+  options: DisassemblyOptions = {},
+  header?: string
+): string[] {
+  const lines: string[] = [];
+  const c = createColorScheme(options.color ?? true, options.colors);
+
+  if (header) {
+    lines.push(c.comment(`; ${header}`));
+    lines.push('');
+  }
+
+  for (const instr of instructions) {
+    lines.push(formatInstruction(instr, options));
+  }
+
+  return lines;
+}
+
+/**
+ * Format instruction (simple, no options - backward compatible)
+ */
+export function formatInstructionSimple(instr: Instruction): string {
   if (instr.operands.length === 0) {
     return instr.mnemonic;
   }
