@@ -21,6 +21,7 @@
     "@emdzej/ediabasx-interface-serial": "workspace:^",
     "@emdzej/ediabasx-interfaces": "workspace:^",
     "@emdzej/ediabasx-interpreter": "workspace:*",
+    "@emdzej/ediabasx-logger": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {
