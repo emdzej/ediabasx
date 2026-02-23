@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { disassemble, formatInstruction } from "../disassembler";
+import { disassemble, formatInstructionSimple } from "../disassembler";
 
 const XOR_KEY = 0xf7;
 
@@ -29,7 +29,7 @@ describe("disassemble", () => {
     });
 
     expect(instructions[1].offset).toBe(4);
-    expect(formatInstruction(instructions[1])).toBe("jump __0000000E");
+    expect(formatInstructionSimple(instructions[1])).toBe("jump __0000000E");
   });
 
   it("detects XOR-encoded bytecode", () => {
@@ -43,6 +43,6 @@ describe("disassemble", () => {
     const instructions = disassemble(code);
 
     expect(instructions).toHaveLength(1);
-    expect(formatInstruction(instructions[0])).toBe("move B0,#'A'");
+    expect(formatInstructionSimple(instructions[0])).toBe("move B0,#'A'");
   });
 });
