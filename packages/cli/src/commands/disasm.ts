@@ -1,9 +1,15 @@
 import type { Command } from "commander";
 import chalk from "chalk";
-import { disassemble, disassembleJob, formatInstruction, parsePrg } from "@emdzej/ediabasx-best-parser";
+import { disassemble, disassembleJob, formatInstruction, parsePrg, type DisassemblyOptions } from "@emdzej/ediabasx-best-parser";
 import type { PrgBinaryJob, PrgFile } from "@emdzej/ediabasx-best-parser";
 import { readFileBuffer } from "../utils/prg.js";
 import { handleError } from "../utils/output.js";
+
+interface DisasmCommandOptions {
+  noColor?: boolean;
+  noOffset?: boolean;
+  decimal?: boolean;
+}
 
 function resolveBinaryJobSlices(prg: PrgFile): Array<{ job: PrgBinaryJob; start: number; end: number }> {
   const sortedJobs = [...prg.binaryJobs].sort((a, b) => a.offset - b.offset);
@@ -18,7 +24,7 @@ function resolveBinaryJobSlices(prg: PrgFile): Array<{ job: PrgBinaryJob; start:
   });
 }
 
-function printDisassembly(prg: PrgFile, buffer: Uint8Array): void {
+function printDisassembly(prg: PrgFile, buffer: Uint8Array, options: DisassemblyOptions): void {
   // For EDIABAS OBJECT format, bytecode is at binaryJob offsets in the raw buffer
   if (prg.binaryJobs.length > 0) {
     for (const job of prg.binaryJobs) {
@@ -27,8 +33,7 @@ function printDisassembly(prg: PrgFile, buffer: Uint8Array): void {
 
       process.stdout.write(`${chalk.bold(job.name)} @ 0x${job.offset.toString(16).toUpperCase()}\n`);
       for (const instr of instructions) {
-        const address = instr.offset.toString(16).toUpperCase().padStart(8, "0");
-        process.stdout.write(`  ${address}: ${formatInstruction(instr)}\n`);
+        process.stdout.write(`  ${formatInstruction(instr, options)}\n`);
       }
       process.stdout.write("\n");
     }
@@ -45,8 +50,7 @@ function printDisassembly(prg: PrgFile, buffer: Uint8Array): void {
   if (jobSlices.length === 0) {
     const instructions = disassemble(prg.code);
     for (const instr of instructions) {
-      const address = instr.offset.toString(16).toUpperCase().padStart(8, "0");
-      process.stdout.write(`${address}: ${formatInstruction(instr)}\n`);
+      process.stdout.write(`${formatInstruction(instr, options)}\n`);
     }
     return;
   }
@@ -59,9 +63,9 @@ function printDisassembly(prg: PrgFile, buffer: Uint8Array): void {
 
     process.stdout.write(`${chalk.bold(slice.job.name)}\n`);
     for (const instr of instructions) {
-      const absoluteOffset = start + instr.offset;
-      const address = absoluteOffset.toString(16).toUpperCase().padStart(8, "0");
-      process.stdout.write(`${address}: ${formatInstruction(instr)}\n`);
+      // Adjust offset to be absolute
+      const adjustedInstr = { ...instr, offset: start + instr.offset };
+      process.stdout.write(`${formatInstruction(adjustedInstr, options)}\n`);
     }
     process.stdout.write("\n");
   }
@@ -72,11 +76,20 @@ function registerDisasmCommand(program: Command): void {
     .command("disasm")
     .argument("<file>", "PRG/GRP file to disassemble")
     .argument("[job]", "Job name to disassemble (optional, disassembles all if not specified)")
+    .option("--no-color", "Disable colored output")
+    .option("--no-offset", "Hide instruction offsets")
+    .option("--decimal", "Show offsets in decimal instead of hex")
     .description("Disassemble bytecode into readable assembly")
-    .action((filePath: string, jobName?: string) => {
+    .action((filePath: string, jobName: string | undefined, cmdOptions: DisasmCommandOptions) => {
       try {
         const buffer = readFileBuffer(filePath);
         const prg = parsePrg(buffer);
+
+        const options: DisassemblyOptions = {
+          color: cmdOptions.noColor !== true,
+          showOffset: cmdOptions.noOffset !== true,
+          offsetFormat: cmdOptions.decimal ? 'decimal' : 'hex',
+        };
 
         if (jobName) {
           // Find specific job
@@ -95,11 +108,10 @@ function registerDisasmCommand(program: Command): void {
           const instructions = disassembleJob(buffer, job.offset);
           process.stdout.write(`${chalk.bold(job.name)} @ 0x${job.offset.toString(16).toUpperCase()}\n`);
           for (const instr of instructions) {
-            const address = instr.offset.toString(16).toUpperCase().padStart(8, "0");
-            process.stdout.write(`  ${address}: ${formatInstruction(instr)}\n`);
+            process.stdout.write(`  ${formatInstruction(instr, options)}\n`);
           }
         } else {
-          printDisassembly(prg, buffer);
+          printDisassembly(prg, buffer, options);
         }
       } catch (error) {
         handleError(error);

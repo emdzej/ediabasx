@@ -7,7 +7,8 @@
     "dist"
   ],
   "dependencies": {
-    "@emdzej/ediabasx-core": "workspace:*"
+    "@emdzej/ediabasx-core": "workspace:*",
+    "chalk": "^5.4.1"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
