@@ -1,4 +1,4 @@
-import { EdiabasInterface, SimulationInterface } from "@ediabasx/interface-base";
+import { EdiabasInterface, SimulationInterface } from "@emdzej/ediabasx-interface-base";
 import {
   SerialCommParameterIds,
   SerialInitModes,
@@ -8,8 +8,8 @@ import {
   type SerialInitMode,
   type SerialParity,
   type SerialProtocol
-} from "@ediabasx/interface-serial";
-import { EnetInterface } from "@ediabasx/interface-enet";
+} from "@emdzej/ediabasx-interface-serial";
+import { EnetInterface } from "@emdzej/ediabasx-interface-enet";
 import { GatewayClient } from "./gateway-client";
 import { getInterfaceMetadata, type InterfaceMetadata } from "./registry";
 

@@ -13,10 +13,10 @@ import {
   type EdiabasConfigFile,
   type InterfaceConfig,
 } from './config-schema.js';
-import { EdiabasInterface, SimulationInterface } from '@ediabasx/interface-base';
-import { SerialInterface } from '@ediabasx/interface-serial';
-import { EnetInterface } from '@ediabasx/interface-enet';
-import { GatewayClient } from '@ediabasx/interfaces';
+import { EdiabasInterface, SimulationInterface } from '@emdzej/ediabasx-interface-base';
+import { SerialInterface } from '@emdzej/ediabasx-interface-serial';
+import { EnetInterface } from '@emdzej/ediabasx-interface-enet';
+import { GatewayClient } from '@emdzej/ediabasx-interfaces';
 import { Ediabas, type EdiabasConfig } from './ediabas.js';
 
 /**

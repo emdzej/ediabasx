@@ -11,8 +11,8 @@ import {
   xvers,
   type CommunicationInterface,
 } from "./operations/communication";
-import { EdiabasError } from "@ediabasx/core";
-import { utf8ToCp1252 } from "@ediabasx/core";
+import { EdiabasError } from "@emdzej/ediabasx-core";
+import { utf8ToCp1252 } from "@emdzej/ediabasx-core";
 
 class TimeoutError extends Error {
   constructor() {

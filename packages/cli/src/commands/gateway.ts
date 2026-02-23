@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { GatewayServer, createInterface } from "@ediabasx/interfaces";
+import { GatewayServer, createInterface } from "@emdzej/ediabasx-interfaces";
 import { addInterfaceOptions, resolveInterfaceSelection } from "../utils/interface.js";
 import type { InterfaceCliOptions } from "../utils/interface.js";
 import { handleError } from "../utils/output.js";

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GatewayServer } from "../gateway-server";
 import { GatewayClient } from "../gateway-client";
-import { EdiabasInterface } from "@ediabasx/interface-base";
+import { EdiabasInterface } from "@emdzej/ediabasx-interface-base";
 
 class MockInterface extends EdiabasInterface {
   sent: Uint8Array[] = [];

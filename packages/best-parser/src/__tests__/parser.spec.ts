@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { utf8ToCp1252 } from "@ediabasx/core";
+import { utf8ToCp1252 } from "@emdzej/ediabasx-core";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { parsePrg } from "../parser";

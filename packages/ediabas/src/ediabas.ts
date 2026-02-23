@@ -2,16 +2,16 @@
  * Main Ediabas library class
  */
 
-import { parsePrg, type PrgFile } from "@ediabasx/best-parser";
-import { EdiabasError, EdiabasErrorCodes } from "@ediabasx/core";
+import { parsePrg, type PrgFile } from "@emdzej/ediabasx-best-parser";
+import { EdiabasError, EdiabasErrorCodes } from "@emdzej/ediabasx-core";
 import {
   Interpreter,
   type ExecutionOptions,
   type JobResult,
   type CommunicationInterface,
   ParameterSet,
-} from "@ediabasx/interpreter";
-import { EdiabasInterface, SimulationInterface } from "@ediabasx/interface-base";
+} from "@emdzej/ediabasx-interpreter";
+import { EdiabasInterface, SimulationInterface } from "@emdzej/ediabasx-interface-base";
 import * as fs from "fs/promises";
 import * as path from "path";
 

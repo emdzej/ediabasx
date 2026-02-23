@@ -1,5 +1,5 @@
 {
-  "name": "@ediabasx/cli",
+  "name": "@emdzej/ediabasx-cli",
   "version": "0.1.0-alpha.213",
   "type": "module",
   "main": "dist/index.js",
@@ -11,16 +11,16 @@
     "dist"
   ],
   "dependencies": {
-    "@ediabasx/best-parser": "workspace:*",
-    "@ediabasx/core": "workspace:*",
-    "@ediabasx/ediabas": "workspace:*",
-    "@ediabasx/interfaces": "workspace:*",
+    "@emdzej/ediabasx-best-parser": "workspace:*",
+    "@emdzej/ediabasx-core": "workspace:*",
+    "@emdzej/ediabasx-ediabas": "workspace:*",
+    "@emdzej/ediabasx-interfaces": "workspace:*",
     "chalk": "^5.4.1",
     "commander": "^12.1.0",
     "ink": "^5.0.0",
     "ink-use-stdout-dimensions": "^1.0.5",
     "react": "^18.3.1",
-    "@ediabasx/interface-base": "workspace:*"
+    "@emdzej/ediabasx-interface-base": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",

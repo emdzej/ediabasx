@@ -1,6 +1,6 @@
-import { utf8ToCp1252 } from "@ediabasx/core";
-import { EdiabasInterface, EdiabasTimeoutError } from "@ediabasx/interface-base";
-import { IsoTpFrameTypes, parseIsoTpFrame } from "@ediabasx/protocol-uds";
+import { utf8ToCp1252 } from "@emdzej/ediabasx-core";
+import { EdiabasInterface, EdiabasTimeoutError } from "@emdzej/ediabasx-interface-base";
+import { IsoTpFrameTypes, parseIsoTpFrame } from "@emdzej/ediabasx-protocol-uds";
 import { SerialTimeoutError } from "./errors";
 import { NodeSerialTransport } from "./nodeSerialTransport";
 import {

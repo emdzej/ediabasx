@@ -1,4 +1,4 @@
-import { cp1252ToUtf8, utf8ToCp1252 } from "@ediabasx/core";
+import { cp1252ToUtf8, utf8ToCp1252 } from "@emdzej/ediabasx-core";
 import { RegisterSet } from "../registers";
 import { Flags } from "../flags";
 import type { FloatRegisterRef, IntRegisterRef, StringRegisterRef } from "./register-refs";

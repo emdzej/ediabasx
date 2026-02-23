@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import { render } from "ink";
 import React from "react";
-import { parsePrg } from "@ediabasx/best-parser";
+import { parsePrg } from "@emdzej/ediabasx-best-parser";
 import { App } from "../tui/App.js";
 import { readFileBuffer } from "../utils/prg.js";
 import { handleError } from "../utils/output.js";

@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import chalk from "chalk";
-import type { PrgTable } from "@ediabasx/best-parser";
+import type { PrgTable } from "@emdzej/ediabasx-best-parser";
 import { readPrgFile } from "../utils/prg.js";
 import { handleError, printHeading, printJson, resolveOutputFormat } from "../utils/output.js";
 import type { OutputOptions } from "../utils/output.js";

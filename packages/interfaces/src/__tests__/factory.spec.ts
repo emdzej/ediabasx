@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { SimulationInterface } from "@ediabasx/interface-base";
-import { SerialInterface } from "@ediabasx/interface-serial";
+import { SimulationInterface } from "@emdzej/ediabasx-interface-base";
+import { SerialInterface } from "@emdzej/ediabasx-interface-serial";
 import { GatewayClient } from "../gateway-client";
 import { createInterface } from "../factory";
 

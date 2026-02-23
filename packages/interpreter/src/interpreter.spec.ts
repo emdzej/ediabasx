@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Interpreter } from "./interpreter";
 import { RegisterSet } from "./registers";
 import { Flags } from "./flags";
-import type { PrgFile, PrgJob, PrgHeader, PrgMetadata, PrgTable } from "@ediabasx/best-parser";
+import type { PrgFile, PrgJob, PrgHeader, PrgMetadata, PrgTable } from "@emdzej/ediabasx-best-parser";
 
 function createHeader(): PrgHeader {
   return {

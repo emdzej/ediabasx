@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import type { InterfaceOptions } from "@ediabasx/interfaces";
+import type { InterfaceOptions } from "@emdzej/ediabasx-interfaces";
 import { parseNumber, parseOptionalNumber } from "./numbers.js";
 
 type InterfaceCliOptions = {

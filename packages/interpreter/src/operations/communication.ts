@@ -1,5 +1,5 @@
-import { EdiabasError, EdiabasErrorCodes } from "@ediabasx/core";
-import type { EdiabasInterface } from "@ediabasx/interface-base";
+import { EdiabasError, EdiabasErrorCodes } from "@emdzej/ediabasx-core";
+import type { EdiabasInterface } from "@emdzej/ediabasx-interface-base";
 import { RegisterSet } from "../registers";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 import {

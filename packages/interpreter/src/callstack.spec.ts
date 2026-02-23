@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { EdiabasError, EdiabasErrorCodes } from "@ediabasx/core";
+import { EdiabasError, EdiabasErrorCodes } from "@emdzej/ediabasx-core";
 import { CallStack, DEFAULT_MAX_DEPTH } from "./callstack";
 
 describe("CallStack", () => {

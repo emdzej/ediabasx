@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 import { RegisterSet } from "./registers";
 import { gettmr, settmr, getdate, gettime, wait, sett, clrt, eerr } from "./operations/time";
 import type { ErrorTrapState } from "./operations/time";
-import { EdiabasError, EdiabasErrorCodes } from "@ediabasx/core";
+import { EdiabasError, EdiabasErrorCodes } from "@emdzej/ediabasx-core";
 
 const S0 = { kind: "S", index: 0 } as const;
 const S1 = { kind: "S", index: 1 } as const;

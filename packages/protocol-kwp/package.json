@@ -1,5 +1,5 @@
 {
-  "name": "@ediabasx/protocol-kwp",
+  "name": "@emdzej/ediabasx-protocol-kwp",
   "version": "0.1.0-alpha.213",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,7 +14,7 @@
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
   },
   "dependencies": {
-    "@ediabasx/protocol-uds": "workspace:*"
+    "@emdzej/ediabasx-protocol-uds": "workspace:*"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"

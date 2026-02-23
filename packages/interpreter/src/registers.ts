@@ -1,4 +1,4 @@
-import { cp1252ToUtf8, utf8ToCp1252 } from "@ediabasx/core";
+import { cp1252ToUtf8, utf8ToCp1252 } from "@emdzej/ediabasx-core";
 
 /**
  * BEST2 Register System
