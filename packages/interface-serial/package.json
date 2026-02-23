@@ -24,7 +24,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/emdzej/ediabasx.git",
-    "directory": "packages/interface-serial"
+    "url": "https://github.com/emdzej/ediabasx.git"
   }
 }

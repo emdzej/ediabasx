@@ -21,7 +21,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/emdzej/ediabasx.git",
-    "directory": "packages/protocol-kwp"
+    "url": "https://github.com/emdzej/ediabasx.git"
   }
 }
