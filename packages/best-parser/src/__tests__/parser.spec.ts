@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { utf8ToCp1252 } from "@emdzej/ediabasx-core";
+import { getLogger } from "@emdzej/ediabasx-logger";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { parsePrg } from "../parser";
+
+const log = getLogger("best-parser.tests");
 
 function writeUint32LE(view: DataView, offset: number, value: number): void {
   view.setUint32(offset, value, true);
@@ -97,7 +100,7 @@ describe("parsePrg", () => {
     it("parses d_motor.prg with binary jobs", () => {
       const filePath = path.join(testDataDir, "d_motor.prg");
       if (!fs.existsSync(filePath)) {
-        console.log("Skipping test: d_motor.prg not found");
+        log.info("Skipping test: d_motor.prg not found");
         return;
       }
       
@@ -121,7 +124,7 @@ describe("parsePrg", () => {
     it("parses allgemeine.prg with tables", () => {
       const filePath = path.join(testDataDir, "allgemeine.prg");
       if (!fs.existsSync(filePath)) {
-        console.log("Skipping test: allgemeine.prg not found");
+        log.info("Skipping test: allgemeine.prg not found");
         return;
       }
       

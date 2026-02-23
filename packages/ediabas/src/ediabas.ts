@@ -12,8 +12,11 @@ import {
   ParameterSet,
 } from "@emdzej/ediabasx-interpreter";
 import { EdiabasInterface, SimulationInterface } from "@emdzej/ediabasx-interface-base";
+import { getLogger } from "@emdzej/ediabasx-logger";
 import * as fs from "fs/promises";
 import * as path from "path";
+
+const log = getLogger("ediabas");
 
 export interface EdiabasConfig {
   /** Path to ECU files (.prg, .grp) */
@@ -78,9 +81,9 @@ export class Ediabas {
       this.prgPath = fullPath;
 
       if (this.config.logging) {
-        console.log(`Loaded SGBD: ${filename}`);
-        console.log(`  Jobs: ${this.prg.jobs.length}`);
-        console.log(`  Tables: ${this.prg.tables.length}`);
+        log.info(`Loaded SGBD: ${filename}`);
+        log.info(`  Jobs: ${this.prg.jobs.length}`);
+        log.info(`  Tables: ${this.prg.tables.length}`);
       }
     } catch (err) {
       throw new EdiabasError(
@@ -133,7 +136,7 @@ export class Ediabas {
     }
 
     if (this.config.logging) {
-      console.log(`Executing job: ${jobName}`);
+      log.info(`Executing job: ${jobName}`);
     }
 
     // Setup parameters

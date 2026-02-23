@@ -17,7 +17,10 @@ import { EdiabasInterface, SimulationInterface } from '@emdzej/ediabasx-interfac
 import { SerialInterface } from '@emdzej/ediabasx-interface-serial';
 import { EnetInterface } from '@emdzej/ediabasx-interface-enet';
 import { GatewayClient } from '@emdzej/ediabasx-interfaces';
+import { getLogger } from '@emdzej/ediabasx-logger';
 import { Ediabas, type EdiabasConfig } from './ediabas.js';
+
+const log = getLogger('ediabas.config-loader');
 
 /**
  * Configuration loading error
@@ -172,7 +175,7 @@ export const defaultInterfaceFactory: InterfaceFactory = async (config: Interfac
     
     case 'enet':
       // EnetInterface not fully implemented yet, store config for future use
-      console.warn('EnetInterface not fully implemented yet');
+      log.warn('EnetInterface not fully implemented yet');
       return new EnetInterface();
     
     case 'gateway':
@@ -183,7 +186,7 @@ export const defaultInterfaceFactory: InterfaceFactory = async (config: Interfac
     
     case 'icom':
       // ICOM not yet implemented, fall back to simulation
-      console.warn('ICOM interface not yet implemented, using simulation');
+      log.warn('ICOM interface not yet implemented, using simulation');
       return new SimulationInterface();
     
     default:
