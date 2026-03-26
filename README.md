@@ -300,3 +300,13 @@ MIT
 
 - [EdiabasLib](https://github.com/uholeschak/ediabaslib) - Original C# implementation
 - [BMW EDIABAS Documentation](https://www.ediabasx.de/) - Official BMW documentation
+
+## Right to Repair
+
+The [Right to Repair](https://repair.eu) movement advocates for consumers' ability to fix the products they own — from electronics to vehicles — without being locked out by manufacturers through proprietary tools, paywalled documentation, or artificial restrictions.
+
+**I build these tools because I believe repair is a fundamental right, not a privilege.**
+
+Too often, service manuals, diagnostic software, and technical documentation are kept behind closed doors — unavailable to individuals even when they're willing to pay. This wasn't always the case. Products once shipped with schematics and repair guides as standard. The increasing complexity of modern technology doesn't change the fact that capable people exist who can — and should be allowed to — use that information.
+
+These projects exist to preserve access to technical knowledge and ensure that owners aren't left at the mercy of vendors who may discontinue support, charge prohibitive fees, or simply refuse service.
