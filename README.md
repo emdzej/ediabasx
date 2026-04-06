@@ -292,6 +292,10 @@ All contributions should:
 - Include tests for new functionality
 - Keep documentation up to date
 
+## Support
+
+If you find this project useful, consider [buying me a coffee](https://buymeacoffee.com/emdzej) ☕ or [sponsoring on GitHub](https://github.com/sponsors/emdzej).
+
 ## License
 
 MIT
