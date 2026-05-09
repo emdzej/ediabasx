@@ -128,21 +128,6 @@ export function ConfigureApp({ initialConfig, outputPath, onSave }: ConfigureApp
     return [];
   }, [metadata, selectedInterface, step]);
 
-  const initializeInput = useCallback(
-    (opts: InterfaceOptionMetadata[], idx: number, existingOptions: InterfaceOptions) => {
-      const opt = opts[idx];
-      if (!opt) return;
-      const existing = existingOptions[opt.name];
-      if (existing !== undefined) {
-        setInputValue(String(existing));
-      } else {
-        setInputValue(formatDefault(opt));
-      }
-      setInputError(null);
-    },
-    [],
-  );
-
   const startOptionsPhase = useCallback(
     (phase: "common" | "advanced", ifaceName: string, opts: InterfaceOptions) => {
       const meta = getInterfaceMetadata(ifaceName);

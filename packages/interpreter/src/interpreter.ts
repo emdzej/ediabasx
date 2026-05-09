@@ -4,24 +4,10 @@ import { RegisterSet } from "./registers";
 import { Flags } from "./flags";
 import { CallStack } from "./callstack";
 import { DataStack } from "./stack";
-import {
-  add,
-  sub,
-  mul,
-  div,
-  and as andOp,
-  or as orOp,
-  xor as xorOp,
-  not as notOp,
-  shl,
-  shr,
-  asr as asrOp,
-  cmp,
-  test,
-  clear,
-  addc,
-  subc,
-} from "./operations/arithmetic";
+// Arithmetic ops are inlined via the polymorphic `arithmeticReadModifyWrite`
+// helper below so register / indexed / immediate destinations all work; the
+// standalone exports in ./operations/arithmetic are kept for external consumers.
+import { clear } from "./operations/arithmetic";
 import {
   type ExecutionState,
   jmp,
@@ -90,8 +76,6 @@ import {
   xsetparBytes,
   xawlenBytes,
   xsendRaw,
-  xsendf,
-  xrequf,
   xstopf,
   xkeyb,
   xstate,
@@ -99,9 +83,7 @@ import {
   xreset,
   xtype,
   xvers,
-  xreps,
   xgetport,
-  xsetport,
   xignit,
   xloopt,
   xprog,
@@ -398,30 +380,6 @@ function requireFloatRegister(operand: Operand): FloatRegisterRef {
     );
   }
   return reg;
-}
-
-/**
- * Extract binary data from any operand type.
- * Mirrors C# Operand.GetArrayData() which works on registers and literals alike.
- */
-function getOperandBytes(state: InterpreterState, operand: Operand): Uint8Array {
-  if (operand.kind === "string") {
-    return operand.raw;
-  }
-  if (operand.kind === "register") {
-    const ref = operand.ref;
-    if (ref.kind === "S") {
-      return getBinaryValue(state.registers, ref);
-    }
-    throw new EdiabasError(
-      EdiabasErrorCodes.REGISTER_ERROR,
-      "Expected string register or literal for byte data"
-    );
-  }
-  throw new EdiabasError(
-    EdiabasErrorCodes.INVALID_INSTRUCTION,
-    "Expected register or string operand for byte data"
-  );
 }
 
 function requireDateTimeDestination(operand: Operand): DateTimeDestination {
@@ -1876,18 +1834,11 @@ export class Interpreter {
       0x42: async (state, arg0) => {
         const count = readPolyValue(state, arg0, 1);
         const iface = requireCommunicationInterface(state);
-        try {
-          if (iface.setRepeatCounter) {
-            await iface.setRepeatCounter(count);
-          } else if ("commRepeats" in iface) {
-            iface.commRepeats = count;
-          }
-        } catch (error) {
-          // The xreps wrapper logs/maps errors; do the same here for consistency.
-          throw error;
+        if (iface.setRepeatCounter) {
+          await iface.setRepeatCounter(count);
+        } else if ("commRepeats" in iface) {
+          iface.commRepeats = count;
         }
-        // Reference the legacy xreps export to keep its signature exported.
-        void xreps;
       },
       0x43: async (state, arg0) => {
         const dest = requireIntRegister(arg0);
@@ -2214,12 +2165,10 @@ export class Interpreter {
         const value = readPolyValue(state, arg1, 1);
         const portData = readPolyBytes(state, arg0);
         const iface = requireCommunicationInterface(state);
-        const setPort = iface.setPort;
-        if (!setPort) {
+        if (!iface.setPort) {
           throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "Set port is not supported");
         }
-        await setPort(portData[0] ?? 0, value);
-        void xsetport;
+        await iface.setPort(portData[0] ?? 0, value);
       },
       // 0x77: xsireset - service interval reset; time is polymorphic.
       0x77: async (state, arg0) => {
