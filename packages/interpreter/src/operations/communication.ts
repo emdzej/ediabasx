@@ -144,6 +144,27 @@ export async function xsend(
   await sendAndReceive(registers, interfaceClass, response, request);
 }
 
+export async function xsendRaw(
+  registers: RegisterSet,
+  interfaceClass: CommunicationInterface,
+  response: StringRegisterRef,
+  requestBytes: Uint8Array
+): Promise<void> {
+  assertConnected(interfaceClass);
+  try {
+    if (interfaceClass.transmitData) {
+      const data = await interfaceClass.transmitData(requestBytes);
+      fromBytes(registers, response, data);
+      return;
+    }
+    await interfaceClass.send(requestBytes);
+    const data = await interfaceClass.receive();
+    fromBytes(registers, response, data);
+  } catch (error) {
+    wrapInterfaceError(error, "Send and receive");
+  }
+}
+
 export async function xrecv(
   registers: RegisterSet,
   interfaceClass: CommunicationInterface,
@@ -217,9 +238,31 @@ export async function xsetpar(
   interfaceClass: CommunicationInterface,
   source: StringRegisterRef
 ): Promise<void> {
+  await xsetparBytes(interfaceClass, toBytes(registers, source));
+}
+
+/**
+ * xsetpar variant taking raw bytes — used by the interpreter dispatch when arg0
+ * is a literal/indexed operand rather than a string register.
+ *
+ * EdiabasLib `OpXsetpar` reads a byte array whose first element selects the
+ * stride of the remaining UInt32 values, but in practice C# `EdInterfaceObd`
+ * decodes the bytes as `UInt32[]` (4 bytes per value, little-endian) regardless
+ * of the per-element stride hint, because `xsetpar` is invoked with a raw
+ * buffer of the concept's parameter array. We mirror that by treating the
+ * payload as packed little-endian uints.
+ */
+export async function xsetparBytes(
+  interfaceClass: CommunicationInterface,
+  dataArray: Uint8Array
+): Promise<void> {
   assertConnected(interfaceClass);
-  const dataArray = toBytes(registers, source);
-  let dataTypeLen = 0;
+
+  // Determine the per-element stride. Common BMW SGBDs encode the parameter
+  // array as a sequence of UInt16s (stride=2) and stash the type marker in
+  // dataArray[1] = 0x00. UInt32 encoding (stride=4) uses dataArray[1] = 0x01.
+  // 1-byte encoding (stride=1) uses dataArray[1] = 0xFF.
+  let dataTypeLen = 4;
   if (dataArray.length >= 2) {
     switch (dataArray[1]) {
       case 0x00:
@@ -277,8 +320,15 @@ export async function xawlen(
   interfaceClass: CommunicationInterface,
   source: StringRegisterRef
 ): Promise<void> {
+  await xawlenBytes(interfaceClass, toBytes(registers, source));
+}
+
+/** xawlen variant taking raw bytes (for literal/indexed operands). */
+export async function xawlenBytes(
+  interfaceClass: CommunicationInterface,
+  dataArray: Uint8Array
+): Promise<void> {
   assertConnected(interfaceClass);
-  const dataArray = toBytes(registers, source);
   if (dataArray.length % 2 !== 0) {
     throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "Invalid answer length data");
   }

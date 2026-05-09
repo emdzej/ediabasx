@@ -76,3 +76,12 @@ export {
   segmentIsoTpPayload,
   switchToCanMode
 } from "./dcan";
+export type { Ds2ConceptId, Ds2SessionOptions } from "./ds2";
+export {
+  Ds2Session,
+  answerLenForConcept,
+  calcChecksumXor,
+  telLengthDs2
+} from "./ds2";
+export type { AdapterWrappedTransportOptions } from "./adapterTransport";
+export { AdapterWrappedTransport } from "./adapterTransport";

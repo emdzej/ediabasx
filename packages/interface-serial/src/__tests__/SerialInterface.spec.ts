@@ -71,6 +71,51 @@ describe("SerialInterface", () => {
     );
   });
 
+  it("setCommParameter activates a DS2 session for concept 0x0001", async () => {
+    const transport = new MockSerialTransport();
+    const configureSpy = vi.spyOn(transport, "configure");
+    const serialInterface = new SerialInterface({ port: PORT, transport });
+
+    await serialInterface.connect();
+    // Concept 1 with baudRate=9600, ParTimeoutStd=200, ParRegenTime=10, ParTimeoutTelEnd=50.
+    await serialInterface.setCommParameter([0x0001, 9600, 0, 0, 0, 200, 10, 50]);
+
+    expect(serialInterface.hasDs2Session()).toBe(true);
+    expect(serialInterface.getDs2ConceptId()).toBe(0x0001);
+    // The transport should have been reconfigured to 8E1 at 9600 baud.
+    expect(configureSpy).toHaveBeenLastCalledWith({
+      baudRate: 9600,
+      dataBits: 8,
+      parity: "even",
+      stopBits: 1,
+    });
+  });
+
+  it("transmitData routes through the DS2 session and validates the response", async () => {
+    const transport = new MockSerialTransport();
+    const serialInterface = new SerialInterface({ port: PORT, transport });
+
+    await serialInterface.connect();
+    await serialInterface.setCommParameter([0x0006, 9600, 0, 0, 0, 200, 0, 50]);
+
+    // K-line is half-duplex: on a passthrough cable we see our own echo, then
+    // the ECU's response. Stage both. (The XOR-checksummed request is auto-appended.)
+    const requestBody = Uint8Array.of(0x12, 0x04, 0x0b);
+    const requestXor = 0x12 ^ 0x04 ^ 0x0b;
+    const respBody = Uint8Array.of(0x12, 0x05, 0xa0, 0x01);
+    let respXor = 0;
+    for (const b of respBody) respXor ^= b;
+
+    transport.enqueueRead(Uint8Array.of(...requestBody, requestXor)); // wire-echo
+    transport.enqueueRead(Uint8Array.of(...respBody, respXor)); // ECU response
+
+    const response = await serialInterface.transmitData(requestBody);
+    expect(Array.from(response)).toEqual([0x12, 0x05, 0xa0, 0x01, respXor]);
+
+    const wire = Uint8Array.from(transport.getWrites().flatMap((w) => Array.from(w)));
+    expect(Array.from(wire)).toEqual([0x12, 0x04, 0x0b, requestXor]);
+  });
+
   it("maps comm parameters to state", () => {
     const serialInterface = new SerialInterface({
       port: PORT,

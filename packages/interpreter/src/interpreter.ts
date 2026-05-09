@@ -1,4 +1,4 @@
-import { cp1252ToUtf8, utf8ToCp1252, EdiabasError, EdiabasErrorCodes } from "@emdzej/ediabasx-core";
+import { cp1252ToUtf8, utf8ToCp1252, EdiabasError, EdiabasErrorCodes, type EdiabasErrorCode } from "@emdzej/ediabasx-core";
 import type { PrgFile, PrgJob } from "@emdzej/ediabasx-best-parser";
 import { RegisterSet } from "./registers";
 import { Flags } from "./flags";
@@ -15,8 +15,9 @@ import {
   not as notOp,
   shl,
   shr,
+  asr as asrOp,
   cmp,
-  test,  
+  test,
   clear,
   addc,
   subc,
@@ -45,26 +46,15 @@ import {
 } from "./operations/control-flow";
 import { clrc, setc, clrv } from "./operations/flags";
 import { pop, push, pushf, popf, atsp, swap } from "./operations/stack";
-import {
-  srev,
-  strcmp,
-  strlen,
-  strcat,
-  a2fix,
-  fix2hex,
-  fix2dez,
-  ufix2dez,
-} from "./operations/string";
+// String operations are inlined via polymorphic helpers in this file.
+// The standalone functions remain exported for external consumers.
 import {
   fadd,
   fsub,
   fmul,
   fdiv,
   fcomp,
-  a2flt,
   flt2a,
-  fix2flt,
-  flt2fix,
 } from "./operations/float";
 import {
   type JobResult,
@@ -73,7 +63,6 @@ import {
   ergw,
   ergd,
   ergi,
-  ergr,
   ergs,
   ergy,
   ergc,
@@ -98,9 +87,9 @@ import {
   type CommunicationInterface,
   xconnect,
   xhangup,
-  xsetpar,
-  xawlen,
-  xsend,
+  xsetparBytes,
+  xawlenBytes,
+  xsendRaw,
   xsendf,
   xrequf,
   xstopf,
@@ -122,14 +111,14 @@ import {
 } from "./operations/communication";
 import {
   type FileSystem,
-  fopen,
-  fclose,
-  fread,
-  freadln,
-  fseek,
-  fseekln,
-  ftell,
-  ftellln,
+  fopenString,
+  fcloseValue,
+  freadHandle,
+  freadlnHandle,
+  fseekHandle,
+  fseeklnHandle,
+  ftellHandle,
+  ftelllnHandle,
 } from "./operations/file";
 import {
   type ProcedureHandler,
@@ -160,6 +149,11 @@ import { getBinaryValue, getFloatValue, getIntValue, getStringValue, setBinaryVa
 const EDIABAS_MAGIC = "@EDIABAS OBJECT";
 const EDIABAS_DATA_OFFSET = 0xa0;
 const EDIABAS_XOR_KEY = 0xf7;
+
+// Array buffer limits (mirror EdiabasNet ArrayMaxBufSize / ArrayMaxSize defaults).
+// EdiabasNet sets _arrayMaxBufSize=1024 by default; ArrayMaxSize = ArrayMaxBufSize - 1.
+const ARRAY_MAX_BUF_SIZE = 1024;
+const ARRAY_MAX_SIZE = ARRAY_MAX_BUF_SIZE - 1;
 
 const OpAddrModes = {
   NONE: 0,
@@ -250,6 +244,12 @@ type InterpreterState = {
   requestInit: boolean;
   // Results filter (for etag)
   resultsRequest: Set<string>;
+  // Job status string captured by eoj.
+  jobStatus: string;
+  // Archive of result sets emitted by enewset.
+  resultSetsTemp: JobResult[][];
+  // Separate system-results dictionary (ergsysi target).
+  systemResults: ResultCollector;
 };
 
 export type ExecutionOptions = {
@@ -268,6 +268,8 @@ export type ExecutionOptions = {
   procedureRegistry?: ProcedureRegistry;
   procedureStack?: ProcedureStack;
   procedureLinker?: (id: number) => ProcedureHandler | undefined;
+  /** Loads a table registry from an external file (used by tabsetex). */
+  tableLoader?: (baseFileName: string) => ReturnType<typeof createTableRegistry> | undefined;
   /** Set of requested result names (uppercase). If set, etag will skip results not in this set. */
   resultsRequest?: Set<string>;
 };
@@ -398,11 +400,28 @@ function requireFloatRegister(operand: Operand): FloatRegisterRef {
   return reg;
 }
 
-function resolveResultName(operand: Operand): string | StringRegisterRef {
+/**
+ * Extract binary data from any operand type.
+ * Mirrors C# Operand.GetArrayData() which works on registers and literals alike.
+ */
+function getOperandBytes(state: InterpreterState, operand: Operand): Uint8Array {
   if (operand.kind === "string") {
-    return operand.value;
+    return operand.raw;
   }
-  return requireStringRegister(operand);
+  if (operand.kind === "register") {
+    const ref = operand.ref;
+    if (ref.kind === "S") {
+      return getBinaryValue(state.registers, ref);
+    }
+    throw new EdiabasError(
+      EdiabasErrorCodes.REGISTER_ERROR,
+      "Expected string register or literal for byte data"
+    );
+  }
+  throw new EdiabasError(
+    EdiabasErrorCodes.INVALID_INSTRUCTION,
+    "Expected register or string operand for byte data"
+  );
 }
 
 function requireDateTimeDestination(operand: Operand): DateTimeDestination {
@@ -441,13 +460,6 @@ function resolveIntValue(registers: RegisterSet, operand: Operand): number {
         "Expected integer operand"
       );
   }
-}
-
-function resolveIntRegisterOrValue(registers: RegisterSet, operand: Operand): IntRegisterRef | number {
-  if (operand.kind === "register") {
-    return requireIntRegister(operand);
-  }
-  return resolveIntValue(registers, operand);
 }
 
 function resolveFloatValue(registers: RegisterSet, operand: Operand): number {
@@ -563,6 +575,291 @@ function resolveBinaryValue(registers: RegisterSet, operand: Operand): Uint8Arra
         "Expected binary operand"
       );
   }
+}
+
+/**
+ * GetDataLen-equivalent: byte width of an operand for arithmetic.
+ * - RegB/A/Imm8 → 1, RegI/Imm16 → 2, RegL/Imm32 → 4
+ * - RegS / ImmStr → string-array length (read mode)
+ * - IdxX → write mode = 1, read mode = remaining bytes
+ * - IdxXLenX → declared length
+ */
+function getOperandLen(state: InterpreterState, operand: Operand, write = false): number {
+  switch (operand.kind) {
+    case "register": {
+      const ref = operand.ref;
+      switch (ref.kind) {
+        case "B":
+        case "A":
+          return 1;
+        case "I":
+          return 2;
+        case "L":
+          return 4;
+        case "S":
+          return getBinaryValue(state.registers, ref).length;
+        case "F":
+          return 8;
+      }
+      return 0;
+    }
+    case "immediate":
+      return operand.width ?? 4;
+    case "string":
+      return operand.raw.length;
+    case "indexed": {
+      if (write) return 1;
+      if (operand.length) {
+        return Math.max(0, resolveIntValue(state.registers, operand.length));
+      }
+      const bytes = getBinaryValue(state.registers, operand.base);
+      const start = resolveIntValue(state.registers, operand.index) + (operand.offset?.value ?? 0);
+      return Math.max(0, bytes.length - start);
+    }
+    case "none":
+      return 0;
+  }
+}
+
+/**
+ * Mirrors C# Operand.GetValueData(len): read polymorphically as an integer.
+ * Works on Imm/Reg/Idx by reading `length` bytes (little-endian for byte arrays).
+ */
+function readPolyValue(state: InterpreterState, operand: Operand, length: number): number {
+  if (operand.kind === "immediate") {
+    const mask = length === 4 ? 0xffffffff : ((1 << (length * 8)) - 1) >>> 0;
+    return (operand.value & mask) >>> 0;
+  }
+  if (operand.kind === "register") {
+    const ref = operand.ref;
+    if (ref.kind === "S") {
+      const bytes = getBinaryValue(state.registers, ref);
+      let value = 0;
+      for (let i = length - 1; i >= 0; i--) {
+        value = ((value << 8) | (bytes[i] ?? 0)) >>> 0;
+      }
+      return value;
+    }
+    if (ref.kind === "F") {
+      throw new EdiabasError(EdiabasErrorCodes.REGISTER_ERROR, "Cannot read float as integer");
+    }
+    const raw = getIntValue(state.registers, ref);
+    const mask = length === 4 ? 0xffffffff : ((1 << (length * 8)) - 1) >>> 0;
+    return (raw & mask) >>> 0;
+  }
+  if (operand.kind === "indexed" || operand.kind === "string") {
+    const bytes = operand.kind === "string" ? operand.raw : resolveIndexedBytes(state.registers, operand);
+    let value = 0;
+    for (let i = length - 1; i >= 0; i--) {
+      value = ((value << 8) | (bytes[i] ?? 0)) >>> 0;
+    }
+    return value;
+  }
+  throw new EdiabasError(EdiabasErrorCodes.INVALID_INSTRUCTION, "Cannot read value from operand");
+}
+
+/**
+ * Mirrors C# Operand.GetArrayData(): returns bytes from any array-yielding operand.
+ * Accepts RegS, ImmStr, IdxX, IdxXLenX. For RegB/I/L it returns the int as little-endian bytes.
+ */
+function readPolyBytes(state: InterpreterState, operand: Operand): Uint8Array {
+  if (operand.kind === "string") return new Uint8Array(operand.raw);
+  if (operand.kind === "indexed") return resolveIndexedBytes(state.registers, operand);
+  if (operand.kind === "register") {
+    const ref = operand.ref;
+    if (ref.kind === "S") return getBinaryValue(state.registers, ref);
+    if (ref.kind === "F") {
+      throw new EdiabasError(EdiabasErrorCodes.REGISTER_ERROR, "Cannot read float as bytes");
+    }
+    const value = getIntValue(state.registers, ref) >>> 0;
+    const length = ref.kind === "B" || ref.kind === "A" ? 1 : ref.kind === "I" ? 2 : 4;
+    const out = new Uint8Array(length);
+    for (let i = 0; i < length; i++) out[i] = (value >>> (i * 8)) & 0xff;
+    return out;
+  }
+  if (operand.kind === "immediate") {
+    const length = operand.width ?? 4;
+    const value = operand.value >>> 0;
+    const out = new Uint8Array(length);
+    for (let i = 0; i < length; i++) out[i] = (value >>> (i * 8)) & 0xff;
+    return out;
+  }
+  throw new EdiabasError(EdiabasErrorCodes.INVALID_INSTRUCTION, "Cannot read bytes from operand");
+}
+
+/**
+ * Mirrors C# Operand.GetStringData(): bytes terminated at first 0x00, decoded as cp1252.
+ */
+function readPolyString(state: InterpreterState, operand: Operand): string {
+  const bytes = readPolyBytes(state, operand);
+  let length = bytes.length;
+  for (let i = 0; i < bytes.length; i++) {
+    if (bytes[i] === 0) {
+      length = i;
+      break;
+    }
+  }
+  return cp1252ToUtf8(bytes.subarray(0, length));
+}
+
+/**
+ * Polymorphic dispatch for ops that read both args, compute a result, and write back to
+ * arg0. Handles register (1/2/4-byte width) and indexed (byte-write at offset)
+ * destinations. The `compute(val0, val1, len)` callback returns `{ result, flags }`.
+ *
+ * Mirrors the C# pattern `arg0.SetRawData(compute(arg0.GetValueData(len), arg1.GetValueData(len)))`.
+ */
+function arithmeticReadModifyWrite(
+  state: InterpreterState,
+  arg0: Operand,
+  arg1: Operand,
+  compute: (val0: number, val1: number, len: number) => { result: number; flagsPatch: Partial<Flags> }
+): void {
+  if (arg0.kind === "register" && (arg0.ref.kind === "S" || arg0.ref.kind === "F")) {
+    throw new EdiabasError(
+      EdiabasErrorCodes.REGISTER_ERROR,
+      `Cannot perform arithmetic on ${arg0.ref.kind} register`
+    );
+  }
+  if (arg0.kind !== "register" && arg0.kind !== "indexed") {
+    throw new EdiabasError(
+      EdiabasErrorCodes.INVALID_INSTRUCTION,
+      "Expected register or indexed destination"
+    );
+  }
+
+  const len = Math.max(1, getOperandLen(state, arg0, true));
+  const val0 = readPolyValue(state, arg0, len);
+  const val1 = readPolyValue(state, arg1, len);
+  const { result, flagsPatch } = compute(val0, val1, len);
+
+  if (arg0.kind === "register") {
+    setIntValue(state.registers, arg0.ref as IntRegisterRef, result);
+  } else {
+    writePolyValue(state, arg0, result, len);
+  }
+
+  if (flagsPatch.z !== undefined) state.flags.z = flagsPatch.z;
+  if (flagsPatch.s !== undefined) state.flags.s = flagsPatch.s;
+  if (flagsPatch.v !== undefined) state.flags.v = flagsPatch.v;
+  if (flagsPatch.c !== undefined) state.flags.c = flagsPatch.c;
+}
+
+function maskForLen(len: number): number {
+  return len === 4 ? 0xffffffff : ((1 << (len * 8)) - 1) >>> 0;
+}
+
+function signMaskForLen(len: number): number {
+  return (1 << (len * 8 - 1)) >>> 0;
+}
+
+function updateZS(value: number, len: number): { z: boolean; s: boolean } {
+  const mask = maskForLen(len);
+  const masked = value & mask;
+  return { z: masked === 0, s: (masked & signMaskForLen(len)) !== 0 };
+}
+
+/**
+ * Mirrors C# Operand.SetRawData(EdValueType, len) for register/indexed destinations.
+ * Writes `length` bytes derived from `value` little-endian. For int registers it sets the
+ * register value; for string registers / indexed it sets the bytes.
+ */
+function writePolyValue(state: InterpreterState, operand: Operand, value: number, length: number): void {
+  if (operand.kind === "register") {
+    const ref = operand.ref;
+    if (ref.kind === "S") {
+      const out = new Uint8Array(length);
+      const v = value >>> 0;
+      for (let i = 0; i < length; i++) out[i] = (v >>> (i * 8)) & 0xff;
+      setBinaryValue(state.registers, ref, out);
+      return;
+    }
+    if (ref.kind === "F") {
+      throw new EdiabasError(EdiabasErrorCodes.REGISTER_ERROR, "Cannot write integer to float register");
+    }
+    setIntValue(state.registers, ref, value);
+    return;
+  }
+  if (operand.kind === "indexed") {
+    const out = new Uint8Array(length);
+    const v = value >>> 0;
+    for (let i = 0; i < length; i++) out[i] = (v >>> (i * 8)) & 0xff;
+    writePolyBytes(state, operand, out);
+    return;
+  }
+  throw new EdiabasError(EdiabasErrorCodes.INVALID_INSTRUCTION, "Cannot write value to operand");
+}
+
+/**
+ * Mirrors C# Operand.SetArrayData / SetRawData(byte[]). Writes bytes into a register or indexed slice.
+ */
+function writePolyBytes(state: InterpreterState, operand: Operand, data: Uint8Array): void {
+  if (operand.kind === "register") {
+    const ref = operand.ref;
+    if (ref.kind !== "S") {
+      throw new EdiabasError(EdiabasErrorCodes.REGISTER_ERROR, "Expected string register for byte data");
+    }
+    setBinaryValue(state.registers, ref, data);
+    return;
+  }
+  if (operand.kind === "indexed") {
+    const baseBytes = getBinaryValue(state.registers, operand.base);
+    const start = Math.max(0, resolveIntValue(state.registers, operand.index) + (operand.offset?.value ?? 0));
+    const required = start + data.length;
+    if (required > ARRAY_MAX_SIZE) {
+      throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0001, "Array buffer overflow");
+    }
+    const merged = new Uint8Array(Math.max(baseBytes.length, required));
+    merged.set(baseBytes);
+    merged.set(data, start);
+    setBinaryValue(state.registers, operand.base, merged);
+    return;
+  }
+  throw new EdiabasError(EdiabasErrorCodes.INVALID_INSTRUCTION, "Cannot write bytes to operand");
+}
+
+/**
+ * Mirrors C# Operand.SetStringData(string): writes cp1252-encoded bytes (no auto-null).
+ */
+function writePolyString(state: InterpreterState, operand: Operand, value: string): void {
+  const bytes = utf8ToCp1252(value);
+  writePolyBytes(state, operand, bytes);
+}
+
+/**
+ * Read a float from any operand (registers / numeric immediates).
+ */
+function readPolyFloat(state: InterpreterState, operand: Operand): number {
+  if (operand.kind === "register" && operand.ref.kind === "F") {
+    return getFloatValue(state.registers, operand.ref);
+  }
+  if (operand.kind === "immediate") return operand.value;
+  throw new EdiabasError(EdiabasErrorCodes.REGISTER_ERROR, "Expected float operand");
+}
+
+/**
+ * BCD nibble: 0-9 → '0'-'9', else '*' (mirrors EdiabasNet.ValueToBcd).
+ */
+function nibbleToBcdChar(nibble: number): string {
+  const n = nibble & 0x0f;
+  return n > 9 ? "*" : n.toString(16).toUpperCase();
+}
+
+/**
+ * Write `data` into the destination operand. For indexed destinations, write at
+ * (index + offset) preserving surrounding bytes (mirrors C# OpFlt2Y4 / OpFlt2Y8).
+ * For register destinations, overwrite entirely.
+ */
+function writeFloatBytesAt(state: InterpreterState, operand: Operand, data: Uint8Array): void {
+  if (operand.kind === "indexed") {
+    writePolyBytes(state, operand, data);
+    return;
+  }
+  if (operand.kind === "register" && operand.ref.kind === "S") {
+    setBinaryValue(state.registers, operand.ref, data);
+    return;
+  }
+  throw new EdiabasError(EdiabasErrorCodes.REGISTER_ERROR, "Expected string register/indexed for float bytes");
 }
 
 function decodeOperand(
@@ -810,6 +1107,7 @@ export class Interpreter {
   private readonly code: Uint8Array;
   private context: InterpreterState | null = null;
   private readonly tableRegistry: ReturnType<typeof createTableRegistry>;
+  private tableLoader?: (baseFileName: string) => ReturnType<typeof createTableRegistry> | undefined;
 
   constructor(prg: PrgFile) {
     this.prg = prg;
@@ -842,6 +1140,7 @@ export class Interpreter {
     const procedureRegistry = options.procedureRegistry ?? new ProcedureRegistry();
     const procedureStack = options.procedureStack ?? new ProcedureStack();
     const tableState = options.tableState ?? { activeTable: null, rowIndex: -1 };
+    this.tableLoader = options.tableLoader;
 
     this.context = {
       pc: offset,
@@ -871,6 +1170,9 @@ export class Interpreter {
       progressPos: -1,
       requestInit: false,
       resultsRequest: options.resultsRequest ?? new Set(),
+      jobStatus: "",
+      resultSetsTemp: [],
+      systemResults: new ResultCollector(),
     };
   }
 
@@ -1053,32 +1355,150 @@ export class Interpreter {
         state.flags.s = false;
         state.flags.v = false;
       },
+      // 0x02: comp - C# OpComp reads BOTH args polymorphically (no register requirement
+      // since neither side is written). Indexed/immediate operands are valid for arg0.
       0x02: async (state, arg0, arg1) => {
-        cmp(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        const len = Math.max(1, getOperandLen(state, arg0, true));
+        const val0 = readPolyValue(state, arg0, len);
+        const val1 = readPolyValue(state, arg1, len);
+        const diff = (val0 - val1) >>> 0;
+        const mask = len === 4 ? 0xffffffff : ((1 << (len * 8)) - 1) >>> 0;
+        const signMask = (1 << (len * 8 - 1)) >>> 0;
+        const result = diff & mask;
+        state.flags.z = result === 0;
+        state.flags.s = (result & signMask) !== 0;
+        // Overflow: signs of operands differ AND sign of result differs from val0.
+        const v0Sign = (val0 & signMask) !== 0;
+        const v1Sign = (val1 & signMask) !== 0;
+        const rSign = (result & signMask) !== 0;
+        state.flags.v = v0Sign !== v1Sign && rSign !== v0Sign;
+        state.flags.c = val0 < val1;
       },
+      // 0x03: subb - dest -= source. Indexed/register destination supported.
       0x03: async (state, arg0, arg1) => {
-        sub(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
+          const mask = maskForLen(len);
+          const sm = signMaskForLen(len);
+          const result = (val0 - val1) & mask;
+          const v0Sign = (val0 & sm) !== 0, v1Sign = (val1 & sm) !== 0, rSign = (result & sm) !== 0;
+          return {
+            result,
+            flagsPatch: {
+              ...updateZS(result, len),
+              v: v0Sign !== v1Sign && rSign !== v0Sign,
+              c: val0 < val1,
+            },
+          };
+        });
       },
+      // 0x04: adds - dest += source.
       0x04: async (state, arg0, arg1) => {
-        add(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
+          const mask = maskForLen(len);
+          const sm = signMaskForLen(len);
+          const sum = val0 + val1;
+          const result = sum & mask;
+          const v0Sign = (val0 & sm) !== 0, v1Sign = (val1 & sm) !== 0, rSign = (result & sm) !== 0;
+          return {
+            result,
+            flagsPatch: {
+              ...updateZS(result, len),
+              v: v0Sign === v1Sign && rSign !== v0Sign,
+              c: sum > mask,
+            },
+          };
+        });
       },
+      // 0x05: mult - 64-bit signed product; high half written to arg1 if register.
       0x05: async (state, arg0, arg1) => {
-        mul(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        const len = Math.max(1, getOperandLen(state, arg0, true));
+        const val0 = readPolyValue(state, arg0, len);
+        const val1 = readPolyValue(state, arg1, len);
+        const sm = signMaskForLen(len);
+        // Sign-extend operands to JS number, multiply via BigInt for full 2N-bit precision.
+        const s0 = (val0 & sm) ? val0 - (1 << (len * 8)) : val0;
+        const s1 = (val1 & sm) ? val1 - (1 << (len * 8)) : val1;
+        const product = BigInt(s0) * BigInt(s1);
+        const totalBits = BigInt(len * 16);
+        const totalMask = (1n << totalBits) - 1n;
+        const productUnsigned = ((product % (1n << totalBits)) + (1n << totalBits)) & totalMask;
+        const lowMask = (1n << BigInt(len * 8)) - 1n;
+        const lowResult = Number(productUnsigned & lowMask) >>> 0;
+        const highResult = Number((productUnsigned >> BigInt(len * 8)) & lowMask) >>> 0;
+        if (arg0.kind === "register" && arg0.ref.kind !== "S" && arg0.ref.kind !== "F") {
+          setIntValue(state.registers, arg0.ref, lowResult);
+        } else {
+          writePolyValue(state, arg0, lowResult, len);
+        }
+        if (arg1.kind === "register" && arg1.ref.kind !== "S" && arg1.ref.kind !== "F") {
+          setIntValue(state.registers, arg1.ref, highResult);
+        }
+        const zs = updateZS(lowResult, len);
+        state.flags.z = zs.z;
+        state.flags.s = zs.s;
+        state.flags.v = false;
       },
+      // 0x06: divs - signed division; quotient → arg0, remainder → arg1 (if register).
       0x06: async (state, arg0, arg1) => {
-        div(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        const len = Math.max(1, getOperandLen(state, arg0, true));
+        const val0 = readPolyValue(state, arg0, len);
+        const val1 = readPolyValue(state, arg1, len);
+        const sm = signMaskForLen(len);
+        const s0 = (val0 & sm) ? val0 - (1 << (len * 8)) : val0;
+        const s1 = (val1 & sm) ? val1 - (1 << (len * 8)) : val1;
+        let quotient = val0;
+        let remainder = 0;
+        let error = false;
+        if (s1 === 0) {
+          error = true;
+        } else {
+          quotient = Math.trunc(s0 / s1) >>> 0;
+          remainder = (s0 - Math.trunc(s0 / s1) * s1) >>> 0;
+        }
+        const mask = maskForLen(len);
+        const result = error ? val0 : (quotient & mask);
+        if (arg0.kind === "register" && arg0.ref.kind !== "S" && arg0.ref.kind !== "F") {
+          setIntValue(state.registers, arg0.ref, result);
+        } else {
+          writePolyValue(state, arg0, result, len);
+        }
+        if (!error && arg1.kind === "register" && arg1.ref.kind !== "S" && arg1.ref.kind !== "F") {
+          setIntValue(state.registers, arg1.ref, remainder);
+        }
+        const zs = updateZS(error ? 0 : (quotient & mask), len);
+        state.flags.z = zs.z;
+        state.flags.s = zs.s;
+        state.flags.v = false;
       },
+      // 0x07: and / 0x08: or / 0x09: xor — indexed dest supported.
       0x07: async (state, arg0, arg1) => {
-        andOp(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
+          const mask = maskForLen(len);
+          const result = (val0 & val1) & mask;
+          return { result, flagsPatch: { ...updateZS(result, len), v: false } };
+        });
       },
       0x08: async (state, arg0, arg1) => {
-        orOp(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
+          const mask = maskForLen(len);
+          const result = (val0 | val1) & mask;
+          return { result, flagsPatch: { ...updateZS(result, len), v: false } };
+        });
       },
       0x09: async (state, arg0, arg1) => {
-        xorOp(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
+          const mask = maskForLen(len);
+          const result = (val0 ^ val1) & mask;
+          return { result, flagsPatch: { ...updateZS(result, len), v: false } };
+        });
       },
+      // 0x0a: not - bitwise complement, indexed dest supported.
       0x0a: async (state, arg0) => {
-        notOp(state.registers, state.flags, requireIntRegister(arg0));
+        arithmeticReadModifyWrite(state, arg0, { kind: "none" } as Operand, (val0, _val1, len) => {
+          const mask = maskForLen(len);
+          const result = (~val0) & mask;
+          return { result, flagsPatch: { ...updateZS(result, len), v: false } };
+        });
       },
       0x0b: jumpHandler(jmp),
       0x0c: async (state, arg0) => {
@@ -1104,22 +1524,116 @@ export class Interpreter {
       0x17: async (state) => {
         setc(state.flags);
       },
+      // 0x18: asr - arithmetic shift right (sign-extending). Indexed dest supported.
       0x18: async (state, arg0, arg1) => {
-        shr(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
+          const mask = maskForLen(len);
+          const sm = signMaskForLen(len);
+          const shift = val1 | 0;
+          const signSet = (val0 & sm) !== 0;
+          let result = val0;
+          let carry: boolean | undefined;
+          if (shift > 0) {
+            if (shift > len * 8) {
+              carry = signSet;
+            } else {
+              carry = (val0 & ((1 << (shift - 1)) >>> 0)) !== 0;
+            }
+            if (shift >= len * 8) {
+              result = signSet ? mask : 0;
+            } else {
+              const signed = signSet ? val0 - (1 << (len * 8)) : val0;
+              result = (signed >> shift) & mask;
+            }
+          } else if (shift === 0) {
+            carry = false;
+          }
+          return {
+            result,
+            flagsPatch: { ...updateZS(result, len), v: false, ...(carry !== undefined ? { c: carry } : {}) },
+          };
+        });
       },
+      // 0x19: lsl / 0x1b: asl - logical/arithmetic shift left (same operation).
       0x19: async (state, arg0, arg1) => {
-        shl(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
-      },
-      0x1a: async (state, arg0, arg1) => {
-        shr(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
+          const mask = maskForLen(len);
+          const shift = val1 | 0;
+          let result = val0;
+          let carry: boolean | undefined;
+          if (shift > 0) {
+            if (shift > len * 8) {
+              carry = false;
+            } else {
+              const carryShift = len * 8 - shift;
+              carry = (val0 & ((1 << carryShift) >>> 0)) !== 0;
+            }
+            result = shift >= len * 8 ? 0 : ((val0 << shift) >>> 0) & mask;
+          } else if (shift === 0) {
+            carry = false;
+          }
+          return {
+            result,
+            flagsPatch: { ...updateZS(result, len), v: false, ...(carry !== undefined ? { c: carry } : {}) },
+          };
+        });
       },
       0x1b: async (state, arg0, arg1) => {
-        shl(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
+          const mask = maskForLen(len);
+          const shift = val1 | 0;
+          let result = val0;
+          let carry: boolean | undefined;
+          if (shift > 0) {
+            if (shift > len * 8) {
+              carry = false;
+            } else {
+              const carryShift = len * 8 - shift;
+              carry = (val0 & ((1 << carryShift) >>> 0)) !== 0;
+            }
+            result = shift >= len * 8 ? 0 : ((val0 << shift) >>> 0) & mask;
+          } else if (shift === 0) {
+            carry = false;
+          }
+          return {
+            result,
+            flagsPatch: { ...updateZS(result, len), v: false, ...(carry !== undefined ? { c: carry } : {}) },
+          };
+        });
+      },
+      // 0x1a: lsr - logical shift right.
+      0x1a: async (state, arg0, arg1) => {
+        arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
+          const mask = maskForLen(len);
+          const shift = val1 | 0;
+          let result = val0;
+          let carry: boolean | undefined;
+          if (shift > 0) {
+            if (shift > len * 8) {
+              carry = false;
+            } else {
+              carry = (val0 & ((1 << (shift - 1)) >>> 0)) !== 0;
+            }
+            result = shift >= len * 8 ? 0 : (val0 >>> shift) & mask;
+          } else if (shift === 0) {
+            carry = false;
+          }
+          return {
+            result,
+            flagsPatch: { ...updateZS(result, len), v: false, ...(carry !== undefined ? { c: carry } : {}) },
+          };
+        });
       },
       0x1c: async () => {
         // nop
       },
-      0x1d: async () => ({ halted: true }),
+      // 0x1d: eoj - end of job. Captures arg0 as job status string if present.
+      0x1d: async (state, arg0) => {
+        if (arg0.kind !== "none") {
+          state.jobStatus = readPolyString(state, arg0);
+        }
+        return { halted: true };
+      },
       0x1e: async (state, arg0) => {
         if (arg0.kind === "register") {
           push(state.registers, state.dataStack, requireIntRegister(arg0));
@@ -1155,20 +1669,27 @@ export class Interpreter {
           && leftBytes.every((value, index) => value === rightBytes[index]);
         state.flags.z = equal;
       },
+      // 0x21: scat - byte-array concat. C# raises EDIABAS_BIP_0001 on overflow.
       0x21: async (state, arg0, arg1) => {
         const dest = requireStringRegister(arg0);
         const destBytes = getBinaryValue(state.registers, dest);
-        const sourceBytes = resolveBinaryValue(state.registers, arg1);
-        const result = new Uint8Array(destBytes.length + sourceBytes.length);
+        const sourceBytes = readPolyBytes(state, arg1);
+        const totalLen = destBytes.length + sourceBytes.length;
+        if (totalLen > ARRAY_MAX_SIZE) {
+          throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0001, "scat: array overflow");
+        }
+        const result = new Uint8Array(totalLen);
         result.set(destBytes);
         result.set(sourceBytes, destBytes.length);
         setBinaryValue(state.registers, dest, result);
       },
+      // 0x22: scut - polymorphic length operand.
       0x22: async (state, arg0, arg1) => {
         const dest = requireStringRegister(arg0);
-        const len = Math.max(0, resolveIntValue(state.registers, arg1));
+        const len = Math.max(0, readPolyValue(state, arg1, 4));
         const bytes = getBinaryValue(state.registers, dest);
-        const newBytes = bytes.slice(0, Math.max(0, bytes.length - len));
+        // C# OpScut: if len > bytes.Length → SetArrayData(ByteArray0); else trim from the end.
+        const newBytes = len > bytes.length ? new Uint8Array() : bytes.slice(0, bytes.length - len);
         setBinaryValue(state.registers, dest, newBytes);
       },
       0x23: async (state, arg0, arg1) => {
@@ -1183,15 +1704,24 @@ export class Interpreter {
         state.flags.s = (masked & signMask) !== 0;
         state.flags.v = false;
       },
+      // 0x24: spaste - insert bytes at indexed position (C# OpSpaste).
+      // Raises EDIABAS_BIP_0001 if startIdx >= ArrayMaxSize or final length exceeds it.
       0x24: async (state, arg0, arg1) => {
         const target = requireIndexed(arg0);
-        const insertBytes = resolveBinaryValue(state.registers, arg1);
+        const insertBytes = readPolyBytes(state, arg1);
         const baseBytes = getBinaryValue(state.registers, target.base);
         const start = Math.max(0, resolveIntValue(state.registers, target.index) + (target.offset?.value ?? 0));
+        if (start >= ARRAY_MAX_SIZE) {
+          throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0001, "spaste: index past max");
+        }
         if (start >= baseBytes.length) {
           return;
         }
-        const result = new Uint8Array(baseBytes.length + insertBytes.length);
+        const totalLen = baseBytes.length + insertBytes.length;
+        if (totalLen > ARRAY_MAX_SIZE) {
+          throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0001, "spaste: array overflow");
+        }
+        const result = new Uint8Array(totalLen);
         result.set(baseBytes.slice(0, start));
         result.set(insertBytes, start);
         result.set(baseBytes.slice(start), start + insertBytes.length);
@@ -1217,25 +1747,38 @@ export class Interpreter {
       0x27: async (state) => {
         await xhangup(requireCommunicationInterface(state));
       },
+      // 0x28: xsetpar - parameter bytes can be a register, immediate, indexed slice or literal.
       0x28: async (state, arg0) => {
-        await xsetpar(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
+        const bytes = readPolyBytes(state, arg0);
+        await xsetparBytes(requireCommunicationInterface(state), bytes);
       },
+      // 0x29: xawlen - same polymorphic input as xsetpar.
       0x29: async (state, arg0) => {
-        await xawlen(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
+        const bytes = readPolyBytes(state, arg0);
+        await xawlenBytes(requireCommunicationInterface(state), bytes);
       },
+      // 0x2a: xsend - response register is required (string register), request payload is polymorphic.
       0x2a: async (state, arg0, arg1) => {
-        await xsend(
+        const requestBytes = readPolyBytes(state, arg1);
+        await xsendRaw(
           state.registers,
           requireCommunicationInterface(state),
           requireStringRegister(arg0),
-          requireStringRegister(arg1)
+          requestBytes
         );
       },
       0x2b: async (state, arg0) => {
-        await xsendf(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
+        // xsendf installs a "frequent" send buffer; payload may be polymorphic.
+        const bytes = readPolyBytes(state, arg0);
+        const iface = requireCommunicationInterface(state);
+        await iface.transmitFrequent(bytes);
       },
       0x2c: async (state, arg0) => {
-        await xrequf(state.registers, requireCommunicationInterface(state), requireStringRegister(arg0));
+        // xrequf reads frequent receive buffer into the destination string register.
+        const dest = requireStringRegister(arg0);
+        const iface = requireCommunicationInterface(state);
+        const data = await iface.receiveFrequent();
+        setBinaryValue(state.registers, dest, data);
       },
       0x2d: async (state) => {
         await xstopf(requireCommunicationInterface(state));
@@ -1258,36 +1801,40 @@ export class Interpreter {
       0x33: async (state, arg0) => {
         xvers(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
       },
+      // 0x34..0x39: erg* - all use GetStringData on arg0 (name) and GetValueData/GetStringData on arg1.
       0x34: async (state, arg0, arg1) => {
-        const name = resolveResultName(arg0);
-        ergb(state.registers, state.results, name, resolveIntValue(state.registers, arg1));
+        const name = readPolyString(state, arg0);
+        ergb(state.registers, state.results, name, readPolyValue(state, arg1, 1));
       },
       0x35: async (state, arg0, arg1) => {
-        const name = resolveResultName(arg0);
-        ergw(state.registers, state.results, name, resolveIntValue(state.registers, arg1));
+        const name = readPolyString(state, arg0);
+        ergw(state.registers, state.results, name, readPolyValue(state, arg1, 2));
       },
       0x36: async (state, arg0, arg1) => {
-        const name = resolveResultName(arg0);
-        ergd(state.registers, state.results, name, resolveIntValue(state.registers, arg1));
+        const name = readPolyString(state, arg0);
+        ergd(state.registers, state.results, name, readPolyValue(state, arg1, 4));
       },
       0x37: async (state, arg0, arg1) => {
-        const name = resolveResultName(arg0);
-        ergi(state.registers, state.results, name, resolveIntValue(state.registers, arg1));
+        const name = readPolyString(state, arg0);
+        ergi(state.registers, state.results, name, readPolyValue(state, arg1, 2));
       },
       0x38: async (state, arg0, arg1) => {
-        const name = resolveResultName(arg0);
-        ergr(state.registers, state.results, name, requireFloatRegister(arg1));
+        const name = readPolyString(state, arg0);
+        // C# OpErgr: only float registers/operands are valid for arg1.
+        const value = readPolyFloat(state, arg1);
+        state.results.record(name, "real", value);
       },
       0x39: async (state, arg0, arg1) => {
-        const name = resolveResultName(arg0);
-        if (arg1.kind === "string") {
-          ergs(state.registers, state.results, name, arg1.value);
-          return;
-        }
-        ergs(state.registers, state.results, name, requireStringRegister(arg1));
+        const name = readPolyString(state, arg0);
+        const value = readPolyString(state, arg1);
+        ergs(state.registers, state.results, name, value);
       },
+      // 0x3a: a2flt - C# OpA2Flt: arg1.GetStringData() (poly).
       0x3a: async (state, arg0, arg1) => {
-        a2flt(state.registers, requireFloatRegister(arg0), requireStringRegister(arg1));
+        const dst = requireFloatRegister(arg0);
+        const str = readPolyString(state, arg1);
+        const value = parseFloat(str.replace(/,/g, "."));
+        setFloatValue(state.registers, dst, Number.isFinite(value) ? value : 0);
       },
       0x3b: async (state, arg0, arg1) => {
         fadd(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
@@ -1301,14 +1848,19 @@ export class Interpreter {
       0x3e: async (state, arg0, arg1) => {
         fdiv(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
       },
+      // 0x3f: ergy - C# OpErgy: arg0 GetStringData; arg1 GetArrayData.
       0x3f: async (state, arg0, arg1) => {
-        const name = resolveResultName(arg0);
-        const binary = resolveBinaryValue(state.registers, arg1);
+        const name = readPolyString(state, arg0);
+        const binary = readPolyBytes(state, arg1);
         ergy(state.registers, state.results, name, binary);
       },
-      // 0x40: enewset - new result set (clear results)
+      // 0x40: enewset - archive current result-set then clear (mirrors C# OpEnewset).
       0x40: async (state) => {
-        state.results.clear();
+        const current = state.results.list();
+        if (current.length > 0) {
+          state.resultSetsTemp.push(current);
+          state.results.clear();
+        }
       },
       // 0x41: etag - conditional result skip
       // If resultsRequest is set and the result name is not in it, jump to arg0
@@ -1320,8 +1872,22 @@ export class Interpreter {
           }
         }
       },
+      // 0x42: xreps - C# OpXreps reads arg0 polymorphically (GetValueData).
       0x42: async (state, arg0) => {
-        await xreps(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
+        const count = readPolyValue(state, arg0, 1);
+        const iface = requireCommunicationInterface(state);
+        try {
+          if (iface.setRepeatCounter) {
+            await iface.setRepeatCounter(count);
+          } else if ("commRepeats" in iface) {
+            iface.commRepeats = count;
+          }
+        } catch (error) {
+          // The xreps wrapper logs/maps errors; do the same here for consistency.
+          throw error;
+        }
+        // Reference the legacy xreps export to keep its signature exported.
+        void xreps;
       },
       0x43: async (state, arg0) => {
         const dest = requireIntRegister(arg0);
@@ -1351,13 +1917,42 @@ export class Interpreter {
       0x47: trapJumpHandler(jt),
       // 0x48: jnt - jump if no trap detected
       0x48: trapJumpHandler(jnt),
-      // 0x49: addc - add with carry
+      // 0x49: addc - add with carry. Indexed dest supported.
       0x49: async (state, arg0, arg1) => {
-        addc(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        const carryIn = state.flags.c ? 1 : 0;
+        arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
+          const mask = maskForLen(len);
+          const sm = signMaskForLen(len);
+          const sum = val0 + val1 + carryIn;
+          const result = sum & mask;
+          const v0Sign = (val0 & sm) !== 0, v1Sign = (val1 & sm) !== 0, rSign = (result & sm) !== 0;
+          return {
+            result,
+            flagsPatch: {
+              ...updateZS(result, len),
+              v: v0Sign === v1Sign && rSign !== v0Sign,
+              c: sum > mask,
+            },
+          };
+        });
       },
-      // 0x4a: subc - subtract with carry/borrow
+      // 0x4a: subc - subtract with carry/borrow. Indexed dest supported.
       0x4a: async (state, arg0, arg1) => {
-        subc(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        const borrowIn = state.flags.c ? 1 : 0;
+        arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
+          const mask = maskForLen(len);
+          const sm = signMaskForLen(len);
+          const result = (val0 - val1 - borrowIn) & mask;
+          const v0Sign = (val0 & sm) !== 0, v1Sign = (val1 & sm) !== 0, rSign = (result & sm) !== 0;
+          return {
+            result,
+            flagsPatch: {
+              ...updateZS(result, len),
+              v: v0Sign !== v1Sign && rSign !== v0Sign,
+              c: val0 < val1 + borrowIn,
+            },
+          };
+        });
       },
       // 0x4b: break - user break (EdiabasLib: EDIABAS_BIP_0008)
       0x4b: async () => {
@@ -1376,18 +1971,18 @@ export class Interpreter {
       0x4f: async (state) => {
         pushf(state.dataStack, state.flags);
       },
+      // 0x50: atsp - read from stack at offset. C# UpdateFlags only sets Z/S, not V.
       0x50: async (state, arg0, arg1) => {
-        const offset = resolveIntValue(state.registers, arg1);
+        const offset = readPolyValue(state, arg1, 4);
         const dest = requireIntRegister(arg0);
         atsp(state.registers, state.dataStack, dest, offset);
         const length = intRegisterByteLength(dest);
         const value = getIntValue(state.registers, dest);
-        const mask = length === 4 ? 0xffffffff : (1 << (length * 8)) - 1;
+        const mask = length === 4 ? 0xffffffff : ((1 << (length * 8)) - 1) >>> 0;
         const signMask = 1 << (length * 8 - 1);
         const masked = value & mask;
         state.flags.z = masked === 0;
         state.flags.s = (masked & signMask) !== 0;
-        state.flags.v = false;
       },
       0x51: async (state, arg0) => {
         if (arg0.kind === "indexed") {
@@ -1406,8 +2001,13 @@ export class Interpreter {
           state.tokenIndex = resolveIntValue(state.registers, arg1);
         }
       },
+      // 0x53: srevrs - reverse the byte array (NOT chars). Mirrors C# OpSrevrs.
       0x53: async (state, arg0) => {
-        srev(state.registers, requireStringRegister(arg0));
+        const ref = requireStringRegister(arg0);
+        const bytes = getBinaryValue(state.registers, ref);
+        const reversed = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) reversed[i] = bytes[bytes.length - 1 - i];
+        setBinaryValue(state.registers, ref, reversed);
       },
       0x54: async (state, arg0, arg1) => {
         const separator = state.tokenSeparator;
@@ -1426,43 +2026,94 @@ export class Interpreter {
         state.flags.z = false;
       },
       0x55: async (state, arg0, arg1) => {
-        parb(state.registers, state.flags, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
+        parb(state.registers, state.flags, state.parameters, requireIntRegister(arg0), readPolyValue(state, arg1, 1));
       },
       0x56: async (state, arg0, arg1) => {
-        parw(state.registers, state.flags, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
+        parw(state.registers, state.flags, state.parameters, requireIntRegister(arg0), readPolyValue(state, arg1, 2));
       },
       0x57: async (state, arg0, arg1) => {
-        parl(state.registers, state.flags, state.parameters, requireIntRegister(arg0), resolveIntValue(state.registers, arg1));
+        parl(state.registers, state.flags, state.parameters, requireIntRegister(arg0), readPolyValue(state, arg1, 4));
       },
       0x58: async (state, arg0, arg1) => {
-        pars(state.registers, state.flags, state.parameters, requireStringRegister(arg0), resolveIntValue(state.registers, arg1));
+        pars(state.registers, state.flags, state.parameters, requireStringRegister(arg0), readPolyValue(state, arg1, 4));
       },
+      // 0x59: fclose - C# uses arg0.GetValueData(1) so accepts immediates/indexed.
       0x59: async (state, arg0) => {
-        fclose(requireFileSystem(state), state.registers, requireIntRegister(arg0));
+        fcloseValue(requireFileSystem(state), readPolyValue(state, arg0, 1));
       },
+      // 0x60: fopen - filename is GetStringData (poly), handle dest is a register.
       0x60: async (state, arg0, arg1) => {
-        fopen(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireStringRegister(arg1), undefined, state.flags);
+        fopenString(
+          requireFileSystem(state),
+          state.registers,
+          requireIntRegister(arg0),
+          readPolyString(state, arg1),
+          state.flags
+        );
       },
+      // 0x61: fread - handle is poly value.
       0x61: async (state, arg0, arg1) => {
-        fread(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1), state.flags);
+        freadHandle(
+          requireFileSystem(state),
+          state.registers,
+          requireIntRegister(arg0),
+          readPolyValue(state, arg1, 1),
+          state.flags
+        );
       },
-      // 0x62: freadln - read line from file
+      // 0x62: freadln - read line from file (handle is poly value).
       0x62: async (state, arg0, arg1) => {
-        freadln(requireFileSystem(state), state.registers, requireStringRegister(arg0), requireIntRegister(arg1), state.flags);
+        freadlnHandle(
+          requireFileSystem(state),
+          state.registers,
+          requireStringRegister(arg0),
+          readPolyValue(state, arg1, 1),
+          state.flags
+        );
       },
+      // 0x63: fseek - handle from arg0 (poly value), offset from arg1 (poly value).
       0x63: async (state, arg0, arg1) => {
-        fseek(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
+        fseekHandle(
+          requireFileSystem(state),
+          readPolyValue(state, arg0, 1),
+          readPolyValue(state, arg1, 4)
+        );
       },
+      // 0x64: fseekln - handle from arg0, line index from arg1.
       0x64: async (state, arg0, arg1) => {
-        fseekln(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
+        fseeklnHandle(
+          requireFileSystem(state),
+          readPolyValue(state, arg0, 1),
+          readPolyValue(state, arg1, 4)
+        );
       },
-      // 0x65: ftell - get file position
+      // 0x65: ftell - handle in arg1 (poly), result in arg0 (register). Updates flags.
       0x65: async (state, arg0, arg1) => {
-        ftell(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
+        const dst = requireIntRegister(arg0);
+        const handle = readPolyValue(state, arg1, 1);
+        ftellHandle(requireFileSystem(state), state.registers, dst, handle);
+        const value = getIntValue(state.registers, dst);
+        const len = intRegisterByteLength(dst);
+        const mask = len === 4 ? 0xffffffff : ((1 << (len * 8)) - 1) >>> 0;
+        const signMask = 1 << (len * 8 - 1);
+        const masked = value & mask;
+        state.flags.z = masked === 0;
+        state.flags.s = (masked & signMask) !== 0;
+        state.flags.v = false;
       },
-      // 0x66: ftellln - get file line number
+      // 0x66: ftellln - same shape as ftell.
       0x66: async (state, arg0, arg1) => {
-        ftellln(requireFileSystem(state), state.registers, requireIntRegister(arg0), requireIntRegister(arg1));
+        const dst = requireIntRegister(arg0);
+        const handle = readPolyValue(state, arg1, 1);
+        ftelllnHandle(requireFileSystem(state), state.registers, dst, handle);
+        const value = getIntValue(state.registers, dst);
+        const len = intRegisterByteLength(dst);
+        const mask = len === 4 ? 0xffffffff : ((1 << (len * 8)) - 1) >>> 0;
+        const signMask = 1 << (len * 8 - 1);
+        const masked = value & mask;
+        state.flags.z = masked === 0;
+        state.flags.s = (masked & signMask) !== 0;
+        state.flags.v = false;
       },
       0x5a: jumpHandler(jg),
       0x5b: jumpHandler(jnl),
@@ -1470,17 +2121,40 @@ export class Interpreter {
       0x5d: jumpHandler(jng),
       0x5e: jumpHandler(ja),
       0x5f: jumpHandler(jna),
+      // 0x67: a2fix - parse decimal/hex/binary string. C# always Sign=false, doesn't touch Carry.
       0x67: async (state, arg0, arg1) => {
-        a2fix(state.registers, state.flags, requireIntRegister(arg0), requireStringRegister(arg1));
+        const dst = requireIntRegister(arg0);
+        const str = readPolyString(state, arg1);
+        const value = parseConfigInt(str);
+        setIntValue(state.registers, dst, value);
+        state.flags.z = false;
+        state.flags.s = false;
+        state.flags.v = false;
       },
+      // 0x68: fix2flt - integer to float. C# uses arg1.GetValueData(arg1.GetDataLen()).
       0x68: async (state, arg0, arg1) => {
-        fix2flt(state.registers, requireFloatRegister(arg0), requireIntRegister(arg1));
+        const dst = requireFloatRegister(arg0);
+        const len = getOperandLen(state, arg1);
+        const raw = readPolyValue(state, arg1, Math.max(1, len));
+        // signed-extend to float
+        const signMask = 1 << (Math.max(1, len) * 8 - 1);
+        const signed = (raw & signMask) ? raw - (1 << (Math.max(1, len) * 8)) : raw;
+        setFloatValue(state.registers, dst, signed);
       },
       0x69: async (state, arg0, arg1) => {
-        parr(state.registers, state.flags, state.parameters, requireFloatRegister(arg0), resolveIntValue(state.registers, arg1));
+        parr(state.registers, state.flags, state.parameters, requireFloatRegister(arg0), readPolyValue(state, arg1, 4));
       },
+      // 0x6a: test - C# OpTest reads BOTH args polymorphically (no write).
       0x6a: async (state, arg0, arg1) => {
-        test(state.registers, state.flags, requireIntRegister(arg0), resolveIntRegisterOrValue(state.registers, arg1));
+        const len = Math.max(1, getOperandLen(state, arg0, true));
+        const val0 = readPolyValue(state, arg0, len);
+        const val1 = readPolyValue(state, arg1, len);
+        const mask = len === 4 ? 0xffffffff : ((1 << (len * 8)) - 1) >>> 0;
+        const signMask = (1 << (len * 8 - 1)) >>> 0;
+        const result = (val0 & val1) & mask;
+        state.flags.z = result === 0;
+        state.flags.s = (result & signMask) !== 0;
+        state.flags.v = false;
       },
       0x6b: async (state, arg0) => {
         const duration = resolveIntValue(state.registers, arg0);
@@ -1504,12 +2178,13 @@ export class Interpreter {
       0x70: async () => {
         // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
+      // 0x71: xgetport - port index from arg1 is read polymorphically.
       0x71: async (state, arg0, arg1) => {
         await xgetport(
           state.registers,
           requireCommunicationInterface(state),
           requireIntRegister(arg0),
-          resolveIntValue(state.registers, arg1)
+          readPolyValue(state, arg1, 1)
         );
       },
       0x72: async (state, arg0) => {
@@ -1518,11 +2193,12 @@ export class Interpreter {
       0x73: async (state, arg0) => {
         await xloopt(state.registers, requireCommunicationInterface(state), requireIntRegister(arg0));
       },
+      // 0x74: xprog - program voltage; arg0 is polymorphic int.
       0x74: async (state, arg0) => {
         await xprog(
           state.registers,
           requireCommunicationInterface(state),
-          resolveIntValue(state.registers, arg0)
+          readPolyValue(state, arg0, 1)
         );
       },
       0x75: async (state, arg0, arg1) => {
@@ -1533,44 +2209,64 @@ export class Interpreter {
           requireStringRegister(arg1)
         );
       },
+      // 0x76: xsetport - source bytes polymorphic; value is poly int.
       0x76: async (state, arg0, arg1) => {
-        await xsetport(
-          state.registers,
-          requireCommunicationInterface(state),
-          requireStringRegister(arg0),
-          resolveIntValue(state.registers, arg1)
-        );
+        const value = readPolyValue(state, arg1, 1);
+        const portData = readPolyBytes(state, arg0);
+        const iface = requireCommunicationInterface(state);
+        const setPort = iface.setPort;
+        if (!setPort) {
+          throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "Set port is not supported");
+        }
+        await setPort(portData[0] ?? 0, value);
+        void xsetport;
       },
+      // 0x77: xsireset - service interval reset; time is polymorphic.
       0x77: async (state, arg0) => {
-        await xsireset(requireCommunicationInterface(state), resolveIntValue(state.registers, arg0));
+        await xsireset(requireCommunicationInterface(state), readPolyValue(state, arg0, 4));
       },
       // 0x78: xstoptr - stop transfer (legacy opcode; EdiabasLib has null)
       0x78: async () => {
         // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
+      // 0x79: fix2hex - integer → "0x{HEX}" (zero-padded to byte width).
+      // Mirrors C# OpFix2Hex which always emits the "0x" prefix and pads to 2/4/8 hex digits.
       0x79: async (state, arg0, arg1) => {
-        fix2hex(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
+        const rawLen = getOperandLen(state, arg1);
+        const len = rawLen > 0 ? rawLen : 1;
+        const raw = readPolyValue(state, arg1, len);
+        const padded = (raw >>> 0).toString(16).toUpperCase().padStart(len * 2, "0");
+        writePolyString(state, arg0, `0x${padded}`);
       },
+      // 0x7a: fix2dez - signed integer → decimal string.
       0x7a: async (state, arg0, arg1) => {
-        fix2dez(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
+        const len = Math.max(1, getOperandLen(state, arg1));
+        const raw = readPolyValue(state, arg1, len);
+        const signMask = 1 << (len * 8 - 1);
+        const signed = (raw & signMask) ? raw - (1 << (len * 8)) : raw;
+        writePolyString(state, arg0, signed.toString(10));
       },
+      // 0x7b: tabset - C# uses GetStringData on arg0.
       0x7b: async (state, arg0) => {
-        tabsetOp(state.flags, this.tableRegistry, state.tableState, resolveStringValue(state.registers, arg0));
+        tabsetOp(state.flags, this.tableRegistry, state.tableState, readPolyString(state, arg0));
       },
+      // 0x7c: tabseek - both args polymorphic strings.
       0x7c: async (state, arg0, arg1) => {
-        tabseekOp(state.flags, state.tableState, resolveStringValue(state.registers, arg0), resolveStringValue(state.registers, arg1));
+        tabseekOp(state.flags, state.tableState, readPolyString(state, arg0), readPolyString(state, arg1));
       },
+      // 0x7d: tabget - dest is a string register; column name polymorphic.
       0x7d: async (state, arg0, arg1) => {
-        tabgetOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), resolveStringValue(state.registers, arg1));
+        tabgetOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), readPolyString(state, arg1));
       },
+      // 0x7e: strcat - C# truncates source to fit ArrayMaxSize - destLen (no error).
       0x7e: async (state, arg0, arg1) => {
-        if (arg1.kind === "string" || arg1.kind === "indexed") {
-          const dest = requireStringRegister(arg0);
-          const value = resolveStringValue(state.registers, arg1);
-          setStringValue(state.registers, dest, getStringValue(state.registers, dest) + value);
-          return;
+        const dest = requireStringRegister(arg0);
+        const left = readPolyString(state, { kind: "register", ref: dest });
+        let right = readPolyString(state, arg1);
+        if (left.length + right.length > ARRAY_MAX_SIZE) {
+          right = right.slice(0, Math.max(0, ARRAY_MAX_SIZE - left.length));
         }
-        strcat(state.registers, requireStringRegister(arg0), requireStringRegister(arg1));
+        writePolyString(state, { kind: "register", ref: dest }, left + right);
       },
       0x7f: async (state, arg0) => {
         pary(state.registers, state.flags, state.parameters, requireStringRegister(arg0));
@@ -1578,20 +2274,21 @@ export class Interpreter {
       0x80: async (state, arg0) => {
         parn(state.registers, state.flags, state.parameters, requireIntRegister(arg0));
       },
-      // 0x81: ergc - result char (signed byte)
+      // 0x81: ergc - result char (signed byte). C# uses GetStringData/GetValueData(1).
       0x81: async (state, arg0, arg1) => {
-        const name = resolveStringValue(state.registers, arg0);
-        const value = resolveIntValue(state.registers, arg1);
+        const name = readPolyString(state, arg0);
+        const value = readPolyValue(state, arg1, 1);
         ergc(state.registers, state.results, name, value);
       },
-      // 0x82: ergl - result long (signed dword)
+      // 0x82: ergl - result long (signed dword).
       0x82: async (state, arg0, arg1) => {
-        const name = resolveStringValue(state.registers, arg0);
-        const value = resolveIntValue(state.registers, arg1);
+        const name = readPolyString(state, arg0);
+        const value = readPolyValue(state, arg1, 4);
         ergl(state.registers, state.results, name, value);
       },
+      // 0x83: tabline - line number is polymorphic int.
       0x83: async (state, arg0) => {
-        tablineOp(state.flags, state.tableState, resolveIntValue(state.registers, arg0));
+        tablineOp(state.flags, state.tableState, readPolyValue(state, arg0, 4));
       },
       // 0x84: xsendr - send/receive (legacy opcode; EdiabasLib has null)
       0x84: async (state, arg0) => {
@@ -1638,32 +2335,92 @@ export class Interpreter {
         const value = resolveIntValue(state.registers, arg1);
         state.config.set(key, `${value}`);
       },
-      // 0x8c: a2y - ASCII string to Y-register (binary)
+      // 0x8c: a2y - ASCII text → byte array.
+      // C# OpA2Y parses ASCII hex pairs separated by ' ', ',' or ';'.
       0x8c: async (state, arg0, arg1) => {
-        const str = getStringValue(state.registers, requireStringRegister(arg1));
-        const bytes = utf8ToCp1252(str);
-        setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
+        const stringData = readPolyString(state, arg1);
+        const result: number[] = [];
+        if (stringData.length > 0) {
+          // Trim at the first character that isn't a hex digit, comma, semicolon or space.
+          const lower = stringData.toLowerCase();
+          let trimEnd = lower.length;
+          for (let i = 0; i < lower.length; i++) {
+            const ch = lower[i];
+            const isDigit = ch >= "0" && ch <= "9";
+            const isHex = ch >= "a" && ch <= "f";
+            if (!(isDigit || isHex || ch === " " || ch === "," || ch === ";")) {
+              trimEnd = i;
+              break;
+            }
+          }
+          const trimmed = stringData.slice(0, trimEnd);
+          let exitLoop = false;
+          const groups = trimmed.split(/[,;]/);
+          for (const group of groups) {
+            const groupTrim = group.trim();
+            if (groupTrim.length === 0) {
+              for (let j = 0; j < group.length + 1; j++) result.push(0);
+            } else {
+              const subParts = groupTrim.split(/\s+/);
+              for (const sub of subParts) {
+                if (sub.length === 0) continue;
+                const value = Number.parseInt(sub, 16);
+                if (Number.isNaN(value)) {
+                  exitLoop = true;
+                  break;
+                }
+                result.push(value & 0xff);
+              }
+            }
+            if (exitLoop) break;
+          }
+        }
+        writePolyBytes(state, arg0, Uint8Array.from(result));
       },
       // 0x8d: xparraw - raw parameters (legacy opcode; EdiabasLib has null)
       0x8d: async () => {
         // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      // 0x8e: hex2y - hex string to Y-register (binary)
+      // 0x8e: hex2y - hex string → byte array (BEST2 ascii2hex).
+      // C# OpHex2Y: success → Carry=false; on parse failure → empty array + Carry=true.
       0x8e: async (state, arg0, arg1) => {
-        const hexStr = getStringValue(state.registers, requireStringRegister(arg1));
-        const bytes = new Uint8Array(hexStr.length / 2);
-        for (let i = 0; i < bytes.length; i++) {
-          bytes[i] = parseInt(hexStr.slice(i * 2, i * 2 + 2), 16) || 0;
+        const valueStr = readPolyString(state, arg1);
+        const trimmed = valueStr.trim();
+        const result: number[] = [];
+        let parseFailed = false;
+        if (trimmed.length % 2 !== 0) {
+          parseFailed = true;
+        } else {
+          for (let i = 0; i < trimmed.length; i += 2) {
+            const pair = trimmed.slice(i, i + 2);
+            if (!/^[0-9a-fA-F]{2}$/.test(pair)) {
+              parseFailed = true;
+              break;
+            }
+            result.push(Number.parseInt(pair, 16));
+          }
         }
-        setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
+        if (parseFailed) {
+          writePolyBytes(state, arg0, new Uint8Array());
+          state.flags.c = true;
+        } else {
+          writePolyBytes(state, arg0, Uint8Array.from(result));
+          state.flags.c = false;
+        }
       },
+      // 0x8f: strcmp - polymorphic GetStringData on both args.
+      // C# OpStrcmp: Zero = String.Compare(s1,s2,Ordinal) != 0  (Z=true when DIFFER).
       0x8f: async (state, arg0, arg1) => {
-        strcmp(state.registers, state.flags, requireStringRegister(arg0), requireStringRegister(arg1));
+        const left = readPolyString(state, arg0);
+        const right = readPolyString(state, arg1);
+        // Ordinal compare → Z=true when strings differ (BEST2 strcmp convention).
+        state.flags.z = left !== right;
       },
+      // 0x90: strlen - C# uses arg1.GetStringData(), accepts any string-array source.
       0x90: async (state, arg0, arg1) => {
         const dest = requireIntRegister(arg0);
-        strlen(state.registers, dest, requireStringRegister(arg1));
-        const length = getIntValue(state.registers, dest);
+        const length = readPolyString(state, arg1).length;
+        setIntValue(state.registers, dest, length);
         const byteLength = intRegisterByteLength(dest);
         const mask = byteLength === 1 ? 0xff : byteLength === 2 ? 0xffff : 0xffffffff;
         const signMask = byteLength === 1 ? 0x80 : byteLength === 2 ? 0x8000 : 0x80000000;
@@ -1672,23 +2429,24 @@ export class Interpreter {
         state.flags.s = (masked & signMask) !== 0;
         state.flags.v = false;
       },
-      // 0x91: y2bcd - Y-register to BCD string
+      // 0x91: y2bcd - byte array → BCD ASCII string. C# uses ValueToBcd.
+      // Each nibble: 0-9 → '0'-'9', else '*'.
       0x91: async (state, arg0, arg1) => {
-        const bytes = utf8ToCp1252(getStringValue(state.registers, requireStringRegister(arg1)));
+        const bytes = readPolyBytes(state, arg1);
         let bcd = "";
         for (const byte of bytes) {
-          bcd += ((byte >> 4) & 0x0f).toString() + (byte & 0x0f).toString();
+          bcd += nibbleToBcdChar(byte >> 4) + nibbleToBcdChar(byte & 0x0f);
         }
-        setStringValue(state.registers, requireStringRegister(arg0), bcd);
+        writePolyString(state, arg0, bcd);
       },
-      // 0x92: y2hex - Y-register to hex string
+      // 0x92: y2hex - byte array → uppercase hex ASCII string.
       0x92: async (state, arg0, arg1) => {
-        const bytes = utf8ToCp1252(getStringValue(state.registers, requireStringRegister(arg1)));
+        const bytes = readPolyBytes(state, arg1);
         let hex = "";
         for (const byte of bytes) {
           hex += byte.toString(16).padStart(2, "0").toUpperCase();
         }
-        setStringValue(state.registers, requireStringRegister(arg0), hex);
+        writePolyString(state, arg0, hex);
       },
       0x93: async (state, arg0, arg1) => {
         const key = arg0.kind === "string" ? arg0.value : requireStringRegister(arg0);
@@ -1700,20 +2458,32 @@ export class Interpreter {
         const key = arg1.kind === "string" ? arg1.value : requireStringRegister(arg1);
         shmget(state.registers, state.sharedMemory, destination, key, state.flags);
       },
-      // 0x95: ergsysi - system info result
+      // 0x95: ergsysi - system-info result. C# routes these to a separate system results dict
+      // (SetSysResultData), keeping them isolated from the user job results.
       0x95: async (state, arg0, arg1) => {
-        const name = resolveStringValue(state.registers, arg0);
-        const value = resolveIntValue(state.registers, arg1) & 0xffff;
+        const name = readPolyString(state, arg0);
+        const value = readPolyValue(state, arg1, 2) & 0xffff;
         if (name === "!INITIALISIERUNG") {
           if (value !== 0) {
             state.requestInit = true;
           }
           return;
         }
-        state.results.record(name, "int", value);
+        state.systemResults.record(name, "int", value);
       },
+      // 0x96: flt2fix - float → integer. C# uses arg1.GetFloatData() (poly).
       0x96: async (state, arg0, arg1) => {
-        flt2fix(state.registers, state.flags, requireIntRegister(arg0), requireFloatRegister(arg1));
+        const dst = requireIntRegister(arg0);
+        const value = readPolyFloat(state, arg1);
+        const truncated = Math.trunc(value);
+        setIntValue(state.registers, dst, truncated);
+        const len = intRegisterByteLength(dst);
+        const mask = len === 4 ? 0xffffffff : ((1 << (len * 8)) - 1) >>> 0;
+        const signMask = 1 << (len * 8 - 1);
+        const masked = truncated & mask;
+        state.flags.z = masked === 0;
+        state.flags.s = (masked & signMask) !== 0;
+        state.flags.v = false;
       },
       // 0x97: iupdate - update progress text
       0x97: async (state, arg0) => {
@@ -1736,62 +2506,59 @@ export class Interpreter {
           state.progressPos = state.progressRange;
         }
       },
+      // 0x9a: tabseeku - column name polymorphic string; key polymorphic int.
       0x9a: async (state, arg0, arg1) => {
-        tabseekuOp(state.flags, state.tableState, resolveStringValue(state.registers, arg0), resolveIntValue(state.registers, arg1));
+        tabseekuOp(state.flags, state.tableState, readPolyString(state, arg0), readPolyValue(state, arg1, 4));
       },
-      // 0x9b: flt2y4 - float to 4-byte Y (IEEE 754 single)
+      // 0x9b: flt2y4 - float → 4-byte little-endian (IEEE 754 single) at indexed offset.
+      // Mirrors C# OpFlt2Y4: writes at startIdx (OpData2 of indexed operand), preserving rest.
       0x9b: async (state, arg0, arg1) => {
-        const value = getFloatValue(state.registers, requireFloatRegister(arg1));
+        const value = readPolyFloat(state, arg1);
         const buffer = new ArrayBuffer(4);
-        new DataView(buffer).setFloat32(0, value, true); // little-endian
-        const bytes = new Uint8Array(buffer);
-        setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
+        new DataView(buffer).setFloat32(0, value, true);
+        writeFloatBytesAt(state, arg0, new Uint8Array(buffer));
       },
-      // 0x9c: flt2y8 - float to 8-byte Y (IEEE 754 double)
+      // 0x9c: flt2y8 - float → 8-byte little-endian (IEEE 754 double) at indexed offset.
       0x9c: async (state, arg0, arg1) => {
-        const value = getFloatValue(state.registers, requireFloatRegister(arg1));
+        const value = readPolyFloat(state, arg1);
         const buffer = new ArrayBuffer(8);
-        new DataView(buffer).setFloat64(0, value, true); // little-endian
-        const bytes = new Uint8Array(buffer);
-        setStringValue(state.registers, requireStringRegister(arg0), cp1252ToUtf8(bytes));
+        new DataView(buffer).setFloat64(0, value, true);
+        writeFloatBytesAt(state, arg0, new Uint8Array(buffer));
       },
-      // 0x9d: y42flt - 4-byte Y to float
+      // 0x9d: y42flt - 4 bytes → float (poly source via GetArrayData).
       0x9d: async (state, arg0, arg1) => {
-        const bytes = utf8ToCp1252(getStringValue(state.registers, requireStringRegister(arg1)));
+        const dst = requireFloatRegister(arg0);
+        const bytes = readPolyBytes(state, arg1);
         const buffer = new ArrayBuffer(4);
         const view = new DataView(buffer);
-        for (let i = 0; i < Math.min(4, bytes.length); i++) {
-          view.setUint8(i, bytes[i]);
-        }
-        setFloatValue(state.registers, requireFloatRegister(arg0), view.getFloat32(0, true));
+        for (let i = 0; i < Math.min(4, bytes.length); i++) view.setUint8(i, bytes[i]);
+        setFloatValue(state.registers, dst, view.getFloat32(0, true));
       },
-      // 0x9e: y82flt - 8-byte Y to float
+      // 0x9e: y82flt - 8 bytes → float.
       0x9e: async (state, arg0, arg1) => {
-        const bytes = utf8ToCp1252(getStringValue(state.registers, requireStringRegister(arg1)));
+        const dst = requireFloatRegister(arg0);
+        const bytes = readPolyBytes(state, arg1);
         const buffer = new ArrayBuffer(8);
         const view = new DataView(buffer);
-        for (let i = 0; i < Math.min(8, bytes.length); i++) {
-          view.setUint8(i, bytes[i]);
-        }
-        setFloatValue(state.registers, requireFloatRegister(arg0), view.getFloat64(0, true));
+        for (let i = 0; i < Math.min(8, bytes.length); i++) view.setUint8(i, bytes[i]);
+        setFloatValue(state.registers, dst, view.getFloat64(0, true));
       },
+      // 0x9f: plink - C# OpPlink is a no-op (logs only). Optional linker support kept
+      // so unit tests can install handlers without altering binary semantics.
       0x9f: async (state, arg0) => {
-        const id = resolveIntValue(state.registers, arg0);
+        const id = readPolyValue(state, arg0, 4);
         const handler = state.procedureLinker?.(id);
-        if (!handler) {
-          throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, `Procedure ${id} is not linked`);
+        if (handler) {
+          plink(state.procedureRegistry, id, handler);
         }
-        plink(state.procedureRegistry, id, handler);
       },
       // 0xa0: pcall - procedure call (legacy opcode; EdiabasLib has null)
       0xa0: async () => {
         // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
-      // 0xa2: plinkv - link procedure with validation (stub: same as plink)
-      0xa2: async (state, arg0) => {
-        const id = resolveIntValue(state.registers, arg0);
-        // Validation not implemented - acts same as plink
-        plink(state.procedureRegistry, id, () => {});
+      // 0xa2: plinkv - C# OpPlinkv is a no-op (logs only). Don't overwrite registry.
+      0xa2: async () => {
+        // No-op (matches C# behavior).
       },
       0xa3: async (state, arg0) => {
         ppush(state.registers, state.procedureStack, requireIntRegister(arg0));
@@ -1818,20 +2585,35 @@ export class Interpreter {
       0xa9: async () => {
         // Jump to subroutine - not implemented
       },
-      // 0xaa: tabsetex - table set extended (same registry)
-      0xaa: async (state, arg0) => {
-        tabsetOp(state.flags, this.tableRegistry, state.tableState, resolveStringValue(state.registers, arg0));
+      // 0xaa: tabsetex - table set extended. C# optionally loads a different file from arg1
+      // before searching for the table. We honour arg1 if a tableLoader was provided to the
+      // interpreter; otherwise fall back to local registry.
+      0xaa: async (state, arg0, arg1) => {
+        const baseFile = arg1.kind !== "none" ? readPolyString(state, arg1) : "";
+        const registry = baseFile.length > 0 && this.tableLoader
+          ? (this.tableLoader(baseFile) ?? this.tableRegistry)
+          : this.tableRegistry;
+        tabsetOp(state.flags, registry, state.tableState, readPolyString(state, arg0));
       },
       0xa1: async (state, arg0, arg1) => {
         fcomp(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
       },
+      // 0xab: ufix2dez - unsigned int → decimal string. Polymorphic source.
       0xab: async (state, arg0, arg1) => {
-        ufix2dez(state.registers, requireStringRegister(arg0), requireIntRegister(arg1));
+        const len = Math.max(1, getOperandLen(state, arg1));
+        const raw = readPolyValue(state, arg1, len) >>> 0;
+        writePolyString(state, arg0, raw.toString(10));
       },
-      // 0xac: generr - generate/throw error
+      // 0xac: generr - raise the requested error code.
+      // C# validates code is in EDIABAS_RUN_0000..EDIABAS_ERROR_LAST range; we accept the
+      // EdiabasErrorCode numeric values from EdiabasErrorCodes and raise BIP_0001 otherwise.
       0xac: async (state, arg0) => {
-        const errorCode = resolveIntValue(state.registers, arg0);
-        throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, `GENERR ${errorCode}`);
+        const errorCode = readPolyValue(state, arg0, 2);
+        const known = (Object.values(EdiabasErrorCodes) as number[]).includes(errorCode);
+        if (!known) {
+          throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0001, `Invalid error code ${errorCode}`);
+        }
+        throw new EdiabasError(errorCode as EdiabasErrorCode, `GENERR ${errorCode}`);
       },
       // 0xad: ticks - get system ticks (ms since epoch)
       0xad: async (state, arg0) => {
@@ -1867,11 +2649,15 @@ export class Interpreter {
         // Legacy/unused in EdiabasLib; clear destination for compatibility.
         setStringValue(state.registers, requireStringRegister(arg0), "");
       },
-      // 0xb5: ssize - string size (length in bytes)
-      0xb5: async (state, arg0, arg1) => {
-        const str = getStringValue(state.registers, requireStringRegister(arg1));
-        const bytes = utf8ToCp1252(str);
-        setIntValue(state.registers, requireIntRegister(arg0), bytes.length);
+      // 0xb5: ssize - return ArrayMaxBufSize (configured constant). Mirrors C# OpSsize.
+      // Note: arg1 is unused; C# only inspects arg0 to determine where to write.
+      0xb5: async (state, arg0) => {
+        if (arg0.kind === "register" && arg0.ref.kind === "S") {
+          // Write into a string register: writes ArrayMaxBufSize as little-endian dword bytes.
+          writePolyValue(state, arg0, ARRAY_MAX_BUF_SIZE, 4);
+        } else {
+          setIntValue(state.registers, requireIntRegister(arg0), ARRAY_MAX_BUF_SIZE);
+        }
       },
       0xb6: async (state, arg0) => {
         tabcolsOp(state.registers, state.flags, state.tableState, requireIntRegister(arg0));

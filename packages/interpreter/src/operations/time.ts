@@ -36,20 +36,36 @@ function resolveTimeValue(registers: RegisterSet, value: TimeValueRef): number {
   return typeof value === "number" ? value : getIntValue(registers, value);
 }
 
-function setDateTimeDestination(
+function setDateTimeBytes(
   registers: RegisterSet,
   destination: DateTimeDestination,
-  value: { text: string; numeric: number }
+  bytes: Uint8Array
 ): void {
   if (destination.kind === "S") {
-    registers.setS(destination.index, value.text);
+    registers.setSBinary(destination.index, bytes);
     return;
   }
-  setIntValue(registers, destination, value.numeric);
+  // Pack little-endian into the int register's natural size.
+  let value = 0;
+  for (let i = bytes.length - 1; i >= 0; i--) {
+    value = ((value << 8) | bytes[i]) >>> 0;
+  }
+  setIntValue(registers, destination, value);
 }
 
-function pad2(value: number): string {
-  return value.toString().padStart(2, "0");
+/**
+ * ISO-8601 week-of-year (Monday-based, with weeks 1 having 4+ days in the new year).
+ * Mirrors C# CultureInfo.InvariantCulture.Calendar.GetWeekOfYear with FirstFourDayWeek/Monday.
+ */
+function isoWeekOfYear(date: Date): number {
+  const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNr = (target.getUTCDay() + 6) % 7;
+  target.setUTCDate(target.getUTCDate() - dayNr + 3);
+  const firstThursday = new Date(Date.UTC(target.getUTCFullYear(), 0, 4));
+  const firstDayNr = (firstThursday.getUTCDay() + 6) % 7;
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - firstDayNr + 3);
+  const diffMs = target.getTime() - firstThursday.getTime();
+  return 1 + Math.round(diffMs / (7 * 24 * 3600 * 1000));
 }
 
 export function gettmr(
@@ -68,30 +84,47 @@ export function settmr(
   state.errorTrapMask = resolveTimeValue(registers, value);
 }
 
+/**
+ * BEST2 getdate — writes a 5-byte packed array:
+ *   [day, month, year%100, weekOfYear, dayOfWeek (Mon=1..Sun=7)].
+ * Mirrors C# OpDate.
+ */
 export function getdate(
   registers: RegisterSet,
   destination: DateTimeDestination,
   now: Date = new Date()
 ): void {
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
   const day = now.getDate();
-  const text = `${year}-${pad2(month)}-${pad2(day)}`;
-  const numeric = year * 10000 + month * 100 + day;
-  setDateTimeDestination(registers, destination, { text, numeric });
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+  const week = isoWeekOfYear(now);
+  let dayOfWeek = now.getDay(); // 0=Sunday..6=Saturday
+  if (dayOfWeek === 0) dayOfWeek = 7;
+  const bytes = new Uint8Array([
+    day & 0xff,
+    month & 0xff,
+    year % 100 & 0xff,
+    week & 0xff,
+    dayOfWeek & 0xff,
+  ]);
+  setDateTimeBytes(registers, destination, bytes);
 }
 
+/**
+ * BEST2 gettime — writes a 3-byte packed array: [hour, minute, second].
+ * Mirrors C# OpTime.
+ */
 export function gettime(
   registers: RegisterSet,
   destination: DateTimeDestination,
   now: Date = new Date()
 ): void {
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-  const text = `${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)}`;
-  const numeric = hours * 10000 + minutes * 100 + seconds;
-  setDateTimeDestination(registers, destination, { text, numeric });
+  const bytes = new Uint8Array([
+    now.getHours() & 0xff,
+    now.getMinutes() & 0xff,
+    now.getSeconds() & 0xff,
+  ]);
+  setDateTimeBytes(registers, destination, bytes);
 }
 
 export function wait(

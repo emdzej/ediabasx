@@ -6,6 +6,7 @@
  */
 
 import type { PrgTable } from "@emdzej/ediabasx-best-parser";
+import { EdiabasError, EdiabasErrorCodes } from "@emdzej/ediabasx-core";
 import { RegisterSet } from "../registers";
 import { Flags } from "../flags";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
@@ -89,6 +90,9 @@ export function tabset(
   }
 
   if (!table) {
+    // C# SetError is a "soft" set — accumulates error code without halting execution.
+    // Mirror that here: set Z=true (matches the failed-lookup convention) and let the
+    // program continue. Subsequent tabseek/tabget on the missing table will raise.
     flags.z = true;
   }
 }
@@ -103,14 +107,14 @@ export function tabseek(
   if (!table) {
     state.rowIndex = -1;
     flags.z = true;
-    return;
+    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, "tabseek: no active table");
   }
 
   const columnIndex = getColumnIndex(table, columnName);
   if (columnIndex < 0) {
     state.rowIndex = -1;
     flags.z = true;
-    return;
+    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, `tabseek: unknown column ${columnName}`);
   }
 
   const searchUpper = searchValue.toUpperCase();
@@ -138,14 +142,14 @@ export function tabseeku(
   if (!table) {
     state.rowIndex = -1;
     flags.z = true;
-    return;
+    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, "tabseeku: no active table");
   }
 
   const columnIndex = getColumnIndex(table, columnName);
   if (columnIndex < 0) {
     state.rowIndex = -1;
     flags.z = true;
-    return;
+    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, `tabseeku: unknown column ${columnName}`);
   }
 
   const searchNumber = searchValue >>> 0;
@@ -171,20 +175,25 @@ export function tabget(
   columnName: string
 ): void {
   const table = state.activeTable;
-  if (!table || state.rowIndex < 0) {
-    setStringValue(registers, destination, "");
-    return;
+  if (!table) {
+    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, "tabget: no active table");
   }
 
   const columnIndex = getColumnIndex(table, columnName);
-  if (columnIndex < 0) {
+  // Special carve-out from C#: if rowIndex<0 AND column is valid, return empty string
+  // (the table changed but the column itself exists). This matches GetTableEntry's
+  // null-handling branch in OpTabget.
+  if (state.rowIndex < 0 && columnIndex >= 0) {
     setStringValue(registers, destination, "");
     return;
   }
 
-  if (state.rowIndex >= table.rows) {
-    setStringValue(registers, destination, "");
-    return;
+  if (columnIndex < 0) {
+    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, `tabget: unknown column ${columnName}`);
+  }
+
+  if (state.rowIndex < 0 || state.rowIndex >= table.rows) {
+    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, "tabget: row out of range");
   }
 
   const dataRowIndex = state.rowIndex + 1;
@@ -231,7 +240,7 @@ export function tabline(
   if (!table) {
     state.rowIndex = -1;
     flags.z = true;
-    return;
+    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, "tabline: no active table");
   }
 
   if (line >= table.rows) {

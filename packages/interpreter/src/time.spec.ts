@@ -33,24 +33,41 @@ describe("Time and date operations", () => {
     expect(state.errorTrapMask).toBe(2048);
   });
 
-  it("getdate writes formatted string and numeric date", () => {
+  it("getdate writes 5-byte packed array (day, month, year%100, week, dayOfWeek)", () => {
+    // 2026-02-05 is a Thursday (dayOfWeek=4 in EDIABAS Mon=1..Sun=7).
     const date = new Date(2026, 1, 5, 10, 5, 7);
 
     getdate(registers, S0, date);
-    getdate(registers, I0, date);
 
-    expect(registers.getS(0)).toBe("2026-02-05");
-    expect(registers.getI(0)).toBe(20260205 & 0xffff);
+    const bytes = registers.getSBinary(0);
+    expect(Array.from(bytes)).toEqual([5, 2, 26, 6, 4]);
   });
 
-  it("gettime writes formatted string and numeric time", () => {
+  it("getdate packs into integer register little-endian", () => {
+    const date = new Date(2026, 1, 5, 10, 5, 7);
+
+    getdate(registers, I0, date);
+
+    // Lower 16 bits = day | (month<<8) = 5 | (2<<8) = 0x0205
+    expect(registers.getI(0)).toBe(0x0205);
+  });
+
+  it("gettime writes 3-byte packed array (hour, minute, second)", () => {
     const date = new Date(2026, 1, 5, 10, 5, 7);
 
     gettime(registers, S1, date);
+
+    const bytes = registers.getSBinary(1);
+    expect(Array.from(bytes)).toEqual([10, 5, 7]);
+  });
+
+  it("gettime packs into integer register little-endian", () => {
+    const date = new Date(2026, 1, 5, 10, 5, 7);
+
     gettime(registers, I1, date);
 
-    expect(registers.getS(1)).toBe("10:05:07");
-    expect(registers.getI(1)).toBe(100507 & 0xffff);
+    // Lower 16 bits = hour | (minute<<8) = 10 | (5<<8) = 0x050a
+    expect(registers.getI(1)).toBe(0x050a);
   });
 
   it("wait resolves after duration", async () => {

@@ -38,6 +38,18 @@ export function fopen(
     : modeRef
       ? (getStringValue(registers, modeRef) as FileOpenMode)
       : "r";
+  fopenString(fileSystem, registers, destination, path, flags, mode);
+}
+
+/** fopen variant taking a resolved filename string (for polymorphic operands). */
+export function fopenString(
+  fileSystem: FileSystem,
+  registers: RegisterSet,
+  destination: IntRegisterRef,
+  path: string,
+  flags?: Flags,
+  mode: FileOpenMode = "r"
+): void {
   let handle = -1;
   try {
     handle = fileSystem.open(path, mode);
@@ -61,6 +73,11 @@ export function fclose(
   fileSystem.close(handle);
 }
 
+/** fclose variant taking a resolved handle value. */
+export function fcloseValue(fileSystem: FileSystem, handle: number): void {
+  fileSystem.close(handle);
+}
+
 export function fread(
   fileSystem: FileSystem,
   registers: RegisterSet,
@@ -69,6 +86,17 @@ export function fread(
   flags?: Flags
 ): void {
   const handle = getIntValue(registers, handleRef);
+  freadHandle(fileSystem, registers, destination, handle, flags);
+}
+
+/** fread variant taking a resolved handle value. */
+export function freadHandle(
+  fileSystem: FileSystem,
+  registers: RegisterSet,
+  destination: IntRegisterRef,
+  handle: number,
+  flags?: Flags
+): void {
   let value = -1;
   try {
     const data = fileSystem.read(handle, 1);
@@ -111,6 +139,16 @@ export function fseek(
 ): void {
   const handle = getIntValue(registers, handleRef);
   const offset = getIntValue(registers, offsetRef);
+  fseekHandle(fileSystem, handle, offset, origin);
+}
+
+/** fseek variant taking resolved handle/offset values. */
+export function fseekHandle(
+  fileSystem: FileSystem,
+  handle: number,
+  offset: number,
+  origin: SeekOrigin = "start"
+): void {
   fileSystem.seek(handle, offset, origin);
 }
 
@@ -122,6 +160,15 @@ export function fseekln(
 ): void {
   const handle = getIntValue(registers, handleRef);
   const line = getIntValue(registers, offsetRef);
+  fseeklnHandle(fileSystem, handle, line);
+}
+
+/** fseekln variant taking resolved handle/line values. */
+export function fseeklnHandle(
+  fileSystem: FileSystem,
+  handle: number,
+  line: number
+): void {
   fileSystem.seek(handle, 0, "start");
   for (let i = 0; i < line; i++) {
     if (fileSystem.readLine) {
@@ -170,6 +217,17 @@ export function freadln(
   flags?: Flags
 ): void {
   const handle = getIntValue(registers, handleRef);
+  freadlnHandle(fileSystem, registers, destination, handle, flags);
+}
+
+/** freadln variant taking a resolved handle. */
+export function freadlnHandle(
+  fileSystem: FileSystem,
+  registers: RegisterSet,
+  destination: StringRegisterRef,
+  handle: number,
+  flags?: Flags
+): void {
   let data: Uint8Array | null = null;
 
   if (fileSystem.readLine) {
@@ -214,6 +272,16 @@ export function ftell(
   handleRef: IntRegisterRef
 ): void {
   const handle = getIntValue(registers, handleRef);
+  ftellHandle(fileSystem, registers, destination, handle);
+}
+
+/** ftell variant taking a resolved handle. */
+export function ftellHandle(
+  fileSystem: FileSystem,
+  registers: RegisterSet,
+  destination: IntRegisterRef,
+  handle: number
+): void {
   const position = fileSystem.tell ? fileSystem.tell(handle) : 0;
   setIntValue(registers, destination, position);
 }
@@ -228,6 +296,16 @@ export function ftellln(
   handleRef: IntRegisterRef
 ): void {
   const handle = getIntValue(registers, handleRef);
+  ftelllnHandle(fileSystem, registers, destination, handle);
+}
+
+/** ftellln variant taking a resolved handle. */
+export function ftelllnHandle(
+  fileSystem: FileSystem,
+  registers: RegisterSet,
+  destination: IntRegisterRef,
+  handle: number
+): void {
   const lineNumber = fileSystem.tellLine ? fileSystem.tellLine(handle) : 0;
   setIntValue(registers, destination, lineNumber);
 }

@@ -15,6 +15,7 @@
  * Float registers use IEEE 754 double precision (64-bit).
  */
 
+import { EdiabasError, EdiabasErrorCodes } from "@emdzej/ediabasx-core";
 import { RegisterSet } from "../registers";
 import { Flags } from "../flags";
 import type {
@@ -30,6 +31,12 @@ import {
   setIntValue,
   setStringValue,
 } from "./register-values";
+
+function ensureFinite(result: number, op: string): void {
+  if (!Number.isFinite(result) || Number.isNaN(result)) {
+    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0011, `${op}: result is Inf/NaN`);
+  }
+}
 
 export type {
   FloatRegisterRef,
@@ -86,9 +93,11 @@ export function fadd(
   destination: FloatRegisterRef,
   source: FloatRegisterRef
 ): void {
+  void flags;
   const destValue = getFloatValue(registers, destination);
   const srcValue = getFloatValue(registers, source);
   const result = destValue + srcValue;
+  ensureFinite(result, "fadd");
   setFloatValue(registers, destination, result);
 }
 
@@ -115,9 +124,11 @@ export function fsub(
   destination: FloatRegisterRef,
   source: FloatRegisterRef
 ): void {
+  void flags;
   const destValue = getFloatValue(registers, destination);
   const srcValue = getFloatValue(registers, source);
   const result = destValue - srcValue;
+  ensureFinite(result, "fsub");
   setFloatValue(registers, destination, result);
 }
 
@@ -144,9 +155,11 @@ export function fmul(
   destination: FloatRegisterRef,
   source: FloatRegisterRef
 ): void {
+  void flags;
   const destValue = getFloatValue(registers, destination);
   const srcValue = getFloatValue(registers, source);
   const result = destValue * srcValue;
+  ensureFinite(result, "fmul");
   setFloatValue(registers, destination, result);
 }
 
@@ -174,9 +187,11 @@ export function fdiv(
   destination: FloatRegisterRef,
   source: FloatRegisterRef
 ): void {
+  void flags;
   const destValue = getFloatValue(registers, destination);
   const srcValue = getFloatValue(registers, source);
   const result = destValue / srcValue;
+  ensureFinite(result, "fdiv");
   setFloatValue(registers, destination, result);
 }
 

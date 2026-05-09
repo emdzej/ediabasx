@@ -146,6 +146,26 @@ function resolveStringParameter(parameter: JobParameter | undefined): string {
   }
 }
 
+/**
+ * BEST2 parameter retrieval mirrors C# OpParl/OpPars/OpParr: GetActiveArgStrings()
+ * treats every job parameter as a string. Z=true iff the parameter slot is missing
+ * or holds an empty string — independent of the parsed numeric value.
+ */
+function isParameterEmpty(parameter: JobParameter | undefined): boolean {
+  if (!parameter) return true;
+  switch (parameter.kind) {
+    case "null":
+      return true;
+    case "string":
+      return parameter.value.length === 0;
+    case "binary":
+      return parameter.value.length === 0;
+    case "int":
+    case "float":
+      return false;
+  }
+}
+
 export function parb(
   registers: RegisterSet,
   flags: Flags,
@@ -157,20 +177,16 @@ export function parb(
   const parameter = position >= 0 ? parameters.get(position) : undefined;
   let value = 0;
 
-  flags.z = true;
   flags.c = false;
   flags.s = false;
   flags.v = false;
+  flags.z = isParameterEmpty(parameter);
 
-  if (parameter) {
+  if (parameter && !flags.z) {
     if (parameter.kind === "string") {
-      if (parameter.value.length > 0) {
-        flags.z = false;
-      }
       value = parseEdiabasInt(parameter.value).value;
     } else {
       value = resolveIntParameter(parameter);
-      flags.z = value === 0;
     }
   }
 
@@ -189,8 +205,8 @@ export function pars(
 ): void {
   const position = index - 1;
   const parameter = position >= 0 ? parameters.get(position) : undefined;
-  const value = resolveStringParameter(parameter);
-  flags.z = value.length === 0;
+  flags.z = isParameterEmpty(parameter);
+  const value = flags.z ? "" : resolveStringParameter(parameter);
   setStringValue(registers, destination, value);
 }
 
@@ -205,20 +221,16 @@ export function parr(
   const parameter = position >= 0 ? parameters.get(position) : undefined;
   let value = 0;
 
-  flags.z = true;
   flags.c = false;
   flags.s = false;
   flags.v = false;
+  flags.z = isParameterEmpty(parameter);
 
-  if (parameter) {
+  if (parameter && !flags.z) {
     if (parameter.kind === "string") {
-      if (parameter.value.length > 0) {
-        flags.z = false;
-      }
       value = parseEdiabasFloat(parameter.value).value;
     } else {
       value = resolveFloatParameter(parameter);
-      flags.z = value === 0;
     }
   }
 

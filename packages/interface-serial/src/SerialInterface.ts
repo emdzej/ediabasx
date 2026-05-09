@@ -5,20 +5,23 @@ import { SerialTimeoutError } from "./errors";
 import { NodeSerialTransport } from "./nodeSerialTransport";
 import {
   AdapterModes,
+  AdapterWrappedTransport,
   DCAN_BAUD_RATE,
   DEFAULT_KWP2000_TIMERS,
   DcanSession,
+  Ds2Session,
   Kwp2000Session,
   KwpProtocols,
+  calcChecksumBmwFast as bmwFastChecksum,
   parseKeyBytes,
   Protocols,
   segmentIsoTpPayload,
   send5BaudInit,
   sendFastInit,
   switchToCanMode,
-  updateAdapterInfo,
   type AdapterInfoState,
   type AdapterMode,
+  type Ds2ConceptId,
   type KwpProtocol,
   type Kwp2000Timers
 } from "./kdcan";
@@ -55,7 +58,9 @@ const SerialTiming = {
 } as const;
 
 export class SerialInterface extends EdiabasInterface {
-  private readonly config: Required<Omit<SerialInterfaceConfig, "transport">>;
+  private readonly config: Required<Omit<SerialInterfaceConfig, "transport" | "probeAdapterOnConnect">> & {
+    probeAdapterOnConnect: boolean;
+  };
   private readonly transport: SerialTransport;
   private lastSendAt: number | null = null;
   private lastReceiveAt: number | null = null;
@@ -71,7 +76,31 @@ export class SerialInterface extends EdiabasInterface {
   private klineProtocol: KwpProtocol | null = null;
   private klineKeyBytes: Uint8Array | null = null;
   private dcanSession: DcanSession | null = null;
+  private ds2Session: Ds2Session | null = null;
+  private ds2ConceptId: Ds2ConceptId | null = null;
+  /**
+   * Number of additional retries on transient send/receive failures. The BEST2
+   * `xreps N` opcode lands here via the CommunicationInterface forwarder. C#
+   * `EdInterfaceObd.ObdTrans` runs `retries+1` total attempts, breaking out only
+   * on hard interface errors. Many BMW DS2 ECUs (notably MS43) only respond on
+   * the second or third attempt for follow-up queries.
+   */
+  private commRepeats = 0;
   private adapterMode: AdapterMode = AdapterModes.Uart;
+  /** When non-null, K-line writes are wrapped via K+DCAN adapter telegrams. */
+  private adapterWrappedTransport: AdapterWrappedTransport | null = null;
+  /** True once we've successfully polled adapter info on the active connection. */
+  private adapterDetected = false;
+  /**
+   * True iff a K+DCAN-style adapter was detected (adapterType ≥ 2). When false, we
+   * assume the cable is a passthrough FTDI and use raw bytes for K-line.
+   */
+  private isKDCanAdapter = false;
+  /**
+   * If process.env.EDIABASX_VERBOSE === "1", traces wire-level send/recv so the
+   * user can debug a real K+DCAN bring-up. The logger is set during connect().
+   */
+  private verboseLogger?: (tag: "send" | "recv" | "error", message: string, data?: Uint8Array) => void;
   private adapterInfo: AdapterInfoState = this.createDefaultAdapterInfo();
   private receiveBuffer: number[] = [];
   private frequentModeActive = false;
@@ -99,7 +128,8 @@ export class SerialInterface extends EdiabasInterface {
       p1DelayMs: this.clampP1(merged.p1DelayMs),
       kwpModeSelectPayload: Uint8Array.from(merged.kwpModeSelectPayload),
       kwpTesterPresentPayload: Uint8Array.from(merged.kwpTesterPresentPayload),
-      kwpWakeAddress: merged.kwpWakeAddress
+      kwpWakeAddress: merged.kwpWakeAddress,
+      probeAdapterOnConnect: config.probeAdapterOnConnect ?? false,
     };
 
     this.transport =
@@ -113,15 +143,52 @@ export class SerialInterface extends EdiabasInterface {
     if (this.connected) {
       return;
     }
-    const transportConfig: SerialTransportConfig = {
-      baudRate: this.config.baudRate,
-      dataBits: this.config.dataBits,
-      parity: this.config.parity,
-      stopBits: this.config.stopBits
-    };
+    // If we'll probe the adapter, open at 115200 8N1 (K+DCAN command baud).
+    // Otherwise honour the caller's UART config — that path supports plain FTDI
+    // passthrough where the program drives baud/parity directly.
+    const transportConfig: SerialTransportConfig = this.config.probeAdapterOnConnect
+      ? { baudRate: 115200, dataBits: 8, parity: "none", stopBits: 1 }
+      : {
+          baudRate: this.config.baudRate,
+          dataBits: this.config.dataBits,
+          parity: this.config.parity,
+          stopBits: this.config.stopBits,
+        };
     await this.transport.configure(transportConfig);
     await this.transport.open(this.config.port);
     this.connected = true;
+
+    if (process.env.EDIABASX_VERBOSE === "1") {
+      this.verboseLogger = (tag, message, data) => {
+        const hex = data
+          ? Array.from(data)
+              .map((b) => b.toString(16).padStart(2, "0"))
+              .join(" ")
+          : "";
+        process.stderr.write(`[serial:${tag}] ${message}${hex ? " | " + hex : ""}\n`);
+      };
+    }
+
+    if (this.config.probeAdapterOnConnect) {
+      try {
+        const ok = await this.pollAdapterInfo(true);
+        this.adapterDetected = ok && this.adapterInfo.adapterType >= 0;
+        this.isKDCanAdapter = ok && this.adapterInfo.adapterType >= 0x0002;
+        if (this.verboseLogger) {
+          this.verboseLogger(
+            "send",
+            `adapter probe ${ok ? "ok" : "failed"} type=0x${this.adapterInfo.adapterType.toString(16)}` +
+              ` version=0x${this.adapterInfo.adapterVersion.toString(16)}`
+          );
+        }
+      } catch (error) {
+        this.adapterDetected = false;
+        this.isKDCanAdapter = false;
+        if (this.verboseLogger) {
+          this.verboseLogger("error", `adapter probe threw: ${(error as Error).message}`);
+        }
+      }
+    }
   }
 
   async disconnect(): Promise<void> {
@@ -137,6 +204,12 @@ export class SerialInterface extends EdiabasInterface {
     this.klineProtocol = null;
     this.klineKeyBytes = null;
     this.dcanSession = null;
+    this.ds2Session = null;
+    this.ds2ConceptId = null;
+    this.adapterWrappedTransport = null;
+    this.adapterDetected = false;
+    this.isKDCanAdapter = false;
+    this.commRepeats = 0;
     this.adapterMode = AdapterModes.Uart;
     this.adapterInfo = this.createDefaultAdapterInfo();
     this.receiveBuffer = [];
@@ -307,6 +380,20 @@ export class SerialInterface extends EdiabasInterface {
     this.answerLength = length;
   }
 
+  /**
+   * Mirrors C# `EdInterfaceObd.CommRepeats` setter — invoked by the BEST2
+   * `xreps N` opcode via the CommunicationInterface forwarder. Stores the
+   * extra-attempts counter consumed by `transmitDs2WithRetry`.
+   */
+  async setRepeatCounter(count: number): Promise<void> {
+    this.commRepeats = Math.max(0, count >>> 0);
+  }
+
+  /** Returns the current repeat counter (0 = no extra retries). */
+  getRepeatCounter(): number {
+    return this.commRepeats;
+  }
+
   getCommParameterState(): SerialCommParameterState {
     return { ...this.commParameter };
   }
@@ -344,6 +431,12 @@ export class SerialInterface extends EdiabasInterface {
   }
 
   async rawData(request: Uint8Array): Promise<Uint8Array> {
+    if (this.ds2Session) {
+      // K-line write goes through the wrapped transport when a K+DCAN adapter is
+      // present, so the cable knows what baud/parity to drive on its K-line side.
+      const transport: SerialTransport = this.adapterWrappedTransport ?? this.transport;
+      return this.transmitDs2WithRetry(transport, request);
+    }
     if (this.shouldUseCanSession()) {
       return this.sendCanRequest(request);
     }
@@ -352,6 +445,180 @@ export class SerialInterface extends EdiabasInterface {
     }
     await this.send(request);
     return this.receive();
+  }
+
+  /**
+   * DS2 transmit wrapped with retry-on-failure (mirrors C# `ObdTrans`'s loop).
+   * Tries once, plus `commRepeats` additional attempts on timeout / framing /
+   * checksum failures. BMW MS43 in particular often ignores the very first
+   * follow-up query after identification and responds on attempt #2.
+   */
+  private async transmitDs2WithRetry(
+    transport: SerialTransport,
+    request: Uint8Array
+  ): Promise<Uint8Array> {
+    const session = this.ds2Session;
+    if (!session) {
+      throw new Error("DS2 session not configured");
+    }
+    const totalAttempts = Math.max(1, 1 + (this.commRepeats >>> 0));
+    let lastError: unknown;
+    for (let attempt = 0; attempt < totalAttempts; attempt++) {
+      try {
+        return await session.sendRequest(transport, request);
+      } catch (error) {
+        lastError = error;
+        if (this.verboseLogger) {
+          this.verboseLogger(
+            "error",
+            `DS2 attempt ${attempt + 1}/${totalAttempts} failed: ${(error as Error).message}`
+          );
+        }
+        // Best effort buffer drain between attempts so leftover bytes from a
+        // partial response don't poison the next echo.
+        try {
+          await transport.purge();
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+    throw lastError;
+  }
+
+  /**
+   * Composite send-and-receive used by the BEST2 `xsend` opcode. Routes to the
+   * appropriate protocol session (DS2 / KWP2000 / CAN) when configured, otherwise
+   * falls back to a raw send + receive.
+   */
+  async transmitData(request: Uint8Array): Promise<Uint8Array> {
+    return this.rawData(request);
+  }
+
+  /**
+   * Mirrors C# EdInterfaceObd.CommParameter setter — the BEST2 program calls
+   * `xsetpar` which lands here as a UInt32 array. Index 0 selects the protocol
+   * "concept": 0x0001 (Concept-1), 0x0005 (DS1), 0x0006 (DS2) all use DS2 framing.
+   * Other concepts will fall through to the legacy KWP/CAN paths defined elsewhere.
+   *
+   * Layout for DS2 concepts:
+   *   [0] concept
+   *   [1] baud rate
+   *   [2..4] addressing/init params (unused here — handled by the BEST2 program)
+   *   [5] ParTimeoutStd
+   *   [6] ParRegenTime
+   *   [7] ParTimeoutTelEnd
+   *   [8] ParInterbyteTime (optional)
+   *   [9] checksum mode (optional, 0=auto, !=0 → user-supplied)
+   */
+  async setCommParameter(parameters: number[]): Promise<void> {
+    // Reset any prior session.
+    this.ds2Session = null;
+    this.ds2ConceptId = null;
+    this.adapterWrappedTransport = null;
+
+    if (parameters.length === 0) {
+      return;
+    }
+
+    const concept = parameters[0] >>> 0;
+    if (concept === 0x0001 || concept === 0x0005 || concept === 0x0006) {
+      if (parameters.length < 8) {
+        throw new Error(`DS2: comm parameter array too short (${parameters.length} < 8)`);
+      }
+      const baudRate = parameters[1] || 9600;
+      const timeoutStdMs = parameters[5] || this.config.timeoutMs;
+      const regenTimeMs = parameters[6] || 0;
+      const telegramEndTimeoutMs = parameters[7] || this.config.telegramEndTimeoutMs;
+      const interByteTimeMs = parameters.length >= 9 ? parameters[8] : 0;
+      const checksumByUser = parameters.length >= 10 ? parameters[9] !== 0 : false;
+
+      if (this.connected) {
+        if (this.isKDCanAdapter) {
+          // K+DCAN: USB UART stays at 115200 8N1; the K-line baud/parity travel
+          // inside each adapter telegram. Build a wrapper transport so DS2 writes
+          // are encoded for the cable.
+          this.adapterWrappedTransport = new AdapterWrappedTransport({
+            inner: this.transport,
+            adapterType: this.adapterInfo.adapterType,
+            adapterVersion: this.adapterInfo.adapterVersion,
+            klineBaudRate: baudRate,
+            klineParity: "even",
+            interByteTimeMs,
+          });
+          await this.transport.configure({
+            baudRate: 115200,
+            dataBits: 8,
+            parity: "none",
+            stopBits: 1,
+          });
+        } else {
+          // Dumb FTDI passthrough: drive the UART at the K-line baud directly.
+          await this.transport.configure({
+            baudRate,
+            dataBits: 8,
+            parity: "even",
+            stopBits: 1,
+          });
+        }
+      }
+
+      this.ds2ConceptId = concept as Ds2ConceptId;
+      // Mirror C# `EdInterfaceObd.cs:668-672`: for DS2 (concept 0x0006), ParSendSetDtr
+      // is `!HasAdapterEcho`. Smart K+DCAN absorbs the echo (HasAdapterEcho=false →
+      // SendSetDtr=false). Raw FTDI cables echo via the half-duplex K-line wire
+      // (HasAdapterEcho=true → SendSetDtr=true) and need DTR raised during the
+      // send for the cable's transceiver to switch direction.
+      const hasAdapterEcho = !this.isKDCanAdapter;
+      // EDIABASX_KLINE_DTR=0 disables DTR toggling for cables where it's
+      // counter-productive (e.g. plain USB-UART without a K-line transceiver
+      // requiring direction control).
+      const dtrDisabled = process.env.EDIABASX_KLINE_DTR === "0";
+      const sendSetDtr = !dtrDisabled && concept === 0x0006 ? hasAdapterEcho : false;
+      this.ds2Session = new Ds2Session({
+        concept: concept as Ds2ConceptId,
+        baudRate,
+        timeoutStdMs,
+        regenTimeMs,
+        telegramEndTimeoutMs,
+        interByteTimeMs: interByteTimeMs > 0 ? interByteTimeMs : undefined,
+        checksumByUser,
+        sendSetDtr,
+        hasAdapterEcho,
+        // Skip pre-send purge in test/dev mode (where probeAdapterOnConnect=false and
+        // the mock transport stages bytes via enqueueRead). On real hardware the probe
+        // ran successfully, so the buffer state is known; subsequent purges are still
+        // valuable to absorb stray bytes between transactions.
+        skipPrePurge: !this.config.probeAdapterOnConnect,
+        logger: this.verboseLogger,
+      });
+      return;
+    }
+
+    // Future: dispatch concept 0x0002 (KWP1281), 0x010C (BMW KWP2000), CAN concepts, ...
+    // For now, store known indexed values to satisfy the legacy setParameter flow.
+    if (parameters.length >= 1) this.commParameter.protocol = parameters[0];
+    if (parameters.length >= 2) this.commParameter.testerAddress = parameters[1];
+  }
+
+  /** Whether the connection is going through a smart K+DCAN adapter (vs raw FTDI). */
+  isUsingKDCanAdapter(): boolean {
+    return this.isKDCanAdapter;
+  }
+
+  /** Reported adapter info from the most recent probe (or default state if not yet polled). */
+  getAdapterInfo(): AdapterInfoState {
+    return { ...this.adapterInfo };
+  }
+
+  /** True if a DS2-style session is currently configured. */
+  hasDs2Session(): boolean {
+    return this.ds2Session !== null;
+  }
+
+  /** Concept ID for the active DS2 session (1, 5, or 6) or null. */
+  getDs2ConceptId(): Ds2ConceptId | null {
+    return this.ds2ConceptId;
   }
 
   switchSiRelais(time: number): void {
@@ -721,28 +988,198 @@ export class SerialInterface extends EdiabasInterface {
     };
   }
 
-  private createAdapterInfoIo() {
-    return {
-      sendData: (data: Uint8Array) => {
-        void this.transport.write(data);
-      },
-      readInBuffer: () => {
-        const result = Uint8Array.from(this.receiveBuffer);
-        this.receiveBuffer = [];
-        return result;
-      },
-      discardInBuffer: () => {
-        this.receiveBuffer = [];
-      },
-      readTimeoutOffsetLongMs: this.config.timeoutMs,
-      nowMs: () => this.now()
-    };
-  }
-
+  /**
+   * Probe the connected USB adapter for its identity (type / version / serial /
+   * voltage) by exchanging the standard EdiabasLib test telegrams. Mirrors the C#
+   * `updateAdapterInfo` flow, but uses async transport reads natively instead of
+   * the polling buffer model so it composes with our SerialTransport interface.
+   *
+   * Returns false if the device doesn't respond like a K+DCAN-style adapter
+   * (timeout, bad echo, bad checksum). Callers should treat that as "this is a
+   * dumb passthrough cable" and fall back to raw K-line.
+   */
   async pollAdapterInfo(forceUpdate = false): Promise<boolean> {
+    void forceUpdate;
     this.assertConnected();
-    const io = this.createAdapterInfoIo();
-    return updateAdapterInfo(this.adapterInfo, io, { forceUpdate });
+
+    // Allow generous probe timeout so slower USB-Serial bridges have time to
+    // round-trip a 9-13 byte response. C# uses _readTimeoutOffsetLong which is
+    // typically 1000ms+ — 500ms was too tight on this hardware.
+    const probeTimeoutMs = Math.max(1000, Math.min(2000, this.config.timeoutMs));
+
+    type Probe = {
+      label: string;
+      tel: number[];
+      respLen: number;
+      /** When set, on timeout-with-valid-echo run this fallback. Mirrors C# permissive
+       * handling for the ignition-status / escape-mode probes — a dumb cable that
+       * doesn't recognise the command but echoes correctly should not abort the probe. */
+      onTimeoutWithEcho?: () => void;
+      apply: (resp: Uint8Array) => void;
+      gateOnAdapterType?: boolean;
+    };
+
+    // Escape-mode XOR codes (mirrors EscapeXor / EscapeCodeDefault / EscapeMaskDefault).
+    const ESCAPE_XOR = 0x55;
+    const ESCAPE_CODE_DEFAULT = 0xff;
+    const ESCAPE_MASK_DEFAULT = 0x80;
+    const escapeMode = 0x00; // both EscapeConfRead and EscapeConfWrite cleared
+
+    const probes: Probe[] = [
+      // telType 0: read ignition status. Permissive — dumb cables echo only.
+      {
+        label: "ignition",
+        tel: [0x82, 0xf1, 0xf1, 0xfe, 0xfe, 0x00],
+        respLen: 6,
+        onTimeoutWithEcho: () => {
+          // C# sets AdapterType = 0 here so subsequent probes still run.
+          this.adapterInfo.adapterType = 0;
+        },
+        apply: (resp) => {
+          this.adapterInfo.ignitionStatus = resp[4];
+        },
+      },
+      // telType 1: escape mode setup (8-byte command, 8-byte response).
+      // Without this the K+DCAN may not transition out of its boot/idle state and
+      // can refuse subsequent transactions.
+      {
+        label: "escape",
+        tel: [
+          0x84,
+          0xf1,
+          0xf1,
+          0x06,
+          (escapeMode ^ ESCAPE_XOR) & 0xff,
+          (ESCAPE_CODE_DEFAULT ^ ESCAPE_XOR) & 0xff,
+          (ESCAPE_MASK_DEFAULT ^ ESCAPE_XOR) & 0xff,
+          0x00,
+        ],
+        respLen: 8,
+        onTimeoutWithEcho: () => {
+          // C# leaves escape flags off but does NOT abort the probe sequence.
+          this.adapterInfo.escapeModeRead = false;
+          this.adapterInfo.escapeModeWrite = false;
+        },
+        apply: (resp) => {
+          const modeValue = resp[4] ^ ESCAPE_XOR;
+          this.adapterInfo.escapeModeRead = (modeValue & 0x01) !== 0;
+          this.adapterInfo.escapeModeWrite = (modeValue & 0x02) !== 0;
+        },
+      },
+      // telType 2: read firmware → adapterType / adapterVersion.
+      {
+        label: "firmware",
+        tel: [0x82, 0xf1, 0xf1, 0xfd, 0xfd, 0x00],
+        respLen: 9,
+        apply: (resp) => {
+          this.adapterInfo.adapterType = (resp[4] << 8) | resp[5];
+          this.adapterInfo.adapterVersion = (resp[6] << 8) | resp[7];
+        },
+      },
+      // telType 3: adapter serial (gated on adapterType ≥ 0x0002).
+      {
+        label: "serial",
+        tel: [0x82, 0xf1, 0xf1, 0xfb, 0xfb, 0x00],
+        respLen: 13,
+        apply: (resp) => {
+          this.adapterInfo.adapterSerial = resp.slice(4, 12);
+        },
+        gateOnAdapterType: true,
+      },
+      // telType 4: adapter voltage (gated on adapterType ≥ 0x0002).
+      {
+        label: "voltage",
+        tel: [0x82, 0xf1, 0xf1, 0xfc, 0xfc, 0x00],
+        respLen: 6,
+        apply: (resp) => {
+          this.adapterInfo.adapterVoltage = resp[4];
+          this.adapterInfo.lastVoltageUpdateMs = this.now();
+        },
+        gateOnAdapterType: true,
+      },
+    ];
+
+    // Reset the ID fields so we don't keep stale data from a prior connection.
+    this.adapterInfo.ignitionStatus = -1;
+    this.adapterInfo.adapterType = -1;
+    this.adapterInfo.adapterSerial = null;
+    this.adapterInfo.adapterVoltage = -1;
+
+    let echoOnlyCount = 0;
+    for (const probe of probes) {
+      if (probe.gateOnAdapterType && this.adapterInfo.adapterType < 0x0002) {
+        continue;
+      }
+      // Once the cable has echoed two probes back without ever answering, we
+      // know it's a passthrough FTDI / K-line-transceiver cable, not a smart
+      // K+DCAN. Stop probing so we don't keep dumping bytes on the K-line that
+      // the ECU might interpret as junk diagnostics requests.
+      if (echoOnlyCount >= 2) {
+        this.verboseLogger?.(
+          "send",
+          `probe stopping early — cable identified as passthrough (no smart-adapter response)`
+        );
+        return false;
+      }
+      const tel = Uint8Array.from(probe.tel);
+      tel[tel.length - 1] = bmwFastChecksum(tel, 0, tel.length - 1);
+
+      try {
+        await this.transport.purge();
+        await this.transport.write(tel);
+        // The cable echoes the telegram back, then sends `respLen` bytes.
+        const echoAndResp = await this.transport.read(tel.length + probe.respLen, probeTimeoutMs);
+
+        // Permissive failure: if we got at least the echo back and the probe
+        // has an onTimeoutWithEcho fallback, treat it as a soft pass.
+        if (echoAndResp.length < tel.length + probe.respLen) {
+          if (echoAndResp.length >= tel.length && probe.onTimeoutWithEcho) {
+            const echoOk = tel.every((value, index) => echoAndResp[index] === value);
+            if (echoOk) {
+              this.verboseLogger?.(
+                "send",
+                `probe '${probe.label}' echo-only (cable doesn't implement command)`
+              );
+              probe.onTimeoutWithEcho();
+              echoOnlyCount += 1;
+              continue;
+            }
+          }
+          this.verboseLogger?.(
+            "error",
+            `probe '${probe.label}' incomplete: got ${echoAndResp.length}/${tel.length + probe.respLen} bytes`
+          );
+          return false;
+        }
+
+        for (let i = 0; i < tel.length; i++) {
+          if (echoAndResp[i] !== tel[i]) {
+            this.verboseLogger?.(
+              "error",
+              `probe '${probe.label}' echo mismatch at byte ${i}: ${echoAndResp[i]} != ${tel[i]}`
+            );
+            return false;
+          }
+        }
+        const resp = echoAndResp.subarray(tel.length);
+        const expectedSum = bmwFastChecksum(resp, 0, probe.respLen - 1);
+        if (expectedSum !== resp[probe.respLen - 1]) {
+          this.verboseLogger?.(
+            "error",
+            `probe '${probe.label}' bad checksum: expected ${expectedSum.toString(16)} got ${resp[probe.respLen - 1].toString(16)}`
+          );
+          return false;
+        }
+        probe.apply(resp);
+      } catch (error) {
+        this.verboseLogger?.("error", `probe '${probe.label}' threw: ${(error as Error).message}`);
+        return false;
+      }
+    }
+
+    this.adapterInfo.lastCommTickMs = this.now();
+    this.adapterInfo.reconnectRequired = false;
+    return true;
   }
 
   private shouldUseCanSession(): boolean {

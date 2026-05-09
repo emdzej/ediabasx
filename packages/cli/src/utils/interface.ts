@@ -1,8 +1,11 @@
 import type { Command } from "commander";
 import type { InterfaceOptions } from "@emdzej/ediabasx-interfaces";
+import fs from "node:fs";
 import { parseNumber, parseOptionalNumber } from "./numbers.js";
+import { DEFAULT_CONFIG_PATH, loadConfig } from "./config.js";
 
 type InterfaceCliOptions = {
+  config?: string;
   interface?: string;
   simulation?: boolean;
   timeout?: string;
@@ -77,6 +80,10 @@ function parseGatewayAddress(value: string): { host: string; port: number } {
 function addInterfaceOptions(command: Command): Command {
   return command
     .option(
+      "-c, --config <path>",
+      "path to config file (default: auto-detect ~/.config/ediabasx/config.json)"
+    )
+    .option(
       "-i, --interface <name>",
       "interface to use (simulation|serial|kdcan|enet|gateway)"
     )
@@ -111,7 +118,16 @@ function resolveInterfaceSelection(options: InterfaceCliOptions, fallback: strin
   name: string;
   options: InterfaceOptions;
 } {
-  const name = options.interface ?? (options.gateway ? "gateway" : options.simulation ? "simulation" : fallback);
+  // Load config file: explicit path, or auto-detect from default location
+  const configPath = options.config ?? (fs.existsSync(DEFAULT_CONFIG_PATH) ? DEFAULT_CONFIG_PATH : undefined);
+  const fileConfig = configPath ? loadConfig(configPath) : undefined;
+
+  // CLI flags override config file; config file overrides fallback
+  const name = options.interface
+    ?? (options.gateway ? "gateway" : undefined)
+    ?? (options.simulation ? "simulation" : undefined)
+    ?? fileConfig?.interface
+    ?? fallback;
 
   if (options.simulation && name !== "simulation") {
     throw new Error("--simulation can only be used with the simulation interface");
@@ -121,7 +137,7 @@ function resolveInterfaceSelection(options: InterfaceCliOptions, fallback: strin
     throw new Error("--gateway can only be used with the gateway interface");
   }
 
-  const interfaceOptions: InterfaceOptions = {};
+  const interfaceOptions: InterfaceOptions = { ...(fileConfig?.options ?? {}) };
   const serialOptions: InterfaceOptions = {};
 
   if (options.serialPort) {

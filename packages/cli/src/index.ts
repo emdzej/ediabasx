@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from "commander";
+import { registerConfigureCommand } from "./commands/configure.js";
 import { registerDisasmCommand } from "./commands/disasm.js";
 import { registerDocsCommand } from "./commands/docs.js";
 import { registerExploreCommand } from "./commands/explore.js";
@@ -20,6 +21,7 @@ program
   .description("CLI for parsing EDIABAS PRG/GRP files")
   .version("0.1.0");
 
+registerConfigureCommand(program);
 registerInterfacesCommand(program);
 registerGatewayCommand(program);
 registerParseCommand(program);

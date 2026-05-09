@@ -141,7 +141,14 @@ function createSerialInterface(options: Record<string, string | number | boolean
     dataBits: options.dataBits as 7 | 8 | undefined,
     parity: options.parity as SerialParity | undefined,
     stopBits: options.stopBits as 1 | 2 | undefined,
-    timeoutMs: options.timeoutMs as number | undefined
+    timeoutMs: options.timeoutMs as number | undefined,
+    // CLI defaults to probing the adapter on connect — that's how we detect a
+    // real K+DCAN cable. User code that drives the SerialInterface directly
+    // can opt out by passing `probeAdapterOnConnect: false`.
+    probeAdapterOnConnect:
+      options.probeAdapter === undefined
+        ? true
+        : parseBoolean("probeAdapter", options.probeAdapter),
   };
 
   const serial = new SerialInterface(config);

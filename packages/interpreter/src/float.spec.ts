@@ -58,11 +58,12 @@ describe("Float Operations", () => {
       expect(registers.getF(0)).toBe(3.14);
     });
 
-    it("should handle infinity", () => {
+    it("should raise BIP_0011 on infinite result (matches C# OpFadd)", () => {
       registers.setF(0, Infinity);
       registers.setF(1, 1.0);
-      fadd(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
-      expect(registers.getF(0)).toBe(Infinity);
+      expect(() =>
+        fadd(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 })
+      ).toThrow(/Inf|NaN/);
     });
   });
 
@@ -127,11 +128,12 @@ describe("Float Operations", () => {
       expect(registers.getF(0)).toBe(2.5);
     });
 
-    it("should handle division by zero (Infinity)", () => {
+    it("should raise BIP_0011 on division by zero (Infinity result)", () => {
       registers.setF(0, 1.0);
       registers.setF(1, 0);
-      fdiv(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
-      expect(registers.getF(0)).toBe(Infinity);
+      expect(() =>
+        fdiv(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 })
+      ).toThrow(/Inf|NaN/);
     });
 
     it("should handle negative division", () => {
@@ -141,11 +143,12 @@ describe("Float Operations", () => {
       expect(registers.getF(0)).toBe(-5.0);
     });
 
-    it("should handle 0/0 (NaN)", () => {
+    it("should raise BIP_0011 on 0/0 (NaN result)", () => {
       registers.setF(0, 0);
       registers.setF(1, 0);
-      fdiv(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 });
-      expect(Number.isNaN(registers.getF(0))).toBe(true);
+      expect(() =>
+        fdiv(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 })
+      ).toThrow(/Inf|NaN/);
     });
   });
 

@@ -154,21 +154,25 @@ export function mul(
   const value0 = maskValue(getIntValue(registers, destination), bits);
   const value1 = maskValue(resolveRightValue(registers, source), bits);
 
-  let resultSigned: number;
-  if (bits === 32) {
-    resultSigned = Math.imul(value0 | 0, value1 | 0);
-  } else {
-    resultSigned = getSignedValue(value0, bits) * getSignedValue(value1, bits);
-  }
+  // Compute the full signed product. For 32-bit the JS Number domain is too narrow,
+  // so use BigInt to preserve the upper half. Mirrors C# OpMult which casts to (UInt64)
+  // the signed product and stores `result >> (len*8)` into arg1.
+  const productBig = BigInt(getSignedValue(value0, bits)) * BigInt(getSignedValue(value1, bits));
+  const totalBits = BigInt(bits * 2);
+  const totalMask = (1n << totalBits) - 1n;
+  const productUnsigned = ((productBig % (1n << totalBits)) + (1n << totalBits)) & totalMask;
 
-  const resultUnsigned = resultSigned >>> 0;
-  const result = maskValue(resultUnsigned, bits);
+  const lowMask = bits === 32 ? 0xffffffffn : (1n << BigInt(bits)) - 1n;
+  const lowBig = productUnsigned & lowMask;
+  const highBig = (productUnsigned >> BigInt(bits)) & lowMask;
+
+  const result = Number(lowBig) >>> 0;
+  const resultHigh = Number(highBig) >>> 0;
 
   setIntValue(registers, destination, result);
   updateZeroSign(flags, result, bits);
   flags.v = false;
 
-  const resultHigh = maskValue(resultUnsigned >>> bits, bits);
   if (typeof source !== "number") {
     setIntValue(registers, source, resultHigh);
   }
@@ -513,7 +517,54 @@ export const divs = div;
 export const lsl = shl;
 export const lsr = shr;
 export const asl = shl;
-export const asr = shr;
+
+/**
+ * ASR - Arithmetic shift right.
+ *
+ * Distinct from LSR: sign-extends from the high bit. Mirrors C# OpAsr semantics —
+ * when shift > bits, fills value with the sign bit and sets carry to that sign bit;
+ * when 0 < shift ≤ bits, carry is the bit at position (shift-1).
+ */
+export function asr(
+  registers: RegisterSet,
+  flags: Flags,
+  destination: RegisterRef,
+  source: RegisterOrValue
+): void {
+  const bits = getBitWidth(destination);
+  const value0 = maskValue(getIntValue(registers, destination), bits);
+  const shift = getShiftAmount(resolveRightValue(registers, source));
+  let result = value0;
+  const signMask = SIGN_MASK[bits];
+  const signSet = (value0 & signMask) !== 0;
+
+  if (shift < 0) {
+    // don't touch carry
+  } else if (shift === 0) {
+    flags.c = false;
+  } else {
+    if (shift > bits) {
+      flags.c = signSet;
+    } else {
+      const carryShift = shift - 1;
+      const carryMask = Math.pow(2, carryShift);
+      flags.c = (value0 & carryMask) !== 0;
+    }
+
+    if (shift >= bits) {
+      // saturate: all-ones if sign was set, else zero
+      result = signSet ? MAX_UNSIGNED[bits] : 0;
+    } else {
+      // arithmetic shift: sign-extend from the top
+      const signed = getSignedValue(value0, bits);
+      result = maskValue(signed >> shift, bits);
+    }
+  }
+
+  setIntValue(registers, destination, result);
+  flags.v = false;
+  updateZeroSign(flags, result, bits);
+}
 
 /**
  * Add with carry (ADDC).

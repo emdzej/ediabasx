@@ -51,6 +51,14 @@ export class Ediabas {
   private prg: PrgFile | null = null;
   private prgPath: string | null = null;
   private commInterface: EdiabasInterface | null = null;
+  /**
+   * True after INITIALISIERUNG has run successfully against the loaded SGBD.
+   * BMW SGBDs use the INITIALISIERUNG job to call xsetpar / wake-up routines
+   * before any other diagnostic job; subsequent jobs assume the comm session
+   * has already been set up. We auto-run it on the first executeJob call to
+   * mirror EDIABAS's host behavior.
+   */
+  private initialized = false;
 
   constructor(config: EdiabasConfig) {
     this.config = {
@@ -121,12 +129,45 @@ export class Ediabas {
     );
   }
 
+  /** True if the loaded SGBD defines a job with the given name (case-insensitive). */
+  private hasJob(name: string): boolean {
+    if (!this.prg) return false;
+    const target = name.toUpperCase();
+    return (
+      this.prg.jobs.some((j) => j.name.toUpperCase() === target) ||
+      this.prg.binaryJobs.some((j) => j.name.toUpperCase() === target)
+    );
+  }
+
   /**
-   * Execute a job
+   * Internal job runner used by INITIALISIERUNG bootstrap. Returns silently on
+   * failure so a missing/failing init doesn't mask the real error from the
+   * user's actual job.
    */
-  async executeJob(
+  private async runJobInternal(jobName: string, params: string[]): Promise<void> {
+    if (this.config.logging) {
+      log.info(`Auto-running ${jobName}`);
+    }
+    try {
+      await this.executeJobRaw(jobName, params);
+      if (this.config.logging) log.info(`${jobName} completed`);
+    } catch (err) {
+      // Always surface init failures somewhere — they often hide the root cause
+      // of subsequent job errors. Keep the process going so the user's job can
+      // run too, but make the diagnostic visible.
+      const message = `${jobName} failed: ${(err as Error).message}`;
+      if (this.config.logging) {
+        log.warn(message);
+      } else {
+        process.stderr.write(`[ediabas] ${message}\n`);
+      }
+    }
+  }
+
+  /** Run a job through the interpreter without the INITIALISIERUNG bootstrap. */
+  private async executeJobRaw(
     jobName: string,
-    options?: { params?: string[]; timeout?: number }
+    params: string[]
   ): Promise<EdiabasJobResult[]> {
     if (!this.prg) {
       throw new EdiabasError(
@@ -135,21 +176,30 @@ export class Ediabas {
       );
     }
 
-    if (this.config.logging) {
-      log.info(`Executing job: ${jobName}`);
-    }
-
-    // Setup parameters
     const parameters = new ParameterSet();
-    if (options?.params) {
-      for (let i = 0; i < options.params.length; i++) {
-        parameters.set(i, { kind: "string", value: options.params[i] });
-      }
+    for (let i = 0; i < params.length; i++) {
+      parameters.set(i, { kind: "string", value: params[i] });
     }
+    const commAdapter = this.buildCommAdapter();
+    const interpreter = new Interpreter(this.prg);
+    const results = await interpreter.execute(jobName, {
+      parameters,
+      communicationInterface: commAdapter,
+    });
+    return results.map((r: JobResult) => ({
+      name: r.name,
+      type: r.type,
+      value: r.value,
+      unit: r.unit,
+      comment: r.comment,
+    }));
+  }
 
-    // Create communication interface adapter
+  /** Build the interpreter→interface adapter so xsetpar/xsend can route through. */
+  private buildCommAdapter(): CommunicationInterface | undefined {
     const commInterface = this.commInterface;
-    const commAdapter: CommunicationInterface | undefined = commInterface ? {
+    if (!commInterface) return undefined;
+    const adapter: CommunicationInterface = {
       connect: () => commInterface.connect(),
       disconnect: () => commInterface.disconnect(),
       send: (data: Uint8Array) => commInterface.send(data),
@@ -171,15 +221,75 @@ export class Ediabas {
       switchSiRelais: (time: number) => commInterface.switchSiRelais(time),
       sendExtended: (data: Uint8Array) => commInterface.send(data),
       receiveExtended: (timeout?: number) => commInterface.receive(timeout ?? this.config.timeout),
-    } : undefined;
+    };
+    // Forward setCommParameter / transmitData when present so SerialInterface DS2
+    // routing works through the adapter.
+    const fwd = commInterface as unknown as {
+      setCommParameter?: (params: number[]) => Promise<void> | void;
+      transmitData?: (data: Uint8Array) => Promise<Uint8Array> | Uint8Array;
+      setAnswerLengths?: (lengths: number[]) => Promise<void> | void;
+      setAnswerLength?: (length: number) => Promise<void> | void;
+      setRepeatCounter?: (count: number) => Promise<void> | void;
+    };
+    if (fwd.setCommParameter) adapter.setCommParameter = (params) => Promise.resolve(fwd.setCommParameter!(params));
+    if (fwd.transmitData) adapter.transmitData = (data) => Promise.resolve(fwd.transmitData!(data));
+    if (fwd.setAnswerLengths) adapter.setAnswerLengths = (lengths) => Promise.resolve(fwd.setAnswerLengths!(lengths));
+    if (fwd.setAnswerLength) adapter.setAnswerLength = (length) => Promise.resolve(fwd.setAnswerLength!(length));
+    if (fwd.setRepeatCounter) adapter.setRepeatCounter = (count) => Promise.resolve(fwd.setRepeatCounter!(count));
+    return adapter;
+  }
 
-    // Create interpreter
+  /**
+   * Execute a job
+   */
+  async executeJob(
+    jobName: string,
+    options?: { params?: string[]; timeout?: number }
+  ): Promise<EdiabasJobResult[]> {
+    if (!this.prg) {
+      throw new EdiabasError(
+        EdiabasErrorCodes.UNKNOWN,
+        "No SGBD loaded. Call loadSgbd() first."
+      );
+    }
+
+    // Auto-run INITIALISIERUNG before the first user job so the SGBD has a
+    // chance to set up comm parameters / wake the ECU. Skip if the user is
+    // explicitly running INITIALISIERUNG, or if the SGBD doesn't define it,
+    // or if this is a virtual/system job whose name starts with "_".
+    if (
+      !this.initialized &&
+      !jobName.startsWith("_") &&
+      jobName.toUpperCase() !== "INITIALISIERUNG" &&
+      this.hasJob("INITIALISIERUNG")
+    ) {
+      try {
+        await this.runJobInternal("INITIALISIERUNG", []);
+      } finally {
+        // Mark initialized whether or not the init job succeeded; if it failed
+        // hard, the underlying error (timeout, IFH_*) will surface on the
+        // user's job too — no need to re-run on every executeJob call.
+        this.initialized = true;
+      }
+    }
+
+    if (this.config.logging) {
+      log.info(`Executing job: ${jobName}`);
+    }
+
+    // Setup parameters
+    const parameters = new ParameterSet();
+    if (options?.params) {
+      for (let i = 0; i < options.params.length; i++) {
+        parameters.set(i, { kind: "string", value: options.params[i] });
+      }
+    }
+
+    // Build the comm adapter and interpreter for this job.
     const interpreter = new Interpreter(this.prg);
-
-    // Execution options
     const execOptions: ExecutionOptions = {
       parameters,
-      communicationInterface: commAdapter,
+      communicationInterface: this.buildCommAdapter(),
     };
 
     try {
@@ -222,6 +332,8 @@ export class Ediabas {
     if (this.commInterface?.isConnected()) {
       await this.commInterface.disconnect();
     }
+    // Force the next executeJob to run INITIALISIERUNG again on a fresh connection.
+    this.initialized = false;
   }
 
   /**

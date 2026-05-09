@@ -138,7 +138,7 @@ async function executeRunnerJob(
     transport,
     simulation: useSimulation,
     timeout: Number.isFinite(timeout) ? timeout : 5000,
-    logging: false,
+    logging: process.env.EDIABASX_VERBOSE === "1",
   });
 
   await ediabas.loadSgbd(path.basename(filePath));
@@ -150,15 +150,12 @@ async function executeRunnerJob(
   const startTime = Date.now();
   let results: EdiabasJobResult[] = [];
 
+  // Always connect (simulation included) so the comm interface is ready when xsend runs.
   try {
-    if (!useSimulation) {
-      await ediabas.connect();
-    }
+    await ediabas.connect();
     results = await ediabas.executeJob(jobName, { params });
   } finally {
-    if (!useSimulation) {
-      await ediabas.disconnect();
-    }
+    await ediabas.disconnect();
   }
 
   const executionTimeMs = Date.now() - startTime;
@@ -276,7 +273,7 @@ function registerRunCommand(program: Command): void {
           transport,
           simulation: useSimulation,
           timeout: Number.isFinite(timeout) ? timeout : 5000,
-          logging: false,
+          logging: process.env.EDIABASX_VERBOSE === "1",
         });
 
         await ediabas.loadSgbd(path.basename(filePath));
@@ -296,15 +293,13 @@ function registerRunCommand(program: Command): void {
         const startTime = Date.now();
         let results: EdiabasJobResult[] = [];
 
+        // Always connect — BEST2 host expects the comm interface to be ready before
+        // running the job. For simulation, connect() is a cheap "set connected=true".
         try {
-          if (!useSimulation) {
-            await ediabas.connect();
-          }
+          await ediabas.connect();
           results = await ediabas.executeJob(jobName, { params });
         } finally {
-          if (!useSimulation) {
-            await ediabas.disconnect();
-          }
+          await ediabas.disconnect();
         }
 
         const executionTime = Date.now() - startTime;

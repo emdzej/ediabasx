@@ -114,4 +114,10 @@ export type SerialInterfaceConfig = {
   kwpTesterPresentPayload?: Uint8Array;
   kwpWakeAddress?: number;
   transport?: SerialTransport;
+  /**
+   * On connect, probe the cable for K+DCAN adapter telegrams (type/version/serial/voltage).
+   * When true and the cable answers, K-line traffic is wrapped via adapter telegrams; when
+   * false (default in tests) the cable is treated as a dumb FTDI passthrough.
+   */
+  probeAdapterOnConnect?: boolean;
 };
