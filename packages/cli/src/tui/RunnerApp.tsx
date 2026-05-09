@@ -17,11 +17,22 @@ type RunnerExecutionResult = {
   executionTimeMs: number;
 };
 
+type ConnectionPhase = "idle" | "connecting" | "connected" | "error" | "disconnected";
+
+type ConnectionStatus = {
+  phase: ConnectionPhase;
+  message: string;
+  ready: boolean;
+};
+
 type RunnerAppProps = {
   filePath: string;
   jobs: RunnerJob[];
   interfaceSummary?: string;
   onRun?: (jobName: string, params: string[]) => Promise<RunnerExecutionResult>;
+  /** Subscribe to connection-state updates. Returns an unsubscribe function. */
+  subscribeStatus?: (listener: (status: ConnectionStatus) => void) => () => void;
+  initialStatus?: ConnectionStatus;
 };
 
 type ResultLine = {
@@ -123,7 +134,30 @@ function parseArgsInput(value: string): string[] {
   return trimmed.split(/\s+/).map((item) => item.trim()).filter(Boolean);
 }
 
-export function RunnerApp({ filePath, jobs, interfaceSummary, onRun }: RunnerAppProps) {
+const PHASE_GLYPH: Record<ConnectionPhase, string> = {
+  idle: "○",
+  connecting: "◐",
+  connected: "●",
+  error: "!",
+  disconnected: "○",
+};
+
+const PHASE_COLOR: Record<ConnectionPhase, string> = {
+  idle: "gray",
+  connecting: "yellow",
+  connected: "green",
+  error: "red",
+  disconnected: "gray",
+};
+
+export function RunnerApp({
+  filePath,
+  jobs,
+  interfaceSummary,
+  onRun,
+  subscribeStatus,
+  initialStatus,
+}: RunnerAppProps) {
   const { exit } = useApp();
   const [width, height] = useStdoutDimensions();
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -135,13 +169,26 @@ export function RunnerApp({ filePath, jobs, interfaceSummary, onRun }: RunnerApp
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialog, setDialog] = useState<null | { job: RunnerJob; value: string }>(null);
+  const [connection, setConnection] = useState<ConnectionStatus>(
+    initialStatus ?? { phase: "idle", message: "Not connected", ready: false }
+  );
+
+  useEffect(() => {
+    if (!subscribeStatus) return;
+    return subscribeStatus(setConnection);
+  }, [subscribeStatus]);
 
   const safeWidth = Math.max(40, width || 80);
   const safeHeight = Math.max(12, height || 20);
   const innerWidth = Math.max(0, safeWidth - 2);
 
   const interfaceLines = useMemo(() => {
-    const lines = [interfaceSummary ?? "Simulation"];
+    const glyph = PHASE_GLYPH[connection.phase];
+    const summary = interfaceSummary ?? "Simulation";
+    const lines = [
+      `${glyph} ${connection.message}`,
+      summary,
+    ];
     if (dialog) {
       const argNames = dialog.job.args.map((arg) => arg.name).join(", ");
       const label = argNames ? `Args (${argNames})` : "Args";
@@ -150,7 +197,7 @@ export function RunnerApp({ filePath, jobs, interfaceSummary, onRun }: RunnerApp
       lines.push(statusMessage);
     }
     return lines;
-  }, [dialog, interfaceSummary, statusMessage]);
+  }, [connection.phase, connection.message, dialog, interfaceSummary, statusMessage]);
 
   const interfaceHeight = Math.max(3, interfaceLines.length + 2);
   const contentHeight = Math.max(6, safeHeight - 2);
@@ -205,6 +252,14 @@ export function RunnerApp({ filePath, jobs, interfaceSummary, onRun }: RunnerApp
       return;
     }
     if (isRunning) return;
+    // Don't queue runs during the initial / reconnect handshake — the link
+    // isn't ready yet and the run would just stack up behind the connect.
+    // (Phase "error" is still runnable: the user can retry, which kicks the
+    // session's reconnect path.)
+    if (connection.phase === "connecting") {
+      setStatusMessage("Still connecting — wait a moment");
+      return;
+    }
 
     setIsRunning(true);
     setStatusMessage("Running...");
@@ -358,9 +413,23 @@ export function RunnerApp({ filePath, jobs, interfaceSummary, onRun }: RunnerApp
         </Box>
         <Box flexDirection="column" height={interfaceHeight}>
           <Text>│{interfaceTop}│</Text>
-          {interfaceLines.map((line, index) => (
-            <Text key={`interface-${index}`}>│{buildPanelLine(line, interfaceWidth)}│</Text>
-          ))}
+          {interfaceLines.map((line, index) => {
+            // Colour the connection status line (always first) based on phase.
+            if (index === 0) {
+              const innerWidth = Math.max(0, interfaceWidth - 2);
+              const padded = line.length > innerWidth
+                ? line.slice(0, innerWidth)
+                : line.padEnd(innerWidth, " ");
+              return (
+                <Text key={`interface-${index}`}>
+                  ││<Text color={PHASE_COLOR[connection.phase]}>{padded}</Text>││
+                </Text>
+              );
+            }
+            return (
+              <Text key={`interface-${index}`}>│{buildPanelLine(line, interfaceWidth)}│</Text>
+            );
+          })}
           <Text>│{interfaceBottom}│</Text>
         </Box>
       </Box>

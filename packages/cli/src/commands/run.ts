@@ -117,23 +117,60 @@ type RunnerExecutionResult = {
   executionTimeMs: number;
 };
 
-async function executeRunnerJob(
+/**
+ * RunnerSession keeps a single `Ediabas` instance + transport alive for the
+ * lifetime of the TUI runner so that:
+ *
+ *   - the serial port isn't closed/reopened between jobs (saves ~200ms FTDI
+ *     overhead and avoids breaking the K-line diagnostic session),
+ *   - the adapter probe runs only once,
+ *   - `INITIALISIERUNG` runs only on the first job (the `Ediabas` instance's
+ *     `initialized` flag persists),
+ *   - the UI gets a reactive view of the underlying connection state.
+ */
+type ConnectionPhase =
+  | "idle"
+  | "connecting"
+  | "connected"
+  | "error"
+  | "disconnected";
+
+type ConnectionStatus = {
+  phase: ConnectionPhase;
+  message: string;
+  /** True when comm is healthy enough to run a job. */
+  ready: boolean;
+};
+
+type RunnerSession = {
+  /** Eagerly establish the link so the interface panel can show "Connected". */
+  connect: () => Promise<void>;
+  /** Run a job on the persistent connection. Reconnects transparently on transport error. */
+  run: (jobName: string, params: string[]) => Promise<RunnerExecutionResult>;
+  /** Subscribe to connection-state transitions. Returns an unsubscribe fn. */
+  subscribe: (listener: (status: ConnectionStatus) => void) => () => void;
+  /** Current snapshot of the connection state. */
+  getStatus: () => ConnectionStatus;
+  /** Disconnect and free resources. Idempotent. */
+  shutdown: () => Promise<void>;
+};
+
+async function createRunnerSession(
   filePath: string,
-  jobName: string,
-  params: string[],
   options: InterfaceCliOptions & { results?: string }
-): Promise<RunnerExecutionResult> {
+): Promise<RunnerSession> {
   const { Ediabas } = await import("@emdzej/ediabasx-ediabas");
   const ecuPath = path.dirname(path.resolve(filePath));
   const timeout = Number.parseInt(options.timeout ?? "5000", 10);
   const selection = resolveInterfaceSelection(options, "simulation");
   const useSimulation = selection.name === "simulation";
 
-  const transport = useSimulation
-    ? undefined
-    : createInterface(selection.name, selection.options);
+  const buildTransport = () =>
+    useSimulation ? undefined : createInterface(selection.name, selection.options);
 
-  const ediabas = new Ediabas({
+  let transport = buildTransport();
+
+  let ediabas = new Ediabas({
     ecuPath,
     transport,
     simulation: useSimulation,
@@ -147,24 +184,166 @@ async function executeRunnerJob(
     ? new Set(options.results.split(",").map((value) => value.trim().toUpperCase()))
     : undefined;
 
-  const startTime = Date.now();
-  let results: EdiabasJobResult[] = [];
+  let status: ConnectionStatus = {
+    phase: "idle",
+    message: useSimulation ? "Simulation (no hardware)" : "Not connected",
+    ready: false,
+  };
+  const listeners = new Set<(status: ConnectionStatus) => void>();
 
-  // Always connect (simulation included) so the comm interface is ready when xsend runs.
-  try {
-    await ediabas.connect();
-    results = await ediabas.executeJob(jobName, { params });
-  } finally {
-    await ediabas.disconnect();
-  }
+  const setStatus = (next: ConnectionStatus): void => {
+    status = next;
+    for (const listener of listeners) {
+      try {
+        listener(status);
+      } catch {
+        /* listener errors must not break the runner */
+      }
+    }
+  };
 
-  const executionTimeMs = Date.now() - startTime;
-  const filteredResults = resultsFilter
-    ? results.filter((result) => resultsFilter.has(result.name.toUpperCase()))
-    : results;
+  /** Build a human description of the active link from the underlying interface. */
+  const describeLink = (): string => {
+    if (useSimulation) {
+      return "Simulation";
+    }
+    if (!transport) return "No transport";
+    // Best-effort feature detection — we don't want a hard import on
+    // SerialInterface here because the transport may be ENET, gateway, etc.
+    const candidate = transport as unknown as {
+      isUsingKDCanAdapter?: () => boolean;
+      getDs2ConceptId?: () => number | null;
+      getAdapterInfo?: () => { adapterType: number; adapterVersion: number };
+    };
+    const parts: string[] = [selection.name];
+    const port = (selection.options as Record<string, string | number | boolean | undefined>).port;
+    if (typeof port === "string" && port.length > 0) parts.push(port);
+    if (candidate.isUsingKDCanAdapter && candidate.isUsingKDCanAdapter()) {
+      parts.push("smart K+DCAN");
+    } else if (candidate.getAdapterInfo) {
+      const info = candidate.getAdapterInfo();
+      if (info.adapterType >= 0x0002) {
+        parts.push(`adapter 0x${info.adapterType.toString(16)} v${info.adapterVersion}`);
+      } else {
+        parts.push("passthrough");
+      }
+    }
+    if (candidate.getDs2ConceptId) {
+      const concept = candidate.getDs2ConceptId();
+      if (concept !== null) parts.push(`DS2 concept 0x${concept.toString(16)}`);
+    }
+    return parts.join(" · ");
+  };
 
-  return { results: filteredResults, executionTimeMs };
+  const ensureConnected = async (): Promise<void> => {
+    if (status.ready) return;
+    setStatus({ phase: "connecting", message: "Connecting...", ready: false });
+    try {
+      await ediabas.connect();
+      setStatus({ phase: "connected", message: `Connected · ${describeLink()}`, ready: true });
+    } catch (error) {
+      setStatus({
+        phase: "error",
+        message: `Connect failed: ${(error as Error).message}`,
+        ready: false,
+      });
+      throw error;
+    }
+  };
+
+  const reconnect = async (): Promise<void> => {
+    setStatus({ phase: "connecting", message: "Reconnecting...", ready: false });
+    try {
+      await ediabas.disconnect();
+    } catch {
+      /* ignore — we're rebuilding anyway */
+    }
+    transport = buildTransport();
+    ediabas = new Ediabas({
+      ecuPath,
+      transport,
+      simulation: useSimulation,
+      timeout: Number.isFinite(timeout) ? timeout : 5000,
+      logging: process.env.EDIABASX_VERBOSE === "1",
+    });
+    await ediabas.loadSgbd(path.basename(filePath));
+    await ensureConnected();
+  };
+
+  const run = async (jobName: string, params: string[]): Promise<RunnerExecutionResult> => {
+    await ensureConnected();
+    const startTime = Date.now();
+    let results: EdiabasJobResult[] = [];
+    try {
+      results = await ediabas.executeJob(jobName, { params });
+    } catch (error) {
+      // If the failure looks like a transport-level break (interface not
+      // connected, port closed, IFH errors), tear down and reconnect for the
+      // next attempt. The caller still gets the original error.
+      const message = (error as Error).message ?? "";
+      const transportFailure =
+        /not connected|EBADF|EAGAIN|EIO|EDIABAS_IFH_/i.test(message);
+      setStatus({
+        phase: transportFailure ? "error" : "connected",
+        message: transportFailure
+          ? `Connection lost: ${message}`
+          : `Connected · ${describeLink()}`,
+        ready: !transportFailure,
+      });
+      if (transportFailure) {
+        // Best-effort recovery; if reconnect fails the next run() call will retry.
+        void reconnect().catch(() => {
+          /* status already set to error */
+        });
+      }
+      throw error;
+    }
+
+    const executionTimeMs = Date.now() - startTime;
+    // Refresh status (covers post-INITIALISIERUNG link details like DS2 concept).
+    setStatus({ phase: "connected", message: `Connected · ${describeLink()}`, ready: true });
+
+    const filteredResults = resultsFilter
+      ? results.filter((result) => resultsFilter.has(result.name.toUpperCase()))
+      : results;
+    return { results: filteredResults, executionTimeMs };
+  };
+
+  return {
+    connect: async () => {
+      try {
+        await ensureConnected();
+      } catch {
+        /* status stream already carries the error */
+      }
+    },
+    run,
+    subscribe(listener) {
+      listeners.add(listener);
+      // Fire current state immediately so subscribers don't have to poll.
+      try {
+        listener(status);
+      } catch {
+        /* ignore */
+      }
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    getStatus: () => status,
+    async shutdown() {
+      try {
+        await ediabas.disconnect();
+      } catch {
+        /* ignore */
+      }
+      setStatus({ phase: "disconnected", message: "Disconnected", ready: false });
+      listeners.clear();
+    },
+  };
 }
+
+export type { ConnectionStatus, ConnectionPhase, RunnerSession };
 
 function registerRunCommand(program: Command): void {
   const runCommand = program
@@ -198,17 +377,37 @@ function registerRunCommand(program: Command): void {
             : prg.binaryJobs.map((job) => ({ name: job.name, args: [] }));
           const interfaceSummary = formatInterfaceSummary(selection.name, selection.options);
 
-          const runInTui = async (job: string, params: string[]) =>
-            executeRunnerJob(filePath, job, params, options);
+          // Build a single, persistent runner session so the TUI keeps the
+          // serial port open across job runs (no port close/reopen, probe runs
+          // once, INITIALISIERUNG runs once per session, K-line stays alive).
+          const session = await createRunnerSession(filePath, options);
 
-          render(
+          // Pre-warm the link so the interface panel reflects the real
+          // connection state before the user picks a job. Failures show up
+          // via the status stream; never bubble here.
+          void session.connect();
+
+          const ink = render(
             React.createElement(RunnerApp, {
               filePath,
               jobs,
               interfaceSummary,
-              onRun: runInTui,
+              onRun: (job: string, params: string[]) => session.run(job, params),
+              subscribeStatus: session.subscribe,
+              initialStatus: session.getStatus(),
             })
           );
+
+          // Clean up the session when the TUI exits (Ctrl+C, q, or process exit).
+          const cleanup = async () => {
+            await session.shutdown();
+          };
+          ink.waitUntilExit().finally(() => {
+            void cleanup();
+          });
+          process.on("SIGINT", () => {
+            void cleanup().finally(() => process.exit(0));
+          });
           return;
         }
 
