@@ -76,8 +76,9 @@ describe("Interpreter", () => {
     const results = await interpreter.execute("TEST", { registers });
 
     expect(results).toHaveLength(1);
-    expect(results[0].name).toBe("VALUE");
-    expect(results[0].value).toBe(0x12);
+    expect(results[0]).toHaveLength(1);
+    expect(results[0][0].name).toBe("VALUE");
+    expect(results[0][0].value).toBe(0x12);
   });
 
   it("loads config values with cfgsg", async () => {
@@ -372,6 +373,7 @@ describe("Interpreter", () => {
         resultsRequest: new Set(["OTHER"]),
       });
 
+      // etag with no matching result name → no results emitted at all → no sets archived
       expect(results).toHaveLength(0);
     });
 
@@ -394,7 +396,8 @@ describe("Interpreter", () => {
       });
 
       expect(results).toHaveLength(1);
-      expect(results[0].name).toBe("WANTED");
+      expect(results[0]).toHaveLength(1);
+      expect(results[0][0].name).toBe("WANTED");
     });
 
     it("does not skip when resultsRequest is empty", async () => {
@@ -413,6 +416,7 @@ describe("Interpreter", () => {
       const results = await interpreter.execute("TEST", { registers });
 
       expect(results).toHaveLength(1);
+      expect(results[0]).toHaveLength(1);
     });
   });
 

@@ -13,7 +13,7 @@ type RunnerJob = {
 };
 
 type RunnerExecutionResult = {
-  results: EdiabasJobResult[];
+  resultSets: EdiabasJobResult[][];
   executionTimeMs: number;
 };
 
@@ -100,27 +100,38 @@ function formatResultValue(result: EdiabasJobResult): string {
   return String(result.value);
 }
 
-function buildResultsTable(results: EdiabasJobResult[]): ResultLine[] {
-  if (results.length === 0) {
+function buildResultsTable(sets: EdiabasJobResult[][]): ResultLine[] {
+  // Filter out empty sets so we don't render "Set N — (empty)" rows for the
+  // bookkeeping commits that don't carry user-visible results.
+  const nonEmpty = sets.filter((set) => set.length > 0);
+  if (nonEmpty.length === 0) {
     return [{ text: "No results returned.", dimColor: true }];
   }
 
-  const nameWidth = Math.max(4, ...results.map((result) => result.name.length));
-  const typeWidth = Math.max(4, ...results.map((result) => result.type.length));
+  // Compute widths across all sets so columns align between sections.
+  const all = nonEmpty.flat();
+  const nameWidth = Math.max(4, ...all.map((result) => result.name.length));
+  const typeWidth = Math.max(4, ...all.map((result) => result.type.length));
 
   const header = `${"Name".padEnd(nameWidth)} | ${"Type".padEnd(typeWidth)} | Value`;
   const separator = `${"─".repeat(nameWidth)}-+-${"─".repeat(typeWidth)}-+-${"─".repeat(5)}`;
 
-  const lines: ResultLine[] = [
-    { text: header, bold: true },
-    { text: separator, dimColor: true },
-  ];
+  const lines: ResultLine[] = [];
+  const showSetHeaders = nonEmpty.length > 1;
 
-  for (const result of results) {
-    lines.push({
-      text: `${result.name.padEnd(nameWidth)} | ${result.type.padEnd(typeWidth)} | ${formatResultValue(result)}`,
-    });
-  }
+  nonEmpty.forEach((set, index) => {
+    if (showSetHeaders) {
+      if (index > 0) lines.push({ text: "" });
+      lines.push({ text: `Set ${index + 1}/${nonEmpty.length}`, bold: true, color: "cyan" });
+    }
+    lines.push({ text: header, bold: true });
+    lines.push({ text: separator, dimColor: true });
+    for (const result of set) {
+      lines.push({
+        text: `${result.name.padEnd(nameWidth)} | ${result.type.padEnd(typeWidth)} | ${formatResultValue(result)}`,
+      });
+    }
+  });
 
   return lines;
 }
@@ -267,7 +278,7 @@ export function RunnerApp({
 
     try {
       const result = await onRun(job.name, params);
-      setResults(buildResultsTable(result.results));
+      setResults(buildResultsTable(result.resultSets));
       setResultsScroll(0);
       setFocusedPanel("results");
       setStatusMessage(`Done in ${result.executionTimeMs}ms`);

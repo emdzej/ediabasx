@@ -149,6 +149,8 @@ export class Ediabas {
       log.info(`Auto-running ${jobName}`);
     }
     try {
+      // INITIALISIERUNG is a single-set bootstrap job; we don't need its
+      // results, just side effects, so the sets shape is irrelevant here.
       await this.executeJobRaw(jobName, params);
       if (this.config.logging) log.info(`${jobName} completed`);
     } catch (err) {
@@ -168,7 +170,7 @@ export class Ediabas {
   private async executeJobRaw(
     jobName: string,
     params: string[]
-  ): Promise<EdiabasJobResult[]> {
+  ): Promise<EdiabasJobResult[][]> {
     if (!this.prg) {
       throw new EdiabasError(
         EdiabasErrorCodes.UNKNOWN,
@@ -182,17 +184,19 @@ export class Ediabas {
     }
     const commAdapter = this.buildCommAdapter();
     const interpreter = new Interpreter(this.prg);
-    const results = await interpreter.execute(jobName, {
+    const sets = await interpreter.execute(jobName, {
       parameters,
       communicationInterface: commAdapter,
     });
-    return results.map((r: JobResult) => ({
-      name: r.name,
-      type: r.type,
-      value: r.value,
-      unit: r.unit,
-      comment: r.comment,
-    }));
+    return sets.map((set) =>
+      set.map((r: JobResult) => ({
+        name: r.name,
+        type: r.type,
+        value: r.value,
+        unit: r.unit,
+        comment: r.comment,
+      }))
+    );
   }
 
   /** Build the interpreter→interface adapter so xsetpar/xsend can route through. */
@@ -240,12 +244,16 @@ export class Ediabas {
   }
 
   /**
-   * Execute a job
+   * Execute a job and return all emitted result sets.
+   *
+   * Multi-record jobs (e.g. `FS_LESEN` reading N fault entries) emit one set
+   * per record via the `enewset` opcode. Each set is one row, fields repeat
+   * across sets. Single-record jobs return a single-element array.
    */
   async executeJob(
     jobName: string,
     options?: { params?: string[]; timeout?: number }
-  ): Promise<EdiabasJobResult[]> {
+  ): Promise<EdiabasJobResult[][]> {
     if (!this.prg) {
       throw new EdiabasError(
         EdiabasErrorCodes.UNKNOWN,
@@ -293,14 +301,16 @@ export class Ediabas {
     };
 
     try {
-      const results = await interpreter.execute(jobName, execOptions);
-      return results.map((r: JobResult) => ({
-        name: r.name,
-        type: r.type,
-        value: r.value,
-        unit: r.unit,
-        comment: r.comment,
-      }));
+      const sets = await interpreter.execute(jobName, execOptions);
+      return sets.map((set) =>
+        set.map((r: JobResult) => ({
+          name: r.name,
+          type: r.type,
+          value: r.value,
+          unit: r.unit,
+          comment: r.comment,
+        }))
+      );
     } catch (err) {
       if (err instanceof EdiabasError) {
         throw err;

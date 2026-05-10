@@ -1176,12 +1176,30 @@ export class Interpreter {
     };
   }
 
-  async execute(jobName: string, options: ExecutionOptions = {}): Promise<JobResult[]> {
+  /**
+   * Execute a job and return all emitted result sets.
+   *
+   * BEST2 jobs emit "result sets" — each `enewset` (0x40) commits the current
+   * collector and starts a new one (mirroring C# `_resultSetsTemp`). Jobs that
+   * iterate (e.g. `FS_LESEN` reading N fault records) call `enewset` once per
+   * record so each record becomes its own set with the same field names.
+   *
+   * The final `_resultDict` is auto-committed after the bytecode ends, so the
+   * trailing emissions (e.g. the post-loop `ergs JOB_STATUS,"OKAY"`) land in a
+   * final set rather than being dropped — matches C# `ExecuteJobPrivate`.
+   */
+  async execute(jobName: string, options: ExecutionOptions = {}): Promise<JobResult[][]> {
     this.start(jobName, options);
     while (await this.step()) {
       // continue
     }
-    return this.context ? this.context.results.list() : [];
+    if (!this.context) return [];
+    const finalSet = this.context.results.list();
+    if (finalSet.length > 0) {
+      this.context.resultSetsTemp.push(finalSet);
+      this.context.results.clear();
+    }
+    return this.context.resultSetsTemp.map((set) => set.slice());
   }
 
   async step(): Promise<boolean> {
@@ -2371,11 +2389,26 @@ export class Interpreter {
       },
       // 0x7c: tabseek - both args polymorphic strings.
       0x7c: async (state, arg0, arg1) => {
-        tabseekOp(state.flags, state.tableState, readPolyString(state, arg0), readPolyString(state, arg1));
+        const col = readPolyString(state, arg0);
+        const search = readPolyString(state, arg1);
+        tabseekOp(state.flags, state.tableState, col, search);
+        if (typeof process !== "undefined" && process.env?.EDIABASX_VERBOSE === "1") {
+          process.stderr.write(
+            `[vm] tabseek col=${JSON.stringify(col)} search=${JSON.stringify(search)} → row=${state.tableState.rowIndex} Z=${state.flags.z}\n`
+          );
+        }
       },
       // 0x7d: tabget - dest is a string register; column name polymorphic.
       0x7d: async (state, arg0, arg1) => {
-        tabgetOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), readPolyString(state, arg1));
+        const dest = requireStringRegister(arg0);
+        const col = readPolyString(state, arg1);
+        tabgetOp(state.registers, state.flags, state.tableState, dest, col);
+        if (typeof process !== "undefined" && process.env?.EDIABASX_VERBOSE === "1") {
+          const val = state.registers.getS(dest.index).replace(/\0.*$/, "");
+          process.stderr.write(
+            `[vm] tabget col=${JSON.stringify(col)} → S${dest.index}=${JSON.stringify(val)}\n`
+          );
+        }
       },
       // 0x7e: strcat - concatenate strings, silently truncating the source to
       // fit `ArrayMaxSize`. C# `OpStrcat` uses `arg0.GetDataLen()` (raw byte
@@ -2542,6 +2575,11 @@ export class Interpreter {
         const right = readPolyString(state, arg1);
         // Ordinal compare → Z=true when strings differ (BEST2 strcmp convention).
         state.flags.z = left !== right;
+        if (typeof process !== "undefined" && process.env?.EDIABASX_VERBOSE === "1") {
+          process.stderr.write(
+            `[vm] strcmp left=${JSON.stringify(left)} right=${JSON.stringify(right)} → Z=${state.flags.z}\n`
+          );
+        }
       },
       // 0x90: strlen - C# uses arg1.GetStringData(), accepts any string-array source.
       0x90: async (state, arg0, arg1) => {

@@ -112,8 +112,10 @@ async function loadInfoMetadata(filePath: string, prg: PrgFile): Promise<InfoLoa
     const ecuPath = path.dirname(path.resolve(filePath));
     const ediabas = new Ediabas({ ecuPath, simulation: true, logging: false });
     await ediabas.loadSgbd(path.basename(filePath));
-    const results = await ediabas.executeJob("INFO", { params: [] });
-    return { status: "ok", info: extractInfoResults(results) };
+    // INFO is a single-set job; flatten across all (small) emitted sets to
+    // keep the extractor simple — keys are unique within the system info set.
+    const sets = await ediabas.executeJob("INFO", { params: [] });
+    return { status: "ok", info: extractInfoResults(sets.flat()) };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return { status: "error", message };

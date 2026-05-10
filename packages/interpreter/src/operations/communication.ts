@@ -88,6 +88,28 @@ function wrapInterfaceError(error: unknown, action: string): never {
   throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, `${action} failed`);
 }
 
+function vmTraceEnabled(): boolean {
+  // EDIABASX_VERBOSE=1 already gates ediabas-level logs in the CLI; reuse it
+  // for VM-level xsend tracing so a single env var lights everything up.
+  return typeof process !== "undefined" && process.env?.EDIABASX_VERBOSE === "1";
+}
+
+function toHex(bytes: Uint8Array): string {
+  let out = "";
+  for (let i = 0; i < bytes.length; i++) {
+    if (i > 0) out += " ";
+    out += bytes[i].toString(16).padStart(2, "0").toUpperCase();
+  }
+  return out;
+}
+
+function traceXsend(request: Uint8Array, data: Uint8Array): void {
+  if (!vmTraceEnabled()) return;
+  process.stderr.write(
+    `[vm] xsend  req(${request.length})=${toHex(request)}  resp(${data.length})=${toHex(data)}\n`
+  );
+}
+
 function assertCapability<T>(value: T | undefined | null, action: string): T {
   if (value === undefined || value === null) {
     // C# `EdInterfaceObd` returns EDIABAS_IFH_0056 ("Function not supported by
@@ -129,11 +151,13 @@ async function sendAndReceive(
   try {
     if (interfaceClass.transmitData) {
       const data = await interfaceClass.transmitData(requestBytes);
+      traceXsend(requestBytes, data);
       fromBytes(registers, response, data);
       return;
     }
     await interfaceClass.send(requestBytes);
     const data = await interfaceClass.receive(timeout);
+    traceXsend(requestBytes, data);
     fromBytes(registers, response, data);
   } catch (error) {
     wrapInterfaceError(error, "Send and receive");
@@ -159,11 +183,13 @@ export async function xsendRaw(
   try {
     if (interfaceClass.transmitData) {
       const data = await interfaceClass.transmitData(requestBytes);
+      traceXsend(requestBytes, data);
       fromBytes(registers, response, data);
       return;
     }
     await interfaceClass.send(requestBytes);
     const data = await interfaceClass.receive();
+    traceXsend(requestBytes, data);
     fromBytes(registers, response, data);
   } catch (error) {
     wrapInterfaceError(error, "Send and receive");

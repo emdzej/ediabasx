@@ -60,30 +60,62 @@ function printJobUsage(job: PrgJob, filePath: string): void {
   }
 }
 
-function printResultsHuman(results: EdiabasJobResult[]): void {
-  if (results.length === 0) {
-    process.stdout.write(`${chalk.gray("No results returned.")}\n`);
-    return;
-  }
-
-  process.stdout.write(`${chalk.bold("Results:")}\n`);
-
-  const nameWidth = Math.max(6, ...results.map((result) => result.name.length));
-  const typeWidth = Math.max(6, ...results.map((result) => result.type.length));
-
-  process.stdout.write(
-    `  ${chalk.gray("Name".padEnd(nameWidth))}  ${chalk.gray("Type".padEnd(typeWidth))}  ${chalk.gray("Value")}\n`
-  );
-  process.stdout.write(
-    `  ${chalk.gray("─".repeat(nameWidth))}  ${chalk.gray("─".repeat(typeWidth))}  ${chalk.gray("─".repeat(30))}\n`
-  );
-
+function printResultSet(
+  results: EdiabasJobResult[],
+  nameWidth: number,
+  typeWidth: number
+): void {
   for (const result of results) {
     const valueStr = formatResultValueHuman(result);
     process.stdout.write(
       `  ${chalk.green(result.name.padEnd(nameWidth))}  ${chalk.blue(result.type.padEnd(typeWidth))}  ${valueStr}\n`
     );
   }
+}
+
+function printResultsHuman(sets: EdiabasJobResult[][]): void {
+  // Filter out empty sets so we don't print "Set N (empty)" headers.
+  const nonEmptySets = sets.filter((set) => set.length > 0);
+  if (nonEmptySets.length === 0) {
+    process.stdout.write(`${chalk.gray("No results returned.")}\n`);
+    return;
+  }
+
+  // Width derived from all results across all sets so columns align across sets.
+  const all = nonEmptySets.flat();
+  const nameWidth = Math.max(6, ...all.map((result) => result.name.length));
+  const typeWidth = Math.max(6, ...all.map((result) => result.type.length));
+
+  const showSetHeaders = nonEmptySets.length > 1;
+
+  process.stdout.write(`${chalk.bold("Results:")}\n`);
+
+  if (!showSetHeaders) {
+    process.stdout.write(
+      `  ${chalk.gray("Name".padEnd(nameWidth))}  ${chalk.gray("Type".padEnd(typeWidth))}  ${chalk.gray("Value")}\n`
+    );
+    process.stdout.write(
+      `  ${chalk.gray("─".repeat(nameWidth))}  ${chalk.gray("─".repeat(typeWidth))}  ${chalk.gray("─".repeat(30))}\n`
+    );
+    printResultSet(nonEmptySets[0], nameWidth, typeWidth);
+    return;
+  }
+
+  // Multi-set output: one labeled section per set. Matches the BMW EDIABAS
+  // `ResultSets` shape — each set is one record (e.g. one fault from FS_LESEN).
+  nonEmptySets.forEach((set, index) => {
+    if (index > 0) {
+      process.stdout.write("\n");
+    }
+    process.stdout.write(`${chalk.bold(`  Set ${index + 1}/${nonEmptySets.length}`)}\n`);
+    process.stdout.write(
+      `  ${chalk.gray("Name".padEnd(nameWidth))}  ${chalk.gray("Type".padEnd(typeWidth))}  ${chalk.gray("Value")}\n`
+    );
+    process.stdout.write(
+      `  ${chalk.gray("─".repeat(nameWidth))}  ${chalk.gray("─".repeat(typeWidth))}  ${chalk.gray("─".repeat(30))}\n`
+    );
+    printResultSet(set, nameWidth, typeWidth);
+  });
 }
 
 function formatResultValueHuman(result: EdiabasJobResult): string {
@@ -113,7 +145,7 @@ function formatResultValueJson(result: EdiabasJobResult): EdiabasJobResult["valu
 }
 
 type RunnerExecutionResult = {
-  results: EdiabasJobResult[];
+  resultSets: EdiabasJobResult[][];
   executionTimeMs: number;
 };
 
@@ -273,9 +305,9 @@ async function createRunnerSession(
   const run = async (jobName: string, params: string[]): Promise<RunnerExecutionResult> => {
     await ensureConnected();
     const startTime = Date.now();
-    let results: EdiabasJobResult[] = [];
+    let resultSets: EdiabasJobResult[][] = [];
     try {
-      results = await ediabas.executeJob(jobName, { params });
+      resultSets = await ediabas.executeJob(jobName, { params });
     } catch (error) {
       // If the failure looks like a transport-level break (interface not
       // connected, port closed, IFH errors), tear down and reconnect for the
@@ -303,10 +335,12 @@ async function createRunnerSession(
     // Refresh status (covers post-INITIALISIERUNG link details like DS2 concept).
     setStatus({ phase: "connected", message: `Connected · ${describeLink()}`, ready: true });
 
-    const filteredResults = resultsFilter
-      ? results.filter((result) => resultsFilter.has(result.name.toUpperCase()))
-      : results;
-    return { results: filteredResults, executionTimeMs };
+    const filteredSets = resultsFilter
+      ? resultSets
+          .map((set) => set.filter((result) => resultsFilter.has(result.name.toUpperCase())))
+          .filter((set) => set.length > 0)
+      : resultSets;
+    return { resultSets: filteredSets, executionTimeMs };
   };
 
   return {
@@ -490,38 +524,44 @@ function registerRunCommand(program: Command): void {
         }
 
         const startTime = Date.now();
-        let results: EdiabasJobResult[] = [];
+        let resultSets: EdiabasJobResult[][] = [];
 
         // Always connect — BEST2 host expects the comm interface to be ready before
         // running the job. For simulation, connect() is a cheap "set connected=true".
         try {
           await ediabas.connect();
-          results = await ediabas.executeJob(jobName, { params });
+          resultSets = await ediabas.executeJob(jobName, { params });
         } finally {
           await ediabas.disconnect();
         }
 
         const executionTime = Date.now() - startTime;
 
-        const filteredResults = resultsFilter
-          ? results.filter((result) => resultsFilter.has(result.name.toUpperCase()))
-          : results;
+        const filteredSets = resultsFilter
+          ? resultSets
+              .map((set) => set.filter((result) => resultsFilter.has(result.name.toUpperCase())))
+              .filter((set) => set.length > 0)
+          : resultSets;
 
         if (options.json) {
           printJson({
             job: jobMeta.name,
             params,
-            results: filteredResults.map((result) => ({
-              name: result.name,
-              type: result.type,
-              value: formatResultValueJson(result),
-            })),
+            // Emit sets explicitly so multi-record jobs (e.g. FS_LESEN) are
+            // preserved. Each set is one record; field names may repeat.
+            resultSets: filteredSets.map((set) =>
+              set.map((result) => ({
+                name: result.name,
+                type: result.type,
+                value: formatResultValueJson(result),
+              }))
+            ),
             executionTimeMs: executionTime,
           });
           return;
         }
 
-        printResultsHuman(filteredResults);
+        printResultsHuman(filteredSets);
         process.stdout.write(`\n${chalk.gray(`Execution time: ${executionTime}ms`)}\n`);
       } catch (error) {
         handleError(error);
