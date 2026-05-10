@@ -324,10 +324,14 @@ export function App({ filePath, buffer, prg }: AppProps) {
   // So panels together must fill innerWidth
   const innerWidth = Math.max(0, width - 2);
   
-  // ItemsPanel gets ~28% but includes left │ in its render
-  // Content/Details gets rest and includes right │ in its render
-  const itemsPanelWidth = Math.min(Math.max(22, Math.floor(innerWidth * 0.28)), 40) + 1; // +1 for left │
-  const rightPanelWidth = innerWidth - itemsPanelWidth + 1; // +1 for right │
+  // ItemsPanel bakes the outer frame `│` into its left side
+  // (outerBorderLeft) and Content/DetailsPanel bake it on the right
+  // (outerBorderRight) — each side claims one column from the outer
+  // frame. Together the two panel widths must equal innerWidth + 2 =
+  // safeWidth; previously this used `+ 1` and the panel row came up
+  // one column short of the outer right edge.
+  const itemsPanelWidth = Math.min(Math.max(22, Math.floor(innerWidth * 0.28)), 40) + 1;
+  const rightPanelWidth = innerWidth - itemsPanelWidth + 2;
   
   const bodyHeight = Math.max(6, height - 4); // -4 for top border, nav, footer, bottom border
   const contentHeight = Math.max(8, Math.floor(bodyHeight * 0.6));
