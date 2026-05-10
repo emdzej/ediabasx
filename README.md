@@ -249,14 +249,6 @@ The parser handles decryption transparently.
 
 BMW BEST2 jobs emit "result sets" via the `enewset` opcode — each call commits the current collector and starts a new one. Multi-record jobs (e.g. `FS_LESEN` reading N fault records) call `enewset` once per record, so `executeJob` returns `EdiabasJobResult[][]` rather than a flat list. Single-record jobs simply return a single-element array.
 
-## Releasing
-
-The publish workflow (`.github/workflows/publish.yml`) targets npmjs.org via **npm Trusted Publishing** (OIDC) — no long-lived `NPM_TOKEN` is stored as a secret. Each published artefact carries a verifiable provenance attestation.
-
-Trigger a release by publishing a GitHub Release, or run the workflow manually with `dry_run=true` to validate the OIDC handshake without actually publishing.
-
-Per-package Trusted Publisher configuration on npmjs.org pins this repository + the `publish.yml` workflow filename; that part has to be set up manually on each package's npm settings page.
-
 ## Contributing
 
 See [AGENTS.md](./AGENTS.md). All contributions should:
