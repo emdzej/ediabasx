@@ -688,10 +688,30 @@ export function ssetImm(
 }
 
 /**
- * STRCMP - Compare strings (alternative name for SCMP).
- * This is an alias for scmp used in some BEST2 dialects.
+ * STRCMP - Compare strings (opcode 0x8F).
+ *
+ * **NOT an alias for `scmp`.** C# `OpStrcmp` uses
+ * `String.Compare(...) != 0` for Z, which is the *inverse* of `OpScmp`
+ * (where Z = strings are equal). Only the Z flag is touched — C, S, V
+ * are preserved.
+ *
+ * - Z flag: set if strings DIFFER (matches C# `StringComparison.Ordinal`)
+ *
+ * @param registers - Register set
+ * @param flags - CPU flags (only Z is modified)
+ * @param left - First S register
+ * @param right - Second S register
  */
-export const strcmp = scmp;
+export function strcmp(
+  registers: RegisterSet,
+  flags: Flags,
+  left: StringRegisterRef,
+  right: StringRegisterRef
+): void {
+  const leftValue = getStringValue(registers, left);
+  const rightValue = getStringValue(registers, right);
+  flags.z = leftValue !== rightValue;
+}
 
 /**
  * STRLEN - Get string length (alternative name for SLEN).

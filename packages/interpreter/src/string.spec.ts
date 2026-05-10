@@ -147,11 +147,33 @@ describe("String Operations", () => {
       expect(flags.s).toBe(true);
     });
 
-    it("should support STRCMP alias", () => {
+    it("STRCMP sets Z when strings DIFFER (inverted vs SCMP)", () => {
+      // Mirrors C# `OpStrcmp`: `Zero = String.Compare(s1, s2, Ordinal) != 0`.
+      // This is the *opposite* of SCMP's Z=equal convention — BEST2 jobs
+      // (e.g. FS_LESEN's `strcmp S7,"OKAY"` + `jz` early-exit) rely on this
+      // inversion, and aliasing strcmp to scmp would silently flip every
+      // such branch.
       registers.setS(0, "Test");
       registers.setS(1, "Test");
       strcmp(registers, flags, { kind: "S", index: 0 }, { kind: "S", index: 1 });
+      expect(flags.z).toBe(false);
+
+      registers.setS(1, "Other");
+      strcmp(registers, flags, { kind: "S", index: 0 }, { kind: "S", index: 1 });
       expect(flags.z).toBe(true);
+    });
+
+    it("STRCMP preserves C/S/V flags (only touches Z)", () => {
+      // C# OpStrcmp doesn't call UpdateFlags — only Zero is assigned.
+      registers.setS(0, "A");
+      registers.setS(1, "B");
+      flags.c = true;
+      flags.s = true;
+      flags.v = true;
+      strcmp(registers, flags, { kind: "S", index: 0 }, { kind: "S", index: 1 });
+      expect(flags.c).toBe(true);
+      expect(flags.s).toBe(true);
+      expect(flags.v).toBe(true);
     });
   });
 
