@@ -39,6 +39,35 @@ function formatJobDetails(job: RunnerJob | null): string[] {
   return lines;
 }
 
+/**
+ * Hard-wrap lines to `width` columns. Continuation rows pick up the
+ * original line's leading indent plus a 2-space hang so wrapped
+ * arg/result rows stay visually grouped with their parent entry
+ * instead of looking like new top-level lines.
+ */
+function wrapLines(lines: string[], width: number): string[] {
+  if (width <= 0) return lines;
+  const out: string[] = [];
+  for (const line of lines) {
+    if (line.length <= width) {
+      out.push(line);
+      continue;
+    }
+    const indentMatch = line.match(/^(\s*)/);
+    const indent = indentMatch ? indentMatch[1] : "";
+    const contIndent = (indent + "  ").slice(0, Math.max(0, width - 1));
+    let remaining = line;
+    let first = true;
+    while (remaining.length > width) {
+      out.push(remaining.slice(0, width));
+      remaining = contIndent + remaining.slice(width);
+      first = false;
+    }
+    if (remaining.length > 0 || first) out.push(remaining);
+  }
+  return out;
+}
+
 type RunnerExecutionResult = {
   resultSets: EdiabasJobResult[][];
   executionTimeMs: number;
@@ -199,9 +228,10 @@ export function RunnerApp({
   const { exit } = useApp();
   const [width, height] = useStdoutDimensions();
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [focusedPanel, setFocusedPanel] = useState<"items" | "results">("items");
+  const [focusedPanel, setFocusedPanel] = useState<"items" | "details" | "results">("items");
   const [results, setResults] = useState<ResultLine[]>([]);
   const [resultsScroll, setResultsScroll] = useState(0);
+  const [detailsScroll, setDetailsScroll] = useState(0);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -268,13 +298,26 @@ export function RunnerApp({
   // Split the right column when the Details panel is toggled on. Details
   // sit ABOVE the Results panel. Cap details height so a job with many
   // results (e.g. FS_LESEN's 48) doesn't crowd out the actual results.
-  const detailsLines = useMemo(() => formatJobDetails(selectedJob), [selectedJob]);
-  const detailsHeight = showDetails
-    ? Math.max(5, Math.min(detailsLines.length + 2, Math.floor(upperHeight * 0.5)))
-    : 0;
+  // DetailsPanel's inner usable width: rightPanelWidth includes the outer
+  // frame `│` (outerBorderRight=true → panelWidth = rightPanelWidth - 1)
+  // and the panel itself reserves 2 cols for its own `│` borders, so
+  // content area is `rightPanelWidth - 3`. Wrap details lines to that
+  // width so long comments/result names break onto continuation rows
+  // instead of being truncated with "…".
+  const detailsInnerWidth = Math.max(1, rightPanelWidth - 3);
+  const detailsLines = useMemo(
+    () => wrapLines(formatJobDetails(selectedJob), detailsInnerWidth),
+    [selectedJob, detailsInnerWidth]
+  );
+  // Fixed compact height — 8 rows total (6 content + top/bottom border).
+  // Anything longer scrolls inside the panel via ↑/↓ when focused.
+  const DETAILS_PANEL_HEIGHT = 8;
+  const detailsHeight = showDetails ? Math.min(DETAILS_PANEL_HEIGHT, upperHeight - 3) : 0;
   const resultsHeight = Math.max(3, upperHeight - detailsHeight);
   const resultsViewportSplit = Math.max(1, resultsHeight - 2);
+  const detailsViewport = Math.max(1, detailsHeight - 2);
   const maxResultsScroll = Math.max(0, results.length - resultsViewportSplit);
+  const maxDetailsScroll = Math.max(0, detailsLines.length - detailsViewport);
 
   const baseShortcuts = dialog
     ? "Enter: Submit | Esc: Cancel | Q/Ctrl+C: Quit"
@@ -305,6 +348,26 @@ export function RunnerApp({
   useEffect(() => {
     setResultsScroll((value) => Math.min(value, maxResultsScroll));
   }, [maxResultsScroll]);
+
+  useEffect(() => {
+    setDetailsScroll((value) => Math.min(value, maxDetailsScroll));
+  }, [maxDetailsScroll]);
+
+  // Reset scroll and surrender focus when the Details panel is hidden, so
+  // the next time it's toggled on it opens at the top and we don't get
+  // stuck with an invisible focused panel.
+  useEffect(() => {
+    if (!showDetails) {
+      setDetailsScroll(0);
+      setFocusedPanel((current) => (current === "details" ? "items" : current));
+    }
+  }, [showDetails]);
+
+  // Reset details scroll when the selected job changes, so the new job's
+  // details start at the top instead of carrying over the previous scroll.
+  useEffect(() => {
+    setDetailsScroll(0);
+  }, [selectedJob?.name]);
 
   const handleRun = async (job: RunnerJob, params: string[]) => {
     if (!onRun) {
@@ -432,7 +495,12 @@ export function RunnerApp({
     }
 
     if (key.tab) {
-      setFocusedPanel((current) => (current === "items" ? "results" : "items"));
+      // Cycle items → (details if shown) → results → items.
+      setFocusedPanel((current) => {
+        if (current === "items") return showDetails ? "details" : "results";
+        if (current === "details") return "results";
+        return "items";
+      });
       return;
     }
 
@@ -440,6 +508,8 @@ export function RunnerApp({
       if (focusedPanel === "items") {
         if (filteredJobs.length === 0) return;
         setSelectedIndex((value) => Math.max(0, value - 1));
+      } else if (focusedPanel === "details") {
+        setDetailsScroll((value) => Math.max(0, value - 1));
       } else {
         setResultsScroll((value) => Math.max(0, value - 1));
       }
@@ -450,6 +520,8 @@ export function RunnerApp({
       if (focusedPanel === "items") {
         if (filteredJobs.length === 0) return;
         setSelectedIndex((value) => Math.min(filteredJobs.length - 1, value + 1));
+      } else if (focusedPanel === "details") {
+        setDetailsScroll((value) => Math.min(maxDetailsScroll, value + 1));
       } else {
         setResultsScroll((value) => Math.min(maxResultsScroll, value + 1));
       }
@@ -482,6 +554,8 @@ export function RunnerApp({
                 lines={detailsLines}
                 height={detailsHeight}
                 width={rightPanelWidth}
+                focused={focusedPanel === "details"}
+                scrollOffset={detailsScroll}
                 outerBorderRight={true}
               />
             )}
