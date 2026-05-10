@@ -248,8 +248,23 @@ async function createRunnerSession(
       getAdapterInfo?: () => { adapterType: number; adapterVersion: number };
     };
     const parts: string[] = [selection.name];
-    const port = (selection.options as Record<string, string | number | boolean | undefined>).port;
-    if (typeof port === "string" && port.length > 0) parts.push(port);
+    const opts = selection.options as Record<string, string | number | boolean | undefined>;
+    const port = opts.port;
+    const host = opts.host;
+    const baud = opts.baudRate;
+    // For serial-based transports the port string is a device path; append
+    // the baud rate inline (`/dev/ttyUSB0 @ 9600`) so the Interface panel
+    // can carry it on the status line and drop the redundant summary line.
+    // For ENET/gateway "port" is a network port and pairs with a host
+    // (`192.168.0.1:6801`).
+    if (typeof host === "string" && host.length > 0 && (typeof port === "string" || typeof port === "number")) {
+      parts.push(`${host}:${port}`);
+    } else if (typeof port === "string" && port.length > 0) {
+      const baudStr = typeof baud === "number" || (typeof baud === "string" && baud.length > 0)
+        ? ` @ ${baud}`
+        : "";
+      parts.push(`${port}${baudStr}`);
+    }
     if (candidate.isUsingKDCanAdapter && candidate.isUsingKDCanAdapter()) {
       parts.push("smart K+DCAN");
     } else if (candidate.getAdapterInfo) {

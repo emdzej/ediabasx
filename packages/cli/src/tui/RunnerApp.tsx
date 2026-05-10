@@ -196,10 +196,16 @@ export function RunnerApp({
   const interfaceLines = useMemo(() => {
     const glyph = PHASE_GLYPH[connection.phase];
     const summary = interfaceSummary ?? "Simulation";
-    const lines = [
-      `${glyph} ${connection.message}`,
-      summary,
-    ];
+    const lines = [`${glyph} ${connection.message}`];
+    // The "summary" describes the *configured* transport ("KDCAN · /dev/...
+    // @ 9600"). Once connected, `connection.message` already carries the
+    // same info via describeLink() in run.ts (now including the baud
+    // rate), so showing both is just noise. For idle/connecting/error
+    // /disconnected phases the status text is generic ("Not connected",
+    // "Connecting…") and the summary tells the user where we're going.
+    if (connection.phase !== "connected") {
+      lines.push(summary);
+    }
     if (dialog) {
       const argNames = dialog.job.args.map((arg) => arg.name).join(", ");
       const label = argNames ? `Args (${argNames})` : "Args";
