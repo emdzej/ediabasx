@@ -625,26 +625,48 @@ export function formatInstructionSimple(instr: Instruction): string {
   return `${instr.mnemonic} ${instr.operands.join(",")}`;
 }
 
+export interface DisassembleJobOptions {
+  /**
+   * Absolute file offset where decoding must stop (exclusive). Used to bound
+   * decoding by the next job's start so multi-`eoj` jobs (early-return paths
+   * followed by additional code reached via backward jumps) are fully covered.
+   * If omitted, decoding stops at the first `eoj` (legacy behaviour).
+   */
+  endOffset?: number;
+  /** Hard cap on decoded instructions (defaults to 100_000). */
+  maxInstructions?: number;
+}
+
 /**
  * Disassemble bytecode for a specific job directly from the file buffer.
  * This handles the case where code is embedded in the file at job offsets.
- * 
+ *
  * @param buffer - The raw file buffer (NOT XOR decoded)
  * @param jobOffset - The offset where job bytecode starts
- * @param maxInstructions - Maximum number of instructions to disassemble (default 1000)
+ * @param optionsOrMax - Bounding options, or a legacy `maxInstructions` number
  */
 export function disassembleJob(
   buffer: Uint8Array,
   jobOffset: number,
-  maxInstructions = 1000
+  optionsOrMax: DisassembleJobOptions | number = {}
 ): Instruction[] {
+  const options: DisassembleJobOptions =
+    typeof optionsOrMax === "number" ? { maxInstructions: optionsOrMax } : optionsOrMax;
+  const maxInstructions = options.maxInstructions ?? 100_000;
+  const endOffset = options.endOffset;
+
   if (jobOffset < 0 || jobOffset >= buffer.length) {
     return [];
   }
 
-  // Create a slice from job offset to end of buffer
-  const codeSlice = buffer.slice(jobOffset);
-  
+  // Bound the slice by endOffset (exclusive) when provided so we don't decode
+  // into the next job's bytecode.
+  const sliceEnd =
+    typeof endOffset === "number"
+      ? Math.min(buffer.length, Math.max(jobOffset, endOffset))
+      : buffer.length;
+  const codeSlice = buffer.slice(jobOffset, sliceEnd);
+
   // XOR decode the slice
   const decoded = new Uint8Array(codeSlice.length);
   for (let i = 0; i < codeSlice.length; i++) {
@@ -662,7 +684,7 @@ export function disassembleJob(
     offset += 2;
 
     const opInfo = OPCODES.get(opcode);
-    
+
     // If unknown opcode, stop disassembly (likely hit data or next job)
     if (!opInfo) {
       break;
@@ -690,8 +712,11 @@ export function disassembleJob(
       operands,
     });
 
-    // Stop at end of job
-    if (opInfo.mnemonic === "eoj") {
+    // Without an explicit upper bound we can't tell an early-return `eoj` from
+    // the true end of the job, so fall back to stopping at the first `eoj`
+    // (legacy behaviour). When `endOffset` is supplied, keep decoding so code
+    // after early-return paths (reached via backward jumps) is included.
+    if (opInfo.mnemonic === "eoj" && endOffset === undefined) {
       break;
     }
   }

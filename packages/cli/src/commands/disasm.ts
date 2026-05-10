@@ -24,11 +24,28 @@ function resolveBinaryJobSlices(prg: PrgFile): Array<{ job: PrgBinaryJob; start:
   });
 }
 
+/**
+ * Build a map from each binary job offset to the next job's offset in file
+ * order. The disassembler uses this as the upper bound when walking bytecode,
+ * so multi-`eoj` jobs (early returns + tail code reached via backward jumps)
+ * are decoded fully instead of being truncated at the first `eoj`.
+ */
+function buildJobEndOffsets(prg: PrgFile, bufferLength: number): Map<number, number> {
+  const sorted = [...prg.binaryJobs].sort((a, b) => a.offset - b.offset);
+  const ends = new Map<number, number>();
+  for (let i = 0; i < sorted.length; i++) {
+    const end = i + 1 < sorted.length ? sorted[i + 1].offset : bufferLength;
+    ends.set(sorted[i].offset, end);
+  }
+  return ends;
+}
+
 function printDisassembly(prg: PrgFile, buffer: Uint8Array, options: DisassemblyOptions): void {
   // For EDIABAS OBJECT format, bytecode is at binaryJob offsets in the raw buffer
   if (prg.binaryJobs.length > 0) {
+    const endOffsets = buildJobEndOffsets(prg, buffer.length);
     for (const job of prg.binaryJobs) {
-      const instructions = disassembleJob(buffer, job.offset);
+      const instructions = disassembleJob(buffer, job.offset, { endOffset: endOffsets.get(job.offset) });
       if (instructions.length === 0) continue;
 
       process.stdout.write(`${chalk.bold(job.name)} @ 0x${job.offset.toString(16).toUpperCase()}\n`);
@@ -105,7 +122,8 @@ function registerDisasmCommand(program: Command): void {
             return;
           }
 
-          const instructions = disassembleJob(buffer, job.offset);
+          const endOffset = buildJobEndOffsets(prg, buffer.length).get(job.offset);
+          const instructions = disassembleJob(buffer, job.offset, { endOffset });
           process.stdout.write(`${chalk.bold(job.name)} @ 0x${job.offset.toString(16).toUpperCase()}\n`);
           for (const instr of instructions) {
             process.stdout.write(`  ${formatInstruction(instr, options)}\n`);
