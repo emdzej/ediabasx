@@ -1,56 +1,53 @@
 # EdiabasX
 
-A TypeScript implementation of BMW's EDIABAS (Electronic Diagnostic Basic System). This project is a modern port of the [EdiabasLib](https://github.com/uholeschak/ediabaslib) C# library, designed for parsing and analyzing BMW vehicle diagnostic description files (PRG/GRP).
+A TypeScript port of BMW's EDIABAS (Electronic Diagnostic Basic System) — a modern, cross-platform implementation of the [EdiabasLib](https://github.com/uholeschak/ediabaslib) C# library for parsing BMW diagnostic description files (PRG/GRP) and running the BEST2 bytecode they contain against real ECUs.
 
 ## Features
 
-- **PRG/GRP file parsing** - Full support for BMW diagnostic file formats
-- **Job and result extraction** - Parse job definitions, arguments, and results
-- **Bytecode disassembly** - Disassemble BEST/1 bytecode into readable assembly
-- **Table extraction** - Extract lookup tables from diagnostic files
-- **CLI tool** - Command-line interface for quick file analysis
+- **PRG/GRP parsing** — full BMW diagnostic file format support (CP1252 encoding, XOR-decoded payload, job/result/argument metadata, lookup tables)
+- **BEST2 disassembler** — readable assembly output bounded by next-job offsets so multi-`eoj` jobs (e.g. `FS_LESEN` fault iteration) decode in full
+- **BEST2 interpreter** — register file (B/A/I/L/S/F), flags (Z/C/V/S), call & data stacks, 184 opcodes, table/file/timer/shared-memory state, `enewset`-aware result sets matching C# `_resultSetsTemp`
+- **Hardware interfaces** — Serial K-Line / K+DCAN (DS2 + ISO-TP), Ethernet/ENET (DoIP), JSON-RPC gateway client/server
+- **Protocols** — KWP2000 (ISO 14230), UDS (ISO 14229), DoIP/HSFZ (ISO 13400)
+- **CLI + TUI** — `ediabasx` command with interactive job browser, batch run, disasm, info, table inspection
+- **Logging** — structured logs via pino
 
 ## Installation
 
-### From GitHub Packages
+Packages are published to **npmjs.org** under the `@emdzej` scope.
 
 ```bash
-# Create .npmrc in your project
-echo "@ediabasx:registry=https://npm.pkg.github.com" >> .npmrc
-
-# Install packages
-npm install @ediabasx/ediabas
-# or
-pnpm add @ediabasx/ediabas
+# Most users want the main library + a CLI
+pnpm add @emdzej/ediabasx-ediabas
+pnpm add -D @emdzej/ediabasx-cli
 ```
 
-> **Note:** You need to authenticate with GitHub Packages. See [GitHub docs](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-to-github-packages).
-
-### From Source
+Or install the CLI globally:
 
 ```bash
-# Clone the repository
+npm install -g @emdzej/ediabasx-cli
+ediabasx --help
+```
+
+### From source
+
+```bash
 git clone https://github.com/emdzej/ediabasx.git
 cd ediabasx
-
-# Install dependencies
 pnpm install
-
-# Build all packages
 pnpm build
 ```
 
-## CLI Usage
+## CLI usage
 
-The CLI tool (`ediabasx`) provides several commands for analyzing PRG/GRP files.
+The `ediabasx` command bundles parsing, disassembly, and live-ECU execution.
 
-### Info - Quick file summary
+### `info` — quick file summary
 
 ```bash
 ediabasx info file.prg
 ```
 
-Example output:
 ```
 File summary
 File: d_motor.prg
@@ -61,236 +58,213 @@ ECU: n/a
 Origin: BMW TI-430 Drexel
 Revision: 1.14
 Author: Softing Taubert, BMW TI-430 Drexel, BMW TP-421 Teepe, BMW TI-430 Haase
-ECU comment:
 ```
 
-### Jobs - List all jobs with arguments and results
+### `jobs` — list jobs with arguments and results
 
 ```bash
 ediabasx jobs file.prg
 ```
 
-Example output:
-```
-Jobs
-INFO
-  Information SGBD
-  Results:
-    ECU: string - Steuergerät im Klartext
-    ORIGIN: string - Steuergeräte-Verantwortlicher
-    REVISION: string - Versions-Nummer
-    AUTHOR: string - Namen aller Autoren
-    COMMENT: string - wichtige Hinweise
-    PACKAGE: string - Include-Paket-Nummer
-    SPRACHE: string - deutsch, english
-
-INITIALISIERUNG
-  Results:
-    DONE: int - 1, wenn Okay
-
-STATUS_UBATT
-  Auslesen der Spannungsversorgung
-  Results:
-    JOB_STATUS: string - OKAY, wenn fehlerfrei
-    STAT_UBATT: int
-
-ABS_RELAIS
-  Schalten des Relais am ABS-STAND
-  Args:
-    RELAIS: string - "EIN","AUS"
-  Results:
-    JOB_STATUS: string - "OKAY","ERROR_PARAMETER","ERROR_INTERFACE"
-```
-
-### Tables - List tables with row/column counts
+### `tables` / `table` — inspect lookup tables
 
 ```bash
 ediabasx tables file.prg
+ediabasx table file.prg JobResult
 ```
 
-Example output:
-```
-Tables
-No tables found.
-```
-
-### Parse - Full file parsing with JSON output
+### `parse` — full structured dump
 
 ```bash
 ediabasx parse file.prg --json
 ```
 
-Outputs complete parsed structure including header, metadata, jobs, and tables in JSON format.
+### `disasm` — disassemble bytecode
 
-### Disasm - Disassemble bytecode
-
-```bash
-ediabasx disasm file.prg
-```
-
-Example output:
-```
-INFO @ 0xA0
-  000000A0: clear S1
-  000000A3: move S1,"allgemeine Funktionen"
-  000000BE: push #$1.L
-  000000C4: ergs "ECU",S1
-  000000CD: pop L0
-  000000D0: clear S1
-  000000D3: move S1,"BMW TI-430 Drexel"
-  000000EA: push #$1.L
-  000000F0: ergs "ORIGIN",S1
-  000000FC: pop L0
-  ...
-  000001EF: eoj
-```
-
-### Run - Execute a job with hardware interfaces
+The disassembler bounds each job by the next job's file offset, so jobs with multiple `eoj` instructions (early returns reached via backward jumps from later code) decode completely instead of stopping at the first `eoj`.
 
 ```bash
-# Serial K-Line
-ediabasx run file.prg IDENT --interface serial --serial-port /dev/ttyUSB0 --serial-baud 9600 --serial-protocol kwp
-
-# K+DCAN (ISO-TP)
-ediabasx run file.prg IDENT --interface kdcan --serial-port /dev/ttyUSB0 --serial-protocol isotp --serial-tester-can-id 0x7e0 --serial-ecu-can-id 0x7e8
-
-# Run via remote gateway
-ediabasx run file.prg IDENT --interface gateway --gateway-host 192.168.1.50 --gateway-port 6801
+ediabasx disasm file.prg                # all jobs
+ediabasx disasm file.prg FS_LESEN       # one job
 ```
 
-### Gateway - Start a gateway server
+### `run` — execute a job against an ECU
 
 ```bash
-# Expose a serial interface via JSON-RPC
+# Serial K-Line (KWP2000)
+ediabasx run file.prg IDENT \
+  --interface serial \
+  --serial-port /dev/ttyUSB0 \
+  --serial-baud 9600 \
+  --serial-protocol kwp
+
+# K+DCAN cable (DS2 or ISO-TP)
+ediabasx run file.prg FS_LESEN \
+  --interface kdcan \
+  --serial-port /dev/cu.usbserial-A50285BI \
+  --serial-protocol isotp \
+  --serial-tester-can-id 0x7e0 \
+  --serial-ecu-can-id 0x7e8
+
+# ENET (DoIP)
+ediabasx run file.prg IDENT \
+  --interface enet \
+  --enet-host 192.168.0.1
+
+# Via a remote gateway
+ediabasx run file.prg IDENT \
+  --interface gateway \
+  --gateway-host 192.168.1.50 \
+  --gateway-port 6801
+
+# Simulation (no hardware; canned responses)
+ediabasx run file.prg IDENT --simulation
+```
+
+If you omit `--interface`, the CLI reads `~/.config/ediabasx/config.json`. Run `ediabasx configure` for an interactive wizard.
+
+Output shows one labelled section per emitted result set — multi-record jobs like `FS_LESEN` emit one set per fault entry (matching BMW INPA / Tool32). Pass `--json` for machine-readable output.
+
+### `gateway` — share a local interface over JSON-RPC
+
+```bash
 ediabasx gateway --interface serial --serial-port /dev/ttyUSB0 --serial-baud 9600
 ```
 
-## Library Usage
+### `simulator` — interactive ECU response simulator for development
 
-```typescript
-import { createFromConfigFile, Ediabas } from '@ediabasx/ediabas';
-
-// From config file
-const ediabas = await createFromConfigFile('./ediabas.config.json');
-
-// Or manually
-const ediabas = new Ediabas({
-  ecuPath: './ecu',
-  simulation: true,
-});
-
-// Load SGBD and execute job
-await ediabas.loadSgbd('D_MOTOR.prg');
-const results = await ediabas.executeJob('IDENT');
-
-console.log(results);
-// [{ name: 'ECU', type: 'string', value: 'DME' }, ...]
+```bash
+ediabasx simulator
 ```
 
-### Configuration File
+### `explore` — TUI for browsing a PRG/GRP
 
-Create `ediabas.config.json`:
+```bash
+ediabasx explore file.prg
+```
 
-```json
-{
-  "version": 1,
-  "interface": {
-    "type": "serial",
-    "serial": {
-      "port": "/dev/ttyUSB0",
-      "baudRate": 9600
-    }
-  },
-  "paths": {
-    "sgbd": "./ecu"
-  },
-  "timeouts": {
-    "connect": 5000,
-    "response": 2000
+## Library usage
+
+```typescript
+import { Ediabas } from "@emdzej/ediabasx-ediabas";
+
+const ediabas = new Ediabas({
+  ecuPath: "./ecu",
+  simulation: true,            // or pass `transport: <interface>` for real hardware
+});
+
+await ediabas.loadSgbd("D_MOTOR.prg");
+
+// Returns EdiabasJobResult[][] — one entry per result set emitted by
+// the bytecode. Single-record jobs return [[...]]; multi-record jobs
+// (e.g. FS_LESEN reading N fault entries) return [[set1], [set2], ...].
+const sets = await ediabas.executeJob("FS_LESEN");
+
+for (const [index, set] of sets.entries()) {
+  console.log(`Set ${index + 1}/${sets.length}`);
+  for (const result of set) {
+    console.log(`  ${result.name} (${result.type}) = ${result.value}`);
   }
 }
 ```
 
-Supported interface types: `simulation`, `serial`, `gateway`, `enet` (WIP), `icom` (WIP).
+### Choosing a transport
 
-## Package Structure
+```typescript
+import { Ediabas } from "@emdzej/ediabasx-ediabas";
+import { createInterface } from "@emdzej/ediabasx-interfaces";
 
-This is a pnpm monorepo managed with Turborepo.
+const transport = createInterface("kdcan", {
+  port: "/dev/cu.usbserial-A50285BI",
+  baudRate: 9600,
+  protocol: "isotp",
+});
 
-```
-packages/
-├── core/               # Core types, encoding (CP1252), crypto (XOR key: 0xF7)
-├── best-parser/        # PRG/GRP file parser
-├── cli/                # CLI tool (ediabasx command)
-├── ediabasx/            # Main library (combines parser + interpreter)
-├── interpreter/        # BEST/1 VM interpreter (planned)
-├── interface-base/     # Base interface abstractions
-├── interface-enet/     # Ethernet/ENET interface
-├── interface-serial/   # Serial/K-Line interface
-├── protocol-doip/      # DoIP protocol implementation
-├── protocol-kwp/       # KWP2000 protocol implementation
-└── protocol-uds/       # UDS protocol implementation
+const ediabas = new Ediabas({ ecuPath: "./ecu", transport });
+await ediabas.connect();
+const sets = await ediabas.executeJob("STATUS_LESEN");
+await ediabas.disconnect();
 ```
 
-### Package Details
+Supported interfaces: `simulation`, `serial`, `kdcan`, `enet`, `gateway`.
 
-| Package | Description |
-|---------|-------------|
-| `@ediabasx/core` | Core types, CP1252 encoding, XOR decryption |
-| `@ediabasx/best-parser` | Parser for PRG/GRP binary files |
-| `@ediabasx/cli` | Command-line interface |
-| `@ediabasx/ediabas` | Main library combining all components |
-| `@ediabasx/interpreter` | BEST/1 bytecode interpreter (WIP) |
-| `@ediabasx/interface-*` | Communication interfaces (ENET, Serial) |
-| `@ediabasx/protocol-*` | Diagnostic protocols (UDS, KWP, DoIP) |
+## Package structure
+
+This is a pnpm + Turborepo monorepo. All packages are published to npmjs.org under the `@emdzej/ediabasx-*` namespace.
+
+| Package | Purpose |
+|---|---|
+| `@emdzej/ediabasx-core` | Types, CP1252 encoding, XOR decryption, error codes |
+| `@emdzej/ediabasx-logger` | Structured logging (pino) |
+| `@emdzej/ediabasx-best-parser` | PRG/GRP file parser + BEST2 disassembler |
+| `@emdzej/ediabasx-interpreter` | BEST2 VM (registers, flags, stack, 184 opcodes, result sets) |
+| `@emdzej/ediabasx-interface-base` | Abstract interface + simulation |
+| `@emdzej/ediabasx-interface-serial` | Serial K-Line / K+DCAN cable driver |
+| `@emdzej/ediabasx-interface-enet` | Ethernet / ENET (DoIP) driver |
+| `@emdzej/ediabasx-interfaces` | Factory: `createInterface(name, options)` |
+| `@emdzej/ediabasx-protocol-kwp` | KWP2000 (ISO 14230) |
+| `@emdzej/ediabasx-protocol-uds` | UDS (ISO 14229) |
+| `@emdzej/ediabasx-protocol-doip` | DoIP + HSFZ (ISO 13400) |
+| `@emdzej/ediabasx-ediabas` | Main entry — combines parser, interpreter, transports |
+| `@emdzej/ediabasx-cli` | `ediabasx` command + TUI |
 
 ## Development
 
 ```bash
-# Build all packages
-pnpm turbo build
+pnpm install
+pnpm build         # turbo build, in dependency order
+pnpm test          # vitest across all packages
+pnpm lint          # eslint
+pnpm typecheck     # tsc --noEmit
+```
 
-# Run tests
-pnpm turbo test
+### Verbose VM tracing
 
-# Type check
-pnpm turbo typecheck
+The interpreter emits xsend / tabseek / tabget / strcmp traces when `EDIABASX_VERBOSE=1` is set — handy when debugging why a job took a particular branch on a real ECU:
 
-# Lint
-pnpm lint
+```bash
+EDIABASX_VERBOSE=1 ediabasx run file.prg FS_LESEN 2> trace.log
 ```
 
 ### Workflow
 
-1. Create feature branch: `feature/issue-XXX-description`
-2. Make changes, run `pnpm test && pnpm lint`
-3. Commit with conventional commits: `feat(package): description`
-4. Push and create PR
+1. Branch off `main` using `feature/`, `bugfix/`, or `chore/` prefix
+2. Conventional commits: `feat(scope): summary` / `fix(scope): summary`
+3. `pnpm lint && pnpm typecheck && pnpm test` before opening a PR
+4. See [AGENTS.md](./AGENTS.md) for the full contributor guide
 
-## Technical Details
+## Technical notes
 
-### PRG/GRP File Format
+### PRG/GRP file format
 
-BMW diagnostic description files use a proprietary binary format:
+- Magic header `@EDIABAS OBJECT\0` (16 bytes)
+- `0x10`: file type (uint32 LE) — `0` = GRP, `1` = PRG
+- `0x18`: `SSIZE` (max string register size)
+- `0x7C` / `0x80` / `0x84` / `0x88` / `0x90` / `0x94`: pointers into the uses-list / job code / table list / job list / description / version info sections
+- Everything after `0xA0` is XOR-encoded with key **`0xF7`** (single-byte, stateless)
 
-- Files start with `@EDIABAS OBJECT\0` (16-byte magic header)
-- Offset `0x10`: Version (uint32 LE) — 0=GRP, 1=PRG
-- Offset `0xA0+`: XOR-encoded data (key: **0xF7**)
-- Decoded content contains BEST/1 bytecode and metadata
+The parser handles decryption transparently.
 
-### XOR Decryption
+### Result sets (`enewset`)
 
-All data after the header is XOR-encrypted with key `0xF7`. The parser handles decryption automatically.
+BMW BEST2 jobs emit "result sets" via the `enewset` opcode — each call commits the current collector and starts a new one. Multi-record jobs (e.g. `FS_LESEN` reading N fault records) call `enewset` once per record, so `executeJob` returns `EdiabasJobResult[][]` rather than a flat list. Single-record jobs simply return a single-element array.
+
+## Releasing
+
+The publish workflow (`.github/workflows/publish.yml`) targets npmjs.org via **npm Trusted Publishing** (OIDC) — no long-lived `NPM_TOKEN` is stored as a secret. Each published artefact carries a verifiable provenance attestation.
+
+Trigger a release by publishing a GitHub Release, or run the workflow manually with `dry_run=true` to validate the OIDC handshake without actually publishing.
+
+Per-package Trusted Publisher configuration on npmjs.org pins this repository + the `publish.yml` workflow filename; that part has to be set up manually on each package's npm settings page.
 
 ## Contributing
 
-See [AGENTS.md](./AGENTS.md) for guidelines on working with this codebase.
+See [AGENTS.md](./AGENTS.md). All contributions should:
 
-All contributions should:
 - Use TypeScript strict mode
 - Follow conventional commit format
-- Include tests for new functionality
-- Keep documentation up to date
+- Include tests for new functionality (vitest)
+- Update documentation when public APIs change
 
 ## Support
 
@@ -298,12 +272,12 @@ If you find this project useful, consider [buying me a coffee](https://buymeacof
 
 ## License
 
-MIT
+[PolyForm Noncommercial 1.0.0](./LICENSE). Free for personal, research, and non-commercial use; commercial use requires a separate licence.
 
 ## References
 
-- [EdiabasLib](https://github.com/uholeschak/ediabaslib) - Original C# implementation
-- [BMW EDIABAS Documentation](https://www.ediabasx.de/) - Official BMW documentation
+- [EdiabasLib](https://github.com/uholeschak/ediabaslib) — original C# implementation this port tracks
+- ISO 14230 (KWP2000), ISO 14229 (UDS), ISO 13400 (DoIP) — diagnostic protocol standards
 
 ## Right to Repair
 
