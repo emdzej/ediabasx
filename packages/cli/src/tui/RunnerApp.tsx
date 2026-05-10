@@ -285,25 +285,33 @@ export function RunnerApp({
     }
 
     setIsRunning(true);
-    setStatusMessage("Running...");
+    // Clear any stale TUI hint from a previous interaction; the run-status
+    // header (Done / Error) is rendered inside the Results panel instead,
+    // so the Interface panel and shortcut line stay quiet during the run.
+    setStatusMessage(null);
     setResults([{ text: "Running...", color: "yellow" }]);
 
+    const startTime = Date.now();
     try {
       const result = await onRun(job.name, params);
-      setResults(buildResultsTable(result.resultSets));
       // Keep focus on the jobs list so the user can run another job
       // immediately with ↑/↓ + Enter. Tab still switches to results
       // for scrolling when they want it.
+      setResults([
+        { text: `Done in ${result.executionTimeMs}ms`, color: "green", bold: true },
+        { text: "" },
+        ...buildResultsTable(result.resultSets),
+      ]);
       setResultsScroll(0);
-      setStatusMessage(`Done in ${result.executionTimeMs}ms`);
     } catch (error) {
+      const elapsedMs = Date.now() - startTime;
       const message = error instanceof Error ? error.message : String(error);
       setResults([
-        { text: "Error:", color: "red", bold: true },
+        { text: `Error after ${elapsedMs}ms`, color: "red", bold: true },
+        { text: "" },
         { text: message, color: "red" },
       ]);
       setResultsScroll(0);
-      setStatusMessage(message);
     } finally {
       setIsRunning(false);
     }
