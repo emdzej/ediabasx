@@ -25,6 +25,7 @@ import { RegisterSet } from "../registers";
 import { Flags } from "../flags";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
 import {
+  getBinaryValue,
   getIntValue,
   getStringValue,
   setIntValue,
@@ -32,16 +33,6 @@ import {
 } from "./register-values";
 
 export type { IntRegisterRef, StringRegisterRef } from "./register-refs";
-
-/**
- * Update flags based on string comparison result.
- */
-function updateStringFlags(flags: Flags, cmpResult: number): void {
-  flags.z = cmpResult === 0;
-  flags.s = cmpResult < 0;
-  flags.c = cmpResult < 0;
-  flags.v = false;
-}
 
 /**
  * SCAT - String concatenate.
@@ -96,24 +87,21 @@ export function slen(
 }
 
 /**
- * SCMP - String compare.
+ * SCMP - String/byte-array compare (opcode 0x20).
  *
- * Compares two strings lexicographically and sets CPU flags.
- * - Z flag: set if strings are equal
- * - S flag: set if first < second
- * - C flag: set if first < second (unsigned borrow)
+ * Mirrors C# `OpScmp`: byte-array equality on the raw `GetArrayData()`
+ * payload, with only the Z flag updated (C/S/V preserved).
+ *
+ *     Zero = data1.Length == data2.Length && data1.SequenceEqual(data2);
+ *
+ * Note that this is NOT a lexicographic compare — there's no S/C flag
+ * for less-than/greater-than. For the inverted-Z variant used by BEST2
+ * `strcmp` see {@link strcmp}.
  *
  * @param registers - Register set
- * @param flags - CPU flags (modified)
+ * @param flags - CPU flags (only Z is modified)
  * @param left - First S register
  * @param right - Second S register
- *
- * @example
- * ```ts
- * // S0 = "abc", S1 = "abd"
- * scmp(registers, flags, { kind: "S", index: 0 }, { kind: "S", index: 1 });
- * // Z = false, S = true (abc < abd)
- * ```
  */
 export function scmp(
   registers: RegisterSet,
@@ -121,10 +109,19 @@ export function scmp(
   left: StringRegisterRef,
   right: StringRegisterRef
 ): void {
-  const leftValue = getStringValue(registers, left);
-  const rightValue = getStringValue(registers, right);
-  const cmpResult = leftValue.localeCompare(rightValue);
-  updateStringFlags(flags, cmpResult);
+  const leftBytes = getBinaryValue(registers, left);
+  const rightBytes = getBinaryValue(registers, right);
+  if (leftBytes.length !== rightBytes.length) {
+    flags.z = false;
+    return;
+  }
+  for (let i = 0; i < leftBytes.length; i += 1) {
+    if (leftBytes[i] !== rightBytes[i]) {
+      flags.z = false;
+      return;
+    }
+  }
+  flags.z = true;
 }
 
 /**

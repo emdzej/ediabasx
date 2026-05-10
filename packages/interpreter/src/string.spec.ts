@@ -107,44 +107,50 @@ describe("String Operations", () => {
     });
   });
 
-  describe("SCMP (String Compare)", () => {
-    it("should set Z flag when strings are equal", () => {
+  describe("SCMP (byte-array compare)", () => {
+    // Mirrors C# OpScmp:
+    //   Zero = data1.Length == data2.Length && data1.SequenceEqual(data2)
+    // Only Z is touched — there's no S/C "less-than/greater-than" signalling.
+
+    it("sets Z when byte arrays are equal", () => {
       registers.setS(0, "Hello");
       registers.setS(1, "Hello");
       scmp(registers, flags, { kind: "S", index: 0 }, { kind: "S", index: 1 });
       expect(flags.z).toBe(true);
-      expect(flags.s).toBe(false);
     });
 
-    it("should set S flag when first < second", () => {
+    it("clears Z when byte arrays differ in content", () => {
       registers.setS(0, "abc");
       registers.setS(1, "abd");
       scmp(registers, flags, { kind: "S", index: 0 }, { kind: "S", index: 1 });
       expect(flags.z).toBe(false);
-      expect(flags.s).toBe(true);
     });
 
-    it("should clear S flag when first > second", () => {
-      registers.setS(0, "abd");
-      registers.setS(1, "abc");
+    it("clears Z when byte arrays differ in length", () => {
+      registers.setS(0, "");
+      registers.setS(1, "A");
       scmp(registers, flags, { kind: "S", index: 0 }, { kind: "S", index: 1 });
       expect(flags.z).toBe(false);
-      expect(flags.s).toBe(false);
     });
 
-    it("should compare empty strings as equal", () => {
+    it("sets Z when both strings are empty", () => {
       registers.setS(0, "");
       registers.setS(1, "");
       scmp(registers, flags, { kind: "S", index: 0 }, { kind: "S", index: 1 });
       expect(flags.z).toBe(true);
     });
 
-    it("should handle empty string less than non-empty", () => {
-      registers.setS(0, "");
-      registers.setS(1, "A");
+    it("preserves C/S/V flags (only touches Z)", () => {
+      // C# OpScmp doesn't call UpdateFlags — only Zero is assigned.
+      registers.setS(0, "A");
+      registers.setS(1, "B");
+      flags.c = true;
+      flags.s = true;
+      flags.v = true;
       scmp(registers, flags, { kind: "S", index: 0 }, { kind: "S", index: 1 });
-      expect(flags.z).toBe(false);
+      expect(flags.c).toBe(true);
       expect(flags.s).toBe(true);
+      expect(flags.v).toBe(true);
     });
 
     it("STRCMP sets Z when strings DIFFER (inverted vs SCMP)", () => {
