@@ -1,4 +1,4 @@
-# EdiabasX TypeScript
+# EdiabasX
 
 A TypeScript implementation of BMW's EDIABAS (Electronic Diagnostic Basic System). This project is a modern port of the [EdiabasLib](https://github.com/uholeschak/ediabaslib) C# library, designed for parsing and analyzing BMW vehicle diagnostic description files (PRG/GRP).
 
