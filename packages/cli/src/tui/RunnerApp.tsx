@@ -291,8 +291,10 @@ export function RunnerApp({
     try {
       const result = await onRun(job.name, params);
       setResults(buildResultsTable(result.resultSets));
+      // Keep focus on the jobs list so the user can run another job
+      // immediately with ↑/↓ + Enter. Tab still switches to results
+      // for scrolling when they want it.
       setResultsScroll(0);
-      setFocusedPanel("results");
       setStatusMessage(`Done in ${result.executionTimeMs}ms`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -301,7 +303,6 @@ export function RunnerApp({
         { text: message, color: "red" },
       ]);
       setResultsScroll(0);
-      setFocusedPanel("results");
       setStatusMessage(message);
     } finally {
       setIsRunning(false);
