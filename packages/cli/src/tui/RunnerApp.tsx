@@ -6,11 +6,38 @@ import type { EdiabasJobResult } from "@emdzej/ediabasx-ediabas";
 import { useStdoutDimensions } from "./useStdoutDimensions.js";
 import { ItemsPanel } from "./ItemsPanel.js";
 import { ContentPanel } from "./ContentPanel.js";
+import { DetailsPanel } from "./DetailsPanel.js";
 
 type RunnerJob = {
   name: string;
+  comment?: string;
   args: PrgJob["args"];
+  results: PrgJob["results"];
 };
+
+// Mirrors `formatJobDetails` in the Explore TUI so the user gets the same
+// view of the selected job's metadata, just inline above the results.
+function formatJobDetails(job: RunnerJob | null): string[] {
+  if (!job) return ["No job selected."];
+  const lines: string[] = [];
+  lines.push(`Name: ${job.name}`);
+  if (job.comment) lines.push(`Comment: ${job.comment}`);
+  if (job.args.length > 0) {
+    lines.push("Args:");
+    for (const arg of job.args) {
+      const comment = arg.comment ? ` - ${arg.comment}` : "";
+      lines.push(`  ${arg.name}: ${arg.type}${comment}`);
+    }
+  }
+  if (job.results.length > 0) {
+    lines.push("Results:");
+    for (const result of job.results) {
+      const comment = result.comment ? ` - ${result.comment}` : "";
+      lines.push(`  ${result.name}: ${result.type}${comment}`);
+    }
+  }
+  return lines;
+}
 
 type RunnerExecutionResult = {
   resultSets: EdiabasJobResult[][];
@@ -180,6 +207,7 @@ export function RunnerApp({
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialog, setDialog] = useState<null | { job: RunnerJob; value: string }>(null);
+  const [showDetails, setShowDetails] = useState(false);
   const [connection, setConnection] = useState<ConnectionStatus>(
     initialStatus ?? { phase: "idle", message: "Not connected", ready: false }
   );
@@ -219,7 +247,6 @@ export function RunnerApp({
   const interfaceHeight = Math.max(3, interfaceLines.length + 2);
   const contentHeight = Math.max(6, safeHeight - 2);
   const upperHeight = Math.max(3, contentHeight - interfaceHeight);
-  const resultsViewport = Math.max(1, upperHeight - 2);
 
   // Both panels bake the outer frame `│` into their own rendering
   // (`outerBorderLeft` for Items, `outerBorderRight` for Results), so each
@@ -237,11 +264,21 @@ export function RunnerApp({
   }, [jobs, searchQuery]);
 
   const selectedJob = filteredJobs[selectedIndex] ?? null;
-  const maxResultsScroll = Math.max(0, results.length - resultsViewport);
+
+  // Split the right column when the Details panel is toggled on. Details
+  // sit ABOVE the Results panel. Cap details height so a job with many
+  // results (e.g. FS_LESEN's 48) doesn't crowd out the actual results.
+  const detailsLines = useMemo(() => formatJobDetails(selectedJob), [selectedJob]);
+  const detailsHeight = showDetails
+    ? Math.max(5, Math.min(detailsLines.length + 2, Math.floor(upperHeight * 0.5)))
+    : 0;
+  const resultsHeight = Math.max(3, upperHeight - detailsHeight);
+  const resultsViewportSplit = Math.max(1, resultsHeight - 2);
+  const maxResultsScroll = Math.max(0, results.length - resultsViewportSplit);
 
   const baseShortcuts = dialog
     ? "Enter: Submit | Esc: Cancel | Q/Ctrl+C: Quit"
-    : "↑/↓: Navigate | Enter/R: Run | Tab: Panels | /: Search | Q/Ctrl+C: Quit";
+    : "↑/↓: Navigate | Enter/R: Run | i: Details | Tab: Panels | /: Search | Q/Ctrl+C: Quit";
   const shortcuts = dialog
     ? baseShortcuts
     : isSearchActive
@@ -379,6 +416,11 @@ export function RunnerApp({
       return;
     }
 
+    if (input === "i" || input === "I") {
+      setShowDetails((value) => !value);
+      return;
+    }
+
     if ((input === "r" || input === "R") || key.return) {
       if (!selectedJob || isRunning) return;
       if (selectedJob.args.length > 0) {
@@ -433,15 +475,26 @@ export function RunnerApp({
             emptyMessage={searchQuery ? "No matches" : "No jobs"}
             outerBorderLeft={true}
           />
-          <ContentPanel
-            title="Results"
-            lines={results}
-            height={upperHeight}
-            width={rightPanelWidth}
-            focused={focusedPanel === "results"}
-            scrollOffset={resultsScroll}
-            outerBorderRight={true}
-          />
+          <Box flexDirection="column" width={rightPanelWidth}>
+            {showDetails && (
+              <DetailsPanel
+                title={`Details${selectedJob ? ` — ${selectedJob.name}` : ""}`}
+                lines={detailsLines}
+                height={detailsHeight}
+                width={rightPanelWidth}
+                outerBorderRight={true}
+              />
+            )}
+            <ContentPanel
+              title="Results"
+              lines={results}
+              height={resultsHeight}
+              width={rightPanelWidth}
+              focused={focusedPanel === "results"}
+              scrollOffset={resultsScroll}
+              outerBorderRight={true}
+            />
+          </Box>
         </Box>
         <Box flexDirection="column" height={interfaceHeight}>
           <Text>│{interfaceTop}│</Text>

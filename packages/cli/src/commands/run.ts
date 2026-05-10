@@ -421,9 +421,18 @@ function registerRunCommand(program: Command): void {
         const prg = readPrgFile(filePath);
         if (!jobName) {
           const selection = resolveInterfaceSelection(options, "simulation");
+          // Pass the full job metadata so the Run TUI's optional Details
+          // panel (toggled with "i") can show the same comment/args/results
+          // view the Explore TUI offers. Binary-only jobs (no top-level
+          // metadata in the PRG) get empty args/results.
           const jobs = prg.jobs.length > 0
-            ? prg.jobs.map((job) => ({ name: job.name, args: job.args }))
-            : prg.binaryJobs.map((job) => ({ name: job.name, args: [] }));
+            ? prg.jobs.map((job) => ({
+                name: job.name,
+                comment: job.comment,
+                args: job.args,
+                results: job.results,
+              }))
+            : prg.binaryJobs.map((job) => ({ name: job.name, args: [], results: [] }));
           const interfaceSummary = formatInterfaceSummary(selection.name, selection.options);
 
           // Build a single, persistent runner session so the TUI keeps the
