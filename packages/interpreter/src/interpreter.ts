@@ -1317,12 +1317,25 @@ export class Interpreter {
           }
           throw new EdiabasError(EdiabasErrorCodes.INVALID_INSTRUCTION, "Expected string operand");
         } else if (destRef.kind === "F") {
-          // Float destination. C# OpMove only handles EdValueType / byte[] —
-          // a float register destination falls through to "Invalid target
-          // data type". Match the strictness.
+          // Float destination — BMW BEST2 compilers DO emit `move F, F` (e.g.
+          // MS43 FS_QUICK_LESEN reaches a `move F0, F4`) and the original
+          // Windows EDIABAS handles it as a float register copy. The
+          // open-source `ext-ediabaslib` would crash here on
+          // `Operand.GetValueData` for a float register, but that's a known
+          // gap in that reimplementation — INPA / Windows EDIABAS treats this
+          // as a plain float-to-float move with no flag updates.
+          if (arg1.kind === "register" && arg1.ref.kind === "F") {
+            const value = getFloatValue(state.registers, arg1.ref);
+            state.registers.setF(destRef.index, value);
+            return;
+          }
+          if (arg1.kind === "immediate") {
+            state.registers.setF(destRef.index, arg1.value);
+            return;
+          }
           throw new EdiabasError(
             EdiabasErrorCodes.REGISTER_ERROR,
-            "move: float register destination unsupported (use fadd/fsub/fmul/fdiv)"
+            "move: float destination requires float or immediate source"
           );
         } else {
           // Integer destination - resolve value from any source
