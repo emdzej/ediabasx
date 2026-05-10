@@ -215,8 +215,14 @@ export function RunnerApp({
   const upperHeight = Math.max(3, contentHeight - interfaceHeight);
   const resultsViewport = Math.max(1, upperHeight - 2);
 
+  // Both panels bake the outer frame `│` into their own rendering
+  // (`outerBorderLeft` for Items, `outerBorderRight` for Results), so each
+  // width includes the column that belongs to the outer frame on its side.
+  // Together they must equal safeWidth = innerWidth + 2 — one outer `│` per
+  // side. Previously this used `+ 1`, leaving the upper row one column
+  // narrower than the Interface row and the top/bottom outer borders.
   const itemsPanelWidth = Math.min(Math.max(22, Math.floor(innerWidth * 0.3)), 40) + 1;
-  const rightPanelWidth = innerWidth - itemsPanelWidth + 1;
+  const rightPanelWidth = innerWidth - itemsPanelWidth + 2;
 
   const filteredJobs = useMemo(() => {
     if (!searchQuery) return jobs;
