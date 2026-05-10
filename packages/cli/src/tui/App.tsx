@@ -39,10 +39,16 @@ function buildCustomTopBorder(title: string, width: number): string {
 function buildDisassemblyMap(buffer: Uint8Array, prg: PrgFile): Map<string, string[]> {
   const map = new Map<string, string[]>();
   for (const job of prg.binaryJobs) {
+    // Pass color:false so chalk doesn't embed ANSI escapes in the string.
+    // ContentPanel pads/truncates with `text.length` (JS code units), which
+    // counts each escape byte as a character — partial escapes after a
+    // truncate corrupt rendering as garbled chars (the U+FFFD replacement
+    // glyph). Ink applies its own colouring via <Text color=…>; raw ANSI
+    // inside a Text element confuses its width math anyway.
     const instructions = disassembleJob(buffer, job.offset);
     const lines = instructions.map((instr) => {
       const address = instr.offset.toString(16).toUpperCase().padStart(8, "0");
-      return `${address}: ${formatInstruction(instr)}`;
+      return `${address}: ${formatInstruction(instr, { color: false })}`;
     });
     map.set(job.name, lines.length > 0 ? lines : ["(no instructions)"]);
   }
