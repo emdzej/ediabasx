@@ -17,7 +17,7 @@
     "@emdzej/ediabasx-protocol-uds": "workspace:*"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "repository": {
     "type": "git",

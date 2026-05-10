@@ -34,7 +34,7 @@
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "repository": {
     "type": "git",

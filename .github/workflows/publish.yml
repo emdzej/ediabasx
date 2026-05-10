@@ -15,35 +15,47 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
+      # `id-token: write` is required to mint the OIDC token that npm
+      # trusted publishing exchanges for a short-lived publish credential.
+      # Without it the `npm publish` step would fall back to looking for
+      # NODE_AUTH_TOKEN and fail.
       contents: read
-      packages: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: pnpm/action-setup@v4
         with:
           version: 10.33.1
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-          registry-url: 'https://npm.pkg.github.com'
-      
+          # Pin the registry so the OIDC handshake targets npmjs.org.
+          # Each package may still override via `publishConfig.registry`,
+          # but ours all use the default (set to `access: public` only).
+          registry-url: 'https://registry.npmjs.org'
+
+      # Node 22 ships with npm 10; npm trusted publishing (the OIDC ↔
+      # npmjs.org flow) requires npm >= 11.5.1.
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
       - name: Build
         run: pnpm build
-      
+
+      # pnpm `publish -r` walks the workspace, skips private packages
+      # (the monorepo root is `"private": true`), and forwards to
+      # `npm publish` per package. `--provenance` attaches a verifiable
+      # build attestation — free when publishing via trusted publishing.
       - name: Publish packages
         if: ${{ github.event.inputs.dry_run != 'true' }}
-        run: pnpm -r publish --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+        run: pnpm -r publish --provenance --no-git-checks
+
       - name: Dry run
         if: ${{ github.event.inputs.dry_run == 'true' }}
-        run: pnpm -r publish --no-git-checks --dry-run
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm -r publish --provenance --no-git-checks --dry-run
