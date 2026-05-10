@@ -219,54 +219,56 @@ describe("String Operations", () => {
   });
 
   describe("SSET (Set Character)", () => {
+    // Use I3 + B8 so the index/char operands do not alias each other
+    // (B0..B1 alias I0, so writing B0 would corrupt I0 in real BEST2 semantics).
     it("should set character at index", () => {
       registers.setS(0, "Hello");
-      registers.setI(0, 0);
-      registers.setB(0, 74); // 'J'
+      registers.setI(3, 0);
+      registers.setB(8, 74); // 'J'
       sset(
         registers,
         { kind: "S", index: 0 },
-        { kind: "I", index: 0 },
-        { kind: "B", index: 0 }
+        { kind: "I", index: 3 },
+        { kind: "B", index: 8 }
       );
       expect(registers.getS(0)).toBe("Jello");
     });
 
     it("should set middle character", () => {
       registers.setS(0, "Hello");
-      registers.setI(0, 2);
-      registers.setB(0, 120); // 'x'
+      registers.setI(3, 2);
+      registers.setB(8, 120); // 'x'
       sset(
         registers,
         { kind: "S", index: 0 },
-        { kind: "I", index: 0 },
-        { kind: "B", index: 0 }
+        { kind: "I", index: 3 },
+        { kind: "B", index: 8 }
       );
       expect(registers.getS(0)).toBe("Hexlo");
     });
 
     it("should set last character", () => {
       registers.setS(0, "Hello");
-      registers.setI(0, 4);
-      registers.setB(0, 97); // 'a'
+      registers.setI(3, 4);
+      registers.setB(8, 97); // 'a'
       sset(
         registers,
         { kind: "S", index: 0 },
-        { kind: "I", index: 0 },
-        { kind: "B", index: 0 }
+        { kind: "I", index: 3 },
+        { kind: "B", index: 8 }
       );
       expect(registers.getS(0)).toBe("Hella");
     });
 
     it("should ignore out of bounds index", () => {
       registers.setS(0, "Hello");
-      registers.setI(0, 10);
-      registers.setB(0, 65); // 'A'
+      registers.setI(3, 10);
+      registers.setB(8, 65); // 'A'
       sset(
         registers,
         { kind: "S", index: 0 },
-        { kind: "I", index: 0 },
-        { kind: "B", index: 0 }
+        { kind: "I", index: 3 },
+        { kind: "B", index: 8 }
       );
       expect(registers.getS(0)).toBe("Hello");
     });

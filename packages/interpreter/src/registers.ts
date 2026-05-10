@@ -9,6 +9,12 @@ import { cp1252ToUtf8, utf8ToCp1252 } from "@emdzej/ediabasx-core";
  * - L0-L7 = 8 x 32-bit registers
  * - S0-SF = 16 x String registers (max length configurable, default 255)
  * - F0-F7 = 8 x Float/Double registers
+ *
+ * B/A/I/L all alias to a single 32-byte buffer (matches C# EdiabasNet._byteRegisters):
+ *   B[n] at byte[n]          (n = 0..15)
+ *   A[n] at byte[n + 16]     (n = 0..15)
+ *   I[n] at byte[n*2..n*2+1] little-endian (n = 0..15; I8..IF overlap A0..AF)
+ *   L[n] at byte[n*4..n*4+3] little-endian (n = 0..7;  L4..L7 overlap A0..AF)
  */
 
 /** Default maximum string size (SSIZE) */
@@ -18,23 +24,6 @@ export const DEFAULT_SSIZE = 255;
 export interface RegisterSetOptions {
   /** Maximum string length for S registers (default: 255) */
   maxStringSize?: number;
-}
-
-/**
- * Masks a value to fit within the specified bit width.
- * Handles overflow by wrapping (modulo).
- */
-function maskToWidth(value: number, bits: 8 | 16 | 32): number {
-  // Convert to unsigned integer first
-  const unsigned = value >>> 0;
-  switch (bits) {
-    case 8:
-      return unsigned & 0xff;
-    case 16:
-      return unsigned & 0xffff;
-    case 32:
-      return unsigned >>> 0; // Ensure 32-bit unsigned
-  }
 }
 
 /**
@@ -55,17 +44,8 @@ function validateIndex(reg: number, max: number, name: string): void {
  * and overflow handling.
  */
 export class RegisterSet {
-  /** 8-bit B registers (B0-BF) */
-  private readonly bRegisters: Uint8Array;
-
-  /** 8-bit A registers (A0-AF) */
-  private readonly aRegisters: Uint8Array;
-
-  /** 16-bit I registers (I0-IF) */
-  private readonly iRegisters: Uint16Array;
-
-  /** 32-bit L registers (L0-L7) */
-  private readonly lRegisters: Uint32Array;
+  /** Shared 32-byte buffer that B/A/I/L register classes alias into. */
+  private readonly byteRegisters: Uint8Array;
 
   /** String S registers (S0-SF) */
   private readonly sRegisters: string[];
@@ -94,13 +74,13 @@ export class RegisterSet {
   /** Number of F registers */
   static readonly F_COUNT = 8;
 
+  /** Total size of the aliased byte register buffer. */
+  static readonly BYTE_REGISTER_COUNT = 32;
+
   constructor(options: RegisterSetOptions = {}) {
     this.maxStringSize = options.maxStringSize ?? DEFAULT_SSIZE;
 
-    this.bRegisters = new Uint8Array(RegisterSet.B_COUNT);
-    this.aRegisters = new Uint8Array(RegisterSet.A_COUNT);
-    this.iRegisters = new Uint16Array(RegisterSet.I_COUNT);
-    this.lRegisters = new Uint32Array(RegisterSet.L_COUNT);
+    this.byteRegisters = new Uint8Array(RegisterSet.BYTE_REGISTER_COUNT);
     this.sRegisters = new Array(RegisterSet.S_COUNT).fill("");
     this.fRegisters = new Float64Array(RegisterSet.F_COUNT);
   }
@@ -112,7 +92,7 @@ export class RegisterSet {
    */
   getB(reg: number): number {
     validateIndex(reg, RegisterSet.B_COUNT, "B");
-    return this.bRegisters[reg];
+    return this.byteRegisters[reg];
   }
 
   /**
@@ -122,7 +102,7 @@ export class RegisterSet {
    */
   setB(reg: number, value: number): void {
     validateIndex(reg, RegisterSet.B_COUNT, "B");
-    this.bRegisters[reg] = maskToWidth(value, 8);
+    this.byteRegisters[reg] = value & 0xff;
   }
 
   /**
@@ -132,7 +112,7 @@ export class RegisterSet {
    */
   getA(reg: number): number {
     validateIndex(reg, RegisterSet.A_COUNT, "A");
-    return this.aRegisters[reg];
+    return this.byteRegisters[reg + 16];
   }
 
   /**
@@ -142,57 +122,84 @@ export class RegisterSet {
    */
   setA(reg: number, value: number): void {
     validateIndex(reg, RegisterSet.A_COUNT, "A");
-    this.aRegisters[reg] = maskToWidth(value, 8);
+    this.byteRegisters[reg + 16] = value & 0xff;
   }
 
   /**
    * Get the value of an I register (I0-IF).
+   * Aliases two bytes of the shared register buffer (little-endian).
    * @param reg Register index (0-15)
    * @returns 16-bit unsigned value (0-65535)
    */
   getI(reg: number): number {
     validateIndex(reg, RegisterSet.I_COUNT, "I");
-    return this.iRegisters[reg];
+    const offset = reg << 1;
+    return this.byteRegisters[offset] | (this.byteRegisters[offset + 1] << 8);
   }
 
   /**
    * Set the value of an I register (I0-IF).
+   * Writes two bytes of the shared register buffer (little-endian).
    * @param reg Register index (0-15)
    * @param value Value to set (will be masked to 16 bits)
    */
   setI(reg: number, value: number): void {
     validateIndex(reg, RegisterSet.I_COUNT, "I");
-    this.iRegisters[reg] = maskToWidth(value, 16);
+    const offset = reg << 1;
+    this.byteRegisters[offset] = value & 0xff;
+    this.byteRegisters[offset + 1] = (value >>> 8) & 0xff;
   }
 
   /**
    * Get the value of an L register (L0-L7).
+   * Aliases four bytes of the shared register buffer (little-endian).
    * @param reg Register index (0-7)
    * @returns 32-bit unsigned value (0-4294967295)
    */
   getL(reg: number): number {
     validateIndex(reg, RegisterSet.L_COUNT, "L");
-    return this.lRegisters[reg];
+    const offset = reg << 2;
+    return (
+      (this.byteRegisters[offset] |
+        (this.byteRegisters[offset + 1] << 8) |
+        (this.byteRegisters[offset + 2] << 16) |
+        (this.byteRegisters[offset + 3] << 24)) >>>
+      0
+    );
   }
 
   /**
    * Set the value of an L register (L0-L7).
+   * Writes four bytes of the shared register buffer (little-endian).
    * @param reg Register index (0-7)
    * @param value Value to set (will be masked to 32 bits)
    */
   setL(reg: number, value: number): void {
     validateIndex(reg, RegisterSet.L_COUNT, "L");
-    this.lRegisters[reg] = maskToWidth(value, 32);
+    const offset = reg << 2;
+    const v = value >>> 0;
+    this.byteRegisters[offset] = v & 0xff;
+    this.byteRegisters[offset + 1] = (v >>> 8) & 0xff;
+    this.byteRegisters[offset + 2] = (v >>> 16) & 0xff;
+    this.byteRegisters[offset + 3] = (v >>> 24) & 0xff;
   }
 
   /**
    * Get the value of an S register (S0-SF).
+   *
+   * Mirrors C# `Operand.GetStringData()` for the common case: when operations
+   * like `move S, ImmStr` / `tabget` store data via `SetStringData` they append
+   * a trailing NUL byte to `_data` so the stored length includes it (needed for
+   * length-sensitive byte-array compares like `scmp`). The string-level view
+   * should not surface that terminator. Use `getSBinary` for the raw bytes.
+   *
    * @param reg Register index (0-15)
-   * @returns String value
+   * @returns String value (single trailing NUL stripped if present)
    */
   getS(reg: number): string {
     validateIndex(reg, RegisterSet.S_COUNT, "S");
-    return this.sRegisters[reg];
+    const stored = this.sRegisters[reg];
+    return stored.endsWith("\0") ? stored.slice(0, -1) : stored;
   }
 
   /**
@@ -202,7 +209,6 @@ export class RegisterSet {
    */
   setS(reg: number, value: string): void {
     validateIndex(reg, RegisterSet.S_COUNT, "S");
-    // Truncate to max string size
     this.sRegisters[reg] =
       value.length > this.maxStringSize
         ? value.slice(0, this.maxStringSize)
@@ -229,7 +235,6 @@ export class RegisterSet {
   setSBinary(reg: number, value: Uint8Array): void {
     validateIndex(reg, RegisterSet.S_COUNT, "S");
     const str = cp1252ToUtf8(value);
-    // Truncate to max string size
     this.sRegisters[reg] =
       str.length > this.maxStringSize
         ? str.slice(0, this.maxStringSize)
@@ -269,10 +274,7 @@ export class RegisterSet {
    * - String registers are set to empty string
    */
   reset(): void {
-    this.bRegisters.fill(0);
-    this.aRegisters.fill(0);
-    this.iRegisters.fill(0);
-    this.lRegisters.fill(0);
+    this.byteRegisters.fill(0);
     this.sRegisters.fill("");
     this.fRegisters.fill(0);
   }
@@ -281,11 +283,27 @@ export class RegisterSet {
    * Create a snapshot of all register values for debugging.
    */
   snapshot(): RegisterSnapshot {
+    const b: number[] = new Array(RegisterSet.B_COUNT);
+    for (let i = 0; i < RegisterSet.B_COUNT; i++) {
+      b[i] = this.byteRegisters[i];
+    }
+    const a: number[] = new Array(RegisterSet.A_COUNT);
+    for (let i = 0; i < RegisterSet.A_COUNT; i++) {
+      a[i] = this.byteRegisters[i + 16];
+    }
+    const iArr: number[] = new Array(RegisterSet.I_COUNT);
+    for (let i = 0; i < RegisterSet.I_COUNT; i++) {
+      iArr[i] = this.getI(i);
+    }
+    const l: number[] = new Array(RegisterSet.L_COUNT);
+    for (let i = 0; i < RegisterSet.L_COUNT; i++) {
+      l[i] = this.getL(i);
+    }
     return {
-      b: Array.from(this.bRegisters),
-      a: Array.from(this.aRegisters),
-      i: Array.from(this.iRegisters),
-      l: Array.from(this.lRegisters),
+      b,
+      a,
+      i: iArr,
+      l,
       s: [...this.sRegisters],
       f: Array.from(this.fRegisters),
     };

@@ -351,10 +351,10 @@ describe("Interpreter", () => {
     it("skips result when not in resultsRequest", async () => {
       // etag uses arg0=jump target (I register, mode 3), arg1=result name (S register, mode 1)
       // addrMode = 0x31 (arg0=3=REG_I, arg1=1=REG_S)
-      // I0 = 0x10, S0 = 0x1c
+      // I2 = 0x12, S0 = 0x1c. Using I2 (not I0) so B1 (used by ergb) does not alias I0's high byte.
       const code = new Uint8Array([
-        // At offset 0: etag I0, S0 (jump to offset 8 if not requested)
-        0x41, 0x31, 0x10, 0x1c, // etag: opcode, addrMode=0x31, I0=0x10, S0=0x1c
+        // At offset 0: etag I2, S0 (jump to offset 8 if not requested)
+        0x41, 0x31, 0x12, 0x1c, // etag: opcode, addrMode=0x31, I2=0x12, S0=0x1c
         // At offset 4: ergb S0, B1
         0x34, 0x12, 0x1c, 0x01, // ergb: opcode, addrMode=0x12 (S,AB), S0=0x1c, B1=0x01
         // At offset 8: eoj
@@ -363,7 +363,7 @@ describe("Interpreter", () => {
 
       const registers = new RegisterSet();
       registers.setS(0, "SKIPPED");
-      registers.setI(0, 8); // jump to eoj (offset 8)
+      registers.setI(2, 8); // jump to eoj (offset 8); I2 = bytes[4..5], does not alias B1
       registers.setB(1, 0x42);
 
       const interpreter = new Interpreter(createPrg(code));
@@ -377,14 +377,14 @@ describe("Interpreter", () => {
 
     it("does not skip when result is in resultsRequest", async () => {
       const code = new Uint8Array([
-        0x41, 0x31, 0x10, 0x1c, // etag I0, S0
+        0x41, 0x31, 0x12, 0x1c, // etag I2, S0 (I2 avoids B1 aliasing)
         0x34, 0x12, 0x1c, 0x01, // ergb S0, B1
         0x1d, 0x00, // eoj
       ]);
 
       const registers = new RegisterSet();
       registers.setS(0, "WANTED");
-      registers.setI(0, 8); // jump target (not used because WANTED is requested)
+      registers.setI(2, 8); // jump target (not used because WANTED is requested)
       registers.setB(1, 0x42);
 
       const interpreter = new Interpreter(createPrg(code));
@@ -399,14 +399,14 @@ describe("Interpreter", () => {
 
     it("does not skip when resultsRequest is empty", async () => {
       const code = new Uint8Array([
-        0x41, 0x31, 0x10, 0x1c, // etag I0, S0
+        0x41, 0x31, 0x12, 0x1c, // etag I2, S0 (I2 avoids B1 aliasing)
         0x34, 0x12, 0x1c, 0x01, // ergb S0, B1
         0x1d, 0x00, // eoj
       ]);
 
       const registers = new RegisterSet();
       registers.setS(0, "RESULT");
-      registers.setI(0, 8);
+      registers.setI(2, 8);
       registers.setB(1, 0x42);
 
       const interpreter = new Interpreter(createPrg(code));

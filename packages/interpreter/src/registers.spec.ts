@@ -281,10 +281,12 @@ describe("RegisterSet", () => {
 
   describe("snapshot()", () => {
     it("should return a snapshot of all registers", () => {
+      // Choose non-aliased slots: B0 (byte0), A0 (byte16), I3 (bytes6-7), L1 (bytes4-7).
+      // Note: I3 and L1 both touch bytes 4-7, so write L1 last and use the same expected value.
       regs.setB(0, 1);
       regs.setA(0, 2);
-      regs.setI(0, 3);
-      regs.setL(0, 4);
+      regs.setI(3, 3);
+      regs.setL(1, 4);
       regs.setS(0, "five");
       regs.setF(0, 6.0);
 
@@ -292,8 +294,9 @@ describe("RegisterSet", () => {
 
       expect(snap.b[0]).toBe(1);
       expect(snap.a[0]).toBe(2);
-      expect(snap.i[0]).toBe(3);
-      expect(snap.l[0]).toBe(4);
+      // I3 reads bytes[6..7]; setL(1,4) wrote bytes[4..7]=(4,0,0,0), so I3 = bytes[6]|bytes[7]<<8 = 0
+      expect(snap.i[3]).toBe(0);
+      expect(snap.l[1]).toBe(4);
       expect(snap.s[0]).toBe("five");
       expect(snap.f[0]).toBe(6.0);
     });
@@ -378,6 +381,101 @@ describe("RegisterSet", () => {
       expect(() => regs.getL(7)).not.toThrow();
       expect(() => regs.getS(15)).not.toThrow();
       expect(() => regs.getF(7)).not.toThrow();
+    });
+  });
+
+  // Matches C# EdiabasNet._byteRegisters: B/A/I/L share a single 32-byte buffer.
+  //   B[n] at byte[n] (0..15), A[n] at byte[n+16] (0..15),
+  //   I[n] at bytes[n*2..n*2+1] (0..15), L[n] at bytes[n*4..n*4+3] (0..7).
+  describe("B/A/I/L aliasing (shared byte buffer)", () => {
+    it("I[n] reads two bytes B[2n] (low) and B[2n+1] (high)", () => {
+      regs.setB(4, 0x76);
+      regs.setB(5, 0x00);
+      expect(regs.getI(2)).toBe(0x0076);
+
+      regs.setB(4, 0x34);
+      regs.setB(5, 0x12);
+      expect(regs.getI(2)).toBe(0x1234);
+    });
+
+    it("setI(n, v) writes B[2n] = low byte and B[2n+1] = high byte", () => {
+      regs.setI(2, 0xabcd);
+      expect(regs.getB(4)).toBe(0xcd);
+      expect(regs.getB(5)).toBe(0xab);
+    });
+
+    it("L[n] reads four bytes B[4n..4n+3] little-endian", () => {
+      regs.setB(4, 0x78);
+      regs.setB(5, 0x56);
+      regs.setB(6, 0x34);
+      regs.setB(7, 0x12);
+      expect(regs.getL(1)).toBe(0x12345678);
+    });
+
+    it("setL(n, v) writes four bytes little-endian", () => {
+      regs.setL(1, 0xdeadbeef);
+      expect(regs.getB(4)).toBe(0xef);
+      expect(regs.getB(5)).toBe(0xbe);
+      expect(regs.getB(6)).toBe(0xad);
+      expect(regs.getB(7)).toBe(0xde);
+    });
+
+    it("I[n] for n>=8 aliases A registers", () => {
+      // I8 = bytes[16..17] = A0, A1
+      regs.setA(0, 0xcd);
+      regs.setA(1, 0xab);
+      expect(regs.getI(8)).toBe(0xabcd);
+
+      // IF = bytes[30..31] = AE, AF
+      regs.setA(14, 0x21);
+      regs.setA(15, 0x43);
+      expect(regs.getI(15)).toBe(0x4321);
+    });
+
+    it("L[n] for n>=4 aliases A registers", () => {
+      // L4 = bytes[16..19] = A0..A3
+      regs.setA(0, 0x11);
+      regs.setA(1, 0x22);
+      regs.setA(2, 0x33);
+      regs.setA(3, 0x44);
+      expect(regs.getL(4)).toBe(0x44332211);
+
+      // L7 = bytes[28..31] = AC..AF
+      regs.setL(7, 0x89abcdef);
+      expect(regs.getA(12)).toBe(0xef);
+      expect(regs.getA(13)).toBe(0xcd);
+      expect(regs.getA(14)).toBe(0xab);
+      expect(regs.getA(15)).toBe(0x89);
+    });
+
+    it("writing L overwrites overlapping B and I values", () => {
+      regs.setB(0, 0xff);
+      regs.setI(1, 0xffff);
+      regs.setL(0, 0);
+      expect(regs.getB(0)).toBe(0);
+      expect(regs.getB(1)).toBe(0);
+      expect(regs.getB(2)).toBe(0);
+      expect(regs.getB(3)).toBe(0);
+      expect(regs.getI(0)).toBe(0);
+      expect(regs.getI(1)).toBe(0);
+    });
+
+    it("STATUS_UBATT pattern: setB(4) + setB(5) then read I2", () => {
+      // BMW MS43 STATUS_UBATT: response byte 0x76 stored in B4, zero in B5, read as I2.
+      regs.setB(4, 0x76);
+      regs.setB(5, 0x00);
+      expect(regs.getI(2)).toBe(118);
+    });
+
+    it("B and A do not overlap each other (B0..F at 0..15, A0..F at 16..31)", () => {
+      regs.setB(0, 0x11);
+      regs.setA(0, 0x22);
+      regs.setB(15, 0x33);
+      regs.setA(15, 0x44);
+      expect(regs.getB(0)).toBe(0x11);
+      expect(regs.getA(0)).toBe(0x22);
+      expect(regs.getB(15)).toBe(0x33);
+      expect(regs.getA(15)).toBe(0x44);
     });
   });
 });

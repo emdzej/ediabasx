@@ -417,8 +417,12 @@ function resolveIntValue(registers: RegisterSet, operand: Operand): number {
 
 function resolveIndexedBytes(registers: RegisterSet, operand: Operand): Uint8Array {
   const indexed = requireIndexed(operand);
-  const base = getStringValue(registers, indexed.base);
-  const bytes = utf8ToCp1252(base);
+  // S registers double as binary scratch memory — BMW SGBDs use `S0[#$N]` to
+  // accumulate bit-flag results that include embedded NUL bytes (e.g. ECU_CONFIG
+  // stores per-VORHANDEN values at S0[6..7], S0[8..9], … as 16-bit ints).
+  // Going through `getStringValue` here would truncate at the first NUL and
+  // make every subsequent slot read as 0. Use the raw byte view instead.
+  const bytes = getBinaryValue(registers, indexed.base);
   const start = resolveIntValue(registers, indexed.index) + (indexed.offset?.value ?? 0);
   const length = indexed.length
     ? resolveIntValue(registers, indexed.length)
@@ -498,7 +502,11 @@ function resolveBinaryValue(registers: RegisterSet, operand: Operand): Uint8Arra
           "Expected string register"
         );
       }
-      return utf8ToCp1252(getStringValue(registers, operand.ref));
+      // Mirror C# Operand.GetArrayData: returns raw bytes up to the stored
+      // length, *including* any trailing null terminator that SetStringData
+      // appended. Going through getStringValue() would strip it, which breaks
+      // length-sensitive byte-array comparisons like `scmp S, "2"`.
+      return getBinaryValue(registers, operand.ref);
     case "indexed": {
       return resolveIndexedBytes(registers, operand);
     }

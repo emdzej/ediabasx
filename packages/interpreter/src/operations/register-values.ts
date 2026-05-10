@@ -63,7 +63,13 @@ export function setStringValue(
   ref: StringRegisterRef,
   value: string
 ): void {
-  registers.setS(ref.index, value);
+  // Mirror C# Operand.SetStringData: appends a trailing null terminator so the
+  // stored byte array length includes the NUL byte. Operations like `scmp`
+  // compare raw byte arrays via GetArrayData() — without this terminator a
+  // tabget("DATA_TYPE")="2" would compare as a 1-byte array to immediate "2"
+  // which IMM_STR keeps as [0x32, 0x00] (length 2) and mismatch.
+  const normalized = value.endsWith("\0") ? value : value + "\0";
+  registers.setS(ref.index, normalized);
 }
 
 /**
