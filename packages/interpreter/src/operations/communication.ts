@@ -90,7 +90,12 @@ function wrapInterfaceError(error: unknown, action: string): never {
 
 function assertCapability<T>(value: T | undefined | null, action: string): T {
   if (value === undefined || value === null) {
-    throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, `${action} is not supported`);
+    // C# `EdInterfaceObd` returns EDIABAS_IFH_0056 ("Function not supported by
+    // interface") when an optional capability is missing on the active link.
+    throw new EdiabasError(
+      EdiabasErrorCodes.EDIABAS_IFH_0056,
+      `${action} is not supported`
+    );
   }
   return value;
 }
@@ -210,12 +215,14 @@ export function xtype(
   destination: StringRegisterRef
 ): void {
   assertConnected(interfaceClass);
+  // C# `OpXtype` writes `interfaceClass.InterfaceType` directly — no
+  // class-name fallback. An interface that doesn't expose the property
+  // results in an empty string, never a fabricated value.
   const typeValue =
     (interfaceClass.getInterfaceType && interfaceClass.getInterfaceType()) ??
     interfaceClass.interfaceType ??
     interfaceClass.type ??
-    interfaceClass.constructor?.name ??
-    "unknown";
+    "";
   setStringValue(registers, destination, typeValue);
 }
 
@@ -309,7 +316,7 @@ export async function xsetparBytes(
       }
       return;
     }
-    throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "Set parameters is not supported");
+    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_IFH_0056, "Set parameters is not supported");
   } catch (error) {
     wrapInterfaceError(error, "Set parameters");
   }
@@ -353,7 +360,7 @@ export async function xawlenBytes(
       await interfaceClass.setAnswerLength(answerArray[0]);
       return;
     }
-    throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "Set answer length is not supported");
+    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_IFH_0056, "Set answer length is not supported");
   } catch (error) {
     wrapInterfaceError(error, "Set answer length");
   }
@@ -449,7 +456,7 @@ export async function xreps(
       interfaceClass.commRepeats = value;
       return;
     }
-    throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "Set repeat counter is not supported");
+    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_IFH_0056, "Set repeat counter is not supported");
   } catch (error) {
     wrapInterfaceError(error, "Set repeat counter");
   }

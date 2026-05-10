@@ -107,12 +107,6 @@ import {
   ProcedureRegistry,
   ProcedureStack,
   plink,
-  ppush,
-  ppushflt,
-  ppushy,
-  ppop,
-  ppopflt,
-  ppopy,
 } from "./operations/procedures";
 import {
   type TableState,
@@ -125,6 +119,7 @@ import {
   tabrows as tabrowsOp,
   tabcols as tabcolsOp,
 } from "./operations/table";
+import { TrapBitDict } from "./trap-bits";
 import type { FloatRegisterRef, IntRegisterRef, StringRegisterRef } from "./operations/register-refs";
 import { getBinaryValue, getFloatValue, getIntValue, getStringValue, setBinaryValue, setFloatValue, setIntValue, setStringValue } from "./operations/register-values";
 
@@ -416,26 +411,6 @@ function resolveIntValue(registers: RegisterSet, operand: Operand): number {
       throw new EdiabasError(
         EdiabasErrorCodes.INVALID_INSTRUCTION,
         "Expected integer operand"
-      );
-  }
-}
-
-function resolveFloatValue(registers: RegisterSet, operand: Operand): number {
-  switch (operand.kind) {
-    case "immediate":
-      return operand.value;
-    case "register":
-      if (operand.ref.kind !== "F") {
-        throw new EdiabasError(
-          EdiabasErrorCodes.REGISTER_ERROR,
-          "Expected float register"
-        );
-      }
-      return getFloatValue(registers, operand.ref);
-    default:
-      throw new EdiabasError(
-        EdiabasErrorCodes.INVALID_INSTRUCTION,
-        "Expected float operand"
       );
   }
 }
@@ -798,6 +773,51 @@ function readPolyFloat(state: InterpreterState, operand: Operand): number {
 /**
  * BCD nibble: 0-9 → '0'-'9', else '*' (mirrors EdiabasNet.ValueToBcd).
  */
+/**
+ * Width to use for value-formatting ops (`fix2hex`, `fix2dez`, `ufix2dez`).
+ *
+ * Mirrors C# `len = arg1.GetDataType() != typeof(EdValueType) ? 1 : arg1.GetDataLen();`
+ * — when the source is a byte-array operand (RegS, ImmStr, IdxX*), only the
+ * first byte is formatted. For int operands the natural register/immediate
+ * width is used.
+ */
+function fixFormatLen(state: InterpreterState, operand: Operand): number {
+  if (
+    operand.kind === "register" &&
+    operand.ref.kind !== "S" &&
+    operand.ref.kind !== "F"
+  ) {
+    return intRegisterByteLength(operand.ref);
+  }
+  if (operand.kind === "immediate") {
+    return Math.max(1, operand.width ?? 4);
+  }
+  // String register, string literal, or any indexed slice — treat as byte
+  // array, format only the leading byte.
+  return 1;
+}
+
+/**
+ * Soft error reporting — mirrors C# `EdiabasNet.SetError(code)`.
+ *
+ * Looks up the trap bit for the given error code (defaults to 0 if not in
+ * `TrapBitDict`), stores it in `state.errorTrapBitNr`, and only throws if the
+ * bit is **not** masked in `state.errorTrapMask`. SGBDs can mask specific
+ * error bits via `settmr` to tolerate transient failures (e.g. float
+ * overflow during a calculation that gets retried).
+ *
+ * C# reference: `EdiabasNet.cs:4140-4167`.
+ */
+function setError(state: InterpreterState, code: EdiabasErrorCode, message?: string): void {
+  const bitNumber = (TrapBitDict as Record<number, number>)[code] ?? 0;
+  state.errorTrapBitNr = bitNumber;
+  const activeMask = (1 << bitNumber) & ~state.errorTrapMask;
+  if (activeMask !== 0) {
+    throw new EdiabasError(code, message ?? `EDIABAS error 0x${code.toString(16)}`);
+  }
+  // Otherwise the error is absorbed — execution continues.
+}
+
 function nibbleToBcdChar(nibble: number): string {
   const n = nibble & 0x0f;
   return n > 9 ? "*" : n.toString(16).toUpperCase();
@@ -808,14 +828,28 @@ function nibbleToBcdChar(nibble: number): string {
  * (index + offset) preserving surrounding bytes (mirrors C# OpFlt2Y4 / OpFlt2Y8).
  * For register destinations, overwrite entirely.
  */
-function writeFloatBytesAt(state: InterpreterState, operand: Operand, data: Uint8Array): void {
+function writeFloatBytesAt(state: InterpreterState, operand: Operand, data: Uint8Array): boolean {
   if (operand.kind === "indexed") {
-    writePolyBytes(state, operand, data);
-    return;
+    // Replicate writePolyBytes inline so we can soft-fail on overflow per C#
+    // OpFlt2Y* semantics: SetError(BIP_0001) + return without writing.
+    const baseBytes = getBinaryValue(state.registers, operand.base);
+    const start = Math.max(
+      0,
+      resolveIntValue(state.registers, operand.index) + (operand.offset?.value ?? 0)
+    );
+    if (start + data.length > ARRAY_MAX_SIZE) {
+      setError(state, EdiabasErrorCodes.EDIABAS_BIP_0001, "flt2y: array overflow");
+      return false;
+    }
+    const merged = new Uint8Array(Math.max(baseBytes.length, start + data.length));
+    merged.set(baseBytes);
+    merged.set(data, start);
+    setBinaryValue(state.registers, operand.base, merged);
+    return true;
   }
   if (operand.kind === "register" && operand.ref.kind === "S") {
     setBinaryValue(state.registers, operand.ref, data);
-    return;
+    return true;
   }
   throw new EdiabasError(EdiabasErrorCodes.REGISTER_ERROR, "Expected string register/indexed for float bytes");
 }
@@ -1283,9 +1317,13 @@ export class Interpreter {
           }
           throw new EdiabasError(EdiabasErrorCodes.INVALID_INSTRUCTION, "Expected string operand");
         } else if (destRef.kind === "F") {
-          // Float destination
-          const value = resolveFloatValue(state.registers, arg1);
-          state.registers.setF(destRef.index, value);
+          // Float destination. C# OpMove only handles EdValueType / byte[] —
+          // a float register destination falls through to "Invalid target
+          // data type". Match the strictness.
+          throw new EdiabasError(
+            EdiabasErrorCodes.REGISTER_ERROR,
+            "move: float register destination unsupported (use fadd/fsub/fmul/fdiv)"
+          );
         } else {
           // Integer destination - resolve value from any source
           if (arg1.kind === "indexed" || arg1.kind === "string" || (arg1.kind === "register" && arg1.ref.kind === "S")) {
@@ -1367,22 +1405,40 @@ export class Interpreter {
           };
         });
       },
-      // 0x05: mult - 64-bit signed product; high half written to arg1 if register.
+      // 0x05: mult - signed product. Mirrors C# `OpMult`:
+      //   result = (EdValueType)((Int{8|16|32})val0 * (Int{8|16|32})val1)
+      //   arg0  ← result                  (SetRawData truncates to len bytes)
+      //   arg1  ← (UInt64)result >> (len*8)   (high bits of the 32-bit `result`)
+      //
+      // Key C# detail: `result` is the truncated 32-bit (UInt32) product, so
+      // the "high" shift `result >> (len*8)` is shifting *within the 32-bit
+      // word*. For len=4 the shift is 32 → always 0. For len=2 the upper word
+      // of a 16x16 product fits inside the 32-bit `result`. For len=1 the
+      // upper byte of the byte product fits in bits 8..15.
       0x05: async (state, arg0, arg1) => {
         const len = Math.max(1, getOperandLen(state, arg0, true));
         const val0 = readPolyValue(state, arg0, len);
         const val1 = readPolyValue(state, arg1, len);
         const sm = signMaskForLen(len);
-        // Sign-extend operands to JS number, multiply via BigInt for full 2N-bit precision.
+        // Sign-extend operands (matching C# SByte/Int16/Int32 cast).
         const s0 = (val0 & sm) ? val0 - (1 << (len * 8)) : val0;
         const s1 = (val1 & sm) ? val1 - (1 << (len * 8)) : val1;
-        const product = BigInt(s0) * BigInt(s1);
-        const totalBits = BigInt(len * 16);
-        const totalMask = (1n << totalBits) - 1n;
-        const productUnsigned = ((product % (1n << totalBits)) + (1n << totalBits)) & totalMask;
-        const lowMask = (1n << BigInt(len * 8)) - 1n;
-        const lowResult = Number(productUnsigned & lowMask) >>> 0;
-        const highResult = Number((productUnsigned >> BigInt(len * 8)) & lowMask) >>> 0;
+        const lowMask = maskForLen(len);
+        // 32-bit `result` (un-truncated to len, but truncated to 32-bit width
+        // by the C# (EdValueType) cast).
+        let result32: number;
+        if (len <= 2) {
+          // 16x16 max product fits in a JS Number with room to spare.
+          result32 = (s0 * s1) >>> 0;
+        } else {
+          // 32x32 → use BigInt for precision, truncate to 32 bits.
+          const product = BigInt(s0) * BigInt(s1);
+          result32 = Number(((product % (1n << 32n)) + (1n << 32n)) & 0xffffffffn) >>> 0;
+        }
+        const lowResult = result32 & lowMask;
+        // High = `result32 >> (len*8)` truncated to len bytes. For len=4 the
+        // shift is 32 which in JS produces a no-op; coerce to 0 explicitly.
+        const highResult = len >= 4 ? 0 : ((result32 >>> (len * 8)) & lowMask) >>> 0;
         if (arg0.kind === "register" && arg0.ref.kind !== "S" && arg0.ref.kind !== "F") {
           setIntValue(state.registers, arg0.ref, lowResult);
         } else {
@@ -1397,13 +1453,17 @@ export class Interpreter {
         state.flags.v = false;
       },
       // 0x06: divs - signed division; quotient → arg0, remainder → arg1 (if register).
+      // C# `OpDivs` casts operands to Int32 directly (preserving zero-extension
+      // from byte/word — so 0x80 stays positive 128, not -128). On division by
+      // zero it calls SetError(BIP_0007) and leaves arg0 unchanged.
       0x06: async (state, arg0, arg1) => {
         const len = Math.max(1, getOperandLen(state, arg0, true));
         const val0 = readPolyValue(state, arg0, len);
         const val1 = readPolyValue(state, arg1, len);
-        const sm = signMaskForLen(len);
-        const s0 = (val0 & sm) ? val0 - (1 << (len * 8)) : val0;
-        const s1 = (val1 & sm) ? val1 - (1 << (len * 8)) : val1;
+        // C# `(Int32)value` after zero-extending GetValueData(len) — the
+        // 8/16-bit values are treated as positive numbers, NOT sign-extended.
+        const s0 = val0 | 0;
+        const s1 = val1 | 0;
         let quotient = val0;
         let remainder = 0;
         let error = false;
@@ -1415,18 +1475,23 @@ export class Interpreter {
         }
         const mask = maskForLen(len);
         const result = error ? val0 : (quotient & mask);
+        const zs = updateZS(error ? 0 : (quotient & mask), len);
+        state.flags.z = zs.z;
+        state.flags.s = zs.s;
+        state.flags.v = false;
+        if (error) {
+          // SetError is soft — the trap mask decides whether to halt.
+          setError(state, EdiabasErrorCodes.EDIABAS_BIP_0007, "divs: division by zero");
+          return; // C# leaves arg0 unchanged.
+        }
         if (arg0.kind === "register" && arg0.ref.kind !== "S" && arg0.ref.kind !== "F") {
           setIntValue(state.registers, arg0.ref, result);
         } else {
           writePolyValue(state, arg0, result, len);
         }
-        if (!error && arg1.kind === "register" && arg1.ref.kind !== "S" && arg1.ref.kind !== "F") {
+        if (arg1.kind === "register" && arg1.ref.kind !== "S" && arg1.ref.kind !== "F") {
           setIntValue(state.registers, arg1.ref, remainder);
         }
-        const zs = updateZS(error ? 0 : (quotient & mask), len);
-        state.flags.z = zs.z;
-        state.flags.s = zs.s;
-        state.flags.v = false;
       },
       // 0x07: and / 0x08: or / 0x09: xor — indexed dest supported.
       0x07: async (state, arg0, arg1) => {
@@ -1627,14 +1692,17 @@ export class Interpreter {
           && leftBytes.every((value, index) => value === rightBytes[index]);
         state.flags.z = equal;
       },
-      // 0x21: scat - byte-array concat. C# raises EDIABAS_BIP_0001 on overflow.
+      // 0x21: scat - byte-array concat. C# OpScat does SetError(BIP_0001) and
+      // returns WITHOUT writing the result if the concatenation would overflow
+      // ArrayMaxSize. Behaviour respects the trap mask.
       0x21: async (state, arg0, arg1) => {
         const dest = requireStringRegister(arg0);
         const destBytes = getBinaryValue(state.registers, dest);
         const sourceBytes = readPolyBytes(state, arg1);
         const totalLen = destBytes.length + sourceBytes.length;
         if (totalLen > ARRAY_MAX_SIZE) {
-          throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0001, "scat: array overflow");
+          setError(state, EdiabasErrorCodes.EDIABAS_BIP_0001, "scat: array overflow");
+          return; // C# returns before writing on overflow.
         }
         const result = new Uint8Array(totalLen);
         result.set(destBytes);
@@ -1662,22 +1730,25 @@ export class Interpreter {
         state.flags.s = (masked & signMask) !== 0;
         state.flags.v = false;
       },
-      // 0x24: spaste - insert bytes at indexed position (C# OpSpaste).
-      // Raises EDIABAS_BIP_0001 if startIdx >= ArrayMaxSize or final length exceeds it.
+      // 0x24: spaste - insert bytes at indexed position. C# OpSpaste raises
+      // EDIABAS_BIP_0001 via SetError (soft, trap-mask respecting) and returns
+      // without writing when startIdx >= ArrayMaxSize or final length exceeds it.
       0x24: async (state, arg0, arg1) => {
         const target = requireIndexed(arg0);
         const insertBytes = readPolyBytes(state, arg1);
         const baseBytes = getBinaryValue(state.registers, target.base);
         const start = Math.max(0, resolveIntValue(state.registers, target.index) + (target.offset?.value ?? 0));
         if (start >= ARRAY_MAX_SIZE) {
-          throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0001, "spaste: index past max");
+          setError(state, EdiabasErrorCodes.EDIABAS_BIP_0001, "spaste: index past max");
+          return;
         }
         if (start >= baseBytes.length) {
           return;
         }
         const totalLen = baseBytes.length + insertBytes.length;
         if (totalLen > ARRAY_MAX_SIZE) {
-          throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0001, "spaste: array overflow");
+          setError(state, EdiabasErrorCodes.EDIABAS_BIP_0001, "spaste: array overflow");
+          return;
         }
         const result = new Uint8Array(totalLen);
         result.set(baseBytes.slice(0, start));
@@ -1787,24 +1858,57 @@ export class Interpreter {
         const value = readPolyString(state, arg1);
         ergs(state.registers, state.results, name, value);
       },
-      // 0x3a: a2flt - C# OpA2Flt: arg1.GetStringData() (poly).
+      // 0x3a: a2flt - parse ASCII float into F-register. C# OpA2Flt (v7.6+ with
+      // default CompatMode) calls SetError(BIP_0011) when the input can't be
+      // parsed. We write 0 to the destination and report the soft error.
       0x3a: async (state, arg0, arg1) => {
         const dst = requireFloatRegister(arg0);
         const str = readPolyString(state, arg1);
-        const value = parseFloat(str.replace(/,/g, "."));
-        setFloatValue(state.registers, dst, Number.isFinite(value) ? value : 0);
+        const trimmed = str.replace(/,/g, ".").trim();
+        const value = trimmed.length > 0 ? parseFloat(trimmed) : NaN;
+        const valid = !Number.isNaN(value) && Number.isFinite(value);
+        setFloatValue(state.registers, dst, valid ? value : 0);
+        if (!valid) {
+          setError(state, EdiabasErrorCodes.EDIABAS_BIP_0011, `a2flt: cannot parse "${str}"`);
+        }
       },
+      // 0x3b–0x3e: float arithmetic. C# writes the result first and only
+      // SetError(BIP_0011) on Inf/NaN — the trap mask decides whether to halt.
       0x3b: async (state, arg0, arg1) => {
-        fadd(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
+        fadd(
+          state.registers,
+          state.flags,
+          requireFloatRegister(arg0),
+          requireFloatRegister(arg1),
+          () => setError(state, EdiabasErrorCodes.EDIABAS_BIP_0011, "fadd: result is Inf/NaN")
+        );
       },
       0x3c: async (state, arg0, arg1) => {
-        fsub(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
+        fsub(
+          state.registers,
+          state.flags,
+          requireFloatRegister(arg0),
+          requireFloatRegister(arg1),
+          () => setError(state, EdiabasErrorCodes.EDIABAS_BIP_0011, "fsub: result is Inf/NaN")
+        );
       },
       0x3d: async (state, arg0, arg1) => {
-        fmul(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
+        fmul(
+          state.registers,
+          state.flags,
+          requireFloatRegister(arg0),
+          requireFloatRegister(arg1),
+          () => setError(state, EdiabasErrorCodes.EDIABAS_BIP_0011, "fmul: result is Inf/NaN")
+        );
       },
       0x3e: async (state, arg0, arg1) => {
-        fdiv(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
+        fdiv(
+          state.registers,
+          state.flags,
+          requireFloatRegister(arg0),
+          requireFloatRegister(arg1),
+          () => setError(state, EdiabasErrorCodes.EDIABAS_BIP_0011, "fdiv: result is Inf/NaN")
+        );
       },
       // 0x3f: ergy - C# OpErgy: arg0 GetStringData; arg1 GetArrayData.
       0x3f: async (state, arg0, arg1) => {
@@ -1820,13 +1924,18 @@ export class Interpreter {
           state.results.clear();
         }
       },
-      // 0x41: etag - conditional result skip
-      // If resultsRequest is set and the result name is not in it, jump to arg0
+      // 0x41: etag - conditional result skip. arg0 is a near-address (`OcList`
+      // marks it `arg0IsNearAddress=true`), so the immediate in the bytecode is
+      // a relative offset from the next instruction. C# pre-bakes it to
+      // `_pcCounter + offset` at decode time and `OpEtag` reads the absolute
+      // value; we don't pre-bake, so the handler does the addition itself —
+      // identical to how the other near-address opcodes go through jumpHandler.
       0x41: async (state, arg0, arg1) => {
         if (state.resultsRequest.size > 0) {
           const resultName = resolveStringValue(state.registers, arg1).toUpperCase();
           if (!state.resultsRequest.has(resultName)) {
-            state.pc = resolveIntValue(state.registers, arg0);
+            const offset = resolveJumpOffset(state, arg0);
+            state.pc = state.pc + offset;
           }
         }
       },
@@ -1840,16 +1949,21 @@ export class Interpreter {
           iface.commRepeats = count;
         }
       },
+      // 0x43: gettmr - read error trap mask into dest. C# OpGettmr uses
+      // `_flags.UpdateFlags(arg0.GetValueData(), arg0.GetDataLen())` — Z/S
+      // computed over the destination register's natural width, with V
+      // PRESERVED (UpdateFlags doesn't touch V).
       0x43: async (state, arg0) => {
         const dest = requireIntRegister(arg0);
         gettmr(state.registers, state, dest);
         const byteLength = intRegisterByteLength(dest);
         const mask = byteLength === 1 ? 0xff : byteLength === 2 ? 0xffff : 0xffffffff;
         const signMask = byteLength === 1 ? 0x80 : byteLength === 2 ? 0x8000 : 0x80000000;
-        const masked = state.errorTrapMask & mask;
+        const value = getIntValue(state.registers, dest);
+        const masked = value & mask;
         state.flags.z = masked === 0;
         state.flags.s = (masked & signMask) !== 0;
-        state.flags.v = false;
+        // Do NOT touch V — C# UpdateFlags only sets Z/S.
       },
       0x44: async (state, arg0) => {
         const value = resolveIntValue(state.registers, arg0);
@@ -1868,15 +1982,21 @@ export class Interpreter {
       0x47: trapJumpHandler(jt),
       // 0x48: jnt - jump if no trap detected
       0x48: trapJumpHandler(jnt),
-      // 0x49: addc - add with carry. Indexed dest supported.
+      // 0x49: addc - add with carry. Mirrors C# OpAddc which increments val1
+      // before the addition: `val1++; sum = val0 + val1; SetOverflow(val0, val1,
+      // sum, len)`. The post-increment val1 (whose sign may have flipped at
+      // INT_MAX) is what SetOverflow uses, not the original val1.
       0x49: async (state, arg0, arg1) => {
         const carryIn = state.flags.c ? 1 : 0;
         arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
           const mask = maskForLen(len);
           const sm = signMaskForLen(len);
-          const sum = val0 + val1 + carryIn;
+          const val1Adj = (val1 + carryIn) & mask; // C# val1++ truncates to len-byte width
+          const sum = val0 + val1Adj;
           const result = sum & mask;
-          const v0Sign = (val0 & sm) !== 0, v1Sign = (val1 & sm) !== 0, rSign = (result & sm) !== 0;
+          const v0Sign = (val0 & sm) !== 0;
+          const v1Sign = (val1Adj & sm) !== 0;
+          const rSign = (result & sm) !== 0;
           return {
             result,
             flagsPatch: {
@@ -1887,27 +2007,32 @@ export class Interpreter {
           };
         });
       },
-      // 0x4a: subc - subtract with carry/borrow. Indexed dest supported.
+      // 0x4a: subc - subtract with carry/borrow. Same post-carry val1 semantics
+      // as addc: `val1++; SetOverflow(val0, val1, diff)`.
       0x4a: async (state, arg0, arg1) => {
         const borrowIn = state.flags.c ? 1 : 0;
         arithmeticReadModifyWrite(state, arg0, arg1, (val0, val1, len) => {
           const mask = maskForLen(len);
           const sm = signMaskForLen(len);
-          const result = (val0 - val1 - borrowIn) & mask;
-          const v0Sign = (val0 & sm) !== 0, v1Sign = (val1 & sm) !== 0, rSign = (result & sm) !== 0;
+          const val1Adj = (val1 + borrowIn) & mask;
+          const result = (val0 - val1Adj) & mask;
+          const v0Sign = (val0 & sm) !== 0;
+          const v1Sign = (val1Adj & sm) !== 0;
+          const rSign = (result & sm) !== 0;
           return {
             result,
             flagsPatch: {
               ...updateZS(result, len),
               v: v0Sign !== v1Sign && rSign !== v0Sign,
-              c: val0 < val1 + borrowIn,
+              c: val0 < val1Adj,
             },
           };
         });
       },
-      // 0x4b: break - user break (EdiabasLib: EDIABAS_BIP_0008)
-      0x4b: async () => {
-        throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0008, "BREAK");
+      // 0x4b: break - user break. C# OpBreak calls SetError(BIP_0008), which
+      // respects the trap mask — a job that has masked bit 0 won't actually halt.
+      0x4b: async (state) => {
+        setError(state, EdiabasErrorCodes.EDIABAS_BIP_0008, "BREAK");
       },
       0x4c: async (state) => {
         clrv(state.flags);
@@ -1935,22 +2060,38 @@ export class Interpreter {
         state.flags.z = masked === 0;
         state.flags.s = (masked & signMask) !== 0;
       },
+      // 0x51: swap - reverse a slice of bytes in a string register. C# OpSwap
+      // only supports `IdxImmLenImm` (start = immediate, length = immediate);
+      // other addressing modes would crash on the OpData2/OpData3 cast. Also
+      // does SetError(BIP_0001) on overflow.
       0x51: async (state, arg0) => {
-        if (arg0.kind === "indexed") {
-          const start = resolveIntValue(state.registers, arg0.index) + (arg0.offset?.value ?? 0);
-          const length = arg0.length ? resolveIntValue(state.registers, arg0.length) : 1;
-          swap(state.registers, arg0.base, start, length);
+        if (arg0.kind !== "indexed" || !arg0.length) {
+          throw new EdiabasError(
+            EdiabasErrorCodes.INVALID_INSTRUCTION,
+            "swap: requires indexed operand with explicit length (start and length must be immediates)"
+          );
+        }
+        const start = resolveIntValue(state.registers, arg0.index) + (arg0.offset?.value ?? 0);
+        const length = resolveIntValue(state.registers, arg0.length);
+        if (start + length > ARRAY_MAX_SIZE) {
+          setError(state, EdiabasErrorCodes.EDIABAS_BIP_0001, "swap: range exceeds ArrayMaxSize");
           return;
         }
-        const dest = requireStringRegister(arg0);
-        const data = getBinaryValue(state.registers, dest);
-        swap(state.registers, dest, 0, data.length);
+        swap(state.registers, arg0.base, start, length);
       },
+      // 0x52: setspc - set token separator and (unconditionally) token index.
+      // C# `OpSetspc` reads `arg1.GetValueData()` without checking the addr mode,
+      // so a missing arg1 would crash; mirror the strictness so we surface
+      // malformed bytecode early.
       0x52: async (state, arg0, arg1) => {
-        state.tokenSeparator = resolveStringValue(state.registers, arg0);
-        if (arg1.kind !== "none") {
-          state.tokenIndex = resolveIntValue(state.registers, arg1);
+        if (arg1.kind === "none") {
+          throw new EdiabasError(
+            EdiabasErrorCodes.INVALID_INSTRUCTION,
+            "setspc: arg1 (token index) is required"
+          );
         }
+        state.tokenSeparator = readPolyString(state, arg0);
+        state.tokenIndex = readPolyValue(state, arg1, 4);
       },
       // 0x53: srevrs - reverse the byte array (NOT chars). Mirrors C# OpSrevrs.
       0x53: async (state, arg0) => {
@@ -1960,14 +2101,21 @@ export class Interpreter {
         for (let i = 0; i < bytes.length; i++) reversed[i] = bytes[bytes.length - 1 - i];
         setBinaryValue(state.registers, ref, reversed);
       },
+      // 0x54: stoken - extract token from arg1 at state.tokenIndex.
+      // C# uses `splitString.Split(_tokenSeparator.ToCharArray())` — splits on
+      // ANY character in the separator (so setspc " ;," means "split on space
+      // OR semicolon OR comma"). A naive .split(separator) treats the whole
+      // separator as one delimiter; build a character-set regex instead.
       0x54: async (state, arg0, arg1) => {
         const separator = state.tokenSeparator;
         if (!separator) {
           state.flags.z = true;
           return;
         }
-        const source = resolveStringValue(state.registers, arg1);
-        const parts = source.split(separator);
+        const source = readPolyString(state, arg1);
+        const escaped = separator.replace(/[\\\]^-]/g, "\\$&");
+        const splitter = separator.length === 1 ? separator : new RegExp(`[${escaped}]`);
+        const parts = source.split(splitter);
         const index = state.tokenIndex - 1;
         if (index < 0 || index >= parts.length) {
           state.flags.z = true;
@@ -2038,33 +2186,25 @@ export class Interpreter {
           readPolyValue(state, arg1, 4)
         );
       },
-      // 0x65: ftell - handle in arg1 (poly), result in arg0 (register). Updates flags.
+      // 0x65: ftell - C# `OpFtell` writes the position and calls
+      // `UpdateFlags(position, sizeof(EdValueType)=4)` — Z/S over 32-bit width
+      // regardless of the destination register, V preserved.
       0x65: async (state, arg0, arg1) => {
         const dst = requireIntRegister(arg0);
         const handle = readPolyValue(state, arg1, 1);
         ftellHandle(requireFileSystem(state), state.registers, dst, handle);
-        const value = getIntValue(state.registers, dst);
-        const len = intRegisterByteLength(dst);
-        const mask = len === 4 ? 0xffffffff : ((1 << (len * 8)) - 1) >>> 0;
-        const signMask = 1 << (len * 8 - 1);
-        const masked = value & mask;
-        state.flags.z = masked === 0;
-        state.flags.s = (masked & signMask) !== 0;
-        state.flags.v = false;
+        const value = getIntValue(state.registers, dst) >>> 0;
+        state.flags.z = value === 0;
+        state.flags.s = (value & 0x80000000) !== 0;
       },
-      // 0x66: ftellln - same shape as ftell.
+      // 0x66: ftellln - same flag semantics as ftell.
       0x66: async (state, arg0, arg1) => {
         const dst = requireIntRegister(arg0);
         const handle = readPolyValue(state, arg1, 1);
         ftelllnHandle(requireFileSystem(state), state.registers, dst, handle);
-        const value = getIntValue(state.registers, dst);
-        const len = intRegisterByteLength(dst);
-        const mask = len === 4 ? 0xffffffff : ((1 << (len * 8)) - 1) >>> 0;
-        const signMask = 1 << (len * 8 - 1);
-        const masked = value & mask;
-        state.flags.z = masked === 0;
-        state.flags.s = (masked & signMask) !== 0;
-        state.flags.v = false;
+        const value = getIntValue(state.registers, dst) >>> 0;
+        state.flags.z = value === 0;
+        state.flags.s = (value & 0x80000000) !== 0;
       },
       0x5a: jumpHandler(jg),
       0x5b: jumpHandler(jnl),
@@ -2072,11 +2212,18 @@ export class Interpreter {
       0x5d: jumpHandler(jng),
       0x5e: jumpHandler(ja),
       0x5f: jumpHandler(jna),
-      // 0x67: a2fix - parse decimal/hex/binary string. C# always Sign=false, doesn't touch Carry.
+      // 0x67: a2fix - parse decimal/hex/binary string. C# clamps the Int64
+      // parse result to [Int32.MinValue, 0xFFFFFFFF] before storing, then sets
+      // Zero=false, Sign=false, Overflow=false (Carry preserved).
       0x67: async (state, arg0, arg1) => {
         const dst = requireIntRegister(arg0);
         const str = readPolyString(state, arg1);
-        const value = parseConfigInt(str);
+        let value = parseConfigInt(str);
+        // Replicate the C# Int64 clamp window.
+        const INT32_MIN = -0x80000000;
+        const UINT32_MAX = 0xffffffff;
+        if (value < INT32_MIN) value = INT32_MIN;
+        if (value > UINT32_MAX) value = UINT32_MAX;
         setIntValue(state.registers, dst, value);
         state.flags.z = false;
         state.flags.s = false;
@@ -2166,7 +2313,7 @@ export class Interpreter {
         const portData = readPolyBytes(state, arg0);
         const iface = requireCommunicationInterface(state);
         if (!iface.setPort) {
-          throw new EdiabasError(EdiabasErrorCodes.UNKNOWN, "Set port is not supported");
+          throw new EdiabasError(EdiabasErrorCodes.EDIABAS_IFH_0056, "Set port is not supported");
         }
         await iface.setPort(portData[0] ?? 0, value);
       },
@@ -2179,17 +2326,19 @@ export class Interpreter {
         // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
       // 0x79: fix2hex - integer → "0x{HEX}" (zero-padded to byte width).
-      // Mirrors C# OpFix2Hex which always emits the "0x" prefix and pads to 2/4/8 hex digits.
+      // Mirrors C# OpFix2Hex which always emits the "0x" prefix, pads to
+      // 2/4/8 hex digits, and uses len=1 when arg1 is a byte-array source
+      // (so only the first byte is formatted, NOT the whole array).
       0x79: async (state, arg0, arg1) => {
-        const rawLen = getOperandLen(state, arg1);
-        const len = rawLen > 0 ? rawLen : 1;
+        const len = fixFormatLen(state, arg1);
         const raw = readPolyValue(state, arg1, len);
         const padded = (raw >>> 0).toString(16).toUpperCase().padStart(len * 2, "0");
         writePolyString(state, arg0, `0x${padded}`);
       },
       // 0x7a: fix2dez - signed integer → decimal string.
+      // Same byte-array-source rule as fix2hex.
       0x7a: async (state, arg0, arg1) => {
-        const len = Math.max(1, getOperandLen(state, arg1));
+        const len = fixFormatLen(state, arg1);
         const raw = readPolyValue(state, arg1, len);
         const signMask = 1 << (len * 8 - 1);
         const signed = (raw & signMask) ? raw - (1 << (len * 8)) : raw;
@@ -2207,15 +2356,23 @@ export class Interpreter {
       0x7d: async (state, arg0, arg1) => {
         tabgetOp(state.registers, state.flags, state.tableState, requireStringRegister(arg0), readPolyString(state, arg1));
       },
-      // 0x7e: strcat - C# truncates source to fit ArrayMaxSize - destLen (no error).
+      // 0x7e: strcat - concatenate strings, silently truncating the source to
+      // fit `ArrayMaxSize`. C# `OpStrcat` uses `arg0.GetDataLen()` (raw byte
+      // length of the destination register, ignoring null trim) as the budget
+      // base, so the truncation budget is in bytes — not in UTF-8 characters.
+      // We compute byte-length via the cp1252 encoding to match.
       0x7e: async (state, arg0, arg1) => {
         const dest = requireStringRegister(arg0);
-        const left = readPolyString(state, { kind: "register", ref: dest });
-        let right = readPolyString(state, arg1);
-        if (left.length + right.length > ARRAY_MAX_SIZE) {
-          right = right.slice(0, Math.max(0, ARRAY_MAX_SIZE - left.length));
+        const leftBytes = getBinaryValue(state.registers, dest);
+        let rightBytes = readPolyBytes(state, arg1);
+        const remaining = ARRAY_MAX_SIZE - leftBytes.length;
+        if (rightBytes.length > Math.max(0, remaining)) {
+          rightBytes = rightBytes.subarray(0, Math.max(0, remaining));
         }
-        writePolyString(state, { kind: "register", ref: dest }, left + right);
+        const merged = new Uint8Array(leftBytes.length + rightBytes.length);
+        merged.set(leftBytes);
+        merged.set(rightBytes, leftBytes.length);
+        setBinaryValue(state.registers, dest, merged);
       },
       0x7f: async (state, arg0) => {
         pary(state.registers, state.flags, state.parameters, requireStringRegister(arg0));
@@ -2331,17 +2488,17 @@ export class Interpreter {
         // Legacy/unused in EdiabasLib; keep no-op stub for compatibility.
       },
       // 0x8e: hex2y - hex string → byte array (BEST2 ascii2hex).
-      // C# OpHex2Y: success → Carry=false; on parse failure → empty array + Carry=true.
+      // C# OpHex2Y parses the raw string without trimming; any whitespace or
+      // odd-length input fails the parse → empty array + Carry=true.
       0x8e: async (state, arg0, arg1) => {
         const valueStr = readPolyString(state, arg1);
-        const trimmed = valueStr.trim();
         const result: number[] = [];
         let parseFailed = false;
-        if (trimmed.length % 2 !== 0) {
+        if (valueStr.length % 2 !== 0) {
           parseFailed = true;
         } else {
-          for (let i = 0; i < trimmed.length; i += 2) {
-            const pair = trimmed.slice(i, i + 2);
+          for (let i = 0; i < valueStr.length; i += 2) {
+            const pair = valueStr.slice(i, i + 2);
             if (!/^[0-9a-fA-F]{2}$/.test(pair)) {
               parseFailed = true;
               break;
@@ -2407,11 +2564,15 @@ export class Interpreter {
         const key = arg1.kind === "string" ? arg1.value : requireStringRegister(arg1);
         shmget(state.registers, state.sharedMemory, destination, key, state.flags);
       },
-      // 0x95: ergsysi - system-info result. C# routes these to a separate system results dict
-      // (SetSysResultData), keeping them isolated from the user job results.
+      // 0x95: ergsysi - system-info result. C# routes these via SetSysResultData
+      // with ResultType.TypeI (signed Int16, sign-extended into Int64). We
+      // sign-extend the 16-bit value before storing so negative values are
+      // preserved.
       0x95: async (state, arg0, arg1) => {
         const name = readPolyString(state, arg0);
-        const value = readPolyValue(state, arg1, 2) & 0xffff;
+        const rawUnsigned = readPolyValue(state, arg1, 2) & 0xffff;
+        // Sign-extend Int16 → JS Number (preserves negative values).
+        const value = rawUnsigned & 0x8000 ? rawUnsigned - 0x10000 : rawUnsigned;
         if (name === "!INITIALISIERUNG") {
           if (value !== 0) {
             state.requestInit = true;
@@ -2420,19 +2581,17 @@ export class Interpreter {
         }
         state.systemResults.record(name, "int", value);
       },
-      // 0x96: flt2fix - float → integer. C# uses arg1.GetFloatData() (poly).
+      // 0x96: flt2fix - float → integer. C# `OpFlt2Fix` truncates the float to
+      // an `EdValueType` and calls `UpdateFlags(value, sizeof(EdValueType)=4)` —
+      // Z/S over 32-bit width regardless of the destination register, V preserved.
       0x96: async (state, arg0, arg1) => {
         const dst = requireIntRegister(arg0);
         const value = readPolyFloat(state, arg1);
         const truncated = Math.trunc(value);
         setIntValue(state.registers, dst, truncated);
-        const len = intRegisterByteLength(dst);
-        const mask = len === 4 ? 0xffffffff : ((1 << (len * 8)) - 1) >>> 0;
-        const signMask = 1 << (len * 8 - 1);
-        const masked = truncated & mask;
-        state.flags.z = masked === 0;
-        state.flags.s = (masked & signMask) !== 0;
-        state.flags.v = false;
+        const value32 = truncated >>> 0;
+        state.flags.z = value32 === 0;
+        state.flags.s = (value32 & 0x80000000) !== 0;
       },
       // 0x97: iupdate - update progress text
       0x97: async (state, arg0) => {
@@ -2459,37 +2618,65 @@ export class Interpreter {
       0x9a: async (state, arg0, arg1) => {
         tabseekuOp(state.flags, state.tableState, readPolyString(state, arg0), readPolyValue(state, arg1, 4));
       },
-      // 0x9b: flt2y4 - float → 4-byte little-endian (IEEE 754 single) at indexed offset.
-      // Mirrors C# OpFlt2Y4: writes at startIdx (OpData2 of indexed operand), preserving rest.
+      // 0x9b: flt2y4 - float → 4-byte little-endian at indexed offset.
+      // C# `OpFlt2Y4` casts `arg0.OpData2` directly to EdValueType, which only
+      // works in `IdxImm` mode (immediate index, no length). Reject other
+      // addressing modes to match.
       0x9b: async (state, arg0, arg1) => {
+        if (arg0.kind !== "indexed" || arg0.index.kind !== "immediate" || arg0.length) {
+          throw new EdiabasError(
+            EdiabasErrorCodes.INVALID_INSTRUCTION,
+            "flt2y4: requires indexed operand with immediate index and no length"
+          );
+        }
         const value = readPolyFloat(state, arg1);
         const buffer = new ArrayBuffer(4);
         new DataView(buffer).setFloat32(0, value, true);
         writeFloatBytesAt(state, arg0, new Uint8Array(buffer));
       },
-      // 0x9c: flt2y8 - float → 8-byte little-endian (IEEE 754 double) at indexed offset.
+      // 0x9c: flt2y8 - float → 8-byte little-endian at indexed offset.
       0x9c: async (state, arg0, arg1) => {
+        if (arg0.kind !== "indexed" || arg0.index.kind !== "immediate" || arg0.length) {
+          throw new EdiabasError(
+            EdiabasErrorCodes.INVALID_INSTRUCTION,
+            "flt2y8: requires indexed operand with immediate index and no length"
+          );
+        }
         const value = readPolyFloat(state, arg1);
         const buffer = new ArrayBuffer(8);
         new DataView(buffer).setFloat64(0, value, true);
         writeFloatBytesAt(state, arg0, new Uint8Array(buffer));
       },
-      // 0x9d: y42flt - 4 bytes → float (poly source via GetArrayData).
+      // 0x9d: y42flt - 4 bytes → IEEE 754 single. C# `BitConverter.ToSingle`
+      // throws if `dataArray.Length < 4`; surface the same strictness so we
+      // catch malformed bytecode instead of silently zero-padding.
       0x9d: async (state, arg0, arg1) => {
         const dst = requireFloatRegister(arg0);
         const bytes = readPolyBytes(state, arg1);
+        if (bytes.length < 4) {
+          throw new EdiabasError(
+            EdiabasErrorCodes.INVALID_INSTRUCTION,
+            `y42flt: source has ${bytes.length} bytes, need 4`
+          );
+        }
         const buffer = new ArrayBuffer(4);
         const view = new DataView(buffer);
-        for (let i = 0; i < Math.min(4, bytes.length); i++) view.setUint8(i, bytes[i]);
+        for (let i = 0; i < 4; i++) view.setUint8(i, bytes[i]);
         setFloatValue(state.registers, dst, view.getFloat32(0, true));
       },
-      // 0x9e: y82flt - 8 bytes → float.
+      // 0x9e: y82flt - 8 bytes → IEEE 754 double. Same strictness as y42flt.
       0x9e: async (state, arg0, arg1) => {
         const dst = requireFloatRegister(arg0);
         const bytes = readPolyBytes(state, arg1);
+        if (bytes.length < 8) {
+          throw new EdiabasError(
+            EdiabasErrorCodes.INVALID_INSTRUCTION,
+            `y82flt: source has ${bytes.length} bytes, need 8`
+          );
+        }
         const buffer = new ArrayBuffer(8);
         const view = new DataView(buffer);
-        for (let i = 0; i < Math.min(8, bytes.length); i++) view.setUint8(i, bytes[i]);
+        for (let i = 0; i < 8; i++) view.setUint8(i, bytes[i]);
         setFloatValue(state.registers, dst, view.getFloat64(0, true));
       },
       // 0x9f: plink - C# OpPlink is a no-op (logs only). Optional linker support kept
@@ -2509,26 +2696,33 @@ export class Interpreter {
       0xa2: async () => {
         // No-op (matches C# behavior).
       },
-      0xa3: async (state, arg0) => {
-        ppush(state.registers, state.procedureStack, requireIntRegister(arg0));
-      },
-      // 0xa4: ppop - pop int from procedure stack
+      // 0xa3/0xa5/0xa7: ppush / ppushflt / ppushy — C# no-ops (log "Ignoring";
+      // procedure plugins were never implemented in EdiabasLib). We mirror that
+      // exactly so SGBDs see the same behaviour. The standalone `ppush*`
+      // helpers in `operations/procedures.ts` remain for any tests/tools that
+      // want to model a real procedure stack.
+      0xa3: async () => { /* no-op */ },
+      0xa5: async () => { /* no-op */ },
+      0xa7: async () => { /* no-op */ },
+      // 0xa4: ppop - C# `OpPpop` resets arg0 to 0 and calls UpdateFlags(0, len).
       0xa4: async (state, arg0) => {
-        ppop(state.registers, state.procedureStack, requireIntRegister(arg0));
+        const dst = requireIntRegister(arg0);
+        setIntValue(state.registers, dst, 0);
+        const len = intRegisterByteLength(dst);
+        const zs = updateZS(0, len);
+        state.flags.z = zs.z; // = true
+        state.flags.s = zs.s; // = false
       },
-      0xa5: async (state, arg0) => {
-        ppushflt(state.registers, state.procedureStack, requireFloatRegister(arg0));
-      },
-      // 0xa6: ppopflt - pop float from procedure stack
+      // 0xa6: ppopflt - C# resets arg0 to 0.0 and Overflow=false.
       0xa6: async (state, arg0) => {
-        ppopflt(state.registers, state.procedureStack, requireFloatRegister(arg0));
+        const dst = requireFloatRegister(arg0);
+        setFloatValue(state.registers, dst, 0);
+        state.flags.v = false;
       },
-      0xa7: async (state, arg0) => {
-        ppushy(state.registers, state.procedureStack, requireStringRegister(arg0));
-      },
-      // 0xa8: ppopy - pop binary/string from procedure stack
+      // 0xa8: ppopy - C# resets arg0 to an empty byte array.
       0xa8: async (state, arg0) => {
-        ppopy(state.registers, state.procedureStack, requireStringRegister(arg0));
+        const dst = requireStringRegister(arg0);
+        setBinaryValue(state.registers, dst, new Uint8Array());
       },
       // 0xa9: pjtsr - procedure jump to subroutine (stub: no-op)
       0xa9: async () => {
@@ -2547,20 +2741,30 @@ export class Interpreter {
       0xa1: async (state, arg0, arg1) => {
         fcomp(state.registers, state.flags, requireFloatRegister(arg0), requireFloatRegister(arg1));
       },
-      // 0xab: ufix2dez - unsigned int → decimal string. Polymorphic source.
+      // 0xab: ufix2dez - unsigned int → decimal string.
+      // Same byte-array-source rule as fix2hex.
       0xab: async (state, arg0, arg1) => {
-        const len = Math.max(1, getOperandLen(state, arg1));
+        const len = fixFormatLen(state, arg1);
         const raw = readPolyValue(state, arg1, len) >>> 0;
         writePolyString(state, arg0, raw.toString(10));
       },
       // 0xac: generr - raise the requested error code.
-      // C# validates code is in EDIABAS_RUN_0000..EDIABAS_ERROR_LAST range; we accept the
-      // EdiabasErrorCode numeric values from EdiabasErrorCodes and raise BIP_0001 otherwise.
+      // C# OpGenerr reads arg0.GetValueData() at its natural width (no
+      // truncation), validates the numeric value is in
+      // EDIABAS_RUN_0000 (250) .. EDIABAS_ERROR_LAST (~470), then calls
+      // RaiseError(code) (hard throw, bypasses trap mask). Codes outside
+      // the range produce BIP_0001. We do the same with the requested
+      // numeric code preserved.
       0xac: async (state, arg0) => {
-        const errorCode = readPolyValue(state, arg0, 2);
-        const known = (Object.values(EdiabasErrorCodes) as number[]).includes(errorCode);
-        if (!known) {
-          throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0001, `Invalid error code ${errorCode}`);
+        const len = Math.max(1, getOperandLen(state, arg0));
+        const errorCode = readPolyValue(state, arg0, len);
+        const EDIABAS_RUN_0000 = 250;
+        const EDIABAS_ERROR_LAST = 470;
+        if (errorCode < EDIABAS_RUN_0000 || errorCode > EDIABAS_ERROR_LAST) {
+          throw new EdiabasError(
+            EdiabasErrorCodes.EDIABAS_BIP_0001,
+            `generr: invalid error code ${errorCode}`
+          );
         }
         throw new EdiabasError(errorCode as EdiabasErrorCode, `GENERR ${errorCode}`);
       },

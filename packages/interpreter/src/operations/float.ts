@@ -15,7 +15,6 @@
  * Float registers use IEEE 754 double precision (64-bit).
  */
 
-import { EdiabasError, EdiabasErrorCodes } from "@emdzej/ediabasx-core";
 import { RegisterSet } from "../registers";
 import { Flags } from "../flags";
 import type {
@@ -32,11 +31,14 @@ import {
   setStringValue,
 } from "./register-values";
 
-function ensureFinite(result: number, op: string): void {
-  if (!Number.isFinite(result) || Number.isNaN(result)) {
-    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0011, `${op}: result is Inf/NaN`);
-  }
-}
+/**
+ * Callback signature for the soft-error sink. C# float arithmetic calls
+ * `SetError(EDIABAS_BIP_0011)` on Inf/NaN and **still writes** the result;
+ * trap-mask-respecting termination happens via the standard error path.
+ * The float-op functions write the result unconditionally and invoke this
+ * callback when the result is Inf/NaN.
+ */
+export type FloatErrorSink = (op: string) => void;
 
 export type {
   FloatRegisterRef,
@@ -91,14 +93,16 @@ export function fadd(
   registers: RegisterSet,
   flags: Flags,
   destination: FloatRegisterRef,
-  source: FloatRegisterRef
+  source: FloatRegisterRef,
+  onError?: FloatErrorSink
 ): void {
   void flags;
   const destValue = getFloatValue(registers, destination);
   const srcValue = getFloatValue(registers, source);
   const result = destValue + srcValue;
-  ensureFinite(result, "fadd");
+  // C# OpFadd writes the result first, then SetError(BIP_0011) on Inf/NaN.
   setFloatValue(registers, destination, result);
+  if (!Number.isFinite(result) || Number.isNaN(result)) onError?.("fadd");
 }
 
 /**
@@ -122,14 +126,15 @@ export function fsub(
   registers: RegisterSet,
   flags: Flags,
   destination: FloatRegisterRef,
-  source: FloatRegisterRef
+  source: FloatRegisterRef,
+  onError?: FloatErrorSink
 ): void {
   void flags;
   const destValue = getFloatValue(registers, destination);
   const srcValue = getFloatValue(registers, source);
   const result = destValue - srcValue;
-  ensureFinite(result, "fsub");
   setFloatValue(registers, destination, result);
+  if (!Number.isFinite(result) || Number.isNaN(result)) onError?.("fsub");
 }
 
 /**
@@ -153,14 +158,15 @@ export function fmul(
   registers: RegisterSet,
   flags: Flags,
   destination: FloatRegisterRef,
-  source: FloatRegisterRef
+  source: FloatRegisterRef,
+  onError?: FloatErrorSink
 ): void {
   void flags;
   const destValue = getFloatValue(registers, destination);
   const srcValue = getFloatValue(registers, source);
   const result = destValue * srcValue;
-  ensureFinite(result, "fmul");
   setFloatValue(registers, destination, result);
+  if (!Number.isFinite(result) || Number.isNaN(result)) onError?.("fmul");
 }
 
 /**
@@ -185,14 +191,15 @@ export function fdiv(
   registers: RegisterSet,
   flags: Flags,
   destination: FloatRegisterRef,
-  source: FloatRegisterRef
+  source: FloatRegisterRef,
+  onError?: FloatErrorSink
 ): void {
   void flags;
   const destValue = getFloatValue(registers, destination);
   const srcValue = getFloatValue(registers, source);
   const result = destValue / srcValue;
-  ensureFinite(result, "fdiv");
   setFloatValue(registers, destination, result);
+  if (!Number.isFinite(result) || Number.isNaN(result)) onError?.("fdiv");
 }
 
 /**

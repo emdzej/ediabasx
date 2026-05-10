@@ -58,12 +58,20 @@ describe("Float Operations", () => {
       expect(registers.getF(0)).toBe(3.14);
     });
 
-    it("should raise BIP_0011 on infinite result (matches C# OpFadd)", () => {
+    it("invokes the soft-error sink on infinite result (matches C# OpFadd)", () => {
       registers.setF(0, Infinity);
       registers.setF(1, 1.0);
-      expect(() =>
-        fadd(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 })
-      ).toThrow(/Inf|NaN/);
+      const errors: string[] = [];
+      fadd(
+        registers,
+        flags,
+        { kind: "F", index: 0 },
+        { kind: "F", index: 1 },
+        (op) => errors.push(op)
+      );
+      // C# writes the result even on overflow and then SetError(BIP_0011).
+      expect(registers.getF(0)).toBe(Infinity);
+      expect(errors).toEqual(["fadd"]);
     });
   });
 
@@ -128,12 +136,19 @@ describe("Float Operations", () => {
       expect(registers.getF(0)).toBe(2.5);
     });
 
-    it("should raise BIP_0011 on division by zero (Infinity result)", () => {
+    it("invokes the soft-error sink on division by zero (Infinity result)", () => {
       registers.setF(0, 1.0);
       registers.setF(1, 0);
-      expect(() =>
-        fdiv(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 })
-      ).toThrow(/Inf|NaN/);
+      const errors: string[] = [];
+      fdiv(
+        registers,
+        flags,
+        { kind: "F", index: 0 },
+        { kind: "F", index: 1 },
+        (op) => errors.push(op)
+      );
+      expect(registers.getF(0)).toBe(Infinity);
+      expect(errors).toEqual(["fdiv"]);
     });
 
     it("should handle negative division", () => {
@@ -143,12 +158,19 @@ describe("Float Operations", () => {
       expect(registers.getF(0)).toBe(-5.0);
     });
 
-    it("should raise BIP_0011 on 0/0 (NaN result)", () => {
+    it("invokes the soft-error sink on 0/0 (NaN result)", () => {
       registers.setF(0, 0);
       registers.setF(1, 0);
-      expect(() =>
-        fdiv(registers, flags, { kind: "F", index: 0 }, { kind: "F", index: 1 })
-      ).toThrow(/Inf|NaN/);
+      const errors: string[] = [];
+      fdiv(
+        registers,
+        flags,
+        { kind: "F", index: 0 },
+        { kind: "F", index: 1 },
+        (op) => errors.push(op)
+      );
+      expect(Number.isNaN(registers.getF(0))).toBe(true);
+      expect(errors).toEqual(["fdiv"]);
     });
   });
 
