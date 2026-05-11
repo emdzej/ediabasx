@@ -21,14 +21,23 @@ import { getLogger } from "@emdzej/ediabasx-logger";
 const log = getLogger("ediabas");
 
 /**
- * Resolve a path on a case-sensitive filesystem when the SGBD reference
- * may not match the on-disk casing. BMW INPA scripts hard-code uppercase
- * names (`D_0012.PRG`, `MS430DS0.PRG`) but real installs often have
- * lowercased filenames after archive extraction or rsync from Windows.
- * On Windows / macOS-HFS+ the exact path just works; on Linux / APFS-CS
- * we readdir the parent and look up by case-insensitive match.
+ * Resolve an SGBD path against the on-disk reality. Handles two
+ * Windows→Unix mismatches that bite real INPA installs:
  *
- * Fast path: try the exact path first. Only readdir if it misses.
+ *   1. **Casing**: scripts hard-code uppercase names (`D_0012.PRG`,
+ *      `MS430DS0.PRG`); real disks (after rsync from Windows or zip
+ *      extraction) often have lowercase basenames.
+ *
+ *   2. **Extension**: scripts request a name like `D_0012.prg` but the
+ *      actual file on disk may be a `.grp` (group definition that
+ *      delegates) or the other way around. Native EDIABAS probes both
+ *      `.prg` and `.grp` for any given ECU name; mirror that here so
+ *      callers don't have to know which form the file takes.
+ *
+ * Fast path: exact match. On miss, `readdir` the parent once and look
+ * for a case-insensitive basename match, allowing a `.prg` ↔ `.grp`
+ * swap. Returns the original path unchanged if nothing matches so the
+ * caller sees the canonical ENOENT.
  */
 async function resolveCaseInsensitive(
   fs: typeof import("node:fs/promises"),
@@ -43,7 +52,12 @@ async function resolveCaseInsensitive(
   }
 
   const dir = path.dirname(fullPath);
-  const target = path.basename(fullPath).toLowerCase();
+  const requested = path.basename(fullPath).toLowerCase();
+  // Build a set of acceptable basenames: the requested one + the same
+  // with the .prg/.grp extension swapped. Anything else, single match.
+  const candidates = new Set<string>([requested]);
+  if (requested.endsWith(".prg")) candidates.add(requested.slice(0, -4) + ".grp");
+  else if (requested.endsWith(".grp")) candidates.add(requested.slice(0, -4) + ".prg");
 
   let entries: string[];
   try {
@@ -53,8 +67,15 @@ async function resolveCaseInsensitive(
     return fullPath;
   }
 
-  const match = entries.find((entry) => entry.toLowerCase() === target);
-  return match ? path.join(dir, match) : fullPath;
+  // Prefer an exact-extension match over the swapped form so an existing
+  // `.prg` always wins over a `.grp` with the same stem, and vice versa.
+  let extensionSwap: string | null = null;
+  for (const entry of entries) {
+    const lower = entry.toLowerCase();
+    if (lower === requested) return path.join(dir, entry);
+    if (candidates.has(lower)) extensionSwap = entry;
+  }
+  return extensionSwap ? path.join(dir, extensionSwap) : fullPath;
 }
 
 export interface EdiabasConfig {
