@@ -1,0 +1,22 @@
+services:
+  web:
+    # Build context is the monorepo root so the Dockerfile can pull in every
+    # workspace package needed by `pnpm install` + `turbo build`. The
+    # Dockerfile itself lives next to this compose file.
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    image: ediabasx-web:latest
+    container_name: ediabasx-web
+    ports:
+      - "${EDIABASX_WEB_PORT:-8080}:80"
+    restart: unless-stopped
+    # nginx logs to stdout/stderr by default — Docker captures them.
+    # No volumes; the dist is baked into the image so deploys are
+    # immutable snapshots.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

@@ -1,0 +1,34 @@
+{
+  "name": "@emdzej/ediabasx-web",
+  "version": "0.1.0",
+  "description": "Browser SPA for EdiabasX — pick a PRG/GRP file, configure an interface, and explore jobs. Pure client-side; uses the File API and Web Serial for everything.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json"
+  },
+  "dependencies": {
+    "@emdzej/ediabasx-best-parser": "workspace:*",
+    "@emdzej/ediabasx-core": "workspace:*",
+    "@emdzej/ediabasx-ediabas": "workspace:*",
+    "@emdzej/ediabasx-interface-base": "workspace:*",
+    "@emdzej/ediabasx-interface-serial": "workspace:*",
+    "@emdzej/ediabasx-interpreter": "workspace:*",
+    "@emdzej/ediabasx-logger": "workspace:*"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^4.0.0",
+    "@tsconfig/svelte": "^5.0.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0"
+  }
+}

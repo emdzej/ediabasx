@@ -1,0 +1,30 @@
+# Avoid bloating the build context with node_modules / build artefacts /
+# editor + VCS noise. The Dockerfile re-runs `pnpm install` inside the
+# image, so any host-side install is irrelevant.
+
+**/node_modules
+**/dist
+**/.turbo
+**/.svelte-kit
+**/.vite
+**/.next
+**/.cache
+
+**/.DS_Store
+**/.git
+**/.gitignore
+**/.gitattributes
+
+# Test artefacts
+**/coverage
+**/.nyc_output
+**/test-results
+
+# Editor / OS
+.vscode
+.idea
+*.log
+
+# Documentation generation output
+docs/.vitepress/dist
+docs/.vitepress/cache
