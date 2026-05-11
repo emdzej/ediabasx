@@ -39,6 +39,29 @@ const log = getLogger("ediabas");
  * swap. Returns the original path unchanged if nothing matches so the
  * caller sees the canonical ENOENT.
  */
+/**
+ * Derive the SGBD's `VARIANTE` system result value from its filename.
+ * BMW convention: VARIANTE is the basename without extension, uppercase
+ * — what an INPA script compares against to confirm it's talking to the
+ * right ECU type (e.g. `"MS430DS0"`).
+ */
+function extractVariantName(filenameOrPath: string): string {
+  return stripExtension(basenameOf(filenameOrPath)).toUpperCase();
+}
+
+function basenameOf(filenameOrPath: string): string {
+  const lastSlash = Math.max(
+    filenameOrPath.lastIndexOf("/"),
+    filenameOrPath.lastIndexOf("\\")
+  );
+  return filenameOrPath.slice(lastSlash + 1);
+}
+
+function stripExtension(name: string): string {
+  const dot = name.lastIndexOf(".");
+  return dot > 0 ? name.slice(0, dot) : name;
+}
+
 async function resolveCaseInsensitive(
   fs: typeof import("node:fs/promises"),
   path: typeof import("node:path"),
@@ -119,6 +142,33 @@ export class Ediabas {
    * mirror EDIABAS's host behavior.
    */
   private initialized = false;
+  /**
+   * True once IDENTIFIKATION has been chained after a successful
+   * INITIALISIERUNG on this loaded SGBD. For .grp files this is what
+   * populates VARIANTE in systemResults with the resolved variant
+   * (e.g. `"MS430DS0"`) instead of the group's basename. We run it
+   * exactly once per load — variant resolution is sticky.
+   */
+  private identRan = false;
+  /**
+   * Group → resolved variant cache, mirroring C# `_groupMappingDict`.
+   * Once a `.grp` has been probed and its variant matched, a future
+   * `loadSgbd` of the same group skips the IDENT probe and loads the
+   * variant `.prg` directly. Keyed by lowercased group basename, stores
+   * the resolved variant name (also lowercased to match the cache key
+   * style; the actual `.prg` lookup is case-insensitive via
+   * resolveCaseInsensitive).
+   */
+  private groupMappingCache: Map<string, string> = new Map();
+  /**
+   * System / metadata results — VARIANTE (SGBD basename), JOB_STATUS, plus
+   * everything emitted by the INFO job (ECU, ORIGIN, REVISION, etc.).
+   * Native EDIABAS exposes these alongside per-job result sets so scripts
+   * can read SGBD metadata without remembering which set holds what; we
+   * mirror that. Populated at loadSgbd time, JOB_STATUS refreshed after
+   * each executeJob.
+   */
+  private systemResults: Map<string, EdiabasJobResult> = new Map();
 
   constructor(config: EdiabasConfig) {
     this.config = {
@@ -148,14 +198,31 @@ export class Ediabas {
       import("node:fs/promises"),
       import("node:path"),
     ]);
-    const fullPath = path.resolve(this.config.ecuPath, filename);
+
+    // Group-mapping cache: if we've already resolved this `.grp` to a
+    // variant in a previous load, jump straight to the variant `.prg`
+    // and skip the IDENT probe entirely. Mirrors C#
+    // `EdiabasNet._groupMappingDict`. The variant stored is the
+    // canonical lowercased name; the `.prg` extension is added and the
+    // case-insensitive resolver finds the actual on-disk file.
+    const baseName = stripExtension(basenameOf(filename)).toLowerCase();
+    const cachedVariant = filename.toLowerCase().endsWith(".grp")
+      ? this.groupMappingCache.get(baseName)
+      : undefined;
+    const effectiveFilename = cachedVariant ? `${cachedVariant}.prg` : filename;
+
+    const fullPath = path.resolve(this.config.ecuPath, effectiveFilename);
 
     try {
       const resolved = await resolveCaseInsensitive(fs, path, fullPath);
       const buffer = await fs.readFile(resolved);
       this.loadSgbdFromBuffer(new Uint8Array(buffer), resolved);
       if (this.config.logging) {
-        log.info(`Loaded SGBD: ${filename}`);
+        if (cachedVariant) {
+          log.info(`Loaded SGBD: ${filename} → cached variant ${cachedVariant}`);
+        } else {
+          log.info(`Loaded SGBD: ${filename}`);
+        }
       }
     } catch (err) {
       if (err instanceof EdiabasError) throw err;
@@ -164,6 +231,17 @@ export class Ediabas {
         `Failed to load SGBD: ${filename} - ${(err as Error).message}`
       );
     }
+
+    // Run INFO once we're loaded to populate metadata system results
+    // (ECU, ORIGIN, REVISION, AUTHOR, COMMENT, PACKAGE, SPRACHE for most
+    // BMW SGBDs). It's a no-comms job — pure metadata baked into the
+    // PRG — but it can still throw if the SGBD doesn't define INFO, so
+    // failures are silently ignored.
+    await this.runInfoForSystemResults();
+    // IDENTIFIKATION (group variant resolution) runs after
+    // INITIALISIERUNG has set up the comm session — see executeJob /
+    // runJobInternal. Running it here would xsend before the cable is
+    // configured and just time out.
   }
 
   /**
@@ -178,6 +256,21 @@ export class Ediabas {
     try {
       this.prg = parsePrg(buffer);
       this.prgPath = name;
+      // Reset both INITIALISIERUNG and metadata caches — a fresh SGBD
+      // is a fresh runtime. Inject VARIANTE upfront from the basename
+      // (BMW convention; what scripts compare against to verify the
+      // ECU type they're talking to). loadSgbd will follow up with an
+      // INFO run that adds ECU, ORIGIN, etc.; for the browser path
+      // (loadSgbdFromBuffer used directly) VARIANTE is all we can
+      // provide without async file I/O.
+      this.initialized = false;
+      this.identRan = false;
+      this.systemResults = new Map();
+      this.systemResults.set("VARIANTE", {
+        name: "VARIANTE",
+        type: "string",
+        value: extractVariantName(name),
+      });
       if (this.config.logging) {
         log.info(`Loaded SGBD: ${name}`);
         log.info(`  Jobs: ${this.prg.jobs.length}`);
@@ -189,6 +282,147 @@ export class Ediabas {
         `Failed to parse SGBD: ${name} - ${(err as Error).message}`
       );
     }
+  }
+
+  /**
+   * Run the SGBD's `INFO` job (if defined) and merge its first result set
+   * into systemResults. Used at load time to surface ECU/ORIGIN/REVISION/
+   * AUTHOR/COMMENT/PACKAGE/SPRACHE — the canonical BMW SGBD-metadata
+   * fields that scripts may read by name from any set. INFO is a
+   * comms-free job (pure static metadata), so this is cheap and safe;
+   * any failure is silenced because some custom SGBDs omit INFO.
+   */
+  private async runInfoForSystemResults(): Promise<void> {
+    if (!this.hasJob("INFO")) return;
+    try {
+      const sets = await this.executeJobRaw("INFO", []);
+      const first = sets[0];
+      if (!first) return;
+      for (const r of first) {
+        if (r.name.toUpperCase() === "VARIANTE") continue; // honour our basename
+        this.systemResults.set(r.name, r);
+      }
+    } catch (err) {
+      if (this.config.logging) {
+        log.warn(`INFO job failed at load time: ${(err as Error).message}`);
+      }
+    }
+  }
+
+  /**
+   * For .grp (group) SGBDs: after INITIALISIERUNG has set up the comm
+   * session, run IDENTIFIKATION to resolve which specific variant the
+   * group represents. The job probes the ECU (xsend/xrecv), matches
+   * the response against the group's variant table, and emits
+   * `VARIANTE` via `ergs`. We capture that emission into systemResults
+   * — overwriting the basename-derived default — so scripts that
+   * compare `VARIANTE` against a specific variant name (e.g.
+   * `"MS430DS0"`) see the right value.
+   *
+   * Critical ordering: this MUST run after INITIALISIERUNG (which
+   * configures xsetpar / xreps / xawlen), otherwise xsend goes onto
+   * a bare cable with no protocol context and times out. The caller
+   * is responsible for that ordering — `runJobInternal` chains us
+   * directly after a successful INITIALISIERUNG, and `executeJob`
+   * does the same when the script runs INITIALISIERUNG explicitly.
+   *
+   * Idempotent via `identRan`: runs once per loaded SGBD. Failures
+   * are non-fatal (offline / unresponsive ECU leaves the basename
+   * default in place); the error is logged in verbose mode.
+   */
+  private async runIdentAfterInit(): Promise<void> {
+    if (this.identRan) return;
+    if (!this.prg || this.prg.header.version !== 0) return; // .grp only
+    if (!this.hasJob("IDENTIFIKATION")) return;
+    this.identRan = true;
+
+    let variantName: string | undefined;
+    try {
+      const sets = await this.executeJobRaw("IDENTIFIKATION", []);
+      // IDENTIFIKATION emits VARIANTE = S1 (the resolved variant
+      // name) once it finds a match — scan all sets and take the
+      // last non-empty VARIANTE so retries / multi-pass probes
+      // surface their final answer rather than an intermediate.
+      for (const set of sets) {
+        for (const r of set) {
+          if (r.name.toUpperCase() === "VARIANTE" && r.value) {
+            variantName = String(r.value);
+          }
+        }
+      }
+    } catch (err) {
+      if (this.config.logging) {
+        log.warn(`IDENTIFIKATION failed: ${(err as Error).message}`);
+      }
+      return;
+    }
+
+    if (!variantName) return;
+
+    // Cache so a later `loadSgbd(<group>.grp)` short-circuits to the
+    // variant `.prg` without re-probing the ECU.
+    const groupBaseName = stripExtension(basenameOf(this.prgPath ?? "")).toLowerCase();
+    if (groupBaseName) {
+      this.groupMappingCache.set(groupBaseName, variantName.toLowerCase());
+    }
+
+    // Swap the loaded SGBD from `.grp` to the variant `.prg`. Real
+    // EDIABAS does this in `ResolveSgbdFile` (EdiabasNet.cs:5378) so
+    // subsequent jobs run against the variant's job table — the group
+    // only has INITIALISIERUNG + IDENTIFIKATION and would 404 on
+    // everything else. `systemResults` are refreshed from the
+    // variant's INFO (ECU/REVISION/etc.) so version checks see the
+    // right metadata.
+    await this.swapToVariant(variantName);
+  }
+
+  /**
+   * Replace the loaded `.grp` with the resolved variant's `.prg`,
+   * refresh INFO-derived systemResults from the new file, and pin
+   * `VARIANTE` to the resolved name (so subsequent script reads
+   * still see the variant, not the .prg's basename — for most BMW
+   * SGBDs these match, but the explicit pin guards against the
+   * occasional alias).
+   */
+  private async swapToVariant(variantName: string): Promise<void> {
+    try {
+      const [{ default: fs }, { default: path }] = await Promise.all([
+        import("node:fs/promises"),
+        import("node:path"),
+      ]);
+      const candidate = path.resolve(this.config.ecuPath, `${variantName}.prg`);
+      const resolved = await resolveCaseInsensitive(fs, path, candidate);
+      const buffer = await fs.readFile(resolved);
+      this.prg = parsePrg(new Uint8Array(buffer));
+      this.prgPath = resolved;
+      // systemResults is reset so the .grp's INFO outputs don't leak
+      // through; rebuild VARIANTE first so the rerun-INFO honour-our-
+      // basename guard keeps the resolved name in place.
+      this.systemResults = new Map();
+      this.systemResults.set("VARIANTE", {
+        name: "VARIANTE",
+        type: "string",
+        value: variantName,
+      });
+      await this.runInfoForSystemResults();
+      if (this.config.logging) {
+        log.info(`Swapped to variant ${variantName} (${resolved})`);
+      }
+    } catch (err) {
+      if (this.config.logging) {
+        log.warn(`Variant swap to ${variantName}.prg failed: ${(err as Error).message}`);
+      }
+    }
+  }
+
+  /**
+   * System / metadata result set — VARIANTE + INFO job outputs + the
+   * most-recent JOB_STATUS. Consumers (e.g. inpax's ediabasx-provider)
+   * fall back here when a per-set lookup misses, mirroring the way
+   * native EDIABAS exposes SGBD metadata transparently.
+   */
+  getSystemResults(): Map<string, EdiabasJobResult> {
+    return this.systemResults;
   }
 
   /**
@@ -372,6 +606,9 @@ export class Ediabas {
         // user's job too — no need to re-run on every executeJob call.
         this.initialized = true;
       }
+      // After auto-init, run IDENTIFIKATION on .grp loads so VARIANTE
+      // in systemResults resolves to the matched .prg variant.
+      await this.runIdentAfterInit();
     }
 
     if (this.config.logging) {
@@ -395,7 +632,7 @@ export class Ediabas {
 
     try {
       const sets = await interpreter.execute(jobName, execOptions);
-      return sets.map((set) =>
+      const mapped = sets.map((set) =>
         set.map((r: JobResult) => ({
           name: r.name,
           type: r.type,
@@ -404,6 +641,30 @@ export class Ediabas {
           comment: r.comment,
         }))
       );
+      // Capture JOB_STATUS into systemResults so by-name lookups (incl.
+      // INPA scripts doing INP1apiResultText("JOB_STATUS", 0, …)) hit
+      // the right value without needing to know which set the job
+      // emitted it in. Scan in reverse so the most recent emission
+      // wins, matching the BEST2 _resultDict order.
+      for (let i = mapped.length - 1; i >= 0; i--) {
+        const status = mapped[i].find(
+          (r) => r.name.toUpperCase() === "JOB_STATUS"
+        );
+        if (status) {
+          this.systemResults.set("JOB_STATUS", status);
+          break;
+        }
+      }
+      // If the user just ran INITIALISIERUNG explicitly (auto-init
+      // didn't fire because jobName === "INITIALISIERUNG"), chain
+      // IDENTIFIKATION now so .grp variant resolution still happens.
+      // runIdentAfterInit is idempotent — if auto-init already ran
+      // it, this is a no-op.
+      if (jobName.toUpperCase() === "INITIALISIERUNG") {
+        this.initialized = true;
+        await this.runIdentAfterInit();
+      }
+      return mapped;
     } catch (err) {
       if (err instanceof EdiabasError) {
         throw err;
