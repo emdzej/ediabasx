@@ -1,6 +1,7 @@
 {
   "name": "@emdzej/ediabasx-logger",
   "version": "0.1.0",
+  "description": "Structured logging for EdiabasX, backed by pino. Honours EDIABASX_LOG_LEVEL.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
