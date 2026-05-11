@@ -1230,12 +1230,24 @@ export class Interpreter {
       }
       return !context.halted;
     } catch (error) {
-      console.error("Interpreter error at", {
-        pc: instructionPc,
-        opcode,
-        arg0,
-        arg1,
-      });
+      // Attach the failing instruction's pc/opcode/operands to the
+      // error so callers that surface it (EdiabasXProvider's
+      // `job:error`, the CLI's runner) have full diagnostic context
+      // without us spraying console.error on every job failure. The
+      // browser path runs an interpreter error per failed job — most
+      // of those are "cable not configured" in Layer 2a — and we'd
+      // rather not flood DevTools when the provider is already
+      // handling the failure gracefully.
+      if (error instanceof Error && !("ediabasInstruction" in error)) {
+        Object.assign(error, {
+          ediabasInstruction: {
+            pc: instructionPc,
+            opcode,
+            arg0,
+            arg1,
+          },
+        });
+      }
       throw error;
     }
   }

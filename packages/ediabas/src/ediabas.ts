@@ -112,6 +112,30 @@ export interface EdiabasConfig {
   timeout?: number;
   /** Enable debug logging */
   logging?: boolean;
+  /**
+   * Optional: read an SGBD by basename. Both `loadSgbd` (initial
+   * load) and the internal `.grp → .prg` swap after IDENTIFIKATION
+   * route through this hook when present. Node hosts can leave it
+   * unset — the default uses `node:fs.readFile(ecuPath + filename)`,
+   * with the same case-insensitive + `.prg ↔ .grp` swap resolver
+   * the existing `loadSgbd` already does.
+   *
+   * Browser hosts MUST set this (along with `loadSgbdFromBuffer`
+   * for the initial load), since the Node default touches
+   * `node:fs` / `node:path` which Vite externalises into stubs.
+   * Without the hook a `.grp` load would succeed via
+   * `loadSgbdFromBuffer` but the post-IDENT swap would throw
+   * "Cannot access node:path.resolve in client code" on every
+   * resolved variant.
+   *
+   * The returned bytes are passed straight through `parsePrg`; the
+   * `name` argument is the resolved on-disk filename used for
+   * `prgPath` and the basename-derived `VARIANTE`. If the host
+   * can resolve case-insensitive or extension-swap variants, it
+   * should do so and return the canonical name; otherwise return
+   * the input unchanged.
+   */
+  loadSgbdResolver?: (filename: string) => Promise<{ bytes: Uint8Array; name: string }>;
 }
 
 export interface EdiabasJob {
@@ -177,6 +201,7 @@ export class Ediabas {
       simulation: config.simulation ?? false,
       timeout: config.timeout ?? 5000,
       logging: config.logging ?? false,
+      loadSgbdResolver: config.loadSgbdResolver,
     };
 
     // Create interface
@@ -194,6 +219,29 @@ export class Ediabas {
    * graph. Browser consumers should use {@link loadSgbdFromBuffer} instead.
    */
   async loadSgbd(filename: string): Promise<void> {
+    // Browser-friendly path: when a resolver is supplied, route
+    // through it and bypass node:fs / node:path entirely. The host
+    // (e.g. the inpax web app) reads bytes from its own source
+    // (FileSystemDirectoryHandle, fetch, etc.) and hands them back
+    // together with the canonical filename for `prgPath`.
+    if (this.config.loadSgbdResolver) {
+      try {
+        const { bytes, name } = await this.config.loadSgbdResolver(filename);
+        this.loadSgbdFromBuffer(bytes, name);
+        if (this.config.logging) {
+          log.info(`Loaded SGBD via resolver: ${filename} → ${name}`);
+        }
+      } catch (err) {
+        if (err instanceof EdiabasError) throw err;
+        throw new EdiabasError(
+          EdiabasErrorCodes.UNKNOWN,
+          `Failed to load SGBD: ${filename} - ${(err as Error).message}`
+        );
+      }
+      await this.runInfoForSystemResults();
+      return;
+    }
+
     const [{ default: fs }, { default: path }] = await Promise.all([
       import("node:fs/promises"),
       import("node:path"),
@@ -386,15 +434,28 @@ export class Ediabas {
    */
   private async swapToVariant(variantName: string): Promise<void> {
     try {
-      const [{ default: fs }, { default: path }] = await Promise.all([
-        import("node:fs/promises"),
-        import("node:path"),
-      ]);
-      const candidate = path.resolve(this.config.ecuPath, `${variantName}.prg`);
-      const resolved = await resolveCaseInsensitive(fs, path, candidate);
-      const buffer = await fs.readFile(resolved);
-      this.prg = parsePrg(new Uint8Array(buffer));
-      this.prgPath = resolved;
+      let bytes: Uint8Array;
+      let resolvedName: string;
+      if (this.config.loadSgbdResolver) {
+        // Browser path — host reads bytes from a directory handle and
+        // hands back the canonical filename it picked. Same hook the
+        // initial `loadSgbd` uses.
+        const result = await this.config.loadSgbdResolver(`${variantName}.prg`);
+        bytes = result.bytes;
+        resolvedName = result.name;
+      } else {
+        const [{ default: fs }, { default: path }] = await Promise.all([
+          import("node:fs/promises"),
+          import("node:path"),
+        ]);
+        const candidate = path.resolve(this.config.ecuPath, `${variantName}.prg`);
+        const resolved = await resolveCaseInsensitive(fs, path, candidate);
+        const buffer = await fs.readFile(resolved);
+        bytes = new Uint8Array(buffer);
+        resolvedName = resolved;
+      }
+      this.prg = parsePrg(bytes);
+      this.prgPath = resolvedName;
       // systemResults is reset so the .grp's INFO outputs don't leak
       // through; rebuild VARIANTE first so the rerun-INFO honour-our-
       // basename guard keeps the resolved name in place.
@@ -406,7 +467,7 @@ export class Ediabas {
       });
       await this.runInfoForSystemResults();
       if (this.config.logging) {
-        log.info(`Swapped to variant ${variantName} (${resolved})`);
+        log.info(`Swapped to variant ${variantName} (${resolvedName})`);
       }
     } catch (err) {
       if (this.config.logging) {
@@ -592,6 +653,7 @@ export class Ediabas {
     // chance to set up comm parameters / wake the ECU. Skip if the user is
     // explicitly running INITIALISIERUNG, or if the SGBD doesn't define it,
     // or if this is a virtual/system job whose name starts with "_".
+    const isExplicitIdent = jobName.toUpperCase() === "IDENTIFIKATION";
     if (
       !this.initialized &&
       !jobName.startsWith("_") &&
@@ -608,7 +670,18 @@ export class Ediabas {
       }
       // After auto-init, run IDENTIFIKATION on .grp loads so VARIANTE
       // in systemResults resolves to the matched .prg variant.
-      await this.runIdentAfterInit();
+      //
+      // Skip when the user *explicitly* asked for IDENTIFIKATION — their
+      // own call below IS the IDENT, and auto-running it here would (a)
+      // execute IDENT twice, and (b) trigger a swap to the resolved
+      // variant's .prg, so the user's call would then run on the wrong
+      // bytecode (the .prg's IDENTIFIKATION instead of the .grp's,
+      // which has materially different opcodes and tripped a decode
+      // error). The post-job hook below handles the swap from the
+      // user's IDENT results instead.
+      if (!isExplicitIdent) {
+        await this.runIdentAfterInit();
+      }
     }
 
     if (this.config.logging) {
@@ -663,6 +736,34 @@ export class Ediabas {
       if (jobName.toUpperCase() === "INITIALISIERUNG") {
         this.initialized = true;
         await this.runIdentAfterInit();
+      }
+      // If the user ran IDENTIFIKATION explicitly on a .grp, do the
+      // post-IDENT variant swap here instead of via runIdentAfterInit.
+      // That way the user's call runs on the .grp bytecode (correct
+      // for variant resolution) AND subsequent jobs see the swapped
+      // .prg — same end state as the auto-chain, without the double-
+      // exec that crashed when run against the .prg's IDENTIFIKATION.
+      if (
+        isExplicitIdent &&
+        this.prg?.header.version === 0 &&
+        !this.identRan
+      ) {
+        this.identRan = true;
+        let variantName: string | undefined;
+        for (const set of mapped) {
+          for (const r of set) {
+            if (r.name.toUpperCase() === "VARIANTE" && r.value) {
+              variantName = String(r.value);
+            }
+          }
+        }
+        if (variantName) {
+          const groupBaseName = stripExtension(basenameOf(this.prgPath ?? "")).toLowerCase();
+          if (groupBaseName) {
+            this.groupMappingCache.set(groupBaseName, variantName.toLowerCase());
+          }
+          await this.swapToVariant(variantName);
+        }
       }
       return mapped;
     } catch (err) {
