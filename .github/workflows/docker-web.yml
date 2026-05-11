@@ -1,0 +1,100 @@
+name: Docker · web
+
+# Build the `apps/web` SPA into a multi-arch image and push it to GitHub
+# Container Registry. Two triggers:
+#
+#   * `release: published` — same trigger as the npm publish workflow,
+#     so a tagged release produces a matching `:vX.Y.Z` image plus
+#     `:latest`. No extra ceremony needed when cutting a release.
+#
+#   * `workflow_dispatch` — manual run with an optional `tag` input,
+#     useful for previewing the image before a release or for hotfix
+#     builds.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Extra tag to apply to the image (in addition to short SHA).'
+        required: false
+        default: ''
+      push:
+        description: 'Push to ghcr.io after building (uncheck for a dry-run / verification build).'
+        required: false
+        type: boolean
+        default: true
+
+# Image at ghcr.io/<owner>/<repo>-web. Lowercased per OCI naming rules.
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}-web
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # `packages: write` is what gives `GITHUB_TOKEN` permission to push
+      # to ghcr.io within this repository's namespace. No external secret
+      # needed.
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # buildx enables multi-arch builds. The web app is a static SPA so
+      # arm64 vs amd64 makes no functional difference, but it costs almost
+      # nothing extra and saves cloud deploys from running emulation.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        # Skip the login on dry-run dispatches so the workflow can run
+        # without packages:write being exercised when push=false.
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Compute the tag set. Always emits short SHA. On a release also
+      # emits semver tags + `latest`. On dispatch emits the user-supplied
+      # tag (if any). See https://github.com/docker/metadata-action.
+      - name: Compute image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+            type=raw,value=${{ inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.tag != '' }}
+          labels: |
+            org.opencontainers.image.title=EdiabasX web
+            org.opencontainers.image.description=Browser SPA for the EdiabasX BMW diagnostic toolkit.
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.licenses=PolyForm-Noncommercial-1.0.0
+
+      - name: Build${{ (github.event_name == 'workflow_dispatch' && !inputs.push) && '' || ' and push' }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # GitHub Actions cache backend — re-uses layers between runs.
+          cache-from: type=gha,scope=docker-web
+          cache-to: type=gha,scope=docker-web,mode=max
+          provenance: true
+          sbom: true
