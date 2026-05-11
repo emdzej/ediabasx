@@ -20,6 +20,43 @@ import { getLogger } from "@emdzej/ediabasx-logger";
 
 const log = getLogger("ediabas");
 
+/**
+ * Resolve a path on a case-sensitive filesystem when the SGBD reference
+ * may not match the on-disk casing. BMW INPA scripts hard-code uppercase
+ * names (`D_0012.PRG`, `MS430DS0.PRG`) but real installs often have
+ * lowercased filenames after archive extraction or rsync from Windows.
+ * On Windows / macOS-HFS+ the exact path just works; on Linux / APFS-CS
+ * we readdir the parent and look up by case-insensitive match.
+ *
+ * Fast path: try the exact path first. Only readdir if it misses.
+ */
+async function resolveCaseInsensitive(
+  fs: typeof import("node:fs/promises"),
+  path: typeof import("node:path"),
+  fullPath: string
+): Promise<string> {
+  try {
+    await fs.access(fullPath);
+    return fullPath;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+  }
+
+  const dir = path.dirname(fullPath);
+  const target = path.basename(fullPath).toLowerCase();
+
+  let entries: string[];
+  try {
+    entries = await fs.readdir(dir);
+  } catch {
+    // Parent dir doesn't exist → preserve original ENOENT semantics.
+    return fullPath;
+  }
+
+  const match = entries.find((entry) => entry.toLowerCase() === target);
+  return match ? path.join(dir, match) : fullPath;
+}
+
 export interface EdiabasConfig {
   /** Path to ECU files (.prg, .grp) */
   ecuPath: string;
@@ -93,8 +130,9 @@ export class Ediabas {
     const fullPath = path.resolve(this.config.ecuPath, filename);
 
     try {
-      const buffer = await fs.readFile(fullPath);
-      this.loadSgbdFromBuffer(new Uint8Array(buffer), fullPath);
+      const resolved = await resolveCaseInsensitive(fs, path, fullPath);
+      const buffer = await fs.readFile(resolved);
+      this.loadSgbdFromBuffer(new Uint8Array(buffer), resolved);
       if (this.config.logging) {
         log.info(`Loaded SGBD: ${filename}`);
       }
