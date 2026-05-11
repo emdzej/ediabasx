@@ -187,9 +187,12 @@ const interfaceRegistry: InterfaceMetadata[] = [
       },
       {
         name: "protocol",
-        description: "CAN protocol selection (tp20 or isotp).",
+        description:
+          "Diagnostic protocol — K+DCAN cables route both K-line " +
+          "(kwp / uart) and CAN (tp20 / isotp) sessions over the " +
+          "same USB serial endpoint, so all four are valid.",
         type: "enum",
-        values: ["tp20", "isotp"],
+        values: ["kwp", "uart", "tp20", "isotp"],
         default: "isotp"
       },
       {

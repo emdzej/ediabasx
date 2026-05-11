@@ -202,6 +202,40 @@ export class SerialInterface extends EdiabasInterface {
           this.verboseLogger("error", `adapter probe threw: ${(error as Error).message}`);
         }
       }
+
+      // The probe opened the port at 115200 8N1 (K+DCAN command baud) so we
+      // could talk to a smart adapter. If the probe failed — i.e. this is a
+      // passthrough FTDI / K-line-transceiver cable — we now need to drop
+      // back to the caller's configured baud so xsend bytes actually clock
+      // out at the K-line speed (typically 9600/10400). Without this, every
+      // xsend after connect garbles at the ECU and the script reads a
+      // timeout / empty response (BMW INPA's symptom: "Steuergerät nicht
+      // gefunden" because IDENTIFIKATION can't probe).
+      if (!this.adapterDetected) {
+        try {
+          await this.transport.configure({
+            baudRate: this.config.baudRate,
+            dataBits: this.config.dataBits,
+            parity: this.config.parity,
+            stopBits: this.config.stopBits,
+          });
+          if (this.verboseLogger) {
+            this.verboseLogger(
+              "send",
+              `passthrough fallback — reconfigured to ${this.config.baudRate} ` +
+                `${this.config.dataBits}${this.config.parity[0].toUpperCase()}` +
+                `${this.config.stopBits}`
+            );
+          }
+        } catch (error) {
+          if (this.verboseLogger) {
+            this.verboseLogger(
+              "error",
+              `passthrough fallback reconfigure failed: ${(error as Error).message}`
+            );
+          }
+        }
+      }
     }
   }
 
