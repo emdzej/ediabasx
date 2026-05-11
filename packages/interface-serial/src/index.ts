@@ -1,6 +1,6 @@
 export { SerialTimeoutError } from "./errors";
 export { MockSerialTransport } from "./mockSerialTransport";
-export { NodeSerialTransport } from "./nodeSerialTransport";
+export { WebSerialTransport, type WebSerialPortLike } from "./webSerialTransport";
 export { SerialInterface } from "./SerialInterface";
 export * from "./kdcan";
 export {
@@ -20,3 +20,7 @@ export type {
   SerialTransport,
   SerialTransportConfig
 } from "./types";
+
+// `NodeSerialTransport` lives behind `@emdzej/ediabasx-interface-serial/node`
+// so the default browser bundle doesn't try to resolve `serialport` (a
+// Node-only native dep). Importing from the main entry is browser-safe.

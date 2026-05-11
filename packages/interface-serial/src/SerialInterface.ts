@@ -2,7 +2,10 @@ import { utf8ToCp1252 } from "@emdzej/ediabasx-core";
 import { EdiabasInterface, EdiabasTimeoutError } from "@emdzej/ediabasx-interface-base";
 import { IsoTpFrameTypes, parseIsoTpFrame } from "@emdzej/ediabasx-protocol-uds";
 import { SerialTimeoutError } from "./errors";
-import { NodeSerialTransport } from "./nodeSerialTransport";
+// `NodeSerialTransport` is imported lazily inside the constructor so the
+// browser bundle doesn't pull in `serialport` (a Node-only native dep).
+// Browser consumers pass a `WebSerialTransport` via `config.transport`
+// and never hit the fallback branch.
 import {
   AdapterModes,
   AdapterWrappedTransport,
@@ -132,11 +135,18 @@ export class SerialInterface extends EdiabasInterface {
       probeAdapterOnConnect: config.probeAdapterOnConnect ?? false,
     };
 
-    this.transport =
-      merged.transport ??
-      new NodeSerialTransport({
-        telegramEndTimeoutMs: this.config.telegramEndTimeoutMs
-      });
+    if (!merged.transport) {
+      // No transport supplied. Used to fall back to `NodeSerialTransport`,
+      // but that pulled `serialport` (a Node-only native dep) into the
+      // browser bundle even for callers that never hit the fallback. Now
+      // callers must construct a transport explicitly — Node consumers use
+      // `NodeSerialTransport` from `@emdzej/ediabasx-interface-serial/node`,
+      // browser consumers use `WebSerialTransport` from the main entry.
+      throw new Error(
+        "SerialInterface requires a `transport` — pass NodeSerialTransport (Node) or WebSerialTransport (browser)."
+      );
+    }
+    this.transport = merged.transport;
   }
 
   async connect(): Promise<void> {
@@ -158,7 +168,11 @@ export class SerialInterface extends EdiabasInterface {
     await this.transport.open(this.config.port);
     this.connected = true;
 
-    if (process.env.EDIABASX_VERBOSE === "1") {
+    // Guard process.env reads — this class is also used by the browser bundle
+    // (via @emdzej/ediabasx-interface-serial in the web app) where `process`
+    // may not exist. The verbose logger is opt-in via EDIABASX_VERBOSE=1 and
+    // intentionally a Node-only diagnostic.
+    if (typeof process !== "undefined" && process.env?.EDIABASX_VERBOSE === "1") {
       this.verboseLogger = (tag, message, data) => {
         const hex = data
           ? Array.from(data)
@@ -573,7 +587,9 @@ export class SerialInterface extends EdiabasInterface {
       // EDIABASX_KLINE_DTR=0 disables DTR toggling for cables where it's
       // counter-productive (e.g. plain USB-UART without a K-line transceiver
       // requiring direction control).
-      const dtrDisabled = process.env.EDIABASX_KLINE_DTR === "0";
+      // Guarded for browser bundles where `process` is undefined; the
+      // override is a Node-only escape hatch for cables that don't need DTR.
+      const dtrDisabled = typeof process !== "undefined" && process.env?.EDIABASX_KLINE_DTR === "0";
       const sendSetDtr = !dtrDisabled && concept === 0x0006 ? hasAdapterEcho : false;
       this.ds2Session = new Ds2Session({
         concept: concept as Ds2ConceptId,

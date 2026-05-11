@@ -13,8 +13,10 @@ import {
 } from "@emdzej/ediabasx-interpreter";
 import { EdiabasInterface, SimulationInterface } from "@emdzej/ediabasx-interface-base";
 import { getLogger } from "@emdzej/ediabasx-logger";
-import * as fs from "fs/promises";
-import * as path from "path";
+
+// `fs/promises` and `path` are imported lazily inside `loadSgbd()` so the
+// browser bundler doesn't pull them into the static graph. Consumers that
+// only call `loadSgbdFromBuffer()` (the web app) never touch them.
 
 const log = getLogger("ediabas");
 
@@ -78,25 +80,54 @@ export class Ediabas {
   }
 
   /**
-   * Load an SGBD file (PRG/GRP)
+   * Load an SGBD by reading a `.prg` / `.grp` file from disk relative to
+   * `config.ecuPath`. Node-only — uses `fs/promises` + `path` via dynamic
+   * import so the browser bundler doesn't pull them into the static dep
+   * graph. Browser consumers should use {@link loadSgbdFromBuffer} instead.
    */
   async loadSgbd(filename: string): Promise<void> {
+    const [{ default: fs }, { default: path }] = await Promise.all([
+      import("node:fs/promises"),
+      import("node:path"),
+    ]);
     const fullPath = path.resolve(this.config.ecuPath, filename);
-    
+
     try {
       const buffer = await fs.readFile(fullPath);
-      this.prg = parsePrg(buffer);
-      this.prgPath = fullPath;
-
+      this.loadSgbdFromBuffer(new Uint8Array(buffer), fullPath);
       if (this.config.logging) {
         log.info(`Loaded SGBD: ${filename}`);
+      }
+    } catch (err) {
+      if (err instanceof EdiabasError) throw err;
+      throw new EdiabasError(
+        EdiabasErrorCodes.UNKNOWN,
+        `Failed to load SGBD: ${filename} - ${(err as Error).message}`
+      );
+    }
+  }
+
+  /**
+   * Load an SGBD from an in-memory buffer of `.prg` / `.grp` bytes.
+   *
+   * The web app uses this — it reads files via the File API
+   * (`file.arrayBuffer()`) and hands the bytes here directly, sidestepping
+   * any filesystem dependency. The `name` is purely for display / error
+   * messages and is exposed via `getSgbdInfo().path`.
+   */
+  loadSgbdFromBuffer(buffer: Uint8Array, name: string): void {
+    try {
+      this.prg = parsePrg(buffer);
+      this.prgPath = name;
+      if (this.config.logging) {
+        log.info(`Loaded SGBD: ${name}`);
         log.info(`  Jobs: ${this.prg.jobs.length}`);
         log.info(`  Tables: ${this.prg.tables.length}`);
       }
     } catch (err) {
       throw new EdiabasError(
         EdiabasErrorCodes.UNKNOWN,
-        `Failed to load SGBD: ${filename} - ${(err as Error).message}`
+        `Failed to parse SGBD: ${name} - ${(err as Error).message}`
       );
     }
   }

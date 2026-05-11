@@ -1,14 +1,16 @@
 /**
  * @emdzej/ediabasx-ediabas - Main library for BMW ECU diagnostics
  *
- * High-level API combining BEST2 parsing, bytecode interpretation,
- * and hardware communication.
+ * Browser-safe surface — just the `Ediabas` class and its types. Node
+ * consumers that want filesystem / network glue (config-loader,
+ * interface factory, gateway client) should import from
+ * `@emdzej/ediabasx-ediabas/node`.
  */
 
 export { Ediabas } from "./ediabas.js";
 export type { EdiabasConfig, EdiabasJob, EdiabasJobResult } from "./ediabas.js";
 
-// Config schema and types
+// Config schema is just zod definitions / types — safe in browsers.
 export {
   EdiabasConfigFileSchema,
   InterfaceTypeSchema,
@@ -37,22 +39,3 @@ export type {
   TimeoutsConfig,
   LoggingConfig,
 } from "./config-schema.js";
-
-// Config loader
-export {
-  loadConfig,
-  parseConfig,
-  validateConfig,
-  createFromConfig,
-  createFromConfigFile,
-  generateExampleConfig,
-  writeConfig,
-  defaultInterfaceFactory,
-  ConfigError,
-} from "./config-loader.js";
-
-export type {
-  LoadConfigResult,
-  InterfaceFactory,
-  CreateFromConfigOptions,
-} from "./config-loader.js";

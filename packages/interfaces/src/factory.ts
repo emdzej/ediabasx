@@ -9,6 +9,7 @@ import {
   type SerialParity,
   type SerialProtocol
 } from "@emdzej/ediabasx-interface-serial";
+import { NodeSerialTransport } from "@emdzej/ediabasx-interface-serial/node";
 import { EnetInterface } from "@emdzej/ediabasx-interface-enet";
 import { GatewayClient } from "./gateway-client";
 import { getInterfaceMetadata, type InterfaceMetadata } from "./registry";
@@ -151,7 +152,10 @@ function createSerialInterface(options: Record<string, string | number | boolean
         : parseBoolean("probeAdapter", options.probeAdapter),
   };
 
-  const serial = new SerialInterface(config);
+  // Inject the Node serialport-backed transport here — `SerialInterface`
+  // no longer ships a built-in default so the browser bundle can avoid
+  // pulling in `serialport`.
+  const serial = new SerialInterface({ ...config, transport: new NodeSerialTransport() });
 
   if (options.protocol !== undefined) {
     serial.setParameter(

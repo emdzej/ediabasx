@@ -15,6 +15,7 @@ import {
 } from './config-schema.js';
 import { EdiabasInterface, SimulationInterface } from '@emdzej/ediabasx-interface-base';
 import { SerialInterface } from '@emdzej/ediabasx-interface-serial';
+import { NodeSerialTransport } from '@emdzej/ediabasx-interface-serial/node';
 import { EnetInterface } from '@emdzej/ediabasx-interface-enet';
 import { GatewayClient } from '@emdzej/ediabasx-interfaces';
 import { getLogger } from '@emdzej/ediabasx-logger';
@@ -171,6 +172,7 @@ export const defaultInterfaceFactory: InterfaceFactory = async (config: Interfac
         dataBits: config.serial.dataBits,
         parity: config.serial.parity,
         stopBits: config.serial.stopBits,
+        transport: new NodeSerialTransport(),
       });
     
     case 'enet':
