@@ -34,6 +34,15 @@ export class EnetInterface extends EdiabasInterface {
     throw new Error("Not implemented");
   }
 
+  get batteryVoltage(): number {
+    // ENET cables don't measure battery voltage on-wire; EdiabasLib's
+    // `EdInterfaceEnet.BatteryVoltageValue` defaults to 12000 mV (the
+    // "EnetBatteryVoltage" config property overrides it). Returning a
+    // plausible default keeps scripts like UTILITY.PRG/STATUS_UBATT
+    // happy when running against an ENET gateway.
+    return 12000;
+  }
+
   get loopTest(): number {
     throw new Error("Not implemented");
   }

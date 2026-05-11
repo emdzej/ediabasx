@@ -266,6 +266,10 @@ export class GatewayServer {
         const value = await this.iface.ignitionVoltage;
         return { value };
       }
+      case "getBatteryVoltage": {
+        const value = await this.iface.batteryVoltage;
+        return { value };
+      }
       case "getLoopTest": {
         const value = await this.iface.loopTest;
         return { value };

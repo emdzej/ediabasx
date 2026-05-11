@@ -25,12 +25,12 @@ export type CommunicationInterface = Pick<
   | "getPort"
   | "setPort"
   | "ignitionVoltage"
+  | "batteryVoltage"
   | "loopTest"
   | "setProgramVoltage"
   | "rawData"
   | "switchSiRelais"
 > & {
-  batteryVoltage?: Promise<number> | number;
   reset?: () => Promise<void> | void;
   boot?: () => Promise<void> | void;
   getInterfaceType?: () => string;

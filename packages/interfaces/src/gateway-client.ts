@@ -113,6 +113,11 @@ export class GatewayClient extends EdiabasInterface {
     return this.request<{ value: number }>("getIgnitionVoltage").then((result) => result?.value ?? 0);
   }
 
+  get batteryVoltage(): Promise<number> {
+    this.assertConnected();
+    return this.request<{ value: number }>("getBatteryVoltage").then((result) => result?.value ?? 12000);
+  }
+
   get loopTest(): Promise<number> {
     this.assertConnected();
     return this.request<{ value: number }>("getLoopTest").then((result) => result?.value ?? 0);

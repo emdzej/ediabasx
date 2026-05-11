@@ -248,6 +248,9 @@ export class Ediabas {
       get ignitionVoltage() {
         return commInterface.ignitionVoltage;
       },
+      get batteryVoltage() {
+        return commInterface.batteryVoltage;
+      },
       get loopTest() {
         return commInterface.loopTest;
       },

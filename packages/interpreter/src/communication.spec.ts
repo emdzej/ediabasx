@@ -30,6 +30,7 @@ class MockInterface implements CommunicationInterface {
   version = 0x1234;
   ports: Map<number, number> = new Map();
   ignitionVoltage = 12;
+  batteryVoltage = 12000;
   loopTest = 1;
   programVoltage = 0;
   rawResponse: Uint8Array = new Uint8Array();

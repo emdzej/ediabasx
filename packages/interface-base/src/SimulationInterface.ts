@@ -20,6 +20,10 @@ export class SimulationInterface extends EdiabasInterface {
   private pendingReceivers: PendingReceiver[] = [];
   private ports = new Map<number, number>();
   private _ignitionVoltage = 0;
+  // Default 12000 mV mirrors EdiabasLib's `UbatVoltageSimulation` — the
+  // value real scripts (e.g. UTILITY.PRG STATUS_UBATT) expect when no
+  // physical cable is in play.
+  private _batteryVoltage = 12000;
   private _loopTest = 0;
   private _programVoltage = 0;
   private _siRelaisTime = 0;
@@ -86,6 +90,14 @@ export class SimulationInterface extends EdiabasInterface {
 
   get ignitionVoltage(): number {
     return this._ignitionVoltage;
+  }
+
+  get batteryVoltage(): number {
+    return this._batteryVoltage;
+  }
+
+  setBatteryVoltage(value: number): void {
+    this._batteryVoltage = value;
   }
 
   get loopTest(): number {

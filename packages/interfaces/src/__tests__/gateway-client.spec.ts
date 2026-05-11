@@ -43,6 +43,10 @@ class MockInterface extends EdiabasInterface {
     return 321;
   }
 
+  get batteryVoltage(): number {
+    return 12345;
+  }
+
   get loopTest(): number {
     return 8;
   }

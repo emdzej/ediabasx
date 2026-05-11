@@ -56,6 +56,7 @@ describe("Extended communication operations", () => {
       getPort: vi.fn().mockResolvedValue(3),
       setPort: vi.fn(),
       ignitionVoltage: 1,
+      batteryVoltage: 12000,
       loopTest: 9,
       setProgramVoltage: vi.fn(),
       rawData: vi.fn().mockResolvedValue(Uint8Array.from([0x43])),

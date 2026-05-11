@@ -300,6 +300,17 @@ export class SerialInterface extends EdiabasInterface {
       : this._ignitionVoltage;
   }
 
+  get batteryVoltage(): number {
+    // K+DCAN cables only measure one supply line (UBatt), so battery and
+    // ignition voltage come from the same `adapterVoltage` reading. When
+    // the adapter doesn't report a voltage (e.g. older firmware) fall
+    // back to EdiabasLib's canonical 12000 mV default — same behavior as
+    // C# `EdInterfaceObd.BatteryVoltageValue`.
+    return this.adapterInfo.adapterVoltage >= 0
+      ? this.adapterInfo.adapterVoltage
+      : 12000;
+  }
+
   get ignitionStatus(): number {
     return this.adapterInfo.ignitionStatus;
   }
