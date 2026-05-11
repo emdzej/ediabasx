@@ -8,7 +8,10 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "dev": "turbo run dev --parallel",
-    "cli": "node packages/cli/dist/index.js",
+    "cli": "node apps/cli/dist/index.js",
+    "web": "pnpm --filter @emdzej/ediabasx-web dev",
+    "web:build": "pnpm --filter @emdzej/ediabasx-web build",
+    "web:preview": "pnpm --filter @emdzej/ediabasx-web preview",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"

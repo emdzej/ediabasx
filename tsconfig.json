@@ -11,6 +11,6 @@
     { "path": "packages/protocol-kwp" },
     { "path": "packages/protocol-doip" },
     { "path": "packages/ediabas" },
-    { "path": "packages/cli" }
+    { "path": "apps/cli" }
   ]
 }

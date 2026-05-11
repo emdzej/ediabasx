@@ -17,6 +17,12 @@ Or via npx without installing:
 npx @emdzej/ediabasx-cli info ./MS430DS0.prg
 ```
 
+From inside this monorepo (after `pnpm install && pnpm build`):
+
+```bash
+pnpm cli info ./MS430DS0.prg
+```
+
 ## Commands
 
 | Command | Purpose |

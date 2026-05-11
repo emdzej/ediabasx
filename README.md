@@ -188,25 +188,35 @@ await ediabas.disconnect();
 
 Supported interfaces: `simulation`, `serial`, `kdcan`, `enet`, `gateway`.
 
-## Package structure
+## Repo layout
 
-This is a pnpm + Turborepo monorepo. All packages are published to npmjs.org under the `@emdzej/ediabasx-*` namespace.
+pnpm + Turborepo monorepo split into **libraries** (`packages/`) and **applications** (`apps/`) that consume them.
+
+### Libraries — `packages/*`
+
+All published to npmjs.org under the `@emdzej/ediabasx-*` namespace.
 
 | Package | Purpose |
 |---|---|
 | `@emdzej/ediabasx-core` | Types, CP1252 encoding, XOR decryption, error codes |
-| `@emdzej/ediabasx-logger` | Structured logging (pino) |
+| `@emdzej/ediabasx-logger` | Structured logging (pino); host-configured (no env reads) |
 | `@emdzej/ediabasx-best-parser` | PRG/GRP file parser + BEST2 disassembler |
 | `@emdzej/ediabasx-interpreter` | BEST2 VM (registers, flags, stack, 184 opcodes, result sets) |
 | `@emdzej/ediabasx-interface-base` | Abstract interface + simulation |
-| `@emdzej/ediabasx-interface-serial` | Serial K-Line / K+DCAN cable driver |
+| `@emdzej/ediabasx-interface-serial` | Serial K-Line / K+DCAN cable driver (browser + Node) |
 | `@emdzej/ediabasx-interface-enet` | Ethernet / ENET (DoIP) driver |
 | `@emdzej/ediabasx-interfaces` | Factory: `createInterface(name, options)` |
 | `@emdzej/ediabasx-protocol-kwp` | KWP2000 (ISO 14230) |
 | `@emdzej/ediabasx-protocol-uds` | UDS (ISO 14229) |
 | `@emdzej/ediabasx-protocol-doip` | DoIP + HSFZ (ISO 13400) |
 | `@emdzej/ediabasx-ediabas` | Main entry — combines parser, interpreter, transports |
-| `@emdzej/ediabasx-cli` | `ediabasx` command + TUI |
+
+### Applications — `apps/*`
+
+| App | Purpose |
+|---|---|
+| `apps/cli` — `@emdzej/ediabasx-cli` | `ediabasx` terminal command + Ink TUI |
+| `apps/web` — `@emdzej/ediabasx-web` | Browser SPA (Svelte 5 + Vite + Tailwind) — pick a PRG/GRP, configure, browse jobs, run via Web Serial |
 
 ## Development
 
@@ -216,6 +226,22 @@ pnpm build         # turbo build, in dependency order
 pnpm test          # vitest across all packages
 pnpm lint          # eslint
 pnpm typecheck     # tsc --noEmit
+```
+
+### Run an app from the repo root
+
+```bash
+pnpm cli <args>           # apps/cli — invokes dist/index.js
+pnpm web                  # apps/web — vite dev server on :5173
+pnpm web:build            # apps/web — production bundle to apps/web/dist
+pnpm web:preview          # apps/web — preview the production bundle
+```
+
+Or run anything via the workspace filter directly:
+
+```bash
+pnpm --filter @emdzej/ediabasx-cli build
+pnpm --filter @emdzej/ediabasx-web dev
 ```
 
 ### Verbose VM tracing
