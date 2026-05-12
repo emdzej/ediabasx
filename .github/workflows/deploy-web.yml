@@ -1,0 +1,71 @@
+name: Deploy web to GitHub Pages
+
+# Manual-trigger only — surface the workflow under the repo's Actions
+# tab and let a maintainer click "Run workflow" when they want to
+# publish the current main to ediabasx.bimmerz.app. No push-to-main
+# auto-deploy by design; the site shouldn't move on every commit.
+on:
+  workflow_dispatch:
+
+# Required by `actions/deploy-pages`: read the repo, write the
+# Pages artifact, and mint an OIDC token so the deployment is
+# attested to come from this workflow run.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deploy at a time — let an in-flight deploy finish
+# rather than cancelling it (cancelling mid-deploy leaves Pages in a
+# half-published state).
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Build the web app and everything it depends on. The `...` suffix
+      # is pnpm-filter syntax for "this package plus its workspace deps",
+      # so we don't waste CI time building unrelated packages (CLI, sim,
+      # disasm).
+      - name: Build
+        run: pnpm --filter @emdzej/ediabasx-web... build
+
+      # GitHub Pages needs a `CNAME` file at the site root to bind the
+      # repo's Pages target to the custom domain — without it the
+      # subdomain DNS resolves but Pages 404s because it doesn't know
+      # which repo to serve. The file is plain text, no trailing newline
+      # needed.
+      - name: Add CNAME
+        run: echo "ediabasx.bimmerz.app" > apps/web/dist/CNAME
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
