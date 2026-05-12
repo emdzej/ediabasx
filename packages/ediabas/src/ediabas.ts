@@ -213,6 +213,21 @@ export class Ediabas {
   }
 
   /**
+   * Swap the active communication interface at runtime. Used by hosts
+   * that construct an `Ediabas` instance up-front but only learn the
+   * actual transport later — e.g. the browser app waits for the user
+   * to click Connect (which opens a Web Serial port and builds a
+   * `SerialInterface`) and then needs to wire that transport into a
+   * VM that's already been started by an IPO selection.
+   *
+   * Replaces whatever the constructor set (simulation or a previously
+   * configured transport). `connect()` afterwards uses the new one.
+   */
+  setTransport(transport: EdiabasInterface): void {
+    this.commInterface = transport;
+  }
+
+  /**
    * Load an SGBD by reading a `.prg` / `.grp` file from disk relative to
    * `config.ecuPath`. Node-only — uses `fs/promises` + `path` via dynamic
    * import so the browser bundler doesn't pull them into the static dep
