@@ -69,7 +69,6 @@ export class SerialInterface extends EdiabasInterface {
   private lastReceiveAt: number | null = null;
   private lastByteSentAt: number | null = null;
   private ports = new Map<number, number>();
-  private _ignitionVoltage = 0;
   private _loopTest = 0;
   private _programVoltage = 0;
   private _siRelaisTime = 0;
@@ -328,21 +327,31 @@ export class SerialInterface extends EdiabasInterface {
     this.ports.set(index, value);
   }
 
-  get ignitionVoltage(): number {
-    return this.adapterInfo.adapterVoltage >= 0
-      ? this.adapterInfo.adapterVoltage
-      : this._ignitionVoltage;
+  get batteryVoltage(): number {
+    // C# `EdInterfaceObd.BatteryVoltage` returns the constant
+    // `BatteryVoltageValue` (default 12000 mV, SGBD-configurable) when
+    // the DSR line is high, 0 otherwise — never a scaled byte from the
+    // adapter. We don't have DSR over Web Serial / pipe-style transports,
+    // so "connected" stands in for "DSR high". Matches the BEST2
+    // bytecode's 10000-mV "ignition on" threshold without surprises.
+    return this.connected ? 12000 : 0;
   }
 
-  get batteryVoltage(): number {
-    // K+DCAN cables only measure one supply line (UBatt), so battery and
-    // ignition voltage come from the same `adapterVoltage` reading. When
-    // the adapter doesn't report a voltage (e.g. older firmware) fall
-    // back to EdiabasLib's canonical 12000 mV default — same behavior as
-    // C# `EdInterfaceObd.BatteryVoltageValue`.
-    return this.adapterInfo.adapterVoltage >= 0
-      ? this.adapterInfo.adapterVoltage
-      : 12000;
+  get ignitionVoltage(): number {
+    // C# `EdInterfaceObd.IgnitionVoltage` returns `IgnitionVoltageValue`
+    // (default 12000 mV) when ignition is on, 0 otherwise. Two paths:
+    //
+    //   1. Without active ignition-status support (or non-BmwFast
+    //      protocol) → `GetDsrState() ? IgnitionVoltageValue : 0`. The
+    //      same DSR-as-proxy-for-connected substitution we use for
+    //      `batteryVoltage`.
+    //
+    //   2. With active support (BmwFast on K+DCAN) → query the adapter
+    //      with `0x82 0xF1 0xF1 0xFA 0xFA` and parse the response.
+    //      We don't implement the active query yet, but for K-LINE the
+    //      EdiabasLib fallback is "status not present → ignition on"
+    //      anyway, so the connected→12000 default matches.
+    return this.connected ? 12000 : 0;
   }
 
   get ignitionStatus(): number {
