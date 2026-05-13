@@ -2,6 +2,12 @@
 
 Analysis of decompiled EDIABAS interface handler (IFH) DLLs from Ghidra.
 
+> Looking for **our** TypeScript port's interface / transport architecture
+> (which `EdiabasInterface` class pairs with which `SerialTransport`,
+> what `--interface kdcan` resolves to, etc.)? See
+> [`../interfaces-and-transports.md`](../interfaces-and-transports.md).
+> The page below documents the original Windows DLLs that ediabasx mirrors.
+
 ## Overview
 
 EDIABAS uses pluggable interface drivers (IFH DLLs) for communication with diagnostic hardware. Each driver implements the standard IFH API.
