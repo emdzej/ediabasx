@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EdiabasX</title>
+    <!-- Favicon + iOS Safari home-screen icon. The PWA manifest
+         (injected by vite-plugin-pwa) covers Android / Chromium
+         installed-app icons; these link tags fill the
+         browser-chrome / iOS gap. -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <meta name="theme-color" content="#06b6d4" />
+    <meta name="description" content="Browser SPA for EdiabasX — parse BMW SGBD files, configure interfaces, run jobs against a live ECU via Web Serial." />
   </head>
   <body class="h-full bg-zinc-950 text-zinc-100 font-mono">
     <div id="app" class="h-full"></div>

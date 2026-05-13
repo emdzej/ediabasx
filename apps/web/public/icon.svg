@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Cyan background to match the in-app accent (`#06b6d4`,
+       tailwind cyan-500). Same 22% corner radius as the inpax icon
+       so the visual family is consistent — only the colour and
+       wordmark differ. -->
+  <rect width="512" height="512" rx="112" ry="112" fill="#06b6d4" />
+  <!-- "EX" monogram in white. Letterforms are hand-tuned paths so
+       the icon stays sharp at 32×32 and doesn't rely on a font
+       being available at icon-rendering time. -->
+  <g fill="#ffffff">
+    <!-- E (three horizontal bars + a left vertical bar) -->
+    <rect x="104" y="116" width="56" height="280" rx="8" />
+    <rect x="104" y="116" width="160" height="48" rx="8" />
+    <rect x="104" y="232" width="140" height="48" rx="8" />
+    <rect x="104" y="348" width="160" height="48" rx="8" />
+    <!-- X (two diagonal bars) -->
+    <path d="M 296 116 L 348 116 L 408 396 L 356 396 Z" />
+    <path d="M 408 116 L 356 116 L 296 396 L 348 396 Z" />
+  </g>
+</svg>

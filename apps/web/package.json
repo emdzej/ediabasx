@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "pwa-assets": "pwa-assets-generator",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json"
   },
@@ -18,17 +19,21 @@
     "@emdzej/ediabasx-interface-base": "workspace:*",
     "@emdzej/ediabasx-interface-serial": "workspace:*",
     "@emdzej/ediabasx-interpreter": "workspace:*",
-    "@emdzej/ediabasx-logger": "workspace:*"
+    "@emdzej/ediabasx-logger": "workspace:*",
+    "workbox-window": "^7.4.1"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
     "@tsconfig/svelte": "^5.0.4",
+    "@vite-pwa/assets-generator": "^1.0.2",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
+    "sharp": "^0.34.5",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
     "tailwindcss": "^3.4.15",
     "typescript": "^5.6.0",
-    "vite": "^5.4.0"
+    "vite": "^5.4.0",
+    "vite-plugin-pwa": "^1.3.0"
   }
 }
