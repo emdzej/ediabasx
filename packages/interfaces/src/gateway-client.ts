@@ -131,6 +131,36 @@ export class GatewayClient extends EdiabasInterface {
     await this.request("setParam", { parameter, value });
   }
 
+  /**
+   * Forward the bulk parameter array used by BEST2's xsetpar opcode. The
+   * first element of `parameters` carries a concept ID (KWP / TP2.0 / ISO-TP
+   * / ...) that the hardware-side interface dispatches on, so handing the
+   * full array across the wire keeps the gateway transparent to whatever
+   * session the remote SerialInterface needs to set up.
+   */
+  async setCommParameter(parameters: number[]): Promise<void> {
+    this.assertConnected();
+    await this.request("setCommParameter", { parameters });
+  }
+
+  async setAnswerLength(length: number): Promise<void> {
+    this.assertConnected();
+    await this.request("setAnswerLength", { value: length });
+  }
+
+  async setRepeatCounter(count: number): Promise<void> {
+    this.assertConnected();
+    await this.request("setRepeatCounter", { value: count });
+  }
+
+  async transmitData(request: Uint8Array): Promise<Uint8Array> {
+    this.assertConnected();
+    const result = await this.request<{ data: number[] }>("transmitData", {
+      data: Array.from(request)
+    });
+    return Uint8Array.from(result?.data ?? []);
+  }
+
   async getPort(index: number): Promise<number> {
     this.assertConnected();
     const result = await this.request<{ value: number }>("getPort", { index });

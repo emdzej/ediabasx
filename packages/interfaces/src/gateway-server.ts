@@ -30,6 +30,10 @@ export type GatewayServerOptions = {
   transport?: GatewayTransport;
   interface: EdiabasInterface & {
     setParameter?: (parameter: number, value: number) => Promise<void> | void;
+    setCommParameter?: (parameters: number[]) => Promise<void> | void;
+    setAnswerLength?: (length: number) => Promise<void> | void;
+    setRepeatCounter?: (count: number) => Promise<void> | void;
+    transmitData?: (request: Uint8Array) => Promise<Uint8Array> | Uint8Array;
   };
   logger?: GatewayLogger;
 };
@@ -411,6 +415,46 @@ export class GatewayServer {
         await this.iface.setParameter(parameter, value);
         return { ok: true };
       }
+      case "setCommParameter": {
+        const parameters = this.extractNumberArray(params, "parameters");
+        // Match the interpreter's xsetpar fallback chain on the server side,
+        // so a remote client can drive any backend whose author only wired
+        // up the per-parameter setter.
+        if (this.iface.setCommParameter) {
+          await this.iface.setCommParameter(parameters);
+        } else if (this.iface.setParameter) {
+          for (let i = 0; i < parameters.length; i++) {
+            await this.iface.setParameter(i, parameters[i]);
+          }
+        } else {
+          throw new Error("Interface does not support setCommParameter");
+        }
+        return { ok: true };
+      }
+      case "setAnswerLength": {
+        const length = this.extractValue(params, "value");
+        if (!this.iface.setAnswerLength) {
+          throw new Error("Interface does not support setAnswerLength");
+        }
+        await this.iface.setAnswerLength(length);
+        return { ok: true };
+      }
+      case "setRepeatCounter": {
+        const count = this.extractValue(params, "value");
+        if (!this.iface.setRepeatCounter) {
+          throw new Error("Interface does not support setRepeatCounter");
+        }
+        await this.iface.setRepeatCounter(count);
+        return { ok: true };
+      }
+      case "transmitData": {
+        const payload = this.extractData(params);
+        if (!this.iface.transmitData) {
+          throw new Error("Interface does not support transmitData");
+        }
+        const response = await this.iface.transmitData(payload);
+        return { data: Array.from(response) };
+      }
       case "getPort": {
         const index = this.extractIndex(params);
         const value = await this.iface.getPort(index);
@@ -512,6 +556,17 @@ export class GatewayServer {
       throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
     }
     return { index, value };
+  }
+
+  private extractNumberArray(params: unknown, key: string): number[] {
+    if (!params || typeof params !== "object") {
+      throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+    }
+    const value = (params as Record<string, unknown>)[key];
+    if (!Array.isArray(value) || !value.every((v) => typeof v === "number")) {
+      throw this.buildJsonRpcError(jsonRpcErrors.invalidParams);
+    }
+    return value as number[];
   }
 
   private extractData(params: unknown): Uint8Array {

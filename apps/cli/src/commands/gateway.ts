@@ -1,6 +1,10 @@
 import type { Command } from "commander";
 import { GatewayServer, createInterface } from "@emdzej/ediabasx-interfaces";
-import { addInterfaceOptions, resolveInterfaceSelection } from "../utils/interface.js";
+import {
+  addInterfaceOptions,
+  formatInterfaceSummary,
+  resolveInterfaceSelection
+} from "../utils/interface.js";
 import type { InterfaceCliOptions } from "../utils/interface.js";
 import { handleError } from "../utils/output.js";
 
@@ -38,6 +42,10 @@ function registerGatewayCommand(program: Command): void {
 
           const selection = resolveInterfaceSelection(options, "simulation");
           const iface = createInterface(selection.name, selection.options);
+
+          console.log(
+            `Backend interface: ${formatInterfaceSummary(selection.name, selection.options)}`
+          );
 
           const server = new GatewayServer({
             host,
