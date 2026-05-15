@@ -657,12 +657,42 @@ export class GatewayServer {
       return;
     }
     this.signalHandlersBound = true;
-    const handler = async () => {
+    let signalled = false;
+    const handler = async (signal: NodeJS.Signals) => {
+      // Second Ctrl-C while we're still shutting down → hard exit.
+      // Otherwise the user is stuck if the cable disconnect hangs.
+      if (signalled) {
+        this.logger.warn(`Received ${signal} again — forcing exit.`);
+        process.exit(1);
+      }
+      signalled = true;
+
       try {
         await this.stop();
       } catch (error) {
         this.logger.error(`Failed to shutdown gateway server: ${(error as Error).message}`);
       }
+
+      // The backing interface owns a hardware resource (open serial
+      // port, ENET socket, ...) whose handle keeps the event loop
+      // alive after the gateway's own listening sockets close. Close
+      // it explicitly here — the signal path is "your process is
+      // dying", not just "tear down the server", so it's the right
+      // place for this cleanup. Programmatic callers of `stop()`
+      // still own their iface lifecycle.
+      try {
+        if (this.iface.isConnected()) {
+          await this.iface.disconnect();
+        }
+      } catch (error) {
+        this.logger.error(`Failed to disconnect backend interface: ${(error as Error).message}`);
+      }
+
+      // Even after stop+disconnect, dangling event-loop refs (DNS
+      // cache timers, pending serialport callbacks on some adapters)
+      // can keep the process alive for minutes. Force a clean exit
+      // — the signal path is supposed to actually terminate.
+      process.exit(0);
     };
     process.on("SIGINT", handler);
     process.on("SIGTERM", handler);
