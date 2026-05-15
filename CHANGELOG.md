@@ -4,6 +4,12 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.2.1] — 2026-05-15
+
+### Fixed
+
+- **Gateway server actually exits on `SIGINT` / `SIGTERM`.** The old signal handler closed the listening sockets but left the backing interface connected; with a real cable (e.g. K+DCAN serial), the open port handle kept Node's event loop alive, so the CLI hung after printing "Gateway server shutting down" until the user kicked it harder. The handler now explicitly disconnects the backing interface, then `process.exit(0)`s so any residual event-loop refs (DNS cache timers, lingering serialport callbacks) don't keep the process around. A second signal during shutdown triggers an immediate hard exit so the user is never stuck. Programmatic `stop()` is unchanged — only the auto signal path does the extra cleanup, so library consumers managing their own iface lifecycle aren't surprised. (`@emdzej/ediabasx-interfaces`)
+
 ## [0.2.0] — 2026-05-15
 
 ### Added
@@ -42,5 +48,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), ver
 - **Case-insensitive SGBD file resolution + `.prg`/`.grp` extension swap probe.** Real INPA installs ship lowercase filenames on Unix after a rsync from Windows; scripts hard-code uppercase. Resolver now matches case-insensitively and probes both extensions, returning the canonical ENOENT on miss. (`@emdzej/ediabasx-ediabas`)
 - **`batteryVoltage` wired through every interface.** Mirrors EdiabasLib's `BatteryVoltage` property; defaults to 12000 mV when the cable can't physically measure it. (`@emdzej/ediabasx-interface-base` and all transport packages)
 
+[0.2.1]: https://github.com/emdzej/ediabasx/releases/tag/v0.2.1
 [0.2.0]: https://github.com/emdzej/ediabasx/releases/tag/v0.2.0
 [0.1.3]: https://github.com/emdzej/ediabasx/releases/tag/v0.1.3

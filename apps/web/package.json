@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-web",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Browser SPA for EdiabasX — pick a PRG/GRP file, configure an interface, and explore jobs. Pure client-side; uses the File API and Web Serial for everything.",
   "private": true,
   "type": "module",
