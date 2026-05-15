@@ -7,7 +7,7 @@
 // internal `this` references. Only the UI-visible fields are in `$state`.
 
 import { Ediabas, type EdiabasConfig, type EdiabasJobResult } from "@emdzej/ediabasx-ediabas";
-import { GatewayClient } from "@emdzej/ediabasx-interfaces";
+import { GatewayClient } from "@emdzej/ediabasx-interfaces/client";
 import {
   SerialInterface,
   WebSerialTransport,

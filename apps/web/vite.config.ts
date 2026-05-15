@@ -74,19 +74,10 @@ export default defineConfig({
       "@emdzej/ediabasx-ediabas",
       "@emdzej/ediabasx-interface-base",
       "@emdzej/ediabasx-interface-serial",
-      "@emdzej/ediabasx-interfaces",
+      "@emdzej/ediabasx-interfaces/client",
       "@emdzej/ediabasx-interpreter",
       "@emdzej/ediabasx-logger",
     ],
-  },
-  // `@emdzej/ediabasx-interfaces` carries a TCP gateway transport gated
-  // behind a dynamic `import("node:net")`. We only use the WebSocket
-  // path in the browser, but Rollup still tries to resolve the dynamic
-  // import target. Stub `node:net` so the build succeeds — the stub
-  // module is never actually invoked because the WebSocket branch
-  // bypasses the TCP path entirely.
-  resolve: {
-    alias: [{ find: /^node:net$/, replacement: "/src/lib/node-net-stub.ts" }],
   },
   build: {
     commonjsOptions: {
