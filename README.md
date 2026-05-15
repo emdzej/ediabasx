@@ -111,11 +111,16 @@ ediabasx run file.prg IDENT \
   --interface enet \
   --enet-host 192.168.0.1
 
-# Via a remote gateway
+# Via a remote gateway (TCP — default)
 ediabasx run file.prg IDENT \
   --interface gateway \
-  --gateway-host 192.168.1.50 \
-  --gateway-port 6801
+  --gateway 192.168.1.50:6801
+
+# Same, but over WebSocket (browser-friendly framing)
+ediabasx run file.prg IDENT \
+  --interface gateway \
+  --gateway 192.168.1.50:6801 \
+  --gateway-transport websocket
 
 # Simulation (no hardware; canned responses)
 ediabasx run file.prg IDENT --simulation
@@ -127,9 +132,20 @@ Output shows one labelled section per emitted result set — multi-record jobs l
 
 ### `gateway` — share a local interface over JSON-RPC
 
+Run the gateway on the host that owns the cable, then drive it from any process or machine. Two transports are supported on the same JSON-RPC vocabulary:
+
+- **`tcp`** (default) — line-delimited JSON-RPC; lowest overhead.
+- **`websocket`** — one JSON-RPC message per WebSocket frame, served via `http.Server` + `ws`. Browser pages can `new WebSocket(...)` directly.
+
 ```bash
+# TCP gateway
 ediabasx gateway --interface serial --serial-port /dev/ttyUSB0 --serial-baud 9600
+
+# WebSocket gateway (browser-friendly)
+ediabasx gateway --transport websocket --interface kdcan --serial-port /dev/cu.usbserial-A50285BI
 ```
+
+The server prints its backend interface + transport on startup, and forwards the full BEST2 communication surface (`setCommParameter`, `setAnswerLength`, `setRepeatCounter`, `transmitData`, …) so `INITIALISIERUNG` and downstream jobs run unmodified through the gateway.
 
 ### `simulator` — interactive ECU response simulator for development
 
