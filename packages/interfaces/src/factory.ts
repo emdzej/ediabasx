@@ -42,7 +42,9 @@ export function createInterface(name: string, rawOptions: InterfaceOptions = {})
     case "gateway":
       return new GatewayClient({
         host: options.host as string | undefined,
-        port: options.port as number | undefined
+        port: options.port as number | undefined,
+        transport: options.transport as "tcp" | "websocket" | undefined,
+        url: options.url as string | undefined
       });
     case "enet":
       return new EnetInterface();

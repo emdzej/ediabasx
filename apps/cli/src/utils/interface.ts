@@ -12,6 +12,8 @@ type InterfaceCliOptions = {
   gateway?: string;
   gatewayHost?: string;
   gatewayPort?: string;
+  gatewayTransport?: string;
+  gatewayUrl?: string;
   serialPort?: string;
   serialBaud?: string;
   serialDataBits?: string;
@@ -110,6 +112,14 @@ function addInterfaceOptions(command: Command): Command {
     .option("--serial-retry-nr78 <count>", "NR78 retry count")
     .option("--gateway-host <host>", "gateway host (for interface=gateway)")
     .option("--gateway-port <port>", "gateway port (for interface=gateway)")
+    .option(
+      "--gateway-transport <transport>",
+      "gateway wire framing: 'tcp' (default) or 'websocket'"
+    )
+    .option(
+      "--gateway-url <url>",
+      "explicit gateway URL (overrides host/port; useful for ws:// or wss:// deployments)"
+    )
     .option("--enet-host <host>", "ENET target host")
     .option("--enet-port <port>", "ENET target port");
 }
@@ -246,8 +256,23 @@ function resolveInterfaceSelection(options: InterfaceCliOptions, fallback: strin
         interfaceOptions.port = gatewayPort;
       }
     }
-  } else if (options.gatewayHost || options.gatewayPort) {
-    throw new Error("Gateway host/port options can only be used with the gateway interface");
+    if (options.gatewayTransport !== undefined) {
+      const t = options.gatewayTransport.toLowerCase();
+      if (t !== "tcp" && t !== "websocket") {
+        throw new Error("--gateway-transport must be 'tcp' or 'websocket'");
+      }
+      interfaceOptions.transport = t;
+    }
+    if (options.gatewayUrl !== undefined) {
+      interfaceOptions.url = options.gatewayUrl;
+    }
+  } else if (
+    options.gatewayHost ||
+    options.gatewayPort ||
+    options.gatewayTransport ||
+    options.gatewayUrl
+  ) {
+    throw new Error("Gateway options can only be used with the gateway interface");
   }
 
   return { name, options: interfaceOptions };
@@ -263,7 +288,8 @@ function formatInterfaceSummary(name: string, options: InterfaceOptions): string
     case "gateway": {
       const host = optionValue(options.host) ?? "127.0.0.1";
       const port = optionValue(options.port) ?? "6801";
-      return `Gateway · ${host}:${port}`;
+      const transport = optionValue(options.transport) ?? "tcp";
+      return `Gateway (${transport}) · ${host}:${port}`;
     }
     case "serial": {
       const port = optionValue(options.port) ?? "unknown";

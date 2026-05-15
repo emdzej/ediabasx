@@ -1,9 +1,23 @@
 import { createConnection, type Socket } from "node:net";
 import { EdiabasInterface } from "@emdzej/ediabasx-interface-base";
 
+/**
+ * Transport for the client side. `"tcp"` matches the original line-delimited
+ * JSON protocol; `"websocket"` uses the global `WebSocket` (browser + Node
+ * 22+) and exchanges one JSON-RPC message per WS frame.
+ */
+export type GatewayClientTransport = "tcp" | "websocket";
+
 type GatewayClientOptions = {
   host?: string;
   port?: number;
+  /** Wire framing. Defaults to "tcp" for backwards-compat. */
+  transport?: GatewayClientTransport;
+  /**
+   * Explicit URL override for the WebSocket transport. When unset we
+   * synthesize `ws://<host>:<port>` from the host+port options.
+   */
+  url?: string;
 };
 
 type JsonRpcId = number;
@@ -24,14 +38,25 @@ type PendingRequest = {
   reject: (error: Error) => void;
 };
 
+/**
+ * Connection-level adapter used by `GatewayClient` to abstract over the
+ * TCP and WebSocket transports. The JSON-RPC dispatch code only deals
+ * with `send(line)` + `onMessage(line => …)`.
+ */
+interface ClientConnection {
+  send(payload: string): void;
+  close(): Promise<void>;
+}
+
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 6801;
 
 export class GatewayClient extends EdiabasInterface {
   private readonly host: string;
   private readonly port: number;
-  private socket?: Socket;
-  private buffer = "";
+  private readonly transport: GatewayClientTransport;
+  private readonly url?: string;
+  private connection?: ClientConnection;
   private nextId = 1;
   private pending = new Map<JsonRpcId, PendingRequest>();
   private connectPromise?: Promise<void>;
@@ -40,16 +65,18 @@ export class GatewayClient extends EdiabasInterface {
     super();
     this.host = options.host ?? DEFAULT_HOST;
     this.port = options.port ?? DEFAULT_PORT;
+    this.transport = options.transport ?? "tcp";
+    this.url = options.url;
   }
 
   async connect(): Promise<void> {
-    await this.ensureSocket();
+    await this.ensureConnection();
     const result = await this.request<{ connected: boolean }>("connect");
     this.connected = Boolean(result?.connected);
   }
 
   async disconnect(): Promise<void> {
-    if (!this.socket) {
+    if (!this.connection) {
       this.connected = false;
       return;
     }
@@ -57,11 +84,12 @@ export class GatewayClient extends EdiabasInterface {
     try {
       await this.request("disconnect");
     } finally {
-      await new Promise<void>((resolve) => {
-        this.socket?.end(() => resolve());
-      });
-      this.socket?.destroy();
-      this.socket = undefined;
+      try {
+        await this.connection.close();
+      } catch {
+        /* already gone */
+      }
+      this.connection = undefined;
       this.connected = false;
     }
   }
@@ -88,7 +116,13 @@ export class GatewayClient extends EdiabasInterface {
     return Uint8Array.from(result?.data ?? []);
   }
 
-  async info(): Promise<{ connected: boolean; clients: number; host: string; port: number }> {
+  async info(): Promise<{
+    connected: boolean;
+    clients: number;
+    host: string;
+    port: number;
+    transport?: string;
+  }> {
     return this.request("info");
   }
 
@@ -141,47 +175,148 @@ export class GatewayClient extends EdiabasInterface {
     await this.request("switchSiRelais", { time });
   }
 
-  private async ensureSocket(): Promise<void> {
-    if (this.socket && !this.socket.destroyed) {
+  private async ensureConnection(): Promise<void> {
+    if (this.connection) {
       return;
     }
     if (this.connectPromise) {
       return this.connectPromise;
     }
 
-    this.connectPromise = new Promise<void>((resolve, reject) => {
-      const socket = createConnection(this.port, this.host, () => {
-        this.socket = socket;
-        this.buffer = "";
-        socket.on("data", (chunk) => this.handleData(chunk.toString("utf8")));
-        socket.on("error", (error) => this.handleSocketError(error));
-        socket.on("close", () => this.handleSocketClose());
-        resolve();
-      });
-
-      socket.on("error", (error) => {
-        this.connectPromise = undefined;
-        reject(error);
-      });
-    }).finally(() => {
+    this.connectPromise = (this.transport === "tcp"
+      ? this.connectTcp()
+      : this.connectWebSocket()
+    ).finally(() => {
       this.connectPromise = undefined;
     });
 
     return this.connectPromise;
   }
 
-  private handleData(chunk: string): void {
-    this.buffer += chunk;
-    let newlineIndex = this.buffer.indexOf("\n");
-    while (newlineIndex >= 0) {
-      const line = this.buffer.slice(0, newlineIndex).trim();
-      this.buffer = this.buffer.slice(newlineIndex + 1);
-      if (line) {
-        this.handleLine(line);
-      }
-      newlineIndex = this.buffer.indexOf("\n");
-    }
+  // ---- TCP transport ----
+
+  private connectTcp(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      let buffer = "";
+      const socket: Socket = createConnection(this.port, this.host, () => {
+        const conn: ClientConnection = {
+          send: (payload) => {
+            if (!socket.destroyed) socket.write(`${payload}\n`);
+          },
+          close: () =>
+            new Promise<void>((res) => {
+              if (socket.destroyed) {
+                res();
+                return;
+              }
+              socket.end(() => {
+                socket.destroy();
+                res();
+              });
+            })
+        };
+
+        socket.on("data", (chunk) => {
+          buffer += chunk.toString("utf8");
+          let newlineIndex = buffer.indexOf("\n");
+          while (newlineIndex >= 0) {
+            const line = buffer.slice(0, newlineIndex).trim();
+            buffer = buffer.slice(newlineIndex + 1);
+            if (line) this.handleLine(line);
+            newlineIndex = buffer.indexOf("\n");
+          }
+        });
+        socket.on("error", (error) => this.handleTransportError(error));
+        socket.on("close", () => this.handleTransportClose());
+
+        this.connection = conn;
+        resolve();
+      });
+
+      socket.on("error", (error) => {
+        if (!this.connection) reject(error);
+      });
+    });
   }
+
+  // ---- WebSocket transport ----
+
+  private connectWebSocket(): Promise<void> {
+    const url = this.url ?? `ws://${this.host}:${this.port}`;
+
+    // Use the global `WebSocket` — Node 22+ exposes it as a global, and
+    // every browser has it. We don't import `ws` here so the client
+    // module stays dep-free for browser bundling.
+    const WS: typeof WebSocket | undefined = (globalThis as { WebSocket?: typeof WebSocket }).WebSocket;
+    if (!WS) {
+      return Promise.reject(
+        new Error(
+          "GatewayClient: WebSocket transport requested but no global WebSocket is available. Node 22+ is required."
+        )
+      );
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      const ws = new WS(url);
+      // We receive plain JSON strings; the binary path is unused.
+      ws.binaryType = "arraybuffer";
+
+      const conn: ClientConnection = {
+        send: (payload) => {
+          if (ws.readyState === ws.OPEN) ws.send(payload);
+        },
+        close: () =>
+          new Promise<void>((res) => {
+            if (ws.readyState === ws.CLOSED) {
+              res();
+              return;
+            }
+            const onClose = () => {
+              ws.removeEventListener("close", onClose);
+              res();
+            };
+            ws.addEventListener("close", onClose);
+            try {
+              ws.close();
+            } catch {
+              res();
+            }
+          })
+      };
+
+      ws.addEventListener("open", () => {
+        this.connection = conn;
+        resolve();
+      });
+
+      ws.addEventListener("message", (event: MessageEvent) => {
+        // Server is expected to send strings. If we ever get binary
+        // (ArrayBuffer), decode as UTF-8 — same payload semantics.
+        const data = event.data;
+        const text =
+          typeof data === "string"
+            ? data
+            : new TextDecoder().decode(new Uint8Array(data as ArrayBuffer));
+        const line = text.trim();
+        if (line) this.handleLine(line);
+      });
+
+      ws.addEventListener("error", () => {
+        // The error event itself carries no detail in browsers; surface
+        // a generic message and rely on the close handler for state
+        // cleanup.
+        if (!this.connection) {
+          reject(new Error("GatewayClient: WebSocket connection failed"));
+        } else {
+          this.handleTransportError(new Error("WebSocket error"));
+        }
+      });
+
+      ws.addEventListener("close", () => this.handleTransportClose());
+    });
+  }
+
+  // ---- Shared JSON-RPC plumbing ----
 
   private handleLine(line: string): void {
     let payload: JsonRpcResponse | null = null;
@@ -210,7 +345,7 @@ export class GatewayClient extends EdiabasInterface {
     pending.resolve(payload.result);
   }
 
-  private handleSocketError(error: Error): void {
+  private handleTransportError(error: Error): void {
     for (const pending of this.pending.values()) {
       pending.reject(error);
     }
@@ -218,20 +353,21 @@ export class GatewayClient extends EdiabasInterface {
     this.connected = false;
   }
 
-  private handleSocketClose(): void {
+  private handleTransportClose(): void {
     const error = new Error("Gateway connection closed");
     for (const pending of this.pending.values()) {
       pending.reject(error);
     }
     this.pending.clear();
     this.connected = false;
+    this.connection = undefined;
   }
 
   private async request<T = unknown>(method: string, params?: unknown): Promise<T> {
-    await this.ensureSocket();
-    const socket = this.socket;
-    if (!socket) {
-      throw new Error("Gateway socket not available");
+    await this.ensureConnection();
+    const conn = this.connection;
+    if (!conn) {
+      throw new Error("Gateway connection not available");
     }
 
     const id = this.nextId++;
@@ -244,7 +380,7 @@ export class GatewayClient extends EdiabasInterface {
 
     return new Promise<T>((resolve, reject) => {
       this.pending.set(id, { resolve: resolve as (value: unknown) => void, reject });
-      socket.write(`${JSON.stringify(payload)}\n`);
+      conn.send(JSON.stringify(payload));
     });
   }
 

@@ -9,24 +9,49 @@ function registerGatewayCommand(program: Command): void {
     .command("gateway")
     .option("--host <host>", "host to bind the gateway server", "127.0.0.1")
     .option("--port <port>", "port to bind the gateway server", "6801")
+    .option(
+      "--transport <transport>",
+      "wire framing: 'tcp' (line-delimited JSON, default) or 'websocket' (browser-friendly)",
+      "tcp"
+    )
     .description("Start the JSON-RPC gateway server")
-    .action(async (options: InterfaceCliOptions & { host?: string; port?: string }) => {
-      try {
-        const host = options.host ?? "127.0.0.1";
-        const port = Number.parseInt(options.port ?? "6801", 10);
-        if (!Number.isFinite(port) || port <= 0) {
-          throw new Error("Port must be a positive number");
+    .action(
+      async (
+        options: InterfaceCliOptions & {
+          host?: string;
+          port?: string;
+          transport?: string;
         }
+      ) => {
+        try {
+          const host = options.host ?? "127.0.0.1";
+          const port = Number.parseInt(options.port ?? "6801", 10);
+          if (!Number.isFinite(port) || port <= 0) {
+            throw new Error("Port must be a positive number");
+          }
 
-        const selection = resolveInterfaceSelection(options, "simulation");
-        const iface = createInterface(selection.name, selection.options);
+          const rawTransport = (options.transport ?? "tcp").toLowerCase();
+          if (rawTransport !== "tcp" && rawTransport !== "websocket") {
+            throw new Error("--transport must be 'tcp' or 'websocket'");
+          }
+          const transport = rawTransport as "tcp" | "websocket";
 
-        const server = new GatewayServer({ host, port, interface: iface, logger: console });
-        await server.start();
-      } catch (error) {
-        handleError(error);
+          const selection = resolveInterfaceSelection(options, "simulation");
+          const iface = createInterface(selection.name, selection.options);
+
+          const server = new GatewayServer({
+            host,
+            port,
+            transport,
+            interface: iface,
+            logger: console
+          });
+          await server.start();
+        } catch (error) {
+          handleError(error);
+        }
       }
-    });
+    );
 
   addInterfaceOptions(gatewayCommand);
 }

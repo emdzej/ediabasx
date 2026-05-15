@@ -291,7 +291,7 @@ const interfaceRegistry: InterfaceMetadata[] = [
   },
   {
     name: "gateway",
-    description: "Remote gateway interface (JSON-RPC over TCP).",
+    description: "Remote gateway interface (JSON-RPC over TCP or WebSocket).",
     options: [
       {
         name: "host",
@@ -301,9 +301,23 @@ const interfaceRegistry: InterfaceMetadata[] = [
       },
       {
         name: "port",
-        description: "Gateway TCP port.",
+        description: "Gateway port (default 6801 for both transports).",
         type: "number",
         default: 6801
+      },
+      {
+        name: "transport",
+        description:
+          "Wire framing for the gateway connection. 'tcp' is the original line-delimited transport; 'websocket' uses the global WebSocket (browser + Node 22+).",
+        type: "enum",
+        values: ["tcp", "websocket"],
+        default: "tcp"
+      },
+      {
+        name: "url",
+        description:
+          "Explicit WebSocket URL (overrides host/port). Useful for ws://hostname/path or wss://… deployments.",
+        type: "string"
       }
     ]
   }

@@ -17,10 +17,12 @@
   "dependencies": {
     "@emdzej/ediabasx-interface-base": "workspace:*",
     "@emdzej/ediabasx-interface-enet": "workspace:*",
-    "@emdzej/ediabasx-interface-serial": "workspace:*"
+    "@emdzej/ediabasx-interface-serial": "workspace:*",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
-    "@types/node": "^25.2.1"
+    "@types/node": "^25.2.1",
+    "@types/ws": "^8.5.13"
   },
   "publishConfig": {
     "access": "public"
