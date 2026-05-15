@@ -99,8 +99,8 @@
   );
 
   const interfaceLabel = $derived.by(() => {
-    if (app.config.interface === "simulation") return "Simulation";
     if (app.config.interface === "webserial") return "Web Serial";
+    if (app.config.interface === "gateway") return "Gateway (WebSocket)";
     return app.config.interface;
   });
 </script>

@@ -7,7 +7,7 @@
 // internal `this` references. Only the UI-visible fields are in `$state`.
 
 import { Ediabas, type EdiabasConfig, type EdiabasJobResult } from "@emdzej/ediabasx-ediabas";
-import { SimulationInterface } from "@emdzej/ediabasx-interface-base";
+import { GatewayClient } from "@emdzej/ediabasx-interfaces";
 import {
   SerialInterface,
   WebSerialTransport,
@@ -56,6 +56,19 @@ function setStatus(phase: ConnectionPhase, message: string): void {
   runtime.message = message;
 }
 
+function formatConnectedStatus(): string {
+  const config = app.config;
+  if (config.interface === "webserial") {
+    const baud = config.serial?.baudRate;
+    return baud ? `Connected · Web Serial @ ${baud}` : "Connected · Web Serial";
+  }
+  if (config.interface === "gateway") {
+    const url = config.gateway?.url?.trim();
+    return url ? `Connected · Gateway · ${url}` : "Connected · Gateway";
+  }
+  return `Connected · ${config.interface}`;
+}
+
 // Minimal subset of navigator.serial used here — declared locally so the
 // package doesn't need lib.dom-Serial typings active globally. At runtime
 // `navigator.serial` is the real Web Serial API.
@@ -82,11 +95,9 @@ export function isWebSerialSupported(): boolean {
 async function buildEdiabas(): Promise<Ediabas> {
   const config = app.config;
 
-  let transport: SimulationInterface | SerialInterface | undefined;
+  let transport: SerialInterface | GatewayClient;
 
-  if (config.interface === "simulation") {
-    transport = new SimulationInterface();
-  } else if (config.interface === "webserial") {
+  if (config.interface === "webserial") {
     const serial = getSerial();
     if (!serial) {
       throw new Error("Web Serial API not available — needs Chrome / Edge / Opera on desktop");
@@ -110,6 +121,15 @@ async function buildEdiabas(): Promise<Ediabas> {
       ...ifaceConfig,
       transport: webTransport,
     });
+  } else if (config.interface === "gateway") {
+    const url = config.gateway?.url?.trim();
+    if (!url) {
+      throw new Error("Gateway URL is empty — set ws://host:port in the wizard");
+    }
+    if (!/^wss?:\/\//i.test(url)) {
+      throw new Error("Gateway URL must start with ws:// or wss://");
+    }
+    transport = new GatewayClient({ transport: "websocket", url });
   } else {
     throw new Error(`Interface "${config.interface}" not supported in the web app`);
   }
@@ -117,7 +137,6 @@ async function buildEdiabas(): Promise<Ediabas> {
   return new Ediabas({
     ecuPath: ".",
     transport: transport as unknown as EdiabasConfig["transport"],
-    simulation: config.interface === "simulation",
     timeout: config.serial?.timeoutMs ?? 5000,
     logging: false,
   });
@@ -144,13 +163,7 @@ export async function connect(): Promise<void> {
     e.loadSgbdFromBuffer(app.prgBuffer, app.loadedFile.relativePath);
     await e.connect();
     ediabasInstance = e;
-    setStatus(
-      "connected",
-      `Connected · ${app.config.interface}` +
-        (app.config.interface === "webserial" && app.config.serial?.baudRate
-          ? ` @ ${app.config.serial.baudRate}`
-          : "")
-    );
+    setStatus("connected", formatConnectedStatus());
   } catch (error) {
     ediabasInstance = null;
     serialPort = null;

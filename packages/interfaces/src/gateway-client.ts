@@ -1,4 +1,8 @@
-import { createConnection, type Socket } from "node:net";
+// `node:net` is lazy-loaded inside `connectTcp()` so this module stays
+// browser-bundleable. The WebSocket transport doesn't touch it at all;
+// the TCP path is Node-only by construction (a browser has no raw TCP
+// socket API), and pulling the import to a dynamic site lets Vite /
+// Rollup avoid resolving `node:net` for the web build.
 import { EdiabasInterface } from "@emdzej/ediabasx-interface-base";
 
 /**
@@ -225,10 +229,16 @@ export class GatewayClient extends EdiabasInterface {
 
   // ---- TCP transport ----
 
-  private connectTcp(): Promise<void> {
+  private async connectTcp(): Promise<void> {
+    // Dynamic import — keeps the top of this module free of Node-only
+    // specifiers so the WebSocket-only browser bundle never tries to
+    // resolve `node:net`. The TCP path is Node-only anyway: browsers
+    // have no raw TCP socket API to back this up.
+    const { createConnection } = await import("node:net");
+
     return new Promise<void>((resolve, reject) => {
       let buffer = "";
-      const socket: Socket = createConnection(this.port, this.host, () => {
+      const socket = createConnection(this.port, this.host, () => {
         const conn: ClientConnection = {
           send: (payload) => {
             if (!socket.destroyed) socket.write(`${payload}\n`);

@@ -18,6 +18,7 @@
     "@emdzej/ediabasx-ediabas": "workspace:*",
     "@emdzej/ediabasx-interface-base": "workspace:*",
     "@emdzej/ediabasx-interface-serial": "workspace:*",
+    "@emdzej/ediabasx-interfaces": "workspace:*",
     "@emdzej/ediabasx-interpreter": "workspace:*",
     "@emdzej/ediabasx-logger": "workspace:*",
     "workbox-window": "^7.4.1"

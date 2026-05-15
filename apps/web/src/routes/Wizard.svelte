@@ -25,16 +25,22 @@
     void app.config.serial?.testerCanId;
     void app.config.serial?.ecuCanId;
     void app.config.serial?.timeoutMs;
-    void app.config.enet?.host;
-    void app.config.enet?.port;
+    void app.config.gateway?.url;
     saveConfig(app.config);
     savedAt = Date.now();
   });
 
   const interfaceOptions: Array<{ value: InterfaceType; label: string; help: string }> = [
-    { value: "webserial", label: "Web Serial (browser)", help: "K-line / K+DCAN over Chrome/Edge Web Serial API. No driver install needed." },
-    { value: "simulation", label: "Simulation", help: "Canned responses, no hardware. Useful for offline browsing." },
-    { value: "enet", label: "ENET / DoIP", help: "Modern BMW vehicles over Ethernet. (Not yet exercised in web v1.)" },
+    {
+      value: "webserial",
+      label: "Web Serial (local cable)",
+      help: "K-line / K+DCAN over Chrome/Edge Web Serial API. The cable is plugged into this computer; no driver install needed.",
+    },
+    {
+      value: "gateway",
+      label: "Remote gateway (WebSocket)",
+      help: "Connect to an `ediabasx gateway --transport websocket` server running where the cable is. Useful when the ECU is in the garage and you're upstairs.",
+    },
   ];
 
   function reset(): void {
@@ -46,13 +52,20 @@
     if (fresh.serial) {
       app.config.serial = { ...(app.config.serial ?? {}), ...fresh.serial };
     }
-    if (fresh.enet) {
-      app.config.enet = { ...(app.config.enet ?? {}), ...fresh.enet };
+    if (fresh.gateway) {
+      app.config.gateway = { ...(app.config.gateway ?? {}), ...fresh.gateway };
     }
   }
 
   function isWebSerialSupported(): boolean {
     return typeof navigator !== "undefined" && "serial" in navigator;
+  }
+
+  // Mixed-content blocking: when the page itself is loaded over HTTPS,
+  // browsers refuse to open a plain `ws://` WebSocket. Surface this in
+  // the UI so the user understands why "Connect" fails before clicking.
+  function isSecureContext(): boolean {
+    return typeof window !== "undefined" && window.isSecureContext === true;
   }
 
   // Format a "Saved at HH:MM:SS" hint so the user can see persistence
@@ -119,7 +132,7 @@
       {/if}
     </fieldset>
 
-    {#if app.config.interface === "webserial" || app.config.interface === "serial"}
+    {#if app.config.interface === "webserial"}
       <fieldset class="grid grid-cols-2 gap-3">
         <legend class="col-span-2 text-xs font-bold uppercase tracking-wider text-zinc-500">
           Serial / K-line
@@ -216,27 +229,49 @@
       </fieldset>
     {/if}
 
-    {#if app.config.interface === "enet"}
-      <fieldset class="grid grid-cols-2 gap-3">
-        <legend class="col-span-2 text-xs font-bold uppercase tracking-wider text-zinc-500">
-          ENET / DoIP
+    {#if app.config.interface === "gateway"}
+      <fieldset class="flex flex-col gap-3">
+        <legend class="text-xs font-bold uppercase tracking-wider text-zinc-500">
+          Gateway · WebSocket URL
         </legend>
         <label class="flex flex-col gap-1 text-xs text-zinc-400">
-          Host
+          URL
           <input
-            type="text"
-            class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-zinc-200 focus:border-accent focus:outline-none"
-            bind:value={app.config.enet!.host}
+            type="url"
+            placeholder="ws://localhost:6801"
+            spellcheck="false"
+            autocapitalize="off"
+            autocomplete="off"
+            class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 font-mono text-sm text-zinc-200 focus:border-accent focus:outline-none"
+            bind:value={app.config.gateway!.url}
           />
+          <span class="text-zinc-500">
+            Use <code class="text-zinc-400">ws://host:port</code> for a plain
+            local gateway, or <code class="text-zinc-400">wss://…</code> when
+            it's behind TLS / a reverse proxy. Default CLI port is
+            <code class="text-zinc-400">6801</code>.
+          </span>
         </label>
-        <label class="flex flex-col gap-1 text-xs text-zinc-400">
-          Port
-          <input
-            type="number"
-            class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-zinc-200 focus:border-accent focus:outline-none"
-            bind:value={app.config.enet!.port}
-          />
-        </label>
+        <div class="rounded border border-zinc-800 bg-zinc-900/60 p-3 text-xs text-zinc-400">
+          <p class="mb-1 text-zinc-300">Run this on the machine with the cable:</p>
+          <pre class="overflow-auto whitespace-pre text-zinc-400"><code
+            >ediabasx gateway --transport websocket \
+  --interface kdcan --serial-port /dev/ttyUSB0</code></pre>
+          <p class="mt-2">
+            The gateway forwards <code class="text-zinc-300">setCommParameter</code>,
+            <code class="text-zinc-300">setAnswerLength</code>, <code class="text-zinc-300">transmitData</code>, and the rest
+            of the BEST2 surface so <code class="text-zinc-300">INITIALISIERUNG</code>
+            runs transparently from the browser.
+          </p>
+        </div>
+        {#if !isSecureContext() && app.config.gateway?.url?.startsWith("ws://")}
+          <div class="rounded border border-amber-700 bg-amber-950 p-3 text-xs text-amber-200">
+            This page is served over HTTPS but the gateway URL is plain
+            <code>ws://</code>. Most browsers block mixed-content WebSockets — use
+            <code>wss://</code> (e.g. behind a Caddy / nginx terminator) or load
+            this app over plain HTTP for local development.
+          </div>
+        {/if}
       </fieldset>
     {/if}
 

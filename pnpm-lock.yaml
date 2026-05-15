@@ -99,6 +99,9 @@ importers:
       '@emdzej/ediabasx-interface-serial':
         specifier: workspace:*
         version: link:../../packages/interface-serial
+      '@emdzej/ediabasx-interfaces':
+        specifier: workspace:*
+        version: link:../../packages/interfaces
       '@emdzej/ediabasx-interpreter':
         specifier: workspace:*
         version: link:../../packages/interpreter
