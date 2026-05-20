@@ -43,11 +43,26 @@ function getEncodeTable(): Map<number, number> {
     const decoded = dec.decode(singleByte);
     if (decoded.length === 1) {
       const cp = decoded.charCodeAt(0);
-      // CP1252's "undefined" slots (0x81, 0x8D, 0x8F, 0x90, 0x9D) all decode
-      // to control chars in the same code-point range as the byte itself —
-      // skip them so an attempt to encode e.g. U+0081 round-trips as the
-      // fallback rather than producing the undefined byte.
-      if ((b >= 0x80 && b <= 0x9f) && cp === b) continue;
+      // Include CP1252's "undefined" slots (0x81, 0x8D, 0x8F, 0x90, 0x9D) in
+      // the encode table. They decode to the matching U+0081 / U+008D /
+      // U+008F / U+0090 / U+009D control chars, and BEST2 interpreters use S
+      // registers as binary byte buffers — `move S[#$N], B` plus immediate
+      // readback via `move I, S[#$N]` MUST round-trip every byte value
+      // bit-for-bit, otherwise counters / response data containing one of
+      // those five byte values get silently corrupted on store.
+      //
+      // The trade-off: a JS string containing U+0081 from a non-CP1252
+      // source will now encode to byte 0x81 instead of '?' (0x3F). For the
+      // interpreter that's the right call — all data through these helpers
+      // originates from CP1252 byte streams in the first place. If a
+      // separate "strict CP1252 output" path is ever needed (e.g. when
+      // writing user-visible labels to a CP1252-encoded log file), it
+      // belongs in a separate helper, not in this round-trip layer.
+      //
+      // The hang in C_FA_LESEN's loop 3 counter at byte 0x81 was the
+      // canonical anchor for this fix — counter wrote 0x81, read back
+      // 0x3F (`?`), wrapped, looped forever. See registers.ts S-register
+      // refactor proposal in docs for the long-term direction.
       table.set(cp, b);
     }
   }

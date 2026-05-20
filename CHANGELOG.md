@@ -4,6 +4,39 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.2.2] — 2026-05-20
+
+### Fixed
+
+- **CP1252 round-trip preserves all 256 byte values, including the five
+  "undefined" slots (`0x81, 0x8D, 0x8F, 0x90, 0x9D`).** Previously the
+  encode table built by `getEncodeTable()` deliberately excluded those
+  five slots so an inbound `U+0081` (etc.) would fall back to `'?'`
+  (`0x3F`) rather than producing the "officially undefined" CP1252
+  byte. That was the wrong trade-off for an interpreter that uses S
+  registers as binary byte buffers: any `move S[#$N], B` of one of
+  those five byte values followed by an immediate readback came back
+  as `0x3F`, silently corrupting counters / response data / packed
+  structs that happened to cross those bytes.
+
+  Anchor: `C_KMB46.prg!C_FA_LESEN` (job that reads a BMW E46
+  vehicle-order data block). The job runs an inner loop counter at
+  `S0[#$0..1]` up to a max of `0x180`. When the counter hit `0x81`
+  the write-then-read round-trip produced `0x3F`, the counter "wrapped"
+  to `0x40`, and the loop spun forever in the `0x40..0x81` range. With
+  the encode table fixed, the counter passes `0x81` cleanly and the
+  loop terminates at `0x180` as designed. (`@emdzej/ediabasx-core`)
+
+### Documentation
+
+- **`docs/s-register-refactor-proposal.md` (new).** Captures the
+  longer-term direction: store S registers as native `Uint8Array`
+  instead of UTF-8/CP1252-decoded JS strings, removing the conversion
+  from the hot path entirely and eliminating the structural risk that
+  this release patches at the codec layer. Migration cost, risks, and
+  when-to-take-it-on guidance included; the fix in this release is the
+  near-term mitigation.
+
 ## [0.2.1] — 2026-05-15
 
 ### Fixed
