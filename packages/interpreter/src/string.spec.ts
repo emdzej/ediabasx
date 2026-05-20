@@ -787,4 +787,47 @@ describe("String Operations", () => {
       expect(regs.getS(0)).toBe("Hello");
     });
   });
+
+  describe("byte-backed storage (post S-register refactor)", () => {
+    // Regression suite for the byte-array-backed `RegisterSet`. Locks
+    // in the invariants that broke the C_FA_LESEN flow under the old
+    // JS-string-as-storage model: arbitrary byte values must round-trip
+    // through `getSBinary` / `setSBinary` with zero codec involvement,
+    // even for bytes that had no CP1252 representation (0x81, 0x8D,
+    // 0x8F, 0x90, 0x9D).
+    it("FA byte pattern (incl. previously-broken CP1252 slots) round-trips", () => {
+      const regs = new RegisterSet({ maxStringSize: 200 });
+      // Sample from C_FA_LESEN's response: includes 0x81 (the 0.2.2
+      // anchor byte), 0x8A (Š), 0x8D / 0x8F / 0x90 / 0x9D (the other
+      // four undefined CP1252 slots), 0x00 (NUL — must survive as a
+      // byte even though the string view stops there), and 0xFF.
+      const fa = Uint8Array.from([
+        0x02, 0x41, 0x34, 0x16, 0x95, 0x45, 0xBF, 0x8A,
+        0x81, 0x8D, 0x8F, 0x90, 0x9D, 0x00, 0xFF, 0x42,
+      ]);
+      regs.setSBinary(0, fa);
+      expect(Array.from(regs.getSBinary(0))).toEqual(Array.from(fa));
+    });
+
+    it("getS terminates at first 0x00 but trailing bytes stay in the buffer", () => {
+      const regs = new RegisterSet();
+      regs.setSBinary(0, Uint8Array.from([0x41, 0x42, 0x00, 0x43, 0x44, 0x45]));
+      expect(regs.getS(0)).toBe("AB");
+      expect(Array.from(regs.getSBinary(0))).toEqual([0x41, 0x42, 0x00, 0x43, 0x44, 0x45]);
+    });
+
+    it("setSBinary truncates silently at maxStringSize (TODO: signal EDIABAS_BIP_0001)", () => {
+      const regs = new RegisterSet({ maxStringSize: 4 });
+      regs.setSBinary(0, Uint8Array.from([0x10, 0x20, 0x30, 0x40, 0x50, 0x60]));
+      expect(Array.from(regs.getSBinary(0))).toEqual([0x10, 0x20, 0x30, 0x40]);
+    });
+
+    it("shrinking a write zeroes the tail (no stale bytes leak through getS)", () => {
+      const regs = new RegisterSet();
+      regs.setSBinary(0, Uint8Array.from([0x41, 0x42, 0x43, 0x44, 0x45]));
+      regs.setSBinary(0, Uint8Array.from([0x58, 0x59]));
+      expect(regs.getS(0)).toBe("XY");
+      expect(Array.from(regs.getSBinary(0))).toEqual([0x58, 0x59]);
+    });
+  });
 });

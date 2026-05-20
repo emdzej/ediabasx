@@ -388,8 +388,14 @@ describe("ergs", () => {
     });
   });
 
-  it.each(["", " ", "  trim  ", "\u263a"])(
-    "stores string values verbatim (%s)",
+  // CP1252-compatible round-trips (including whitespace edges).
+  // Non-CP1252 chars round-trip to '?' as of the byte-backed S-register
+  // refactor — matches C# `Encoding.GetEncoding(1252)`. The previous
+  // verbatim-smiley case was an artifact of JS-string-as-storage; native
+  // byte storage enforces CP1252 domain at the string-view boundary the
+  // same way real EDIABAS does.
+  it.each(["", " ", "  trim  ", "Café", "€·"])(
+    "stores CP1252 string values verbatim (%s)",
     (value) => {
       registers.setS(0, "TEXT");
       registers.setS(1, value);
@@ -399,6 +405,13 @@ describe("ergs", () => {
       expect(collector.get("text")?.value).toBe(value);
     }
   );
+
+  it("replaces non-CP1252 chars with '?' (BMW EDIABAS convention)", () => {
+    registers.setS(0, "TEXT");
+    registers.setS(1, "\u263a"); // ☺ smiley — not in CP1252
+    ergs(registers, collector, S0, S1);
+    expect(collector.get("text")?.value).toBe("?");
+  });
 });
 
 describe("ergy", () => {

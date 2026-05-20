@@ -185,9 +185,52 @@ describe("RegisterSet", () => {
       expect(customRegs.getMaxStringSize()).toBe(50);
     });
 
-    it("should handle unicode strings", () => {
-      regs.setS(0, "Cześć świat! 🚗");
-      expect(regs.getS(0)).toBe("Cześć świat! 🚗");
+    it("preserves CP1252-compatible characters round-trip", () => {
+      // CP1252 covers Western European chars including ą, ł, ść, € etc.
+      // Anything outside the codepage falls back to '?' on encode (matches
+      // C# Encoding.GetEncoding(1252) — the reference). The previous
+      // "any Unicode string survives" assertion was an artifact of the
+      // JS-string-as-storage model; native byte storage enforces CP1252
+      // domain at the string-view boundary the same way real EDIABAS does.
+      regs.setS(0, "Café résumé · 50€");
+      expect(regs.getS(0)).toBe("Café résumé · 50€");
+    });
+
+    it("replaces non-CP1252 characters with '?' (BMW EDIABAS convention)", () => {
+      // Polish ę / ś / ć and the car emoji are outside CP1252's
+      // repertoire; CP1252 emits 0x3F ('?') for each. ž (U+017E) IS
+      // in CP1252 at slot 0x9E and survives the round-trip, so the
+      // expected output keeps it verbatim. The smiley counts as a
+      // single Unicode code point but is built from a UTF-16 surrogate
+      // pair — utf8ToCp1252 walks code points and emits one '?'.
+      regs.setS(0, "Cześć światž 🚗");
+      // C e ę ś ć       ś w i a t  ž        🚗
+      //         ? ? ?              ž (kept) ?
+      expect(regs.getS(0)).toBe("Cze?? ?wiatž ?");
+    });
+
+    it("round-trips all 256 byte values via setSBinary/getSBinary", () => {
+      // Native byte storage means every byte 0x00..0xFF survives the
+      // round-trip bit-exact — no codec involvement at the byte layer.
+      // This is the structural fix that obsoletes the 0.2.2 encode-table
+      // patch for binary-buffer use cases. Use a 256-cap register set so
+      // the full byte range fits in one slot.
+      const bigRegs = new RegisterSet({ maxStringSize: 256 });
+      const all = new Uint8Array(256);
+      for (let i = 0; i < 256; i++) all[i] = i;
+      bigRegs.setSBinary(0, all);
+      const back = bigRegs.getSBinary(0);
+      expect(Array.from(back)).toEqual(Array.from(all));
+    });
+
+    it("getS terminates at first embedded NUL (C-string semantics)", () => {
+      // Mirrors C# Operand.GetStringData: walks _data until the first
+      // 0x00, decodes that prefix only. Bytes after the NUL stay in
+      // the buffer (visible via getSBinary) but don't appear in the
+      // string view.
+      regs.setSBinary(0, Uint8Array.from([0x41, 0x42, 0x00, 0x43, 0x44]));
+      expect(regs.getS(0)).toBe("AB");
+      expect(Array.from(regs.getSBinary(0))).toEqual([0x41, 0x42, 0x00, 0x43, 0x44]);
     });
 
     it("should throw on invalid register index", () => {

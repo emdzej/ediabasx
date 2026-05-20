@@ -2416,7 +2416,9 @@ export class Interpreter {
         const col = readPolyString(state, arg1);
         tabgetOp(state.registers, state.flags, state.tableState, dest, col);
         if (typeof process !== "undefined" && process.env?.EDIABASX_VERBOSE === "1") {
-          const val = state.registers.getS(dest.index).replace(/\0.*$/, "");
+          // getS already terminates at the first 0x00 byte post the
+          // byte-backed S-register refactor (matches C# GetStringData).
+          const val = state.registers.getS(dest.index);
           process.stderr.write(
             `[vm] tabget col=${JSON.stringify(col)} → S${dest.index}=${JSON.stringify(val)}\n`
           );

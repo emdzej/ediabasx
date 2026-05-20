@@ -1,6 +1,8 @@
-# Refactor proposal: S-register storage as `Uint8Array`
+# Refactor: S-register storage as `Uint8Array`
 
-**Status:** proposal — not implemented. The byte-level corruption that this proposal targets has been mitigated by [making the CP1252 encode table cover the 5 undefined slots](../packages/core/src/encoding.ts) so binary data survives the bytes ↔ string round-trip. That fix is sufficient for the C_FA_LESEN class of bug. This document captures the longer-term direction.
+**Status:** **Shipped in 0.2.3.** This document recorded the design intent and migration plan; the implementation now lives in `packages/interpreter/src/registers.ts` (the byte-buffer + logical-length pair) and the test contract is locked in `packages/interpreter/src/string.spec.ts` (`describe("byte-backed storage")`) and `packages/interpreter/src/registers.spec.ts`. The 0.2.2 CP1252 encode-table patch remains useful at the `getS`/`setS` boundary but is no longer load-bearing — the byte-storage path doesn't touch the codec at all.
+
+The rest of this doc is preserved as the design record.
 
 ## Why
 

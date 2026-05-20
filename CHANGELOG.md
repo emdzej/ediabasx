@@ -4,6 +4,54 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.2.3] — 2026-05-20
+
+### Changed
+
+- **S registers now store raw `Uint8Array` buffers natively, not
+  CP1252-decoded JS strings.** Mirrors C# `EdiabasLib`'s `StringData`
+  shape: a fixed-capacity `_data: Uint8Array` paired with a logical
+  `_length`. The codec only runs at the string-view boundary (`getS`
+  / `setS`); every other path — `getSBinary`, `setSBinary`, indexed
+  byte ops, `scmp` byte-array compares — operates on raw bytes
+  end-to-end.
+
+  - **All 256 byte values round-trip bit-exact through
+    `setSBinary` / `getSBinary`.** This obsoletes the 0.2.2
+    encode-table patch as a load-bearing fix for binary buffers
+    (it remains useful at the string boundary).
+  - **`getS()` now terminates at the first `0x00` byte** (matches
+    C# `Operand.GetStringData`). The old behaviour stripped only a
+    single trailing NUL; the new behaviour stops at any embedded
+    `0x00`. `setStringValue` still appends a NUL terminator for
+    `scmp` parity, so BEST2-program-visible semantics are unchanged
+    for the canonical write-then-read path. The `stripNullTerminator`
+    helper in `operations/register-values.ts` is gone — its job is
+    now done inside `getS`.
+  - **`getSBinary()` returns a fresh copy** of the live `[0, length)`
+    slice rather than a view, matching C# `StringData.GetData(false)`'s
+    `Array.Copy` semantics. Callers that mutate the result no longer
+    risk corrupting the register.
+  - **Non-CP1252 characters fall back to `'?'` (0x3F) on `setS`,**
+    matching `Encoding.GetEncoding(1252).GetBytes(...)` in the C#
+    reference. Previously the JS-string-as-storage model preserved
+    arbitrary Unicode verbatim — convenient for tests but not what
+    real EDIABAS does. The smiley `☺` (U+263A) now round-trips to
+    `?` consistently.
+  - **`setSBinary` overflow still truncates silently** at
+    `maxStringSize`. C# raises `EDIABAS_BIP_0001` ("string size
+    exceeded") via `SetError`; plumbing that error code through
+    `RegisterSet` is a TODO. Tests document the gap.
+
+  4 new regression tests under `string.spec.ts` `describe("byte-backed
+  storage")` lock the invariants (FA byte pattern incl. previously-broken
+  CP1252 slots, NUL-terminator semantics on `getS`, overflow truncation,
+  tail-zeroing on shrinking writes). Total interpreter suite: 688 passing
+  (was 684).
+
+  See `docs/s-register-refactor-proposal.md` for the original design
+  intent and the C# parity argument. (`@emdzej/ediabasx-interpreter`)
+
 ## [0.2.2] — 2026-05-20
 
 ### Fixed

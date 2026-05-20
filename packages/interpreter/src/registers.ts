@@ -47,8 +47,37 @@ export class RegisterSet {
   /** Shared 32-byte buffer that B/A/I/L register classes alias into. */
   private readonly byteRegisters: Uint8Array;
 
-  /** String S registers (S0-SF) */
-  private readonly sRegisters: string[];
+  /**
+   * String S registers (S0–SF), stored as raw byte buffers with a separate
+   * logical-length tracker. Mirrors C# EdiabasLib's `StringData` (a
+   * fixed-capacity `byte[] _data` plus an `EdValueType _length`).
+   *
+   * **Why bytes, not strings.** BEST2 uses S registers for both text
+   * (`tabget` results, `ergs` outputs) and binary buffers (`xsend`
+   * responses, packed control payloads, counter slots written via
+   * `move S[#$N], B`). When storage was a JS `string`, every byte-level
+   * write/read went through a CP1252 ⇄ UTF-8 round-trip, which used to
+   * mangle the five "undefined" CP1252 slots (`0x81, 0x8D, 0x8F, 0x90,
+   * 0x9D`) into `0x3F`. The 0.2.2 codec patch closed those slots, but
+   * the structural risk — every byte op pays codec cost, length is
+   * UTF-16 code units rather than bytes, embedded `\0` confuses callers
+   * — remained. Native `Uint8Array` storage eliminates the conversion
+   * from the hot path. See `docs/s-register-refactor-proposal.md`.
+   *
+   * **Encoding now only at the string-view boundary.** `getS()` /
+   * `setS()` are the only methods that touch `cp1252ToUtf8` /
+   * `utf8ToCp1252`. Everything else (`getSBinary`, `setSBinary`,
+   * indexed reads, byte-array compares) operates on raw bytes.
+   */
+  private readonly sBuffers: Uint8Array[];
+
+  /**
+   * Logical byte length of each S register's contents. `sBuffers[i]` is
+   * always sized at `maxStringSize`, but the live content runs
+   * `sBuffers[i][0..sLengths[i])`. Same model as C# `StringData._length`
+   * vs `_data.Length`.
+   */
+  private readonly sLengths: number[];
 
   /** Float F registers (F0-F7) */
   private readonly fRegisters: Float64Array;
@@ -81,7 +110,11 @@ export class RegisterSet {
     this.maxStringSize = options.maxStringSize ?? DEFAULT_SSIZE;
 
     this.byteRegisters = new Uint8Array(RegisterSet.BYTE_REGISTER_COUNT);
-    this.sRegisters = new Array(RegisterSet.S_COUNT).fill("");
+    this.sBuffers = new Array(RegisterSet.S_COUNT);
+    for (let i = 0; i < RegisterSet.S_COUNT; i++) {
+      this.sBuffers[i] = new Uint8Array(this.maxStringSize);
+    }
+    this.sLengths = new Array(RegisterSet.S_COUNT).fill(0);
     this.fRegisters = new Float64Array(RegisterSet.F_COUNT);
   }
 
@@ -185,60 +218,95 @@ export class RegisterSet {
   }
 
   /**
-   * Get the value of an S register (S0-SF).
+   * Get the string view of an S register.
    *
-   * Mirrors C# `Operand.GetStringData()` for the common case: when operations
-   * like `move S, ImmStr` / `tabget` store data via `SetStringData` they append
-   * a trailing NUL byte to `_data` so the stored length includes it (needed for
-   * length-sensitive byte-array compares like `scmp`). The string-level view
-   * should not surface that terminator. Use `getSBinary` for the raw bytes.
+   * Mirrors C# `Operand.GetStringData()`: walk `_data` to the first
+   * `\0` (C-string terminator), CP1252-decode that slice, return the
+   * resulting JS string. Bytes after the first NUL are not visible
+   * through this method — use `getSBinary` for the raw buffer.
+   *
+   * This is the only S-register read path that touches the codec.
+   * Indexed byte access (`getSBinary`), table-walking ops, and
+   * byte-array compares (`scmp`) all stay in the raw-bytes domain.
    *
    * @param reg Register index (0-15)
-   * @returns String value (single trailing NUL stripped if present)
+   * @returns String value, terminated at first `0x00` (or end of buffer)
    */
   getS(reg: number): string {
     validateIndex(reg, RegisterSet.S_COUNT, "S");
-    const stored = this.sRegisters[reg];
-    return stored.endsWith("\0") ? stored.slice(0, -1) : stored;
+    const buf = this.sBuffers[reg];
+    const limit = this.sLengths[reg];
+    let end = limit;
+    for (let i = 0; i < limit; i++) {
+      if (buf[i] === 0) {
+        end = i;
+        break;
+      }
+    }
+    return cp1252ToUtf8(buf.subarray(0, end));
   }
 
   /**
-   * Set the value of an S register (S0-SF).
+   * Set the value of an S register from a JS string.
+   *
+   * CP1252-encodes the string into bytes and stores them via
+   * `setSBinary`. Together with `getS`, this is the only path that
+   * crosses the codec boundary.
+   *
    * @param reg Register index (0-15)
-   * @param value String value (will be truncated to maxStringSize)
+   * @param value String value (will be truncated to maxStringSize on
+   *   the byte side after CP1252 encoding)
    */
   setS(reg: number, value: string): void {
-    validateIndex(reg, RegisterSet.S_COUNT, "S");
-    this.sRegisters[reg] =
-      value.length > this.maxStringSize
-        ? value.slice(0, this.maxStringSize)
-        : value;
+    this.setSBinary(reg, utf8ToCp1252(value));
   }
 
   /**
-   * Get binary data from an S register.
-   * Converts the UTF-8 string back to cp1252 bytes.
+   * Get the raw binary content of an S register.
+   *
+   * Returns a fresh `Uint8Array` view of `_data[0..length)`. Callers
+   * are free to mutate the result without affecting the register
+   * (matches C# `StringData.GetData(false)` which `Array.Copy`s).
+   *
    * @param reg Register index (0-15)
-   * @returns Binary data as Uint8Array
+   * @returns Binary data as a fresh Uint8Array of length `sLengths[reg]`
    */
   getSBinary(reg: number): Uint8Array {
     validateIndex(reg, RegisterSet.S_COUNT, "S");
-    return utf8ToCp1252(this.sRegisters[reg]);
+    const buf = this.sBuffers[reg];
+    const len = this.sLengths[reg];
+    // Return a copy so caller mutation doesn't corrupt the register.
+    const out = new Uint8Array(len);
+    out.set(buf.subarray(0, len));
+    return out;
   }
 
   /**
-   * Set binary data to an S register.
-   * Converts cp1252 bytes to UTF-8 string for storage.
+   * Set the raw binary content of an S register.
+   *
+   * Copies up to `maxStringSize` bytes into the fixed-capacity backing
+   * buffer and updates the logical length. Excess bytes are truncated
+   * silently — C# signals `EDIABAS_BIP_0001` ("string size exceeded")
+   * via `SetError` but our impl doesn't yet plumb error codes through
+   * `RegisterSet`; a follow-up should route through a vm-level error
+   * channel so over-long writes are visible.
+   *
    * @param reg Register index (0-15)
    * @param value Binary data
    */
   setSBinary(reg: number, value: Uint8Array): void {
     validateIndex(reg, RegisterSet.S_COUNT, "S");
-    const str = cp1252ToUtf8(value);
-    this.sRegisters[reg] =
-      str.length > this.maxStringSize
-        ? str.slice(0, this.maxStringSize)
-        : str;
+    const len = Math.min(value.length, this.maxStringSize);
+    const buf = this.sBuffers[reg];
+    buf.set(value.subarray(0, len), 0);
+    // Zero out any tail beyond the new logical length so a subsequent
+    // `getS` that walks past `len` (defensively — it shouldn't) doesn't
+    // see stale bytes from a previous write. Matches the spirit of
+    // `Array.Copy`-into-cleared-buffer used by C# for new data.
+    if (len < this.sLengths[reg]) {
+      buf.fill(0, len, this.sLengths[reg]);
+    }
+    this.sLengths[reg] = len;
   }
 
   /**
@@ -275,7 +343,10 @@ export class RegisterSet {
    */
   reset(): void {
     this.byteRegisters.fill(0);
-    this.sRegisters.fill("");
+    for (let i = 0; i < RegisterSet.S_COUNT; i++) {
+      this.sBuffers[i].fill(0);
+      this.sLengths[i] = 0;
+    }
     this.fRegisters.fill(0);
   }
 
@@ -304,7 +375,11 @@ export class RegisterSet {
       a,
       i: iArr,
       l,
-      s: [...this.sRegisters],
+      // Snapshot exposes the *string view* for debugging (matches the
+      // previous `string[]` contract). Use `getSBinary` directly when
+      // you need raw bytes — e.g. tooling that wants to surface
+      // embedded NULs or compare lengths against `_data.Length`.
+      s: Array.from({ length: RegisterSet.S_COUNT }, (_, i) => this.getS(i)),
       f: Array.from(this.fRegisters),
     };
   }

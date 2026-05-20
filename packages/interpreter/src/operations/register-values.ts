@@ -47,15 +47,16 @@ export function setFloatValue(
   registers.setF(ref.index, value);
 }
 
-function stripNullTerminator(value: string): string {
-  return value.replace(/\0.*$/, "");
-}
+// NOTE: post byte-backed-S-register refactor, `RegisterSet.getS()` already
+// terminates at the first 0x00 byte (matches C# `GetStringData`). The
+// previous `stripNullTerminator()` helper around `getS()` is now
+// redundant — kept lean by just delegating to the register directly.
 
 export function getStringValue(
   registers: RegisterSet,
   ref: StringRegisterRef
 ): string {
-  return stripNullTerminator(registers.getS(ref.index));
+  return registers.getS(ref.index);
 }
 
 export function setStringValue(
@@ -63,18 +64,24 @@ export function setStringValue(
   ref: StringRegisterRef,
   value: string
 ): void {
-  // Mirror C# Operand.SetStringData: appends a trailing null terminator so the
-  // stored byte array length includes the NUL byte. Operations like `scmp`
-  // compare raw byte arrays via GetArrayData() — without this terminator a
-  // tabget("DATA_TYPE")="2" would compare as a 1-byte array to immediate "2"
-  // which IMM_STR keeps as [0x32, 0x00] (length 2) and mismatch.
+  // Mirror C# Operand.SetStringData: append a trailing NUL byte so the
+  // stored buffer's logical length includes the terminator. This matters
+  // for `scmp` (byte-array compare): an IMM_STR "2" stored by the
+  // compiler is [0x32, 0x00] (length 2), and tabget("DATA_TYPE")="2"
+  // must match by-length AND by-bytes — without the appended NUL the
+  // tabget side ends up length-1 and `scmp` mismatches.
+  //
+  // Appending `\0` to the JS string works because CP1252 has 0x00 in
+  // its codepage (byte 0x00 → U+0000); `setS` CP1252-encodes the result
+  // so the buffer ends in a real `0x00` byte.
   const normalized = value.endsWith("\0") ? value : value + "\0";
   registers.setS(ref.index, normalized);
 }
 
 /**
- * Get binary data from string register.
- * String registers store binary data as cp1252-encoded strings.
+ * Get binary data from string register — returns the full buffer up to
+ * the register's logical length, including any embedded `0x00` bytes.
+ * No codec involvement.
  */
 export function getBinaryValue(
   registers: RegisterSet,
@@ -84,7 +91,7 @@ export function getBinaryValue(
 }
 
 /**
- * Set binary data to string register.
+ * Set binary data to a string register.
  */
 export function setBinaryValue(
   registers: RegisterSet,
@@ -95,11 +102,13 @@ export function setBinaryValue(
 }
 
 /**
- * Resolve string value from register reference (for operands that can be either immediate string or register).
+ * Resolve string value from register reference (for operands that can
+ * be either immediate string or register). Now identical to
+ * `getStringValue` since the codec / NUL-trim live in `getS`.
  */
 export function resolveStringValue(
   registers: RegisterSet,
   ref: StringRegisterRef
 ): string {
-  return stripNullTerminator(registers.getS(ref.index));
+  return registers.getS(ref.index);
 }
