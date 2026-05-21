@@ -4,6 +4,49 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.2.4] — 2026-05-21
+
+### Added
+
+- **`Ediabas.executeJob` accepts `Uint8Array` parameters.** The
+  `params` option is now typed `(string | Uint8Array)[]` (was
+  `string[]`); each element is routed to the BEST/2 parameter channel
+  that matches its type:
+
+  | Element type | Channel  | BEST/2 opcodes that read it                       | C API |
+  |---|---|---|---|
+  | `string`     | per-index `parameters[i]` | `pari` / `pars`          | `apiJob`     |
+  | `Uint8Array` | shared `binaryPayload`    | `pary` / `parb` / `parw` / `parl` / `parr` | `apiJobData` |
+
+  Pure widening — every existing caller passing `string[]` still
+  type-checks unchanged. Mixed-shape calls (some string, some binary
+  in the same job) are supported; the binary payload is shared across
+  all `parY` reads while strings are per-position.
+
+  **What this unblocks.** Binbuf-driven SGBDs — BMW NCS coding
+  (`C_S_LESEN`, `C_S_SCHREIBEN`, `C_S_AUFTRAG` on K-line; F-series
+  equivalents) and any other job whose entry point starts with
+  `pary S1; jz ERROR_NO_BIN_BUFFER` — were unreachable from outside
+  the interpreter pre-fix. Hex-encoding the bytes into a string
+  parameter doesn't work because that lands in the *string* channel,
+  not `binaryPayload`; the SGBD's `pary` saw an empty buffer and the
+  job aborted with `JOB_STATUS = "ERROR_NO_BIN_BUFFER"`. Now:
+
+  ```ts
+  const para = new Uint8Array([0x01, 0x02, /* … */]);
+  const sets = await ediabas.executeJob("C_S_LESEN", { params: [para] });
+  ```
+
+  routes the bytes into `binaryPayload`, `pary` reads them, and the
+  prologue gate passes.
+
+  Implementation: the routing decision lives in a new `paramToEntry`
+  helper exported from `@emdzej/ediabasx-ediabas` (also used internally
+  by `executeJobRaw` for the INITIALISIERUNG path). Unit tests pin the
+  four routing cases (string / empty string / Uint8Array / empty
+  Uint8Array). `runJobInternal` widened in parallel.
+  (`@emdzej/ediabasx-ediabas`)
+
 ## [0.2.3] — 2026-05-20
 
 ### Changed

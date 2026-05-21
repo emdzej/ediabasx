@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-protocol-doip",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "DoIP / HSFZ (ISO 13400) primitives for EdiabasX (work in progress).",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

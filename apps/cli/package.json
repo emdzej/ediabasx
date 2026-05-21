@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-cli",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "ediabasx CLI — parse, disassemble, inspect and run BMW PRG/GRP diagnostic files from the terminal, with a built-in TUI.",
   "type": "module",
   "main": "dist/index.js",

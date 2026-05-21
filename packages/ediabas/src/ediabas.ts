@@ -62,6 +62,38 @@ function stripExtension(name: string): string {
   return dot > 0 ? name.slice(0, dot) : name;
 }
 
+/**
+ * Coerce a user-supplied parameter into the `ParameterSet` entry shape.
+ *
+ * EDIABAS exposes two parameter channels to the BEST/2 bytecode:
+ *
+ *   • **Strings** — read by the `pari` (per-index int-from-string) and
+ *     `pars` (per-index string) opcodes. Stored in
+ *     `ParameterSet.parameters[i]`.
+ *   • **Binary** — read by `pary` (full buffer as bytes) and
+ *     `parb` / `parw` / `parl` / `parr` (slot-indexed byte/word/long/real
+ *     reads off the same buffer). Stored as `ParameterSet.binaryPayload`,
+ *     a single buffer shared across all binary parameter reads.
+ *
+ * This is the same split the C API exposes via `apiJob` (strings) vs
+ * `apiJobData` (binary). Callers indicate which channel they mean by
+ * the element type: `Uint8Array` ⇒ binary, everything else ⇒ string.
+ *
+ * Why the split matters: binbuf-driven SGBDs (BMW NCS coding —
+ * `C_S_LESEN` / `C_S_SCHREIBEN` / `C_S_AUFTRAG`, F-series equivalents)
+ * call `pary` at the top of their entry point and bail out with
+ * `JOB_STATUS=ERROR_NO_BIN_BUFFER` if the binary payload is empty.
+ * Hex-encoding the bytes into a string parameter doesn't work because
+ * that lands in the string channel, not in `binaryPayload`.
+ */
+export function paramToEntry(
+  param: string | Uint8Array,
+): { kind: "string"; value: string } | { kind: "binary"; value: Uint8Array } {
+  return param instanceof Uint8Array
+    ? { kind: "binary", value: param }
+    : { kind: "string", value: param };
+}
+
 async function resolveCaseInsensitive(
   fs: typeof import("node:fs/promises"),
   path: typeof import("node:path"),
@@ -544,7 +576,10 @@ export class Ediabas {
    * failure so a missing/failing init doesn't mask the real error from the
    * user's actual job.
    */
-  private async runJobInternal(jobName: string, params: string[]): Promise<void> {
+  private async runJobInternal(
+    jobName: string,
+    params: (string | Uint8Array)[],
+  ): Promise<void> {
     if (this.config.logging) {
       log.info(`Auto-running ${jobName}`);
     }
@@ -569,7 +604,7 @@ export class Ediabas {
   /** Run a job through the interpreter without the INITIALISIERUNG bootstrap. */
   private async executeJobRaw(
     jobName: string,
-    params: string[]
+    params: (string | Uint8Array)[],
   ): Promise<EdiabasJobResult[][]> {
     if (!this.prg) {
       throw new EdiabasError(
@@ -580,7 +615,7 @@ export class Ediabas {
 
     const parameters = new ParameterSet();
     for (let i = 0; i < params.length; i++) {
-      parameters.set(i, { kind: "string", value: params[i] });
+      parameters.set(i, paramToEntry(params[i]));
     }
     const commAdapter = this.buildCommAdapter();
     const interpreter = new Interpreter(this.prg);
@@ -655,7 +690,7 @@ export class Ediabas {
    */
   async executeJob(
     jobName: string,
-    options?: { params?: string[]; timeout?: number }
+    options?: { params?: (string | Uint8Array)[]; timeout?: number },
   ): Promise<EdiabasJobResult[][]> {
     if (!this.prg) {
       throw new EdiabasError(
@@ -703,11 +738,18 @@ export class Ediabas {
       log.info(`Executing job: ${jobName}`);
     }
 
-    // Setup parameters
+    // Setup parameters. EDIABAS exposes two distinct param channels —
+    // strings (read by `pari` / `pars`) and binary buffers (read by
+    // `pary` / `parb` / `parw` / `parl` / `parr`). Callers indicate
+    // which one they mean by the element type: `Uint8Array` routes to
+    // `ParameterSet.binaryPayload`, anything else (typically a string)
+    // routes to the per-index `parameters` map. Mixing both shapes in
+    // a single call is supported — the binbuf payload is shared across
+    // all `parY` reads while the string channel is per-position.
     const parameters = new ParameterSet();
     if (options?.params) {
       for (let i = 0; i < options.params.length; i++) {
-        parameters.set(i, { kind: "string", value: options.params[i] });
+        parameters.set(i, paramToEntry(options.params[i]));
       }
     }
 
