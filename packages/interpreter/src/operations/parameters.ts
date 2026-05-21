@@ -2,7 +2,15 @@ import { cp1252ToUtf8, utf8ToCp1252 } from "@emdzej/ediabasx-core";
 import { RegisterSet } from "../registers";
 import { Flags } from "../flags";
 import type { FloatRegisterRef, IntRegisterRef, StringRegisterRef } from "./register-refs";
-import { getFloatValue, getIntValue, getStringValue, setFloatValue, setIntValue, setStringValue } from "./register-values";
+import {
+  getFloatValue,
+  getIntValue,
+  getStringValue,
+  setBinaryValue,
+  setFloatValue,
+  setIntValue,
+  setStringValue,
+} from "./register-values";
 
 export type { FloatRegisterRef, IntRegisterRef, StringRegisterRef } from "./register-refs";
 
@@ -243,9 +251,16 @@ export function pary(
   parameters: ParameterSet,
   destination: StringRegisterRef
 ): void {
+  // Mirrors C# `OpPary` (EdOperations.cs:1861): writes the raw binary
+  // payload via `SetArrayData(byte[])` — no NUL terminator, no codec
+  // round-trip. Going through `setStringValue` (string path) would
+  // append a `\0` when the last byte isn't already `0x00`, growing the
+  // destination S register by one and breaking any SGBD that
+  // length-checks the payload via `slen` (e.g. BMW NCS `C_S_SCHREIBEN`
+  // tripping `ERROR_BIN_BUFFER`).
   const payload = parameters.getBinaryPayload();
   flags.z = payload.length === 0;
-  setStringValue(registers, destination, cp1252ToUtf8(payload));
+  setBinaryValue(registers, destination, payload);
 }
 
 export function parn(

@@ -1,7 +1,7 @@
-import { cp1252ToUtf8, utf8ToCp1252 } from "@emdzej/ediabasx-core";
+import { utf8ToCp1252 } from "@emdzej/ediabasx-core";
 import { RegisterSet } from "../registers";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
-import { getIntValue, getStringValue, setIntValue, setStringValue } from "./register-values";
+import { getIntValue, getStringValue, setBinaryValue, setIntValue, setStringValue } from "./register-values";
 import type { Flags } from "../flags";
 
 export type { IntRegisterRef, StringRegisterRef } from "./register-refs";
@@ -248,15 +248,20 @@ export function freadlnHandle(
     data = readAny ? new Uint8Array(bytes) : null;
   }
 
+  // Mirrors C# `OpFreadln` (EdOperations.cs:1091): writes the line
+  // bytes via `SetArrayData(byte[])` — no NUL terminator. The string
+  // path (`SetStringData`) would grow the buffer by one whenever the
+  // last line byte isn't already `0x00`, throwing off any caller that
+  // length-checks the result.
   if (!data) {
-    setStringValue(registers, destination, "");
+    setBinaryValue(registers, destination, new Uint8Array());
     if (flags) {
       flags.c = true;
     }
     return;
   }
 
-  setStringValue(registers, destination, cp1252ToUtf8(data));
+  setBinaryValue(registers, destination, data);
   if (flags) {
     flags.c = false;
   }

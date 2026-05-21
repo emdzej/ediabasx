@@ -1,7 +1,7 @@
-import { cp1252ToUtf8, utf8ToCp1252 } from "@emdzej/ediabasx-core";
+import { utf8ToCp1252 } from "@emdzej/ediabasx-core";
 import { RegisterSet } from "../registers";
 import type { StringRegisterRef } from "./register-refs";
-import { getStringValue, setStringValue } from "./register-values";
+import { getStringValue, setBinaryValue } from "./register-values";
 import type { Flags } from "../flags";
 
 export type { StringRegisterRef } from "./register-refs";
@@ -60,10 +60,15 @@ export function shmget(
   key: SharedMemoryKey,
   flags?: Flags
 ): void {
+  // Mirrors C# `OpShmget` (EdOperations.cs:2136): writes the stored
+  // bytes verbatim via `SetArrayData(byte[])`. Missing key → empty
+  // buffer (C# `ByteArray0`). The string path would grow non-zero-
+  // tailed payloads by one, breaking any caller that round-trips
+  // through `shmset`/`shmget` and length-checks.
   const resolvedKey = resolveKey(registers, key);
   const exists = memory.has(resolvedKey);
   const value = memory.get(resolvedKey);
-  setStringValue(registers, destination, cp1252ToUtf8(value));
+  setBinaryValue(registers, destination, value);
   if (flags) {
     flags.c = !exists;
   }

@@ -98,6 +98,30 @@ describe("Extended file operations", () => {
       freadln(fs, registers, S0, I0);
 
       expect(registers.getS(0)).toBe("");
+      // Empty result must be true length-0 (C# `SetArrayData(byte[0])`);
+      // the previous string path would have appended a NUL → length 1.
+      expect(registers.getSBinary(0).length).toBe(0);
+    });
+
+    it("preserves byte length when the line ends in a non-zero byte", () => {
+      // Mirrors C# `OpFreadln` → `SetArrayData(Encoding.GetBytes(line))`.
+      // The previous `setStringValue` path appended a NUL whenever the
+      // last byte wasn't `0x00`, growing length by 1 — that breaks any
+      // BEST2 job that `slen` / `scmp`s an `freadln` result.
+      const fs: FileSystem = {
+        open: () => 1,
+        close: () => {},
+        read: () => new Uint8Array(0),
+        readLine: () => new Uint8Array([0x48, 0x69, 0x21]), // "Hi!"
+        write: () => 0,
+        seek: () => {},
+        eof: () => false,
+      };
+      registers.setI(0, 1);
+
+      freadln(fs, registers, S0, I0);
+
+      expect(registers.getSBinary(0).length).toBe(3);
     });
   });
 

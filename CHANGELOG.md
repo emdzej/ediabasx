@@ -4,6 +4,51 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.2.5] — 2026-05-21
+
+### Fixed
+
+- **Binary write paths no longer append a stray `\0` terminator.**
+  Three opcodes that should mirror C# `Operand.SetArrayData(byte[])`
+  (raw pass-through) were routed through the string-write path
+  (`setStringValue` → CP1252 → "append `\0` if not already there"):
+
+  | Opcode    | C# reference (`EdOperations.cs`) | What the JS port was doing |
+  |---|---|---|
+  | `pary`    | line 1861 — `arg0.SetArrayData(result)`             | `setStringValue(... cp1252ToUtf8(payload))` |
+  | `freadln` | line 1091 — `arg0.SetArrayData(Encoding.GetBytes(line))` | `setStringValue(... cp1252ToUtf8(data))` |
+  | `shmget`  | line 2136 — `arg0.SetArrayData(data)`               | `setStringValue(... cp1252ToUtf8(value))` |
+
+  Effect: whenever the payload's last byte wasn't already `0x00`, the
+  destination S register grew by one — silently. Anything inside the
+  SGBD that `slen`'d or `scmp`'d the result hit a one-off mismatch.
+
+  Discovered porting BMW NCS coding: `C_S_LESEN` passes because the
+  IPO pre-fills its scratchpad with zeros so the buffer's last byte
+  is `0x00` and the NUL-append no-ops; `C_S_SCHREIBEN` ships the
+  *actual* coding bytes (last byte `0x0A` on a real GETRIEBEART
+  window), the bug fires, and the SGBD aborts with
+  `JOB_STATUS = "ERROR_BIN_BUFFER"` — purely from the 1-byte skew on
+  the `slen L0, S2; comp L0, 0x16 + wordCount*wortBreite` length
+  check. `freadln` and `shmget` were latent — same shape, no
+  reported reproducer yet — fixed in the same pass to keep the three
+  binary-write call sites consistent with the reference.
+
+  Fix: each opcode now writes through `setBinaryValue` (which routes
+  to `RegisterSet.setSBinary`) so `sLengths[reg]` equals
+  `payload.length` exactly — same `SetArrayData` semantics the C#
+  reference has. `pars` (which legitimately wants the NUL-append) is
+  unchanged.
+
+  Regression coverage in `parameters.spec.ts` (five cases — both
+  zero- and non-zero-tailed payloads, terminator-style payloads, the
+  real NCS coding write packet, and the `Z`-flag on empty payloads),
+  `file.spec.ts` and `shared-memory.spec.ts` (added byte-length
+  asserts for non-zero-tailed payloads + the missing-key /
+  EOF length-0 cases).
+
+  (`@emdzej/ediabasx-interpreter`)
+
 ## [0.2.4] — 2026-05-21
 
 ### Added
