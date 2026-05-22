@@ -12,37 +12,43 @@
 import { type PrgFile, parsePrg } from "@emdzej/ediabasx-best-parser";
 import { type PickedFile, readFileBytes } from "./files";
 import { loadConfig, type WebConfig } from "./config";
+import type { EdiabasxInstall } from "./sgbd-install";
 
-export type View = "files" | "wizard" | "jobs";
+export type View =
+  | "picker"        // welcome screen — pick install folder
+  | "browse";       // sidebar + detail layout
 
 interface AppState {
   view: View;
-  pickedFiles: PickedFile[];
+  /** The discovered BMW Standard Tools install — null until the picker runs. */
+  install: EdiabasxInstall | null;
+  /** Currently-loaded PRG, populated when the user picks a file from the sidebar. */
   prg: PrgFile | null;
   prgBuffer: Uint8Array | null;
   loadedFile: PickedFile | null;
   loadError: string | null;
   config: WebConfig;
   showAbout: boolean;
+  showSettings: boolean;
+  /** Toast-style error surfaced from background tasks (install discovery, etc.). */
+  error: string | null;
 }
 
 export const state = $state<AppState>({
-  view: "files",
-  pickedFiles: [],
+  view: "picker",
+  install: null,
   prg: null,
   prgBuffer: null,
   loadedFile: null,
   loadError: null,
   config: loadConfig(),
   showAbout: false,
+  showSettings: false,
+  error: null,
 });
 
 export function goto(view: View): void {
   state.view = view;
-}
-
-export function setPickedFiles(files: PickedFile[]): void {
-  state.pickedFiles = files;
 }
 
 export async function loadSgbd(picked: PickedFile): Promise<void> {
@@ -53,7 +59,6 @@ export async function loadSgbd(picked: PickedFile): Promise<void> {
     state.prg = prg;
     state.prgBuffer = bytes;
     state.loadedFile = picked;
-    state.view = "jobs";
   } catch (error) {
     state.prg = null;
     state.prgBuffer = null;
