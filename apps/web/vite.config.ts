@@ -1,8 +1,20 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Surface package.json version in the app UI without bundling the whole manifest. Vite's
+// `define` replaces the identifier at build time, so the production bundle just contains
+// the string literal. Mirrors the ncsx-web pattern.
+const pkg = JSON.parse(
+  readFileSync(fileURLToPath(new URL("./package.json", import.meta.url)), "utf8"),
+) as { version: string };
+
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   plugins: [
     svelte(),
     // PWA — generates a Web App Manifest, registers a service worker

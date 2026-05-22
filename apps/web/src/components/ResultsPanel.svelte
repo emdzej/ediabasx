@@ -22,12 +22,12 @@
 </script>
 
 {#if runtime.results || runtime.errorMessage}
-  <section class="flex flex-col gap-2 border-t border-zinc-800 p-3">
+  <section class="flex flex-col gap-2 border-t border-divider p-3">
     <header class="flex items-center justify-between">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-muted">
         {runtime.errorMessage ? "Error" : "Results"}
         {#if runtime.resultsJobName}
-          <span class="ml-2 font-normal normal-case text-zinc-500">
+          <span class="ml-2 font-normal normal-case text-faint">
             · {runtime.resultsJobName}
             {#if runtime.resultsExecMs !== null}
               · {runtime.resultsExecMs} ms
@@ -37,7 +37,7 @@
       </h3>
       <button
         type="button"
-        class="text-xs text-zinc-500 hover:text-zinc-300"
+        class="text-xs text-faint hover:text-muted"
         onclick={clearResults}
       >
         Clear
@@ -54,31 +54,31 @@
       <div class="flex flex-col gap-2">
         {#each nonEmptySets as set, setIndex (setIndex)}
           <details
-            class="rounded border border-zinc-800 bg-zinc-900/40"
+            class="rounded border border-divider bg-surface/40"
             open={nonEmptySets.length === 1 || setIndex < 3}
           >
             <summary class="cursor-pointer select-none px-3 py-1.5 text-xs">
               <span class="font-bold text-accent">
                 Set {setIndex + 1}/{nonEmptySets.length}
               </span>
-              <span class="ml-2 text-zinc-500">
+              <span class="ml-2 text-faint">
                 {set.length} result{set.length === 1 ? "" : "s"}
               </span>
             </summary>
             <table class="w-full border-collapse text-xs">
-              <thead class="bg-zinc-900">
+              <thead class="bg-surface">
                 <tr>
-                  <th class="border-y border-zinc-800 px-3 py-1.5 text-left font-bold text-zinc-300">Name</th>
-                  <th class="border-y border-zinc-800 px-3 py-1.5 text-left font-bold text-zinc-300">Type</th>
-                  <th class="border-y border-zinc-800 px-3 py-1.5 text-left font-bold text-zinc-300">Value</th>
+                  <th class="border-y border-divider px-3 py-1.5 text-left font-bold text-muted">Name</th>
+                  <th class="border-y border-divider px-3 py-1.5 text-left font-bold text-muted">Type</th>
+                  <th class="border-y border-divider px-3 py-1.5 text-left font-bold text-muted">Value</th>
                 </tr>
               </thead>
               <tbody>
                 {#each set as result, i (i)}
-                  <tr class="hover:bg-zinc-900">
-                    <td class="border-b border-zinc-900 px-3 py-1 text-zinc-200">{result.name}</td>
-                    <td class="border-b border-zinc-900 px-3 py-1 text-zinc-500">{result.type}</td>
-                    <td class="border-b border-zinc-900 px-3 py-1 font-mono text-zinc-300">{formatValue(result.value)}</td>
+                  <tr class="hover:bg-surface">
+                    <td class="border-b border-divider px-3 py-1 text-foreground">{result.name}</td>
+                    <td class="border-b border-divider px-3 py-1 text-faint">{result.type}</td>
+                    <td class="border-b border-divider px-3 py-1 font-mono text-muted">{formatValue(result.value)}</td>
                   </tr>
                 {/each}
               </tbody>
@@ -87,7 +87,7 @@
         {/each}
       </div>
     {:else if runtime.results && !runtime.errorMessage}
-      <div class="rounded border border-zinc-800 bg-zinc-900/40 p-3 text-xs text-zinc-500">
+      <div class="rounded border border-divider bg-surface/40 p-3 text-xs text-faint">
         Job emitted no results.
       </div>
     {/if}

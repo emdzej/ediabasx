@@ -23,6 +23,7 @@ interface AppState {
   loadedFile: PickedFile | null;
   loadError: string | null;
   config: WebConfig;
+  showAbout: boolean;
 }
 
 export const state = $state<AppState>({
@@ -33,6 +34,7 @@ export const state = $state<AppState>({
   loadedFile: null,
   loadError: null,
   config: loadConfig(),
+  showAbout: false,
 });
 
 export function goto(view: View): void {

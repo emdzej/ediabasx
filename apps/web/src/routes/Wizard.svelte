@@ -87,11 +87,11 @@
   <div class="mx-auto flex w-full max-w-2xl flex-col gap-6 p-6">
     <header class="flex items-baseline justify-between gap-4">
       <div>
-        <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-400">Configuration</h2>
-        <p class="mt-2 text-sm text-zinc-400">
-          Settings persist in <code class="text-zinc-300">localStorage</code> and are
+        <h2 class="text-sm font-bold uppercase tracking-wider text-muted">Configuration</h2>
+        <p class="mt-2 text-sm text-muted">
+          Settings persist in <code class="text-muted">localStorage</code> and are
           used when you wire up a hardware run in a future release. Equivalent to the
-          CLI's <code class="text-zinc-300">ediabasx configure</code>.
+          CLI's <code class="text-muted">ediabasx configure</code>.
         </p>
       </div>
       {#if savedLabel}
@@ -100,15 +100,15 @@
     </header>
 
     <fieldset class="flex flex-col gap-2">
-      <legend class="text-xs font-bold uppercase tracking-wider text-zinc-500">
+      <legend class="text-xs font-bold uppercase tracking-wider text-faint">
         Interface
       </legend>
       <div class="flex flex-col gap-2">
         {#each interfaceOptions as option (option.value)}
           <label
-            class="flex cursor-pointer items-start gap-3 rounded border bg-zinc-900 p-3 hover:border-zinc-700"
+            class="flex cursor-pointer items-start gap-3 rounded border bg-surface p-3 hover:border-rule"
             class:border-accent={app.config.interface === option.value}
-            class:border-zinc-800={app.config.interface !== option.value}
+            class:border-divider={app.config.interface !== option.value}
           >
             <input
               type="radio"
@@ -118,8 +118,8 @@
               class="mt-1 accent-accent"
             />
             <div class="flex flex-col">
-              <span class="text-sm text-zinc-200">{option.label}</span>
-              <span class="text-xs text-zinc-500">{option.help}</span>
+              <span class="text-sm text-foreground">{option.label}</span>
+              <span class="text-xs text-faint">{option.help}</span>
             </div>
           </label>
         {/each}
@@ -134,21 +134,21 @@
 
     {#if app.config.interface === "webserial"}
       <fieldset class="grid grid-cols-2 gap-3">
-        <legend class="col-span-2 text-xs font-bold uppercase tracking-wider text-zinc-500">
+        <legend class="col-span-2 text-xs font-bold uppercase tracking-wider text-faint">
           Serial / K-line
         </legend>
-        <label class="flex flex-col gap-1 text-xs text-zinc-400">
+        <label class="flex flex-col gap-1 text-xs text-muted">
           Baud rate
           <input
             type="number"
-            class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-zinc-200 focus:border-accent focus:outline-none"
+            class="rounded border border-divider bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
             bind:value={app.config.serial!.baudRate}
           />
         </label>
-        <label class="flex flex-col gap-1 text-xs text-zinc-400">
+        <label class="flex flex-col gap-1 text-xs text-muted">
           Protocol
           <select
-            class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-zinc-200 focus:border-accent focus:outline-none"
+            class="rounded border border-divider bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
             bind:value={app.config.serial!.protocol}
           >
             <option value="kwp">KWP2000 (K-line)</option>
@@ -157,20 +157,20 @@
             <option value="tp20">TP2.0 (VAG)</option>
           </select>
         </label>
-        <label class="flex flex-col gap-1 text-xs text-zinc-400">
+        <label class="flex flex-col gap-1 text-xs text-muted">
           Data bits
           <select
-            class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-zinc-200 focus:border-accent focus:outline-none"
+            class="rounded border border-divider bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
             bind:value={app.config.serial!.dataBits}
           >
             <option value={8}>8</option>
             <option value={7}>7</option>
           </select>
         </label>
-        <label class="flex flex-col gap-1 text-xs text-zinc-400">
+        <label class="flex flex-col gap-1 text-xs text-muted">
           Parity
           <select
-            class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-zinc-200 focus:border-accent focus:outline-none"
+            class="rounded border border-divider bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
             bind:value={app.config.serial!.parity}
           >
             <option value="none">none</option>
@@ -178,20 +178,20 @@
             <option value="odd">odd</option>
           </select>
         </label>
-        <label class="flex flex-col gap-1 text-xs text-zinc-400">
+        <label class="flex flex-col gap-1 text-xs text-muted">
           Stop bits
           <select
-            class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-zinc-200 focus:border-accent focus:outline-none"
+            class="rounded border border-divider bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
             bind:value={app.config.serial!.stopBits}
           >
             <option value={1}>1</option>
             <option value={2}>2</option>
           </select>
         </label>
-        <label class="flex flex-col gap-1 text-xs text-zinc-400">
+        <label class="flex flex-col gap-1 text-xs text-muted">
           Init mode
           <select
-            class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-zinc-200 focus:border-accent focus:outline-none"
+            class="rounded border border-divider bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
             bind:value={app.config.serial!.initMode}
           >
             <option value="fast">fast</option>
@@ -199,30 +199,30 @@
           </select>
         </label>
         {#if app.config.serial!.protocol === "isotp"}
-          <label class="flex flex-col gap-1 text-xs text-zinc-400">
+          <label class="flex flex-col gap-1 text-xs text-muted">
             Tester CAN ID
             <input
               type="text"
               placeholder="0x7E0"
-              class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-zinc-200 focus:border-accent focus:outline-none"
+              class="rounded border border-divider bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
               bind:value={app.config.serial!.testerCanId}
             />
           </label>
-          <label class="flex flex-col gap-1 text-xs text-zinc-400">
+          <label class="flex flex-col gap-1 text-xs text-muted">
             ECU CAN ID
             <input
               type="text"
               placeholder="0x7E8"
-              class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-zinc-200 focus:border-accent focus:outline-none"
+              class="rounded border border-divider bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
               bind:value={app.config.serial!.ecuCanId}
             />
           </label>
         {/if}
-        <label class="col-span-2 flex flex-col gap-1 text-xs text-zinc-400">
+        <label class="col-span-2 flex flex-col gap-1 text-xs text-muted">
           Timeout (ms)
           <input
             type="number"
-            class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 text-sm text-zinc-200 focus:border-accent focus:outline-none"
+            class="rounded border border-divider bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
             bind:value={app.config.serial!.timeoutMs}
           />
         </label>
@@ -231,10 +231,10 @@
 
     {#if app.config.interface === "gateway"}
       <fieldset class="flex flex-col gap-3">
-        <legend class="text-xs font-bold uppercase tracking-wider text-zinc-500">
+        <legend class="text-xs font-bold uppercase tracking-wider text-faint">
           Gateway · WebSocket URL
         </legend>
-        <label class="flex flex-col gap-1 text-xs text-zinc-400">
+        <label class="flex flex-col gap-1 text-xs text-muted">
           URL
           <input
             type="url"
@@ -242,25 +242,25 @@
             spellcheck="false"
             autocapitalize="off"
             autocomplete="off"
-            class="rounded border border-zinc-800 bg-zinc-900 px-2 py-1 font-mono text-sm text-zinc-200 focus:border-accent focus:outline-none"
+            class="rounded border border-divider bg-surface px-2 py-1 font-mono text-sm text-foreground focus:border-accent focus:outline-none"
             bind:value={app.config.gateway!.url}
           />
-          <span class="text-zinc-500">
-            Use <code class="text-zinc-400">ws://host:port</code> for a plain
-            local gateway, or <code class="text-zinc-400">wss://…</code> when
+          <span class="text-faint">
+            Use <code class="text-muted">ws://host:port</code> for a plain
+            local gateway, or <code class="text-muted">wss://…</code> when
             it's behind TLS / a reverse proxy. Default CLI port is
-            <code class="text-zinc-400">6801</code>.
+            <code class="text-muted">6801</code>.
           </span>
         </label>
-        <div class="rounded border border-zinc-800 bg-zinc-900/60 p-3 text-xs text-zinc-400">
-          <p class="mb-1 text-zinc-300">Run this on the machine with the cable:</p>
-          <pre class="overflow-auto whitespace-pre text-zinc-400"><code
+        <div class="rounded border border-divider bg-surface/60 p-3 text-xs text-muted">
+          <p class="mb-1 text-muted">Run this on the machine with the cable:</p>
+          <pre class="overflow-auto whitespace-pre text-muted"><code
             >ediabasx gateway --transport websocket \
   --interface kdcan --serial-port /dev/ttyUSB0</code></pre>
           <p class="mt-2">
-            The gateway forwards <code class="text-zinc-300">setCommParameter</code>,
-            <code class="text-zinc-300">setAnswerLength</code>, <code class="text-zinc-300">transmitData</code>, and the rest
-            of the BEST2 surface so <code class="text-zinc-300">INITIALISIERUNG</code>
+            The gateway forwards <code class="text-muted">setCommParameter</code>,
+            <code class="text-muted">setAnswerLength</code>, <code class="text-muted">transmitData</code>, and the rest
+            of the BEST2 surface so <code class="text-muted">INITIALISIERUNG</code>
             runs transparently from the browser.
           </p>
         </div>
@@ -278,21 +278,21 @@
     <footer class="flex items-center gap-3">
       <button
         type="button"
-        class="rounded border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:border-zinc-500"
+        class="rounded border border-rule px-4 py-2 text-sm text-muted hover:border-accent"
         onclick={reset}
       >
         Reset to defaults
       </button>
-      <span class="text-xs text-zinc-500">
-        Changes auto-save to <code class="text-zinc-400">localStorage</code>.
+      <span class="text-xs text-faint">
+        Changes auto-save to <code class="text-muted">localStorage</code>.
       </span>
     </footer>
 
-    <details class="rounded border border-zinc-800 bg-zinc-900/40 p-3 text-xs">
-      <summary class="cursor-pointer select-none text-zinc-400">
+    <details class="rounded border border-divider bg-surface/40 p-3 text-xs">
+      <summary class="cursor-pointer select-none text-muted">
         Stored configuration (live preview)
       </summary>
-      <pre class="mt-2 overflow-auto whitespace-pre-wrap text-zinc-400">{configJson}</pre>
+      <pre class="mt-2 overflow-auto whitespace-pre-wrap text-muted">{configJson}</pre>
     </details>
   </div>
 </div>
