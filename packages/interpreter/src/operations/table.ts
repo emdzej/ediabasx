@@ -6,7 +6,6 @@
  */
 
 import type { PrgTable } from "@emdzej/ediabasx-best-parser";
-import { EdiabasError, EdiabasErrorCodes } from "@emdzej/ediabasx-core";
 import { RegisterSet } from "../registers";
 import { Flags } from "../flags";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
@@ -103,18 +102,26 @@ export function tabseek(
   columnName: string,
   searchValue: string
 ): void {
+  // Soft error on no-active-table — matches C# `OpTabseek` (EdOperations.cs:
+  // `if (ediabas._tableIndex < 0) { SetError(BIP_0010); return; }`). BEST/2
+  // programs continue past a failed tabseek and typically branch on the Z
+  // flag or test the error state explicitly; throwing here aborts SGBDs that
+  // tabset a non-existent table then assume the IPO will handle the miss
+  // (e.g. KMB46R's `STATUS_AIF_SIA_DATEN_LESEN` post-coding status read).
+  // Setting Z=true and rowIndex=-1 mirrors our existing convention while
+  // matching C#'s "let the program continue" semantics.
   const table = state.activeTable;
   if (!table) {
     state.rowIndex = -1;
     flags.z = true;
-    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, "tabseek: no active table");
+    return;
   }
 
   const columnIndex = getColumnIndex(table, columnName);
   if (columnIndex < 0) {
     state.rowIndex = -1;
     flags.z = true;
-    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, `tabseek: unknown column ${columnName}`);
+    return;
   }
 
   const searchUpper = searchValue.toUpperCase();
@@ -138,18 +145,20 @@ export function tabseeku(
   columnName: string,
   searchValue: number
 ): void {
+  // Soft error path — see comment on `tabseek` above. C# `OpTabseeku`
+  // takes the same `if (_tableIndex < 0) SetError + return` branch.
   const table = state.activeTable;
   if (!table) {
     state.rowIndex = -1;
     flags.z = true;
-    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, "tabseeku: no active table");
+    return;
   }
 
   const columnIndex = getColumnIndex(table, columnName);
   if (columnIndex < 0) {
     state.rowIndex = -1;
     flags.z = true;
-    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, `tabseeku: unknown column ${columnName}`);
+    return;
   }
 
   const searchNumber = searchValue >>> 0;
@@ -174,9 +183,14 @@ export function tabget(
   destination: StringRegisterRef,
   columnName: string
 ): void {
+  // Soft error path — matches C# `OpTabget` (EdOperations.cs:
+  // `if (_tableIndex < 0) { SetError(BIP_0010); return; }`). Same
+  // reasoning as `tabseek`: BEST/2 programs may probe tables that
+  // weren't loaded and expect tabget to "fail silently"; throwing
+  // here aborts the SGBD.
   const table = state.activeTable;
   if (!table) {
-    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, "tabget: no active table");
+    return;
   }
 
   const columnIndex = getColumnIndex(table, columnName);
@@ -189,11 +203,15 @@ export function tabget(
   }
 
   if (columnIndex < 0) {
-    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, `tabget: unknown column ${columnName}`);
+    // Column missing → soft error (return without setting destination).
+    // C# `OpTabget` falls through to `SetError(BIP_0010); return;` in
+    // this case via the `entry == null` branch.
+    return;
   }
 
   if (state.rowIndex < 0 || state.rowIndex >= table.rows) {
-    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, "tabget: row out of range");
+    // Row out of range → soft error (same as C#).
+    return;
   }
 
   const dataRowIndex = state.rowIndex + 1;
@@ -236,11 +254,13 @@ export function tabline(
   state: TableState,
   line: number
 ): void {
+  // Soft error — matches C# `OpTabline` (EdOperations.cs:
+  // `if (_tableIndex < 0) SetError + return`).
   const table = state.activeTable;
   if (!table) {
     state.rowIndex = -1;
     flags.z = true;
-    throw new EdiabasError(EdiabasErrorCodes.EDIABAS_BIP_0010, "tabline: no active table");
+    return;
   }
 
   if (line >= table.rows) {

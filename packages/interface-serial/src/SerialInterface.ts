@@ -595,7 +595,24 @@ export class SerialInterface extends EdiabasInterface {
         throw new Error(`DS2: comm parameter array too short (${parameters.length} < 8)`);
       }
       const baudRate = parameters[1] || 9600;
-      const timeoutStdMs = parameters[5] || this.config.timeoutMs;
+      // Optional floor for ParTimeoutStd. Some BMW SGBDs leave the
+      // standard response timeout at its default (~500 ms) even for
+      // flash-write / chassis-stamp class operations that the real ECU
+      // can take seconds to acknowledge — and the timeout error then
+      // looks like a transport failure rather than "ECU still busy".
+      // Setting `EDIABASX_TIMEOUT_STD_MIN_MS` raises the floor without
+      // touching the SGBD bytecode; Math.max keeps the original value
+      // when the SGBD asked for a longer timeout itself.
+      //
+      // Browser-side this is a no-op (process is undefined under Vite
+      // unless a polyfill is shipped). Node-only escape hatch.
+      const envFloorRaw =
+        typeof process !== "undefined" && process.env?.EDIABASX_TIMEOUT_STD_MIN_MS
+          ? Number.parseInt(process.env.EDIABASX_TIMEOUT_STD_MIN_MS, 10)
+          : NaN;
+      const envFloor = Number.isFinite(envFloorRaw) && envFloorRaw > 0 ? envFloorRaw : 0;
+      const requestedTimeoutStdMs = parameters[5] || this.config.timeoutMs;
+      const timeoutStdMs = Math.max(requestedTimeoutStdMs, envFloor);
       const regenTimeMs = parameters[6] || 0;
       const telegramEndTimeoutMs = parameters[7] || this.config.telegramEndTimeoutMs;
       const interByteTimeMs = parameters.length >= 9 ? parameters[8] : 0;

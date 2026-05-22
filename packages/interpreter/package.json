@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-interpreter",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "BEST2 virtual machine: registers, flags, stacks, 184 opcodes, result sets — a TypeScript port of EdiabasLib`s C# core.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

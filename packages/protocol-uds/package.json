@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-protocol-uds",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "UDS (ISO 14229) service identifiers, NRCs, and ISO-TP framing helpers.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

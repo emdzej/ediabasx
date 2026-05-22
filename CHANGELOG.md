@@ -4,6 +4,57 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.2.7] — 2026-05-22
+
+### Fixed
+
+- **Table ops (`tabseek`, `tabseeku`, `tabget`, `tabline`) no longer
+  throw on the "no active table" / "unknown column" paths — they're
+  soft errors now, matching C# `EdiabasLib`.** Before, a SGBD that
+  tab`set`'d a non-existent table (or seeked a column the table
+  doesn't carry) had its whole `executeJob` aborted with an
+  `EdiabasError`; the BEST/2 program never got a chance to branch on
+  the `Z` flag or test the error state. C#'s `OpTabseek` (and family)
+  do `SetError(EDIABAS_BIP_0010); return;` instead, letting the
+  program flow continue past the failed lookup. Our impl now mirrors
+  that — sets `flags.z = true` and `state.rowIndex = -1` on the error
+  paths and returns rather than throwing.
+
+  Anchor: BMW E46 `C_KMB46.prg::STATUS_AIF_SIA_DATEN_LESEN` tabset's
+  a status-data table that isn't loaded in some chassis variants and
+  then tabseeks it. C# silently accumulates the error and lets the
+  job emit whatever `ergs` / `ergi` calls follow; we aborted the
+  whole job, surfacing as `EdiabasError: tabseek: no active table`
+  in the host log and a misleading "Write failed" toast in the IPO
+  consumer (`ncsx-web`'s SG_CODIEREN flow).
+
+  Verified against `EdOperations.cs` in the C# EdiabasLib reference:
+  `OpTabseek`, `OpTabseeku`, `OpTabget`, `OpTabline` all follow the
+  same `if (_tableIndex < 0) { SetError(BIP_0010); return; }`
+  pattern. The four corresponding paths in
+  `packages/interpreter/src/operations/table.ts` now do too.
+
+  (`@emdzej/ediabasx-interpreter`)
+
+### Added
+
+- **`EDIABASX_TIMEOUT_STD_MIN_MS` env var — floor for `ParTimeoutStd`.**
+  Some BMW SGBDs leave the standard response timeout at its default
+  (~500 ms) even for flash-write / chassis-stamp class operations
+  the real ECU can take seconds to acknowledge — the timeout error
+  then looks like a transport failure rather than "ECU still busy".
+  Setting `EDIABASX_TIMEOUT_STD_MIN_MS=5000` (or higher) raises the
+  floor in `SerialInterface.setCommParameter` without touching the
+  SGBD bytecode; `Math.max(parameters[5], envFloor)` preserves any
+  higher value the SGBD itself requested.
+
+  Browser-side this is a no-op (`process` undefined under Vite
+  unless a polyfill is shipped). Node-only escape hatch — primary
+  use case is diagnosing slow flash-write paths from the
+  `ediabasx run` CLI without recompiling the SGBD.
+
+  (`@emdzej/ediabasx-interface-serial`)
+
 ## [0.2.6] — 2026-05-22
 
 ### Fixed
