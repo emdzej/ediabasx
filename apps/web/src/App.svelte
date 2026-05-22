@@ -4,6 +4,8 @@
   import SgbdSidebar from "./components/SgbdSidebar.svelte";
   import Jobs from "./routes/Jobs.svelte";
   import AboutDialog from "./components/AboutDialog.svelte";
+  import SettingsDialog from "./components/SettingsDialog.svelte";
+  import ConnectButton from "./components/ConnectButton.svelte";
 </script>
 
 <div class="flex h-full flex-col">
@@ -63,6 +65,14 @@
           · {app.prg?.jobs.length ?? 0} jobs · {app.prg?.tables.length ?? 0} tables
         </span>
       {/if}
+      <button
+        class="rounded border border-divider bg-surface px-2 py-0.5 text-xs text-muted transition hover:border-accent hover:bg-elevated"
+        onclick={() => (app.showSettings = true)}
+        title="Configure interface, serial parameters, gateway URL"
+      >
+        Settings
+      </button>
+      <ConnectButton />
     </div>
   </header>
 
@@ -92,4 +102,5 @@
   </main>
 </div>
 
+<SettingsDialog />
 <AboutDialog />

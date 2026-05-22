@@ -5,14 +5,7 @@
     type PrgJob,
   } from "@emdzej/ediabasx-best-parser";
   import { state as app } from "../lib/app.svelte";
-  import {
-    runtime,
-    connect,
-    disconnect,
-    runJob,
-    isWebSerialSupported,
-  } from "../lib/runtime.svelte";
-  import StatusPill from "../components/StatusPill.svelte";
+  import { runtime, runJob, isWebSerialSupported } from "../lib/runtime.svelte";
   import ResultsPanel from "../components/ResultsPanel.svelte";
 
   // Local UI state — disassembly toggle, search filter, args input.
@@ -98,55 +91,30 @@
     !!selectedJob && runtime.phase === "connected" && !runtime.isRunning
   );
 
-  const interfaceLabel = $derived.by(() => {
-    if (app.config.interface === "webserial") return "Web Serial";
-    if (app.config.interface === "gateway") return "Gateway (WebSocket)";
-    return app.config.interface;
-  });
 </script>
 
 <div class="flex h-full min-h-0 flex-col">
   {#if !app.prg}
     <div class="flex flex-1 items-center justify-center text-sm text-faint">
-      No SGBD loaded — pick a file under the <strong class="text-muted">Files</strong> tab.
+      No SGBD loaded — pick a file from the sidebar.
     </div>
   {:else}
-    <!-- Top bar: search + connection controls + status pill -->
-    <header class="flex flex-wrap items-center gap-3 border-b border-divider px-4 py-2">
+    <!-- Top bar: filter + count. Connect/disconnect lives in the App
+         top bar now, so this header just carries the per-job filter. -->
+    <header class="flex flex-wrap items-center gap-3 border-b border-divider bg-surface px-4 py-2">
       <input
         type="search"
         placeholder="Filter jobs…"
-        class="w-64 rounded border border-divider bg-surface px-2 py-1 text-xs text-foreground focus:border-accent focus:outline-none"
+        class="w-64 rounded border border-divider bg-base px-2 py-1 text-xs text-foreground focus:border-accent focus:outline-none"
         bind:value={searchQuery}
       />
       <span class="text-xs text-faint">{filteredJobs.length} / {app.prg.jobs.length}</span>
-      <div class="ml-auto flex items-center gap-2">
-        <StatusPill />
-        {#if runtime.phase === "connected"}
-          <button
-            type="button"
-            class="rounded border border-rule px-3 py-1 text-xs text-muted hover:border-accent"
-            onclick={disconnect}
-          >
-            Disconnect
-          </button>
-        {:else}
-          <button
-            type="button"
-            class="rounded bg-accent-muted px-3 py-1 text-xs font-medium text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={runtime.phase === "connecting" ||
-              (app.config.interface === "webserial" && !isWebSerialSupported())}
-            onclick={connect}
-          >
-            Connect · {interfaceLabel}
-          </button>
-        {/if}
-      </div>
     </header>
 
     {#if app.config.interface === "webserial" && !isWebSerialSupported()}
-      <div class="border-b border-amber-900 bg-amber-950 px-4 py-2 text-xs text-amber-200">
-        <code>navigator.serial</code> isn't available. Use Chrome, Edge or Opera on desktop, or switch to Simulation under <strong>2. Configure</strong>.
+      <div class="border-b border-amber-500/40 bg-amber-500/10 px-4 py-2 text-xs text-amber-700 dark:text-amber-300">
+        <code>navigator.serial</code> isn't available. Use Chrome, Edge,
+        Opera, or Brave on desktop — or switch to Gateway in Settings.
       </div>
     {/if}
 
