@@ -42,7 +42,7 @@ export default defineConfig({
         name: "EdiabasX",
         short_name: "EdiabasX",
         description:
-          "Browser SPA for EdiabasX — parse BMW SGBD files, configure interfaces, run jobs against a live ECU via Web Serial.",
+          "Browser SPA for EdiabasX — parse BMW SGBD files and run jobs against a live ECU via Web Serial.",
         // Match the in-app accent cyan (#06b6d4) so the splash
         // screen and Android theme bar pick up the brand colour.
         theme_color: "#06b6d4",

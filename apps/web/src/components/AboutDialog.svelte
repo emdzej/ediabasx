@@ -37,8 +37,8 @@
 
       <section class="space-y-3 px-4 py-4 text-sm text-foreground">
         <p class="text-faint">
-          BMW EDIABAS in your browser. Parse SGBD files, configure interfaces, run jobs
-          against a live ECU via Web Serial.
+          BMW EDIABAS in your browser. Parse SGBD files and run jobs against a
+          live ECU via Web Serial.
         </p>
 
         <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded border border-divider bg-base p-3 text-xs">

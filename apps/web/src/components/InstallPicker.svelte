@@ -85,8 +85,8 @@
       <span class="text-foreground">EDIABAS</span><span class="text-accent">X</span>
     </h1>
     <p class="mt-2 text-muted">
-      BMW EDIABAS in your browser. Parse SGBD files, configure interfaces, run jobs
-      against a live ECU over Web Serial.
+      BMW EDIABAS in your browser. Parse SGBD files and run jobs against a
+      live ECU over Web Serial.
     </p>
     <p class="mt-3 flex items-center justify-center gap-2 text-xs text-faint">
       <a
