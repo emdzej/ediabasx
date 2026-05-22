@@ -13,25 +13,6 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
     <meta name="theme-color" content="#06b6d4" />
     <meta name="description" content="Browser SPA for EDIABASX — parse BMW SGBD files, configure interfaces, run jobs against a live ECU via Web Serial." />
-    <!-- Apply the OS dark-mode preference before Svelte mounts so the
-         page doesn't flash light-then-dark on load. The boot script is
-         intentionally inline + try/catched so a missing matchMedia API
-         (older browsers / strict CSP) can't break startup. Mirrors the
-         ncsx-web / inpax-web pattern. -->
-    <script>
-      (function () {
-        try {
-          if (
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches
-          ) {
-            document.documentElement.classList.add("dark");
-          }
-        } catch (_) {
-          /* ignore */
-        }
-      })();
-    </script>
   </head>
   <body class="h-full bg-base font-mono text-foreground">
     <div id="app" class="h-full"></div>

@@ -6,6 +6,7 @@
     saveInstallHandle,
   } from "../lib/install-storage";
   import { discoverEdiabasxInstall } from "../lib/sgbd-install";
+  import { settings, setTheme, type ThemeChoice } from "../lib/settings.svelte";
 
   /**
    * Persist on every config mutation. Writes are tiny; eager flushing
@@ -150,6 +151,37 @@
                 Forget
               </button>
             </div>
+          </div>
+        </div>
+
+        <!-- Theme -->
+        <div>
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-faint">
+            Theme
+          </span>
+          <!--
+            Three-way picker rendered as a segmented control. "System"
+            (default) tracks `prefers-color-scheme`; "Light" / "Dark"
+            pin the page regardless of the OS. Choice persists via the
+            `settings` module; `applyTheme()` flips the `dark` class
+            on <html> on every change.
+          -->
+          <div class="flex gap-0 overflow-hidden rounded border border-rule">
+            {#each ["light", "dark", "system"] as choice (choice)}
+              {@const active = settings.theme === choice}
+              <button
+                type="button"
+                class="flex-1 px-3 py-1 text-xs transition"
+                class:bg-accent={active}
+                class:text-zinc-950={active}
+                class:font-semibold={active}
+                class:text-muted={!active}
+                class:hover:bg-elevated={!active}
+                onclick={() => setTheme(choice as ThemeChoice)}
+              >
+                {choice[0]!.toUpperCase() + choice.slice(1)}
+              </button>
+            {/each}
           </div>
         </div>
 

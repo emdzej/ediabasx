@@ -126,9 +126,12 @@
             <li>
               <button
                 type="button"
-                class="block w-full truncate px-3 py-1.5 text-left text-sm transition-colors"
-                class:bg-accent-muted={selectedName === job.name}
+                class="block w-full truncate border-l-2 px-3 py-1.5 text-left text-sm transition-colors"
+                class:border-accent={selectedName === job.name}
+                class:bg-elevated={selectedName === job.name}
+                class:font-semibold={selectedName === job.name}
                 class:text-foreground={selectedName === job.name}
+                class:border-transparent={selectedName !== job.name}
                 class:text-muted={selectedName !== job.name}
                 class:hover:bg-surface={selectedName !== job.name}
                 onclick={() => (selectedName = job.name)}
@@ -165,7 +168,7 @@
                 </button>
                 <button
                   type="button"
-                  class="rounded bg-accent-muted px-3 py-1 text-xs font-medium text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+                  class="rounded bg-accent px-3 py-1 text-xs font-medium text-zinc-950 transition hover:bg-accent-muted hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={!canRun}
                   onclick={onRunClick}
                 >
