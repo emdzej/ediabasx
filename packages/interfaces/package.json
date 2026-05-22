@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-interfaces",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Factory + JSON-RPC gateway server/client wiring all EdiabasX transports under a single `createInterface(name, opts)` entry point.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-core",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "EDIABAS / EdiabasX shared primitives: CP1252 encoding, XOR decryption (key 0xF7), error codes, type definitions.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

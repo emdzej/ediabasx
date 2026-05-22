@@ -686,6 +686,50 @@ function arithmeticReadModifyWrite(
   if (flagsPatch.c !== undefined) state.flags.c = flagsPatch.c;
 }
 
+/**
+ * Unary sibling of `arithmeticReadModifyWrite` — for single-operand
+ * arithmetic ops (`not` and friends). Mirrors the C# convention that
+ * `OpNot(arg0, arg1)` never reads `arg1`; the JS `(arg0, arg1)`
+ * dispatch signature exists only for table uniformity. Going through
+ * the two-arg helper with a synthetic `{ kind: "none" }` placeholder
+ * tripped `readPolyValue`'s "Cannot read value from operand" throw,
+ * which is exactly what BMW E46 `KOMBI46R.prg::C_CHECKSUM` hit during
+ * NCS Expert's `SG_CODIEREN` flow.
+ */
+function unaryReadModifyWrite(
+  state: InterpreterState,
+  arg0: Operand,
+  compute: (val0: number, len: number) => { result: number; flagsPatch: Partial<Flags> }
+): void {
+  if (arg0.kind === "register" && (arg0.ref.kind === "S" || arg0.ref.kind === "F")) {
+    throw new EdiabasError(
+      EdiabasErrorCodes.REGISTER_ERROR,
+      `Cannot perform arithmetic on ${arg0.ref.kind} register`
+    );
+  }
+  if (arg0.kind !== "register" && arg0.kind !== "indexed") {
+    throw new EdiabasError(
+      EdiabasErrorCodes.INVALID_INSTRUCTION,
+      "Expected register or indexed destination"
+    );
+  }
+
+  const len = Math.max(1, getOperandLen(state, arg0, true));
+  const val0 = readPolyValue(state, arg0, len);
+  const { result, flagsPatch } = compute(val0, len);
+
+  if (arg0.kind === "register") {
+    setIntValue(state.registers, arg0.ref as IntRegisterRef, result);
+  } else {
+    writePolyValue(state, arg0, result, len);
+  }
+
+  if (flagsPatch.z !== undefined) state.flags.z = flagsPatch.z;
+  if (flagsPatch.s !== undefined) state.flags.s = flagsPatch.s;
+  if (flagsPatch.v !== undefined) state.flags.v = flagsPatch.v;
+  if (flagsPatch.c !== undefined) state.flags.c = flagsPatch.c;
+}
+
 function maskForLen(len: number): number {
   return len === 4 ? 0xffffffff : ((1 << (len * 8)) - 1) >>> 0;
 }
@@ -1568,7 +1612,7 @@ export class Interpreter {
       },
       // 0x0a: not - bitwise complement, indexed dest supported.
       0x0a: async (state, arg0) => {
-        arithmeticReadModifyWrite(state, arg0, { kind: "none" } as Operand, (val0, _val1, len) => {
+        unaryReadModifyWrite(state, arg0, (val0, len) => {
           const mask = maskForLen(len);
           const result = (~val0) & mask;
           return { result, flagsPatch: { ...updateZS(result, len), v: false } };

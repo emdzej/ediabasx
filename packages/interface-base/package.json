@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-interface-base",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Abstract communication interface for EDIABAS BEST2 jobs, plus an in-memory simulation transport.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

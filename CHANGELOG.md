@@ -4,6 +4,46 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.2.6] — 2026-05-22
+
+### Fixed
+
+- **`not` opcode (0x0A) no longer throws "Cannot read value from
+  operand".** The unary `not` bytecode op was wired through the
+  shared two-operand `arithmeticReadModifyWrite` helper with a
+  synthetic `{ kind: "none" } as Operand` for `arg1`, and the helper
+  unconditionally called `readPolyValue(state, arg1, len)`.
+  `readPolyValue` had no branch for `kind === "none"` and fell
+  through to its terminal `throw new EdiabasError(INVALID_INSTRUCTION,
+  "Cannot read value from operand")` — every job that hit a `not`
+  aborted with that message.
+
+  Anchor: BMW E46 `KOMBI46R.prg::C_CHECKSUM` runs `not L0` inside its
+  post-coding verify path. NCS Expert's `SG_CODIEREN` flow trips it
+  after the per-chunk `C_S_AUFTRAG` write loop completes — 16
+  successful `C_S_AUFTRAG`s then `C_CHECKSUM` blows up. Earlier
+  release-blocking work (binary-param NUL fix in 0.2.5, slot table
+  seeding, auth flow) all had to land first before this surfaced as
+  the next gate.
+
+  Fix mirrors C# `OpNot` (`EdOperations.cs:1753`) exactly: it touches
+  `arg0` only — the `(arg0, arg1)` signature stays uniform for
+  dispatch but `arg1` is genuinely ignored. The JS port now has a
+  dedicated `unaryReadModifyWrite` helper alongside the binary one
+  (rather than papering over the shape mismatch in `readPolyValue`,
+  which would have left the "binary helper requires two real
+  operands" invariant weaker). Opcode 0x0A is the only unary
+  arithmetic op currently routed through the shared helper, so this
+  is a one-site change.
+
+  Regression: three new tests in `interpreter.spec.ts` execute
+  opcode 0x0A at the bytecode level (not the higher-level `not`
+  helper that already worked) — `not L0` on `0x12345678` with the
+  expected `0xEDCBA987` + Z/S/V flags, `not L0` on `0xFFFFFFFF`
+  setting Z, and `not B0` on `0x0F` exercising the 8-bit width path.
+
+  (`@emdzej/ediabasx-interpreter`)
+
 ## [0.2.5] — 2026-05-21
 
 ### Fixed

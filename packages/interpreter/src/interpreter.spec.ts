@@ -498,9 +498,79 @@ describe("Interpreter", () => {
       const interpreter = new Interpreter(createPrg(code));
       interpreter.start("TEST", { registers });
       await interpreter.step(); // iupdate
-      
+
       const state = interpreter.getState();
       expect(state.progressText).toBe("Loading...");
+    });
+  });
+
+  describe("not (0x0a) — unary opcode regression", () => {
+    // Anchor: KOMBI46R.prg::C_CHECKSUM in BMW NCS Expert's SG_CODIEREN
+    // flow ran `not L0` and ediabasx aborted with
+    // "Cannot read value from operand" — the 0x0A handler routed
+    // through the binary `arithmeticReadModifyWrite` helper with a
+    // synthetic `{ kind: "none" }` placeholder, which `readPolyValue`
+    // rejected. Fix: dedicated `unaryReadModifyWrite` that never
+    // touches arg1, mirroring C# `OpNot` (EdOperations.cs:1753).
+    it("complements an L register in place and updates Z/S/V flags", async () => {
+      // not L0 — addrMode = REG_L<<4 | NONE = 0x40; L0 register byte = 0x18.
+      const code = new Uint8Array([
+        0x0a, 0x40, 0x18, // not L0
+        0x1d, 0x00,       // eoj
+      ]);
+
+      const registers = new RegisterSet();
+      registers.setL(0, 0x12345678);
+
+      const interpreter = new Interpreter(createPrg(code));
+      interpreter.start("TEST", { registers });
+      await interpreter.step(); // not L0
+
+      const state = interpreter.getState();
+      expect(state.registers.l[0]).toBe((~0x12345678) >>> 0); // 0xEDCBA987
+      expect(state.flags.s).toBe(true);   // high bit set
+      expect(state.flags.z).toBe(false);
+      expect(state.flags.v).toBe(false);
+    });
+
+    it("sets Z when the result is zero (input was all-ones)", async () => {
+      const code = new Uint8Array([
+        0x0a, 0x40, 0x18, // not L0
+        0x1d, 0x00,       // eoj
+      ]);
+
+      const registers = new RegisterSet();
+      registers.setL(0, 0xffffffff);
+
+      const interpreter = new Interpreter(createPrg(code));
+      interpreter.start("TEST", { registers });
+      await interpreter.step();
+
+      const state = interpreter.getState();
+      expect(state.registers.l[0]).toBe(0);
+      expect(state.flags.z).toBe(true);
+      expect(state.flags.s).toBe(false);
+      expect(state.flags.v).toBe(false);
+    });
+
+    it("respects the destination's natural width (B0)", async () => {
+      // not B0 — addrMode = REG_AB<<4 | NONE = 0x20; B0 register byte = 0x00.
+      const code = new Uint8Array([
+        0x0a, 0x20, 0x00, // not B0
+        0x1d, 0x00,       // eoj
+      ]);
+
+      const registers = new RegisterSet();
+      registers.setB(0, 0x0f);
+
+      const interpreter = new Interpreter(createPrg(code));
+      interpreter.start("TEST", { registers });
+      await interpreter.step();
+
+      const state = interpreter.getState();
+      expect(state.registers.b[0]).toBe(0xf0); // masked to 8 bits
+      expect(state.flags.s).toBe(true);
+      expect(state.flags.z).toBe(false);
     });
   });
 });
