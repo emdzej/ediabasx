@@ -50,6 +50,13 @@ export const runtime = $state<RuntimeUiState>({
 // Non-reactive — methods would break under a proxy.
 let ediabasInstance: Ediabas | null = null;
 let serialPort: WebSerialPortLike | null = null;
+/**
+ * Relative path of the SGBD currently loaded into `ediabasInstance` (or
+ * `null` if no SGBD has been loaded yet on this instance). Used by
+ * `runJob` to lazy-load / swap when the user picks a different file
+ * from the sidebar without forcing a reconnect.
+ */
+let loadedSgbdName: string | null = null;
 
 function setStatus(phase: ConnectionPhase, message: string): void {
   runtime.phase = phase;
@@ -147,22 +154,23 @@ async function buildEdiabas(): Promise<Ediabas> {
  * fresh Ediabas instance. Idempotent — calling while already connected
  * is a no-op.
  */
+/**
+ * Open the configured interface — Web Serial or remote gateway — and
+ * leave the Ediabas instance ready for `runJob` to lazy-load any
+ * picked SGBD. Decoupled from SGBD selection so the user can connect
+ * first, then browse the sidebar (or vice versa).
+ */
 export async function connect(): Promise<void> {
   if (runtime.phase === "connecting") return;
   if (runtime.phase === "connected" && ediabasInstance) return;
-  if (!app.prgBuffer || !app.loadedFile) {
-    setStatus("error", "No SGBD loaded");
-    runtime.errorMessage = "Pick a PRG/GRP file before connecting.";
-    return;
-  }
 
   setStatus("connecting", "Connecting…");
   runtime.errorMessage = null;
   try {
     const e = await buildEdiabas();
-    e.loadSgbdFromBuffer(app.prgBuffer, app.loadedFile.relativePath);
     await e.connect();
     ediabasInstance = e;
+    loadedSgbdName = null;
     setStatus("connected", formatConnectedStatus());
   } catch (error) {
     ediabasInstance = null;
@@ -186,6 +194,7 @@ export async function disconnect(): Promise<void> {
     // transport, but null the local handle to release any references.
     serialPort = null;
   }
+  loadedSgbdName = null;
   setStatus("disconnected", "Disconnected");
   runtime.errorMessage = null;
 }
@@ -200,6 +209,10 @@ export async function runJob(jobName: string, params: string[] = []): Promise<vo
     runtime.errorMessage = "Not connected — click Connect first.";
     return;
   }
+  if (!app.prgBuffer || !app.loadedFile) {
+    runtime.errorMessage = "Pick a PRG/GRP from the sidebar first.";
+    return;
+  }
   if (runtime.isRunning) return;
 
   runtime.isRunning = true;
@@ -207,6 +220,22 @@ export async function runJob(jobName: string, params: string[] = []): Promise<vo
   runtime.results = null;
   runtime.resultsJobName = jobName;
   runtime.resultsExecMs = null;
+
+  // Lazy-load the SGBD into the Ediabas instance if it changed since
+  // last run (or hasn't been loaded yet on this connection). Means the
+  // user can connect first and pick a file later, or switch files mid-
+  // session without bouncing the transport.
+  const currentName = app.loadedFile.relativePath;
+  if (loadedSgbdName !== currentName) {
+    try {
+      ediabasInstance.loadSgbdFromBuffer(app.prgBuffer, currentName);
+      loadedSgbdName = currentName;
+    } catch (error) {
+      runtime.errorMessage = error instanceof Error ? error.message : String(error);
+      runtime.isRunning = false;
+      return;
+    }
+  }
 
   const startedAt = Date.now();
   try {
