@@ -1,7 +1,7 @@
 import { utf8ToCp1252 } from "@emdzej/ediabasx-core";
 import { RegisterSet } from "../registers";
 import type { IntRegisterRef, StringRegisterRef } from "./register-refs";
-import { getIntValue, getStringValue, setBinaryValue, setIntValue, setStringValue } from "./register-values";
+import { getIntValue, getStringValue, setBinaryValue, setIntValue } from "./register-values";
 import type { Flags } from "../flags";
 
 export type { IntRegisterRef, StringRegisterRef } from "./register-refs";
