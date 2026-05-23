@@ -10,6 +10,9 @@
 export { Ediabas } from "./ediabas.js";
 export type { EdiabasConfig, EdiabasJob, EdiabasJobResult } from "./ediabas.js";
 
+// Logger-category catalogue — consumed by host apps to build Settings UI.
+export { LOG_CATEGORIES } from "./log-categories.js";
+
 // Config schema is just zod definitions / types — safe in browsers.
 export {
   EdiabasConfigFileSchema,

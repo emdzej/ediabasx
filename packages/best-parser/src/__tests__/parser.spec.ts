@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { utf8ToCp1252 } from "@emdzej/ediabasx-core";
-import { getLogger } from "@emdzej/ediabasx-logger";
+import { getLogger } from "@emdzej/bimmerz-logger";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { parsePrg } from "../parser";
 
-const log = getLogger("best-parser.tests");
+const log = getLogger("EDIABASX.best-parser.tests");
 
 function writeUint32LE(view: DataView, offset: number, value: number): void {
   view.setUint32(offset, value, true);

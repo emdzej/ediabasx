@@ -7,11 +7,12 @@
   import { state as app } from "../lib/app.svelte";
   import { runtime, runJob, isWebSerialSupported } from "../lib/runtime.svelte";
   import ResultsPanel from "../components/ResultsPanel.svelte";
+  import RunJobDialog from "../components/RunJobDialog.svelte";
 
-  // Local UI state — disassembly toggle, search filter, args input.
+  // Local UI state — disassembly toggle, search filter, dialog visibility.
   let searchQuery = $state("");
   let showDisassembly = $state(false);
-  let argsInput = $state("");
+  let showRunDialog = $state(false);
 
   // Pre-compute job-name → bytecode-bounds map so disassembleJob can cap
   // each job at its successor's offset (multi-eoj jobs decode in full,
@@ -43,10 +44,6 @@
     if (selectedJob && selectedJob.name !== selectedName) {
       selectedName = selectedJob.name;
     }
-    // Clear argsInput when the selected job changes — the previous job's
-    // args probably don't apply to the new one.
-    void selectedJob?.name;
-    argsInput = "";
   });
 
   // Compute disassembly only when the panel is open, so navigating jobs
@@ -62,29 +59,28 @@
     });
   });
 
-  function parseArgs(value: string): string[] {
-    const trimmed = value.trim();
-    if (!trimmed) return [];
-    return trimmed.includes(",")
-      ? trimmed.split(",").map((s) => s.trim()).filter(Boolean)
-      : trimmed.split(/\s+/).map((s) => s.trim()).filter(Boolean);
-  }
-
-  async function onRunClick(): Promise<void> {
+  /**
+   * Run-click flow:
+   *
+   * - If the selected job declares args, open the modal so the user
+   *   can fill in each field with its proper type (RunJobDialog
+   *   handles string / long / binary parsing).
+   * - If the job is arg-less, dispatch immediately — no point
+   *   popping a modal just to show "this job takes no arguments."
+   */
+  function onRunClick(): void {
     if (!selectedJob) return;
-    const params = parseArgs(argsInput);
-    if (params.length < selectedJob.args.length) {
-      runtime.errorMessage = `Job ${selectedJob.name} expects ${selectedJob.args.length} argument(s); got ${params.length}.`;
+    if (selectedJob.args.length > 0) {
+      showRunDialog = true;
       return;
     }
-    await runJob(selectedJob.name, params);
+    void runJob(selectedJob.name, []);
   }
 
-  function onArgsKeydown(event: KeyboardEvent): void {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      void onRunClick();
-    }
+  async function onDialogRun(params: (string | Uint8Array)[]): Promise<void> {
+    if (!selectedJob) return;
+    showRunDialog = false;
+    await runJob(selectedJob.name, params);
   }
 
   const canRun = $derived(
@@ -164,7 +160,7 @@
                   class="rounded border border-rule px-2 py-1 text-xs text-muted hover:border-accent"
                   onclick={() => (showDisassembly = !showDisassembly)}
                 >
-                  {showDisassembly ? "Hide" : "Show"} disassembly
+                  {showDisassembly ? "Hide assembly" : "Decompile job"}
                 </button>
                 <button
                   type="button"
@@ -178,16 +174,10 @@
             </div>
 
             {#if selectedJob.args.length > 0}
-              <label class="flex flex-col gap-1 text-xs text-muted">
-                Args ({selectedJob.args.map((a) => a.name).join(", ")})
-                <input
-                  type="text"
-                  placeholder="space- or comma-separated"
-                  class="rounded border border-divider bg-surface px-2 py-1 text-xs font-mono text-foreground focus:border-accent focus:outline-none"
-                  bind:value={argsInput}
-                  onkeydown={onArgsKeydown}
-                />
-              </label>
+              <p class="text-xs text-faint">
+                Takes {selectedJob.args.length} argument{selectedJob.args.length === 1 ? "" : "s"} —
+                click <span class="text-muted">Run</span> to fill them in.
+              </p>
             {/if}
           </div>
 
@@ -242,11 +232,11 @@
             </div>
           </details>
 
-          <!-- Disassembly (collapsible) -->
+          <!-- Decompiled job (collapsible) -->
           {#if showDisassembly}
             <div class="flex min-h-0 flex-col border-t border-divider">
               <h3 class="border-b border-divider px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-faint">
-                Bytecode
+                Decompiled
               </h3>
               <pre class="m-0 max-h-[24rem] overflow-auto whitespace-pre px-4 py-2 text-xs leading-snug text-muted">
 {disasmLines.length === 0 ? "(empty)" : disasmLines.join("\n")}
@@ -261,3 +251,11 @@
     </div>
   {/if}
 </div>
+
+<RunJobDialog
+  open={showRunDialog}
+  job={selectedJob}
+  running={runtime.isRunning}
+  onRun={onDialogRun}
+  onClose={() => (showRunDialog = false)}
+/>

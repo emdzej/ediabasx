@@ -88,7 +88,7 @@ export default defineConfig({
       "@emdzej/ediabasx-interface-serial",
       "@emdzej/ediabasx-interfaces/client",
       "@emdzej/ediabasx-interpreter",
-      "@emdzej/ediabasx-logger",
+      "@emdzej/bimmerz-logger",
     ],
   },
   build: {

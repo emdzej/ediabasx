@@ -1,8 +1,10 @@
 import type { Command } from "commander";
 import type { InterfaceOptions } from "@emdzej/ediabasx-interfaces";
+import { configureLogger } from "@emdzej/bimmerz-logger";
 import fs from "node:fs";
 import { parseNumber, parseOptionalNumber } from "./numbers.js";
 import { DEFAULT_CONFIG_PATH, loadConfig } from "./config.js";
+import { resolveLoggerConfig } from "./logger-config.js";
 
 type InterfaceCliOptions = {
   config?: string;
@@ -131,6 +133,23 @@ function resolveInterfaceSelection(options: InterfaceCliOptions, fallback: strin
   // Load config file: explicit path, or auto-detect from default location
   const configPath = options.config ?? (fs.existsSync(DEFAULT_CONFIG_PATH) ? DEFAULT_CONFIG_PATH : undefined);
   const fileConfig = configPath ? loadConfig(configPath) : undefined;
+
+  // Second-pass logger configuration: apply the file's `logging`
+  // section now that we've read it. Env vars (`EDIABASX_LOG_*`) win
+  // when both are present. `index.ts` already ran a first pass with
+  // env vars only, so any logger handles handed out before this point
+  // pick up the merged config instantly (bimmerz-logger handles are
+  // proxies — every `log.debug(...)` call resolves against the live
+  // central config).
+  if (fileConfig?.logging) {
+    configureLogger(
+      resolveLoggerConfig({
+        env: process.env,
+        fileLogging: fileConfig.logging,
+        isTty: process.stdout.isTTY ?? false,
+      }),
+    );
+  }
 
   // CLI flags override config file; config file overrides fallback
   const name = options.interface

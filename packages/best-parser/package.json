@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-best-parser",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "description": "Parser and disassembler for BMW EDIABAS PRG/GRP (BEST2) files.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,8 +9,13 @@
   ],
   "dependencies": {
     "@emdzej/ediabasx-core": "workspace:*",
-    "@emdzej/ediabasx-logger": "workspace:*",
     "chalk": "^5.4.1"
+  },
+  "peerDependencies": {
+    "@emdzej/bimmerz-logger": "^0.1.2"
+  },
+  "devDependencies": {
+    "@emdzej/bimmerz-logger": "^0.1.2"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

@@ -12,13 +12,24 @@ import {
   ParameterSet,
 } from "@emdzej/ediabasx-interpreter";
 import { EdiabasInterface, SimulationInterface } from "@emdzej/ediabasx-interface-base";
-import { getLogger } from "@emdzej/ediabasx-logger";
+import { getLogger } from "@emdzej/bimmerz-logger";
 
 // `fs/promises` and `path` are imported lazily inside `loadSgbd()` so the
 // browser bundler doesn't pull them into the static graph. Consumers that
 // only call `loadSgbdFromBuffer()` (the web app) never touch them.
 
-const log = getLogger("ediabas");
+const log = getLogger("EDIABASX.ediabas");
+// Wire-level tracing is reserved on the `EDIABASX.ediabas.wire`
+// category — once the interface implementations (interface-serial,
+// interface-enet, …) route through bimmerz-logger, every xsend /
+// xrecv / handshake byte flows through there at `trace`. Users opt
+// in via:
+//
+//   EDIABASX_LOG_CATEGORIES="EDIABASX.ediabas.wire=trace"
+//
+// or the equivalent in the `logging.categories` section of the
+// ediabas config file. Replaces the per-instance
+// `Ediabas.config.logging` boolean removed in 0.3.0.
 
 /**
  * Resolve an SGBD path against the on-disk reality. Handles two
@@ -142,8 +153,6 @@ export interface EdiabasConfig {
   simulation?: boolean;
   /** Default timeout in ms */
   timeout?: number;
-  /** Enable debug logging */
-  logging?: boolean;
   /**
    * Optional: read an SGBD by basename. Both `loadSgbd` (initial
    * load) and the internal `.grp → .prg` swap after IDENTIFIKATION
@@ -186,7 +195,7 @@ export interface EdiabasJobResult {
 }
 
 export class Ediabas {
-  private readonly config: EdiabasConfig & { timeout: number; logging: boolean; simulation: boolean };
+  private readonly config: EdiabasConfig & { timeout: number; simulation: boolean };
   private prg: PrgFile | null = null;
   private prgPath: string | null = null;
   private commInterface: EdiabasInterface | null = null;
@@ -232,7 +241,6 @@ export class Ediabas {
       transport: config.transport,
       simulation: config.simulation ?? false,
       timeout: config.timeout ?? 5000,
-      logging: config.logging ?? false,
       loadSgbdResolver: config.loadSgbdResolver,
     };
 
@@ -275,9 +283,7 @@ export class Ediabas {
       try {
         const { bytes, name } = await this.config.loadSgbdResolver(filename);
         this.loadSgbdFromBuffer(bytes, name);
-        if (this.config.logging) {
-          log.info(`Loaded SGBD via resolver: ${filename} → ${name}`);
-        }
+        log.debug(`Loaded SGBD via resolver: ${filename} → ${name}`);
       } catch (err) {
         if (err instanceof EdiabasError) throw err;
         throw new EdiabasError(
@@ -312,12 +318,10 @@ export class Ediabas {
       const resolved = await resolveCaseInsensitive(fs, path, fullPath);
       const buffer = await fs.readFile(resolved);
       this.loadSgbdFromBuffer(new Uint8Array(buffer), resolved);
-      if (this.config.logging) {
-        if (cachedVariant) {
-          log.info(`Loaded SGBD: ${filename} → cached variant ${cachedVariant}`);
-        } else {
-          log.info(`Loaded SGBD: ${filename}`);
-        }
+      if (cachedVariant) {
+        log.debug(`Loaded SGBD: ${filename} → cached variant ${cachedVariant}`);
+      } else {
+        log.debug(`Loaded SGBD: ${filename}`);
       }
     } catch (err) {
       if (err instanceof EdiabasError) throw err;
@@ -366,11 +370,9 @@ export class Ediabas {
         type: "string",
         value: extractVariantName(name),
       });
-      if (this.config.logging) {
-        log.info(`Loaded SGBD: ${name}`);
-        log.info(`  Jobs: ${this.prg.jobs.length}`);
-        log.info(`  Tables: ${this.prg.tables.length}`);
-      }
+      log.debug(`Loaded SGBD: ${name}`);
+      log.debug(`  Jobs: ${this.prg.jobs.length}`);
+      log.debug(`  Tables: ${this.prg.tables.length}`);
     } catch (err) {
       throw new EdiabasError(
         EdiabasErrorCodes.UNKNOWN,
@@ -398,9 +400,7 @@ export class Ediabas {
         this.systemResults.set(r.name, r);
       }
     } catch (err) {
-      if (this.config.logging) {
-        log.warn(`INFO job failed at load time: ${(err as Error).message}`);
-      }
+      log.warn(`INFO job failed at load time: ${(err as Error).message}`);
     }
   }
 
@@ -446,9 +446,7 @@ export class Ediabas {
         }
       }
     } catch (err) {
-      if (this.config.logging) {
-        log.warn(`IDENTIFIKATION failed: ${(err as Error).message}`);
-      }
+      log.warn(`IDENTIFIKATION failed: ${(err as Error).message}`);
       return;
     }
 
@@ -513,13 +511,9 @@ export class Ediabas {
         value: variantName,
       });
       await this.runInfoForSystemResults();
-      if (this.config.logging) {
-        log.info(`Swapped to variant ${variantName} (${resolvedName})`);
-      }
+      log.debug(`Swapped to variant ${variantName} (${resolvedName})`);
     } catch (err) {
-      if (this.config.logging) {
-        log.warn(`Variant swap to ${variantName}.prg failed: ${(err as Error).message}`);
-      }
+      log.warn(`Variant swap to ${variantName}.prg failed: ${(err as Error).message}`);
     }
   }
 
@@ -580,24 +574,18 @@ export class Ediabas {
     jobName: string,
     params: (string | Uint8Array)[],
   ): Promise<void> {
-    if (this.config.logging) {
-      log.info(`Auto-running ${jobName}`);
-    }
+    log.debug(`Auto-running ${jobName}`);
     try {
       // INITIALISIERUNG is a single-set bootstrap job; we don't need its
       // results, just side effects, so the sets shape is irrelevant here.
       await this.executeJobRaw(jobName, params);
-      if (this.config.logging) log.info(`${jobName} completed`);
+      log.debug(`${jobName} completed`);
     } catch (err) {
-      // Always surface init failures somewhere — they often hide the root cause
-      // of subsequent job errors. Keep the process going so the user's job can
-      // run too, but make the diagnostic visible.
-      const message = `${jobName} failed: ${(err as Error).message}`;
-      if (this.config.logging) {
-        log.warn(message);
-      } else {
-        process.stderr.write(`[ediabas] ${message}\n`);
-      }
+      // Always surface init failures — they often hide the root cause
+      // of subsequent job errors. `log.warn` always reaches the active
+      // sink (default sink writes to console), so the stderr fallback
+      // that lived here pre-bimmerz-logger is no longer needed.
+      log.warn(`${jobName} failed: ${(err as Error).message}`);
     }
   }
 
@@ -734,9 +722,7 @@ export class Ediabas {
       }
     }
 
-    if (this.config.logging) {
-      log.info(`Executing job: ${jobName}`);
-    }
+    log.debug(`Executing job: ${jobName}`);
 
     // Setup parameters. EDIABAS exposes two distinct param channels —
     // strings (read by `pari` / `pars`) and binary buffers (read by

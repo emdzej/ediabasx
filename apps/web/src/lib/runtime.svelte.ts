@@ -145,7 +145,6 @@ async function buildEdiabas(): Promise<Ediabas> {
     ecuPath: ".",
     transport: transport as unknown as EdiabasConfig["transport"],
     timeout: config.serial?.timeoutMs ?? 5000,
-    logging: false,
   });
 }
 
@@ -204,7 +203,10 @@ export async function disconnect(): Promise<void> {
  * accepts on the command line). Results land in `runtime.results` /
  * `runtime.resultsJobName` for the UI to render.
  */
-export async function runJob(jobName: string, params: string[] = []): Promise<void> {
+export async function runJob(
+  jobName: string,
+  params: (string | Uint8Array)[] = [],
+): Promise<void> {
   if (!ediabasInstance || runtime.phase !== "connected") {
     runtime.errorMessage = "Not connected — click Connect first.";
     return;

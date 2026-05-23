@@ -212,7 +212,6 @@ All published to npmjs.org under the `@emdzej/ediabasx-*` namespace.
 | Package | Purpose |
 |---|---|
 | `@emdzej/ediabasx-core` | Types, CP1252 encoding, XOR decryption, error codes |
-| `@emdzej/ediabasx-logger` | Structured logging (pino); host-configured (no env reads) |
 | `@emdzej/ediabasx-best-parser` | PRG/GRP file parser + BEST2 disassembler |
 | `@emdzej/ediabasx-interpreter` | BEST2 VM (registers, flags, stack, 184 opcodes, result sets) |
 | `@emdzej/ediabasx-interface-base` | Abstract interface + simulation |
@@ -257,13 +256,79 @@ pnpm --filter @emdzej/ediabasx-cli build
 pnpm --filter @emdzej/ediabasx-web dev
 ```
 
-### Verbose VM tracing
+### Logging
 
-The interpreter emits xsend / tabseek / tabget / strcmp traces when `EDIABASX_VERBOSE=1` is set — handy when debugging why a job took a particular branch on a real ECU:
+Powered by [`@emdzej/bimmerz-logger`](https://github.com/emdzej/bimmerz/tree/main/packages/logger).
+The library never reads `process.env`; the CLI translates env vars and the
+config file's `logging` section onto the central logger config before
+each command runs.
+
+Env namespace (CLI-only — the library is portable to the browser):
+
+| Variable | Values | Purpose |
+|---|---|---|
+| `EDIABASX_LOG_LEVEL` | `trace\|debug\|info\|warn\|error\|fatal\|silent` | Default level when no category matches |
+| `EDIABASX_LOG_CATEGORIES` | `cat=lvl,cat=lvl,…` | Per-category overrides (hierarchical) |
+| `EDIABASX_LOG_DESTINATION` | path | Write to file instead of stdout |
+| `EDIABASX_LOG_FORMAT` | `pretty\|json` | Output format |
+
+Examples:
 
 ```bash
-EDIABASX_VERBOSE=1 ediabasx run file.prg FS_LESEN 2> trace.log
+# Bump everything to debug
+EDIABASX_LOG_LEVEL=debug ediabasx run file.prg FS_LESEN
+
+# Just see raw send / recv bytes — no other noise
+EDIABASX_LOG_CATEGORIES="EDIABASX.ediabas.wire=trace" ediabasx run file.prg FS_LESEN
+
+# Mixed: debug for ediabas, trace for wire, info default
+EDIABASX_LOG_CATEGORIES="EDIABASX.ediabas=debug,EDIABASX.ediabas.wire=trace" \
+  ediabasx run file.prg FS_LESEN 2> trace.log
 ```
+
+Or in the config file:
+
+```jsonc
+{
+  "interface": "serial",
+  "options": { /* … */ },
+  "logging": {
+    "level": "info",
+    "categories": {
+      "EDIABASX.ediabas.wire": "trace"
+    },
+    "destination": "/tmp/ediabasx.log",
+    "pretty": false
+  }
+}
+```
+
+#### Categories
+
+Hierarchical dot-paths — rules walk up the tree (a rule for
+`EDIABASX` covers every subcategory unless something more specific
+matches).
+
+| Category | What it covers |
+|---|---|
+| `EDIABASX` | Catch-all for the ediabasx subsystem — overrides any unmatched subtree below. |
+| `EDIABASX.ediabas` | SGBD load / variant resolve / job dispatch lifecycle. `debug` shows "Loaded SGBD: …", "Executing job: …", "Swapped to variant …". |
+| `EDIABASX.ediabas.config-loader` | Per-config-file load events from `@emdzej/ediabasx-ediabas`'s `createFromConfigFile` / `loadConfig` helpers. |
+| `EDIABASX.ediabas.wire` | Reserved — raw send / recv / xsend / xrecv bytes. Will populate once the interface implementations (`interface-serial`, `interface-enet`, …) route through bimmerz-logger. Set to `trace` today and you'll get nothing; it'll start emitting on the next interface-side migration. |
+| `EDIABASX.best-parser.parse-real` | Standalone PRG/GRP parse script (`scripts/parse-real.ts`). |
+| `EDIABASX.best-parser.tests` | best-parser test fixtures. |
+
+To raise everything in one shot: `EDIABASX_LOG_CATEGORIES="EDIABASX=debug"`.
+
+Env vars override file values entry-by-entry — `EDIABASX_LOG_CATEGORIES`
+merges with the file's categories rather than replacing it wholesale.
+
+> **0.3.0 breaking change:** `EDIABASX_VERBOSE=1` is gone. Use
+> `EDIABASX_LOG_CATEGORIES="EDIABASX=debug"` for the same effect, or
+> `EDIABASX_LOG_LEVEL=debug` for a global bump. The per-instance
+> `Ediabas.config.logging` boolean is also removed — lifecycle messages
+> are now at `debug`, wire-level traces at `trace` on
+> `EDIABASX.ediabas.wire`.
 
 ### Workflow
 

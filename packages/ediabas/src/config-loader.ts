@@ -18,10 +18,10 @@ import { SerialInterface } from '@emdzej/ediabasx-interface-serial';
 import { NodeSerialTransport } from '@emdzej/ediabasx-interface-serial/node';
 import { EnetInterface } from '@emdzej/ediabasx-interface-enet';
 import { GatewayClient } from '@emdzej/ediabasx-interfaces';
-import { getLogger } from '@emdzej/ediabasx-logger';
+import { getLogger } from '@emdzej/bimmerz-logger';
 import { Ediabas, type EdiabasConfig } from './ediabas.js';
 
-const log = getLogger('ediabas.config-loader');
+const log = getLogger('EDIABASX.ediabas.config-loader');
 
 /**
  * Configuration loading error
@@ -245,13 +245,20 @@ export async function createFromConfig(
   // Resolve paths relative to config file or cwd
   const sgbdPath = path.resolve(basePath, options?.pathOverrides?.sgbd ?? config.paths.sgbd);
   
-  // Build EdiabasConfig
+  // Build EdiabasConfig.
+  //
+  // `config.logging` (the file's logging section) used to drive a
+  // per-instance `Ediabas.config.logging` boolean. As of bimmerz-logger
+  // 0.1.0 that boolean is gone — wire-level + lifecycle tracing flows
+  // through the central logger config (categories like
+  // `EDIABASX.ediabas.wire` set via the `logging.categories` section
+  // or env vars). The CLI applies `config.logging` to
+  // `configureLogger()` at startup; we don't need to thread it here.
   const edConfig: EdiabasConfig = {
     ecuPath: sgbdPath,
     transport,
     simulation: config.interface.type === 'simulation',
     timeout: options?.timeoutOverrides?.response ?? config.timeouts?.response ?? DEFAULT_CONFIG.timeouts!.response,
-    logging: config.logging?.enabled ?? false,
   };
   
   return new Ediabas(edConfig);
@@ -282,11 +289,13 @@ export function generateExampleConfig(): EdiabasConfigFile {
       response: 2000,
     },
     logging: {
-      enabled: true,
       level: 'info',
-      console: true,
-      timestamps: true,
-      hexDump: false,
+      categories: {
+        // Bump to 'debug' to see lifecycle messages (SGBD loaded,
+        // job started, variant resolved); 'trace' on
+        // `EDIABASX.ediabas.wire` adds raw send/recv byte traces.
+        EDIABASX: 'info',
+      },
     },
   };
 }

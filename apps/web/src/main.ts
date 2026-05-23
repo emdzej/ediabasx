@@ -3,6 +3,8 @@ import App from "./App.svelte";
 import { mount } from "svelte";
 import { registerSW } from "virtual:pwa-register";
 import { applyTheme, watchSystemTheme } from "./lib/settings.svelte";
+import { loadConfig } from "./lib/config";
+import { applyLoggerConfig } from "./lib/logger-wiring";
 
 // Apply the persisted theme before Svelte mounts so the first paint
 // already matches the saved choice. The inline script in index.html
@@ -12,6 +14,13 @@ import { applyTheme, watchSystemTheme } from "./lib/settings.svelte";
 // has chosen "system".
 applyTheme();
 watchSystemTheme();
+
+// Apply the persisted bimmerz-logger config before mount so any
+// log calls during component initialisation hit the user's chosen
+// level/categories. The Settings dialog re-applies on change at
+// runtime — bimmerz-logger handles are proxies, so existing log
+// handles pick up the new settings instantly.
+applyLoggerConfig(loadConfig().logging);
 
 const target = document.getElementById("app");
 if (!target) {

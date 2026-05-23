@@ -117,15 +117,36 @@ export const TimeoutsConfigSchema = z.object({
 export type TimeoutsConfig = z.infer<typeof TimeoutsConfigSchema>;
 
 /**
- * Logging configuration
+ * Logging configuration — mirrors `@emdzej/bimmerz-logger`'s
+ * `LoggerConfig` shape so the CLI can hand the file's `logging`
+ * section straight to `configureLogger()` (with env-var overrides
+ * layered on top via `EDIABASX_LOG_*`).
+ *
+ * Notable change vs. 0.2.x:
+ *
+ * - **`enabled` is gone.** The per-instance `Ediabas.config.logging`
+ *   boolean it fed has been deleted; wire-level + lifecycle tracing
+ *   now routes through the standard logger. To get the same effect,
+ *   set `level: 'debug'` (lifecycle metadata) or
+ *   `categories: { 'EDIABASX.ediabas.wire': 'trace' }` (raw bytes).
+ * - **`file` → `destination`, `console` / `timestamps` / `hexDump` gone.**
+ *   The sink (pretty stdout vs. JSON vs. file) is decided by the
+ *   logger; the file format is whatever pino-pretty (`pretty: true`)
+ *   or pino's JSON renders.
  */
 export const LoggingConfigSchema = z.object({
-  enabled: z.boolean().default(false),
-  level: z.enum(['error', 'warn', 'info', 'debug', 'trace']).default('info'),
-  file: z.string().optional().describe('Log file path'),
-  console: z.boolean().default(true),
-  timestamps: z.boolean().default(true),
-  hexDump: z.boolean().default(false).describe('Log raw hex data'),
+  /** Default level when no `categories` entry matches. */
+  level: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent']).default('info'),
+  /**
+   * Per-category levels. Dot-separated keys; lookup walks up the
+   * path, so a rule for `EDIABASX` applies to `EDIABASX.ediabas`,
+   * `EDIABASX.ediabas.wire`, etc. unless a more specific rule wins.
+   */
+  categories: z.record(z.string(), z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent'])).optional(),
+  /** File path for log output. When set, logs go to file instead of stdout. */
+  destination: z.string().optional().describe('Log file path'),
+  /** Render through pino-pretty (TTY-friendly). Ignored when destination is set. */
+  pretty: z.boolean().optional().describe('Use pino-pretty colour render'),
 });
 
 export type LoggingConfig = z.infer<typeof LoggingConfigSchema>;
@@ -162,10 +183,6 @@ export const DEFAULT_CONFIG: Partial<EdiabasConfigFile> = {
     response: 2000,
   },
   logging: {
-    enabled: false,
     level: 'info',
-    console: true,
-    timestamps: true,
-    hexDump: false,
   },
 };

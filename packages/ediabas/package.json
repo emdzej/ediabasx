@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-ediabas",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "description": "Main EdiabasX library: load BMW PRG/GRP files, run BEST2 jobs against a configured transport, get back grouped result sets.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,10 +32,13 @@
     "@emdzej/ediabasx-interface-serial": "workspace:^",
     "@emdzej/ediabasx-interfaces": "workspace:^",
     "@emdzej/ediabasx-interpreter": "workspace:*",
-    "@emdzej/ediabasx-logger": "workspace:*",
     "zod": "^4.3.6"
   },
+  "peerDependencies": {
+    "@emdzej/bimmerz-logger": "^0.1.2"
+  },
   "devDependencies": {
+    "@emdzej/bimmerz-logger": "^0.1.2",
     "@types/node": "^22.0.0",
     "vitest": "^3.0.5"
   },

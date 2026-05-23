@@ -41,6 +41,9 @@ importers:
 
   apps/cli:
     dependencies:
+      '@emdzej/bimmerz-logger':
+        specifier: ^0.1.2
+        version: 0.1.2
       '@emdzej/ediabasx-best-parser':
         specifier: workspace:*
         version: link:../../packages/best-parser
@@ -56,9 +59,6 @@ importers:
       '@emdzej/ediabasx-interfaces':
         specifier: workspace:*
         version: link:../../packages/interfaces
-      '@emdzej/ediabasx-logger':
-        specifier: workspace:*
-        version: link:../../packages/logger
       chalk:
         specifier: ^5.4.1
         version: 5.6.2
@@ -84,6 +84,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@emdzej/bimmerz-logger':
+        specifier: ^0.1.2
+        version: 0.1.2
       '@emdzej/ediabasx-best-parser':
         specifier: workspace:*
         version: link:../../packages/best-parser
@@ -105,9 +108,6 @@ importers:
       '@emdzej/ediabasx-interpreter':
         specifier: workspace:*
         version: link:../../packages/interpreter
-      '@emdzej/ediabasx-logger':
-        specifier: workspace:*
-        version: link:../../packages/logger
       workbox-window:
         specifier: ^7.4.1
         version: 7.4.1
@@ -154,12 +154,13 @@ importers:
       '@emdzej/ediabasx-core':
         specifier: workspace:*
         version: link:../core
-      '@emdzej/ediabasx-logger':
-        specifier: workspace:*
-        version: link:../logger
       chalk:
         specifier: ^5.4.1
         version: 5.6.2
+    devDependencies:
+      '@emdzej/bimmerz-logger':
+        specifier: ^0.1.2
+        version: 0.1.2
 
   packages/core:
     devDependencies:
@@ -190,13 +191,13 @@ importers:
       '@emdzej/ediabasx-interpreter':
         specifier: workspace:*
         version: link:../interpreter
-      '@emdzej/ediabasx-logger':
-        specifier: workspace:*
-        version: link:../logger
       zod:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
+      '@emdzej/bimmerz-logger':
+        specifier: ^0.1.2
+        version: 0.1.2
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.8
@@ -260,19 +261,6 @@ importers:
       '@emdzej/ediabasx-interface-base':
         specifier: workspace:*
         version: link:../interface-base
-
-  packages/logger:
-    dependencies:
-      pino:
-        specifier: ^9.0.0
-        version: 9.14.0
-      pino-pretty:
-        specifier: ^11.0.0
-        version: 11.3.0
-    devDependencies:
-      typescript:
-        specifier: ^5.0.0
-        version: 5.9.3
 
   packages/protocol-doip: {}
 
@@ -909,6 +897,9 @@ packages:
         optional: true
       search-insights:
         optional: true
+
+  '@emdzej/bimmerz-logger@0.1.2':
+    resolution: {integrity: sha512-RPlnIAxo1+uLSTH97VifBCRAxjhylagKqyiyUDYtQSzB7fkgtJh4fedBxvB/T8T5Pr/bQKE68NUi6/o6Op21LQ==}
 
   '@emnapi/runtime@1.10.0':
     resolution: {integrity: sha512-ewvYlk86xUoGI0zQRNq/mC+16R1QeDlKQy21Ki3oSYXNgLb45GV1P6A0M+/s6nyCuNDqe5VpaY84BzXGwVbwFA==}
@@ -5212,6 +5203,11 @@ snapshots:
       search-insights: 2.17.3
     transitivePeerDependencies:
       - '@algolia/client-search'
+
+  '@emdzej/bimmerz-logger@0.1.2':
+    dependencies:
+      pino: 9.14.0
+      pino-pretty: 11.3.0
 
   '@emnapi/runtime@1.10.0':
     dependencies:

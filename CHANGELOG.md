@@ -4,6 +4,93 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.3.0] — 2026-05-23
+
+Logger migration onto `@emdzej/bimmerz-logger` + a proper modal for
+running jobs that take arguments.
+
+### Changed (breaking)
+
+- **`@emdzej/ediabasx-logger` deleted.** Replaced by
+  [`@emdzej/bimmerz-logger`](https://www.npmjs.com/package/@emdzej/bimmerz-logger)
+  (peer dependency for libraries, regular dep for apps). The new package
+  exposes the same pino-shape `Logger` interface plus hierarchical
+  categories and runtime-mutable central config. Migration for external
+  consumers is a one-line import swap:
+  ```ts
+  - import { getLogger, configureLogger } from '@emdzej/ediabasx-logger';
+  + import { getLogger, configureLogger } from '@emdzej/bimmerz-logger';
+  ```
+- **`Ediabas.config.logging: boolean` removed.** The per-instance
+  verbose flag is gone; lifecycle tracing routes through the central
+  logger. Lifecycle messages (SGBD load, variant swap, job dispatch)
+  demoted to `debug` — bump `EDIABASX_LOG_LEVEL=debug` (or
+  `categories: { EDIABASX: 'debug' }`) to see them.
+- **`EDIABASX_VERBOSE` env var dropped.** Replaced with a discoverable
+  `EDIABASX_LOG_*` namespace at the CLI boundary:
+
+  | Variable | Values | Effect |
+  |---|---|---|
+  | `EDIABASX_LOG_LEVEL` | trace\|debug\|info\|warn\|error\|fatal\|silent | Default level |
+  | `EDIABASX_LOG_CATEGORIES` | `cat=lvl,cat=lvl,…` | Per-category overrides (hierarchical) |
+  | `EDIABASX_LOG_DESTINATION` | path | File output |
+  | `EDIABASX_LOG_FORMAT` | pretty\|json | Render format |
+
+  Same effect as the old flag:
+  `EDIABASX_LOG_CATEGORIES="EDIABASX=debug"`.
+- **`LoggingConfigSchema` rewritten** to mirror bimmerz-logger's
+  `LoggerConfig` — `{ level, categories, destination, pretty }`. Old
+  `enabled` / `console` / `timestamps` / `hexDump` fields gone.
+
+### Added
+
+- **Hierarchical categories on every emit.** All `getLogger()` calls now
+  use the `EDIABASX.*` prefix:
+  - `EDIABASX.ediabas` — SGBD load / variant resolve / job dispatch lifecycle.
+  - `EDIABASX.ediabas.config-loader` — config-file load events.
+  - `EDIABASX.ediabas.wire` — reserved for raw send / recv / xsend bytes
+    (populated by future interface-side migration; see
+    [`docs/logging-plan.md`](docs/logging-plan.md)).
+  - `EDIABASX.best-parser.*` — internal parser categories.
+- **`@emdzej/ediabasx-ediabas` exports `LOG_CATEGORIES`** so consuming
+  apps (the ediabasx-web Settings dialog, inpax-web, future ncsx-web)
+  iterate the catalogue instead of hardcoding category names. Drives a
+  per-category control list in the Settings UI.
+- **Web app Settings — Logging section.** Default-level dropdown plus
+  per-category override picker, sourced from `LOG_CATEGORIES`. Changes
+  apply immediately at runtime — handles are proxies, every cached
+  logger picks up new settings on the next emit.
+- **Two-pass CLI `configureLogger`.** First pass at module load with
+  env-only config (early-boot logs route correctly); second pass
+  inside the command runner with `env + config-file logging section`
+  merged. Per-config-file logging just works.
+- **Modal "Run job" dialog with type-driven inputs (`RunJobDialog`).**
+  Replaces the inline-text Args field on the Jobs view. Per-arg fields
+  with placeholders and validation:
+  - `string` — plain text.
+  - `long` — accepts `123` or `0xff` / `0xFF`; rejects everything else.
+  - `binary` — hex bytes in any common format (`00 11 AF`, `0011AF`,
+    `00:11:af`, `00-11-af`, `00,11,af`). Parsed straight to `Uint8Array`
+    on the SGBD's `pary` channel.
+
+  Per-arg errors render inline; Enter submits; Escape / backdrop /
+  Cancel dismiss.
+- **`runJob()` widened to `(string | Uint8Array)[]`** so binary args
+  flow through without re-encoding.
+- **`docs/logging-plan.md`** — planned VM/interpreter trace points
+  (Tier 0/1/2/3 + perf notes). Not implemented yet; kept as a
+  follow-up reference so the survey doesn't get lost.
+
+### Cosmetic
+
+- Disassembly button on the Jobs view renamed to **"Decompile job" / "Hide assembly"** for consistency with the CLI's `decompile` subcommand.
+
+### Dependencies
+
+- `@emdzej/bimmerz-logger`: **^0.1.2** (peer dep in libraries, regular
+  dep in `apps/cli` and `apps/web`).
+- Old `@emdzej/ediabasx-logger` workspace package deleted.
+
 ## [0.2.7] — 2026-05-22
 
 ### Fixed

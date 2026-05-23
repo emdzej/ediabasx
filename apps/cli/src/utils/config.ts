@@ -2,10 +2,16 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import type { InterfaceOptions } from "@emdzej/ediabasx-interfaces";
+import type { LoggerFileConfig } from "./logger-config.js";
 
 type EdiabasConfig = {
   interface: string;
   options: InterfaceOptions;
+  /**
+   * Optional `logging` section — pass-through to `@emdzej/bimmerz-logger`'s
+   * `configureLogger()`. Env vars (`EDIABASX_LOG_*`) override values here.
+   */
+  logging?: LoggerFileConfig;
 };
 
 const DEFAULT_CONFIG_DIR = path.join(os.homedir(), ".config", "ediabasx");
@@ -33,6 +39,7 @@ function loadConfig(configPath: string): EdiabasConfig {
   return {
     interface: parsed.interface,
     options: parsed.options ?? {},
+    logging: parsed.logging,
   };
 }
 

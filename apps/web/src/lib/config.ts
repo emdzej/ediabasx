@@ -12,6 +12,50 @@ export type InterfaceType = "webserial" | "gateway";
 export type SerialProtocol = "uart" | "kwp" | "isotp" | "tp20";
 export type SerialInitMode = "fast" | "five-baud";
 
+/**
+ * One of the bimmerz-logger levels. Kept as a flat string union here
+ * (instead of importing `LogLevel` from the package) so this file
+ * stays a pure config-shape definition with no library dependency —
+ * the wiring layer in `main.ts` is what actually pulls in
+ * bimmerz-logger.
+ */
+export type LogLevel =
+  | "trace"
+  | "debug"
+  | "info"
+  | "warn"
+  | "error"
+  | "fatal"
+  | "silent";
+
+export const LOG_LEVELS: readonly LogLevel[] = [
+  "trace",
+  "debug",
+  "info",
+  "warn",
+  "error",
+  "fatal",
+  "silent",
+];
+
+/**
+ * Persisted logger configuration. Mirrors `@emdzej/bimmerz-logger`'s
+ * `LoggerConfig` minus the sink (the web app always uses the console
+ * sink — no Node-style pino transport surface in the browser).
+ */
+export interface WebLoggerConfig {
+  /** Default level when no `categories` rule matches. */
+  level?: LogLevel;
+  /**
+   * Per-category overrides. Dot-separated keys; rules walk up the
+   * hierarchy. See the ediabasx README for the catalogue.
+   *
+   * Example: `{ "EDIABASX.ediabas.wire": "trace" }` flips on wire
+   * tracing without raising every other category.
+   */
+  categories?: Record<string, LogLevel>;
+}
+
 export interface WebConfig {
   interface: InterfaceType;
   serial?: {
@@ -33,6 +77,8 @@ export interface WebConfig {
      */
     url?: string;
   };
+  /** Logger settings — applied via `configureLogger()` at boot + on Settings save. */
+  logging?: WebLoggerConfig;
 }
 
 const STORAGE_KEY = "ediabasx.web.config.v1";
@@ -50,6 +96,9 @@ const DEFAULT_CONFIG: WebConfig = {
   },
   gateway: {
     url: "ws://localhost:6801",
+  },
+  logging: {
+    level: "info",
   },
 };
 

@@ -46,7 +46,18 @@ for (const [i, set] of sets.entries()) {
 
 ## Tracing
 
-Set `EDIABASX_VERBOSE=1` to emit per-op traces for `xsend`, `tabseek`, `tabget`, and `strcmp` to stderr — invaluable when debugging which branch a real-ECU run took.
+Per-op VM traces (`xsend`, `tabseek`, `tabget`, `strcmp`) currently
+still gate on `EDIABASX_VERBOSE=1` and write to stderr — they're
+the last sites that pre-date the bimmerz-logger migration. Migrating
+them to category-aware loggers (`EDIABASX.vm.xsend`,
+`EDIABASX.vm.tabseek`, …) is planned alongside Tier 1 VM categories
+(`EDIABASX.vm.exec`, `.vm.flow`, `.vm.errors`, `.vm.file`); see
+[`docs/logging-plan.md`](../../docs/logging-plan.md). Until that
+lands, `EDIABASX_VERBOSE=1` keeps working for these specific traces.
+
+For ediabas-level logs (SGBD load, job dispatch, etc.) use the new
+`EDIABASX_LOG_*` namespace — see the
+[main README](../../README.md#logging).
 
 ## License
 

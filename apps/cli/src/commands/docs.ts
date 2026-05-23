@@ -110,7 +110,7 @@ async function loadInfoMetadata(filePath: string, prg: PrgFile): Promise<InfoLoa
   try {
     const { Ediabas } = await import("@emdzej/ediabasx-ediabas");
     const ecuPath = path.dirname(path.resolve(filePath));
-    const ediabas = new Ediabas({ ecuPath, simulation: true, logging: false });
+    const ediabas = new Ediabas({ ecuPath, simulation: true });
     await ediabas.loadSgbd(path.basename(filePath));
     // INFO is a single-set job; flatten across all (small) emitted sets to
     // keep the extractor simple — keys are unique within the system info set.

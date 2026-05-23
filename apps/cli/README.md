@@ -120,13 +120,32 @@ Gateway server listening on 127.0.0.1:6801 (transport=websocket)
 
 `ediabasx explore <file>` opens a similar TUI for static inspection — jobs / tables / metadata, with disassembly in the content panel and per-item details below.
 
-## Tracing
+## Logging
+
+Configured via `EDIABASX_LOG_*` env vars at the CLI boundary
+(see the [main README](../../README.md#logging) for the full table)
+or the `logging` section of the config file (`logging.level`,
+`logging.categories`, `logging.destination`, `logging.pretty`). Env
+vars override file values entry-by-entry; categories merge.
 
 ```bash
-EDIABASX_VERBOSE=1 ediabasx run file.prg FS_LESEN 2> trace.log
+# Bump everything to debug
+EDIABASX_LOG_LEVEL=debug ediabasx run file.prg FS_LESEN
+
+# Per-category — narrow trace scope
+EDIABASX_LOG_CATEGORIES="EDIABASX.ediabas=debug" ediabasx run file.prg FS_LESEN
+
+# JSON output, file destination
+EDIABASX_LOG_FORMAT=json EDIABASX_LOG_DESTINATION=/tmp/ediabasx.log \
+  ediabasx run file.prg FS_LESEN
 ```
 
-Emits per-op VM traces (`xsend`, `tabseek`, `tabget`, `strcmp`) and structured ediabas-level logs to stderr.
+Currently-active categories: `EDIABASX`, `EDIABASX.ediabas`,
+`EDIABASX.ediabas.config-loader`, `EDIABASX.ediabas.wire` (reserved
+— populated by future interface-side migration). Per-opcode VM
+traces (`xsend`, `tabseek`, `tabget`, `strcmp`) are planned but not
+yet migrated to the new logger — see
+[`docs/logging-plan.md`](../../docs/logging-plan.md).
 
 ## License
 

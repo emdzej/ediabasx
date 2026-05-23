@@ -207,7 +207,6 @@ async function createRunnerSession(
     transport,
     simulation: useSimulation,
     timeout: Number.isFinite(timeout) ? timeout : 5000,
-    logging: process.env.EDIABASX_VERBOSE === "1",
   });
 
   await ediabas.loadSgbd(path.basename(filePath));
@@ -311,8 +310,7 @@ async function createRunnerSession(
       transport,
       simulation: useSimulation,
       timeout: Number.isFinite(timeout) ? timeout : 5000,
-      logging: process.env.EDIABASX_VERBOSE === "1",
-    });
+      });
     await ediabas.loadSgbd(path.basename(filePath));
     await ensureConnected();
   };
@@ -530,8 +528,7 @@ function registerRunCommand(program: Command): void {
           transport,
           simulation: useSimulation,
           timeout: Number.isFinite(timeout) ? timeout : 5000,
-          logging: process.env.EDIABASX_VERBOSE === "1",
-        });
+              });
 
         await ediabas.loadSgbd(path.basename(filePath));
 
