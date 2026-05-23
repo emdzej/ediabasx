@@ -5,11 +5,11 @@ A TypeScript port of BMW's EDIABAS (Electronic Diagnostic Basic System) — a mo
 ## Features
 
 - **PRG/GRP parsing** — full BMW diagnostic file format support (CP1252 encoding, XOR-decoded payload, job/result/argument metadata, lookup tables)
-- **BEST2 disassembler** — readable assembly output bounded by next-job offsets so multi-`eoj` jobs (e.g. `FS_LESEN` fault iteration) decode in full
-- **BEST2 interpreter** — register file (B/A/I/L/S/F), flags (Z/C/V/S), call & data stacks, 184 opcodes, table/file/timer/shared-memory state, `enewset`-aware result sets matching C# `_resultSetsTemp`
+- **BEST/2 decompiler** — readable assembly output bounded by next-job offsets so multi-`eoj` jobs (e.g. `FS_LESEN` fault iteration) decode in full
+- **BEST/2 interpreter** — register file (B/A/I/L/S/F), flags (Z/C/V/S), call & data stacks, 184 opcodes, table/file/timer/shared-memory state, `enewset`-aware result sets matching C# `_resultSetsTemp`
 - **Hardware interfaces** — Serial K-Line / K+DCAN (DS2 + ISO-TP), Ethernet/ENET (DoIP), JSON-RPC gateway client/server
 - **Protocols** — KWP2000 (ISO 14230), UDS (ISO 14229), DoIP/HSFZ (ISO 13400)
-- **CLI + TUI** — `ediabasx` command with interactive job browser, batch run, disasm, info, table inspection
+- **CLI + TUI** — `ediabasx` command with interactive job browser, batch run, decompile, info, job/table inspection
 - **Logging** — structured logs via pino
 
 ## Installation
@@ -40,7 +40,7 @@ pnpm build
 
 ## CLI usage
 
-The `ediabasx` command bundles parsing, disassembly, and live-ECU execution.
+The `ediabasx` command bundles parsing, decompilation, and live-ECU execution.
 
 ### `info` — quick file summary
 
@@ -60,10 +60,13 @@ Revision: 1.14
 Author: Softing Taubert, BMW TI-430 Drexel, BMW TP-421 Teepe, BMW TI-430 Haase
 ```
 
-### `jobs` — list jobs with arguments and results
+### `jobs` / `job` — list or inspect jobs
 
 ```bash
-ediabasx jobs file.prg
+ediabasx jobs file.prg                  # every job with args + results
+ediabasx job file.prg IDENT             # one job: args, results, comments
+ediabasx job file.prg IDENT --json      # JSON for piping
+ediabasx job file.prg IDENT --csv       # args+results as CSV
 ```
 
 ### `tables` / `table` — inspect lookup tables
@@ -73,19 +76,13 @@ ediabasx tables file.prg
 ediabasx table file.prg JobResult
 ```
 
-### `parse` — full structured dump
+### `decompile` — render BEST/2 bytecode as assembly
+
+The decompiler bounds each job by the next job's file offset, so jobs with multiple `eoj` instructions (early returns reached via backward jumps from later code) decode completely instead of stopping at the first `eoj`.
 
 ```bash
-ediabasx parse file.prg --json
-```
-
-### `disasm` — disassemble bytecode
-
-The disassembler bounds each job by the next job's file offset, so jobs with multiple `eoj` instructions (early returns reached via backward jumps from later code) decode completely instead of stopping at the first `eoj`.
-
-```bash
-ediabasx disasm file.prg                # all jobs
-ediabasx disasm file.prg FS_LESEN       # one job
+ediabasx decompile file.prg             # all jobs
+ediabasx decompile file.prg FS_LESEN    # one job
 ```
 
 ### `run` — execute a job against an ECU
