@@ -29,10 +29,10 @@ pnpm cli info ./MS430DS0.prg
 |---|---|
 | `ediabasx info <file>` | One-screen ECU / file summary (origin, revision, author, job/table counts) |
 | `ediabasx jobs <file>` | List every job with arguments, results, and comments |
+| `ediabasx job <file> <name>` | Print a single job (args, results, comments) |
 | `ediabasx tables <file>` | List every lookup table with row/column counts |
 | `ediabasx table <file> <name>` | Print a single table |
-| `ediabasx parse <file> [--json]` | Full structured dump |
-| `ediabasx disasm <file> [job]` | Disassemble BEST2 bytecode (all jobs or one) |
+| `ediabasx decompile <file> [job]` | Decompile BEST/2 bytecode (all jobs or one) |
 | `ediabasx run <file> [job] [params...]` | Execute a job against an ECU (or pop a TUI to browse jobs) |
 | `ediabasx explore <file>` | TUI for browsing jobs / tables / metadata side by side |
 | `ediabasx gateway [opts]` | Share a local interface over JSON-RPC (TCP or WebSocket) |

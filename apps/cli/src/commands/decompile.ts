@@ -88,15 +88,15 @@ function printDisassembly(prg: PrgFile, buffer: Uint8Array, options: Disassembly
   }
 }
 
-function registerDisasmCommand(program: Command): void {
+function registerDecompileCommand(program: Command): void {
   program
-    .command("disasm")
-    .argument("<file>", "PRG/GRP file to disassemble")
-    .argument("[job]", "Job name to disassemble (optional, disassembles all if not specified)")
+    .command("decompile")
+    .argument("<file>", "PRG/GRP file to decompile")
+    .argument("[job]", "Job name to decompile (optional, decompiles all if not specified)")
     .option("--no-color", "Disable colored output")
     .option("--no-offset", "Hide instruction offsets")
     .option("--decimal", "Show offsets in decimal instead of hex")
-    .description("Disassemble bytecode into readable assembly")
+    .description("Decompile BEST/2 bytecode into readable assembly")
     .action((filePath: string, jobName: string | undefined, cmdOptions: DisasmCommandOptions) => {
       try {
         const buffer = readFileBuffer(filePath);
@@ -137,4 +137,4 @@ function registerDisasmCommand(program: Command): void {
     });
 }
 
-export { registerDisasmCommand };
+export { registerDecompileCommand };

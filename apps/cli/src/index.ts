@@ -2,14 +2,14 @@
 import { Command } from "commander";
 import { configureLogger, type LogLevel } from "@emdzej/ediabasx-logger";
 import { registerConfigureCommand } from "./commands/configure.js";
-import { registerDisasmCommand } from "./commands/disasm.js";
+import { registerDecompileCommand } from "./commands/decompile.js";
 import { registerDocsCommand } from "./commands/docs.js";
 import { registerExploreCommand } from "./commands/explore.js";
 import { registerGatewayCommand } from "./commands/gateway.js";
 import { registerInfoCommand } from "./commands/info.js";
 import { registerInterfacesCommand } from "./commands/interfaces.js";
+import { registerJobCommand } from "./commands/job.js";
 import { registerJobsCommand } from "./commands/jobs.js";
-import { registerParseCommand } from "./commands/parse.js";
 import { registerRunCommand } from "./commands/run.js";
 import { registerSimulatorCommand } from "./commands/simulator.js";
 import { registerTableCommand } from "./commands/table.js";
@@ -49,14 +49,14 @@ program
 registerConfigureCommand(program);
 registerInterfacesCommand(program);
 registerGatewayCommand(program);
-registerParseCommand(program);
 registerInfoCommand(program);
 registerJobsCommand(program);
+registerJobCommand(program);
 registerTableCommand(program);
 registerTablesCommand(program);
 registerExploreCommand(program);
 registerSimulatorCommand(program);
-registerDisasmCommand(program);
+registerDecompileCommand(program);
 registerRunCommand(program);
 registerDocsCommand(program);
 
