@@ -106,6 +106,10 @@ function createJ2534Interface(
     readTimeoutMs:
       options.readTimeoutMs !== undefined
         ? parseNumber("readTimeoutMs", options.readTimeoutMs)
+        : undefined,
+    hostInterByteMs:
+      options.hostInterByteMs !== undefined
+        ? parseNumber("hostInterByteMs", options.hostInterByteMs)
         : undefined
   };
 

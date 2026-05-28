@@ -85,6 +85,7 @@ export default defineConfig({
       "@emdzej/ediabasx-core",
       "@emdzej/ediabasx-ediabas",
       "@emdzej/ediabasx-interface-base",
+      "@emdzej/ediabasx-interface-j2534",
       "@emdzej/ediabasx-interface-serial",
       "@emdzej/ediabasx-interfaces/client",
       "@emdzej/ediabasx-interpreter",

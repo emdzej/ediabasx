@@ -1,16 +1,27 @@
-// localStorage-backed wizard config. Two interfaces are practical in a
+// localStorage-backed wizard config. Three interfaces are practical in a
 // browser today:
 //
-//   - `webserial` drives a local USB cable directly via the Web Serial API.
+//   - `webserial` drives a generic FTDI / CDC ACM cable directly via the
+//                 Web Serial API. Talks raw bytes to whatever's on the
+//                 K-line (or D-CAN). Right for K+DCAN-style cables.
+//   - `j2534`     drives a SAE J2534 device (Tactrix OpenPort 2.0). The
+//                 j2534 driver handles bit timing + frame integrity in
+//                 hardware — much better K-line reliability than the
+//                 webserial / raw-UART path.
 //   - `gateway`   talks to a remote `ediabasx gateway --transport websocket`
 //                 server, which in turn drives the real cable on its side.
 //
-// Everything else (raw `serial`, `kdcan`, `enet`, gateway-over-TCP,
-// `simulation`) requires Node-only APIs and is intentionally omitted.
+// Interface-shape types come from `@emdzej/ediabasx-web-ui` so the
+// InterfaceConfigPanel and this storage layer agree on a single shape.
 
-export type InterfaceType = "webserial" | "gateway";
-export type SerialProtocol = "uart" | "kwp" | "isotp" | "tp20";
-export type SerialInitMode = "fast" | "five-baud";
+import type { InterfaceConfig, InterfaceType } from "@emdzej/ediabasx-web-ui";
+
+export type {
+  InterfaceConfig,
+  InterfaceType,
+  SerialProtocol,
+  SerialInitMode,
+} from "@emdzej/ediabasx-web-ui";
 
 /**
  * One of the bimmerz-logger levels. Kept as a flat string union here
@@ -56,27 +67,8 @@ export interface WebLoggerConfig {
   categories?: Record<string, LogLevel>;
 }
 
-export interface WebConfig {
-  interface: InterfaceType;
-  serial?: {
-    baudRate?: number;
-    dataBits?: 7 | 8;
-    parity?: "none" | "even" | "odd";
-    stopBits?: 1 | 2;
-    protocol?: SerialProtocol;
-    initMode?: SerialInitMode;
-    testerCanId?: string; // hex string for readability
-    ecuCanId?: string;
-    timeoutMs?: number;
-  };
-  gateway?: {
-    /**
-     * Full WebSocket URL of the remote ediabasx gateway, e.g.
-     * `ws://192.168.1.50:6801` or `wss://gateway.example.com/ediabasx`.
-     * The CLI default is `ws://localhost:6801`.
-     */
-    url?: string;
-  };
+/** Full app config = the shared interface shape + ediabasx-specific extras. */
+export interface WebConfig extends InterfaceConfig {
   /** Logger settings — applied via `configureLogger()` at boot + on Settings save. */
   logging?: WebLoggerConfig;
 }
@@ -112,7 +104,9 @@ export function loadConfig(): WebConfig {
     // Coerce anything we no longer support back to the default so the UI
     // doesn't show a phantom selection.
     const iface: InterfaceType =
-      parsed.interface === "webserial" || parsed.interface === "gateway"
+      parsed.interface === "webserial" ||
+      parsed.interface === "j2534" ||
+      parsed.interface === "gateway"
         ? parsed.interface
         : DEFAULT_CONFIG.interface;
     return {

@@ -53,6 +53,9 @@ importers:
       '@emdzej/ediabasx-ediabas':
         specifier: workspace:*
         version: link:../../packages/ediabas
+      '@emdzej/ediabasx-host-config':
+        specifier: workspace:*
+        version: link:../../packages/host-config
       '@emdzej/ediabasx-interface-base':
         specifier: workspace:*
         version: link:../../packages/interface-base
@@ -87,6 +90,9 @@ importers:
       '@emdzej/bimmerz-logger':
         specifier: ^0.1.2
         version: 0.1.2
+      '@emdzej/bimmerz-theme':
+        specifier: ^0.1.0
+        version: 0.1.0(tailwindcss@3.4.19)
       '@emdzej/ediabasx-best-parser':
         specifier: workspace:*
         version: link:../../packages/best-parser
@@ -99,6 +105,9 @@ importers:
       '@emdzej/ediabasx-interface-base':
         specifier: workspace:*
         version: link:../../packages/interface-base
+      '@emdzej/ediabasx-interface-j2534':
+        specifier: workspace:*
+        version: link:../../packages/interface-j2534
       '@emdzej/ediabasx-interface-serial':
         specifier: workspace:*
         version: link:../../packages/interface-serial
@@ -108,6 +117,18 @@ importers:
       '@emdzej/ediabasx-interpreter':
         specifier: workspace:*
         version: link:../../packages/interpreter
+      '@emdzej/ediabasx-web-ui':
+        specifier: workspace:*
+        version: link:../../packages/web-ui
+      '@emdzej/j2534-driver':
+        specifier: ^0.2.0
+        version: 0.2.0
+      '@emdzej/j2534-types':
+        specifier: ^0.2.0
+        version: 0.2.0
+      '@emdzej/j2534-webserial':
+        specifier: ^0.2.0
+        version: 0.2.0
       workbox-window:
         specifier: ^7.4.1
         version: 7.4.1
@@ -205,6 +226,16 @@ importers:
         specifier: ^3.0.5
         version: 3.2.4(@types/node@22.19.8)(terser@5.47.1)
 
+  packages/host-config:
+    dependencies:
+      '@emdzej/ediabasx-interfaces':
+        specifier: workspace:*
+        version: link:../interfaces
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.8
+
   packages/interface-base: {}
 
   packages/interface-enet:
@@ -219,17 +250,21 @@ importers:
         specifier: workspace:*
         version: link:../interface-base
       '@emdzej/j2534-driver':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       '@emdzej/j2534-serial':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       '@emdzej/j2534-types':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       '@emdzej/j2534-usb':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.8
 
   packages/interface-serial:
     dependencies:
@@ -261,17 +296,17 @@ importers:
         specifier: workspace:*
         version: link:../interface-serial
       '@emdzej/j2534-driver':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       '@emdzej/j2534-serial':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       '@emdzej/j2534-types':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       '@emdzej/j2534-usb':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       ws:
         specifier: ^8.18.0
         version: 8.19.0
@@ -304,6 +339,28 @@ importers:
         version: link:../protocol-uds
 
   packages/protocol-uds: {}
+
+  packages/web-ui:
+    dependencies:
+      '@emdzej/bimmerz-theme':
+        specifier: ^0.1.0
+        version: 0.1.0(tailwindcss@3.4.19)
+      tailwindcss:
+        specifier: ^3.4.0
+        version: 3.4.19
+    devDependencies:
+      '@tsconfig/svelte':
+        specifier: ^5.0.4
+        version: 5.0.8
+      svelte:
+        specifier: ^5.0.0
+        version: 5.55.5
+      svelte-check:
+        specifier: ^4.0.0
+        version: 4.4.8(picomatch@4.0.3)(svelte@5.55.5)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
 
 packages:
 
@@ -934,20 +991,28 @@ packages:
   '@emdzej/bimmerz-logger@0.1.2':
     resolution: {integrity: sha512-RPlnIAxo1+uLSTH97VifBCRAxjhylagKqyiyUDYtQSzB7fkgtJh4fedBxvB/T8T5Pr/bQKE68NUi6/o6Op21LQ==}
 
-  '@emdzej/j2534-core@0.1.0':
-    resolution: {integrity: sha512-w3/t6/mmJw5DfY7WjBOHrgB1VakD6Zp0LYxTrWRgnpNdAByOJNMKREr5+7VhMZpuCvu0yDAAuB+Wp5qWohDgTA==}
+  '@emdzej/bimmerz-theme@0.1.0':
+    resolution: {integrity: sha512-LaYUlTFSGLL848uQ7AUizbwux57fmbYeNO//8iWlDU204+WbN2bDQk5mJAp9XMx0vfedShSZLBgWQeKTcpb0Jw==}
+    peerDependencies:
+      tailwindcss: ^3.4.0
 
-  '@emdzej/j2534-driver@0.1.0':
-    resolution: {integrity: sha512-eTqWywG1zwsYWx/OfDAIjwkmf7AdZx6ldsCKuAn+lGHgO6M8m1a6Hb6L57X5f72qjhROX2y9cM54DBRQPdN9Mg==}
+  '@emdzej/j2534-core@0.2.0':
+    resolution: {integrity: sha512-gAWlgCT9ihLV/msXUaN0qhQ053q8aOUGnieJyGCeEcW5KYcyCweLWK2IxQcM5sSlZsafu33UAIN3MBYZSZtXKg==}
 
-  '@emdzej/j2534-serial@0.1.0':
-    resolution: {integrity: sha512-3GnrN9T8SHSLzgaz9VM9zl3QZCM3WGVb+qgkTW+Bu8j7Cfw23KA10DGCLbA8e6OQNC4gyA2cXMg4Tor2GUyc7w==}
+  '@emdzej/j2534-driver@0.2.0':
+    resolution: {integrity: sha512-N1kSPiaSgbI7AHOAjv0jXMWogyt+9tzXjGQUBE7B+Zi8Rw4RNe3/erMSA4PxcogKp4hKGRvQWcBGGUNFePP0XA==}
 
-  '@emdzej/j2534-types@0.1.0':
-    resolution: {integrity: sha512-ej9Hult1j8QtE5r/7RFtjRulQe17w6rd1Or6IYQhDroz4TmDvNa+iZLDJOrl3+yPUoERYnmjyHnw7G4Hc6VXKw==}
+  '@emdzej/j2534-serial@0.2.0':
+    resolution: {integrity: sha512-jk6d4ZmSh4NImeMalcNSBN4sCbrW7FsIRAagFlacCwfop4eXIiBbKKYyrVtMeXQ4iYwhkwUE0k/G66yOqG/prQ==}
 
-  '@emdzej/j2534-usb@0.1.0':
-    resolution: {integrity: sha512-tO6HA+82xMEAfpnEhm/LDKjQgIK5ZE+HhNcV3bXTDq24tVdsV/T2VT7ipB8yLHab0Yf6XsU/iPn80zqxaMxYMg==}
+  '@emdzej/j2534-types@0.2.0':
+    resolution: {integrity: sha512-O2hrh5oKth/idQ4uwOLW65jt8/S57wN+A+jRDEO7xC/N/opfappbT3Zr89VDU8ukIRTxVWnhJ+5RUx/d+jTpiA==}
+
+  '@emdzej/j2534-usb@0.2.0':
+    resolution: {integrity: sha512-1tLIP3XpNMWNxx39fnn215fJBwIPngfvBEgnivQwfikMO0+lcFAuoF95+4CZEKKSLFqRB1x1XQuZxPZ2AyDrHQ==}
+
+  '@emdzej/j2534-webserial@0.2.0':
+    resolution: {integrity: sha512-alj2d5X+YeFUXPQCUdE1F7wcSBK4/Cj3GDr8Odql9GVe2wtnlMjkR2zXvzITnNkHdry/zabT0DutvSyuFo+XSw==}
 
   '@emnapi/runtime@1.10.0':
     resolution: {integrity: sha512-ewvYlk86xUoGI0zQRNq/mC+16R1QeDlKQy21Ki3oSYXNgLb45GV1P6A0M+/s6nyCuNDqe5VpaY84BzXGwVbwFA==}
@@ -5268,28 +5333,36 @@ snapshots:
       pino: 9.14.0
       pino-pretty: 11.3.0
 
-  '@emdzej/j2534-core@0.1.0':
+  '@emdzej/bimmerz-theme@0.1.0(tailwindcss@3.4.19)':
     dependencies:
-      '@emdzej/j2534-types': 0.1.0
+      tailwindcss: 3.4.19
 
-  '@emdzej/j2534-driver@0.1.0':
+  '@emdzej/j2534-core@0.2.0':
     dependencies:
-      '@emdzej/j2534-core': 0.1.0
-      '@emdzej/j2534-types': 0.1.0
+      '@emdzej/j2534-types': 0.2.0
 
-  '@emdzej/j2534-serial@0.1.0':
+  '@emdzej/j2534-driver@0.2.0':
     dependencies:
-      '@emdzej/j2534-types': 0.1.0
+      '@emdzej/j2534-core': 0.2.0
+      '@emdzej/j2534-types': 0.2.0
+
+  '@emdzej/j2534-serial@0.2.0':
+    dependencies:
+      '@emdzej/j2534-types': 0.2.0
       serialport: 12.0.0
     transitivePeerDependencies:
       - supports-color
 
-  '@emdzej/j2534-types@0.1.0': {}
+  '@emdzej/j2534-types@0.2.0': {}
 
-  '@emdzej/j2534-usb@0.1.0':
+  '@emdzej/j2534-usb@0.2.0':
     dependencies:
-      '@emdzej/j2534-types': 0.1.0
+      '@emdzej/j2534-types': 0.2.0
       usb: 2.17.0
+
+  '@emdzej/j2534-webserial@0.2.0':
+    dependencies:
+      '@emdzej/j2534-types': 0.2.0
 
   '@emnapi/runtime@1.10.0':
     dependencies:

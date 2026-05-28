@@ -13,6 +13,8 @@ import {
   WebSerialTransport,
   type WebSerialPortLike,
 } from "@emdzej/ediabasx-interface-serial";
+import { J2534Interface } from "@emdzej/ediabasx-interface-j2534";
+import { WebSerialTransport as J2534WebSerialTransport } from "@emdzej/j2534-webserial";
 import { state as app } from "./app.svelte";
 
 export type ConnectionPhase =
@@ -69,6 +71,9 @@ function formatConnectedStatus(): string {
     const baud = config.serial?.baudRate;
     return baud ? `Connected · Web Serial @ ${baud}` : "Connected · Web Serial";
   }
+  if (config.interface === "j2534") {
+    return "Connected · J2534 (OpenPort 2.0)";
+  }
   if (config.interface === "gateway") {
     const url = config.gateway?.url?.trim();
     return url ? `Connected · Gateway · ${url}` : "Connected · Gateway";
@@ -102,7 +107,7 @@ export function isWebSerialSupported(): boolean {
 async function buildEdiabas(): Promise<Ediabas> {
   const config = app.config;
 
-  let transport: SerialInterface | GatewayClient;
+  let transport: SerialInterface | GatewayClient | J2534Interface;
 
   if (config.interface === "webserial") {
     const serial = getSerial();
@@ -127,6 +132,24 @@ async function buildEdiabas(): Promise<Ediabas> {
     transport = new SerialInterface({
       ...ifaceConfig,
       transport: webTransport,
+    });
+  } else if (config.interface === "j2534") {
+    // J2534 path: Tactrix OpenPort 2.0 via Web Serial. The j2534-webserial
+    // transport handles its own port picker via `navigator.serial.requestPort`
+    // inside `open()` — must be called from a user gesture, which the
+    // Connect button click is.
+    if (typeof navigator === "undefined" || !("serial" in navigator)) {
+      throw new Error("Web Serial API not available — needs Chrome / Edge / Opera on desktop");
+    }
+    const j2534Transport = new J2534WebSerialTransport();
+    // Initial protocol + baud are seed values for the J2534 channel
+    // before the SGBD issues setCommParameter. DS2 @ 9600 covers the
+    // E36/E39/E46 K-line ECUs the OpenPort is realistic for; the SGBD
+    // reconfigures on first job dispatch anyway.
+    transport = new J2534Interface({
+      transport: { kind: "instance", transport: j2534Transport },
+      protocol: "ds2",
+      baudRate: 9600,
     });
   } else if (config.interface === "gateway") {
     const url = config.gateway?.url?.trim();

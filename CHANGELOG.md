@@ -4,6 +4,75 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.4.0] — 2026-05-28
+
+Three new packages, a J2534 transport, and the BMW slow-K-line-ECU
+fix that makes OpenPort 2.0 round-trip cluster / IKE / body-module
+reads instead of timing out.
+
+### Added
+
+- **`@emdzej/ediabasx-interface-j2534`** — SAE J2534 PassThru transport
+  (Tactrix OpenPort 2.0) via [`@emdzej/j2534-driver`](https://www.npmjs.com/package/@emdzej/j2534-driver)
+  `^0.2.0`. Frame-level K-line integrity that K+DCAN UART bridges
+  can't provide. Tested end-to-end against a BMW E46 GS20 transmission
+  (IDENT) and KMB46 cluster (C_ZCS_LESEN — verified identical 24-byte
+  response to K+DCAN). Wired into the CLI interface registry / factory
+  + the configure wizard (`ediabasx run --interface j2534`) and into
+  the web app's settings dialog.
+- **`@emdzej/ediabasx-host-config`** — shared package owning the
+  `~/.config/ediabasx/config.json` schema, loader, save, and
+  selection-resolver. Both `ediabasx-cli` and (future) `nfsx-cli`
+  consume it directly so file-config behaviour stays in one place.
+- **`@emdzej/ediabasx-web-ui`** — source-only Svelte 5 components shared
+  across the bimmerz family's web apps: `ConnectButton` (presentational,
+  takes phase + callbacks) and `InterfaceConfigPanel` (selector +
+  per-interface fieldsets). Theme-agnostic — consumes the
+  `@emdzej/bimmerz-theme` Tailwind preset. Consumers must add the
+  package's `src/**/*.{ts,svelte}` to their Tailwind `content` glob
+  so utility classes generate.
+- **CLI `-O/--interface-option <key=value>` flag** (repeatable) — set
+  arbitrary interface options without per-flag plumbing. Used for
+  iterating on j2534 timing knobs (e.g. `-O hostInterByteMs=5`).
+- **Slow K-line ECU support on J2534.** Host-side `ParRegenTime`
+  enforcement in `J2534Interface.send()` (mirrors `Ds2Session.sendRequest`
+  in `interface-serial`); cluster reads at 9600 baud DS2 now complete
+  in ~250 ms vs prior 5 s timeout. Root cause traced via Ghidra of
+  `op20pt32.dll`: Tactrix's DLL hard-blocks `SET_CONFIG` for P2_MAX /
+  P2_MIN / P3_MAX / P4_MAX / P1_MIN — those values never reach the
+  firmware. The fix is the explicit host-side regen wait + sending
+  the timeout-microseconds field in `att` (now supported by
+  `@emdzej/j2534-driver` 0.2.0).
+
+### Changed
+
+- **Web app adopts `@emdzej/bimmerz-theme`.** `apps/web/tailwind.config.ts`
+  now extends `bimmerzPreset`; `app.css` imports
+  `@emdzej/bimmerz-theme/tokens.css`. Class names unchanged
+  (`bg-surface`, `text-muted`, `border-divider`, …) — visual shift
+  is zinc neutrals → slate neutrals (subtle hue cooling). Per-app
+  accent (cyan-500) stays as a local override.
+- **Web app SettingsDialog uses `<InterfaceConfigPanel>`** from the
+  new web-ui package instead of inlining the interface selector +
+  per-interface fieldsets. ConnectButton in the top bar similarly
+  becomes a thin wrapper around the lib's `<ConnectButton>`.
+- **`apps/cli/src/utils/config.ts` is now a thin re-export shim over
+  `@emdzej/ediabasx-host-config`** — public CLI surface unchanged.
+
+### Fixed
+
+- **J2534 `setAnswerLengths` / `setRepeatCounter` interpreter
+  dispatch.** `J2534Interface` previously stored values only as
+  properties, which the `Ediabas` adapter doesn't forward to the
+  interpreter. Method shims added so the `if (fwd.setX)` adapter
+  check picks them up. Surfaced as `INITIALISIERUNG failed: Set
+  answer length is not supported` on cluster SGBDs.
+- **Results panel cleared on SGBD or job switch.** Stale results
+  from the previous selection no longer linger on screen.
+- **CLI `--interface j2534` no longer leaks `protocol: "uart"` from
+  the saved file config.** File options are only inherited when the
+  resolved interface matches the file's interface.
+
 ## [0.3.0] — 2026-05-23
 
 Logger migration onto `@emdzej/bimmerz-logger` + a proper modal for

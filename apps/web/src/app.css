@@ -1,47 +1,10 @@
+/* `@import` must come before any other at-rule per CSS spec. Theme
+ * tokens (--theme-bg / --theme-surface / --theme-text-* / etc.) +
+ * baseline body + scrollbar styling come from the shared bimmerz-theme
+ * package. Dark mode flips via the `.dark` class on <html>, which
+ * settings.svelte.ts's applyTheme() owns. */
+@import "@emdzej/bimmerz-theme/tokens.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@layer base {
-  :root {
-    --theme-bg: 255 255 255;
-    --theme-surface: 244 244 245;
-    --theme-elevated: 228 228 231;
-    --theme-border-strong: 212 212 216;
-    --theme-border-subtle: 228 228 231;
-    --theme-text-primary: 24 24 27;
-    --theme-text-secondary: 63 63 70;
-    --theme-text-muted: 113 113 122;
-  }
-
-  .dark {
-    --theme-bg: 9 9 11;
-    --theme-surface: 24 24 27;
-    --theme-elevated: 39 39 42;
-    --theme-border-strong: 39 39 42;
-    --theme-border-subtle: 39 39 42;
-    --theme-text-primary: 244 244 245;
-    --theme-text-secondary: 212 212 216;
-    --theme-text-muted: 113 113 122;
-  }
-
-  *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  *::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  *::-webkit-scrollbar-thumb {
-    background: rgb(var(--theme-elevated));
-    border-radius: 4px;
-  }
-  *::-webkit-scrollbar-thumb:hover {
-    background: rgb(var(--theme-border-strong));
-  }
-
-  body {
-    background: rgb(var(--theme-bg));
-    color: rgb(var(--theme-text-primary));
-  }
-}

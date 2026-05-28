@@ -7,7 +7,7 @@ A TypeScript port of BMW's EDIABAS (Electronic Diagnostic Basic System) — a mo
 - **PRG/GRP parsing** — full BMW diagnostic file format support (CP1252 encoding, XOR-decoded payload, job/result/argument metadata, lookup tables)
 - **BEST/2 decompiler** — readable assembly output bounded by next-job offsets so multi-`eoj` jobs (e.g. `FS_LESEN` fault iteration) decode in full
 - **BEST/2 interpreter** — register file (B/A/I/L/S/F), flags (Z/C/V/S), call & data stacks, 184 opcodes, table/file/timer/shared-memory state, `enewset`-aware result sets matching C# `_resultSetsTemp`
-- **Hardware interfaces** — Serial K-Line / K+DCAN (DS2 + ISO-TP), Ethernet/ENET (DoIP), JSON-RPC gateway client/server
+- **Hardware interfaces** — Serial K-Line / K+DCAN (DS2 + ISO-TP), SAE J2534 PassThru (Tactrix OpenPort 2.0), Ethernet/ENET (DoIP), JSON-RPC gateway client/server
 - **Protocols** — KWP2000 (ISO 14230), UDS (ISO 14229), DoIP/HSFZ (ISO 13400)
 - **CLI + TUI** — `ediabasx` command with interactive job browser, batch run, decompile, info, job/table inspection
 - **Logging** — structured logs via pino
@@ -102,6 +102,10 @@ ediabasx run file.prg FS_LESEN \
   --serial-protocol isotp \
   --serial-tester-can-id 0x7e0 \
   --serial-ecu-can-id 0x7e8
+
+# SAE J2534 (Tactrix OpenPort 2.0)
+ediabasx run file.prg IDENT \
+  --interface j2534
 
 # ENET (DoIP)
 ediabasx run file.prg IDENT \

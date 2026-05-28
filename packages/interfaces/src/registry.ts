@@ -357,9 +357,16 @@ const interfaceRegistry: InterfaceMetadata[] = [
       {
         name: "loopback",
         description:
-          "Have OpenPort echo TX back via Read. Off by default — EdiabasInterface expects clean ECU-only responses.",
+          "Have OpenPort echo TX back via Read. On by default — matches the j2534 repo's DS2 reference example; receive() filters echoes host-side so the SGBD still sees only ECU responses.",
         type: "boolean",
-        default: false
+        default: true
+      },
+      {
+        name: "hostInterByteMs",
+        description:
+          "Host-side inter-byte delay (ms) for K-line TX. Workaround for OpenPort 2.0 silently ignoring P4_MIN — when > 0, the interface splits each TX into per-byte writes with this delay between them, restoring the gap that K+DCAN cables get for free from FTDI USB chunking (~3-5ms). 0 disables (fast ECUs don't need it).",
+        type: "number",
+        default: 0
       },
       {
         name: "readTimeoutMs",

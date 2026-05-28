@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import type { InterfaceOptions } from "@emdzej/ediabasx-interfaces";
 import { configureLogger } from "@emdzej/bimmerz-logger";
+import { parseGatewayAddress } from "@emdzej/ediabasx-host-config";
 import fs from "node:fs";
 import { parseNumber, parseOptionalNumber } from "./numbers.js";
 import { DEFAULT_CONFIG_PATH, loadConfig } from "./config.js";
@@ -39,47 +40,12 @@ type InterfaceCliOptions = {
   serialRetryNr78?: string;
   enetHost?: string;
   enetPort?: string;
+  interfaceOption?: string[];
 };
 
-const DEFAULT_GATEWAY_PORT = 6801;
-
-function parseGatewayAddress(value: string): { host: string; port: number } {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    throw new Error("Gateway address cannot be empty");
-  }
-
-  let host = trimmed;
-  let port = DEFAULT_GATEWAY_PORT;
-
-  if (trimmed.startsWith("[")) {
-    const endIndex = trimmed.indexOf("]");
-    if (endIndex < 0) {
-      throw new Error("Invalid gateway address format");
-    }
-    host = trimmed.slice(1, endIndex);
-    const rest = trimmed.slice(endIndex + 1);
-    if (rest.startsWith(":")) {
-      port = Number.parseInt(rest.slice(1), 10);
-    }
-  } else if (trimmed.includes(":")) {
-    const parts = trimmed.split(":");
-    const portPart = parts.pop();
-    host = parts.join(":");
-    if (portPart && portPart.length > 0) {
-      port = Number.parseInt(portPart, 10);
-    }
-  }
-
-  if (!host) {
-    throw new Error("Gateway host is required");
-  }
-  if (!Number.isFinite(port) || port <= 0) {
-    throw new Error("Gateway port must be a positive number");
-  }
-
-  return { host, port };
-}
+// Note: gateway-address parsing + the file-options inheritance rule now
+// live in `@emdzej/ediabasx-host-config`. This file keeps the
+// commander-flag → InterfaceOptions translation, which is CLI-specific.
 
 function addInterfaceOptions(command: Command): Command {
   return command
@@ -123,7 +89,13 @@ function addInterfaceOptions(command: Command): Command {
       "explicit gateway URL (overrides host/port; useful for ws:// or wss:// deployments)"
     )
     .option("--enet-host <host>", "ENET target host")
-    .option("--enet-port <port>", "ENET target port");
+    .option("--enet-port <port>", "ENET target port")
+    .option(
+      "-O, --interface-option <key=value>",
+      "set a generic interface option (repeatable). Useful for interface-specific knobs without a dedicated flag, e.g. -O hostInterByteMs=5 -O loopback=true",
+      (value: string, prev: string[] = []) => [...prev, value],
+      [] as string[]
+    );
 }
 
 function resolveInterfaceSelection(options: InterfaceCliOptions, fallback: string): {
@@ -302,6 +274,25 @@ function resolveInterfaceSelection(options: InterfaceCliOptions, fallback: strin
     options.gatewayUrl
   ) {
     throw new Error("Gateway options can only be used with the gateway interface");
+  }
+
+  // Generic `-O key=value` overrides — applied last so they win over
+  // both file config and the per-interface flag layer above. The
+  // factory layer (`resolveInterfaceOptions`) handles type coercion
+  // per the registry schema, so values are passed through as strings.
+  if (options.interfaceOption) {
+    for (const pair of options.interfaceOption) {
+      const eq = pair.indexOf("=");
+      if (eq === -1) {
+        throw new Error(`Invalid --interface-option (expected key=value): "${pair}"`);
+      }
+      const key = pair.slice(0, eq).trim();
+      const value = pair.slice(eq + 1);
+      if (!key) {
+        throw new Error(`Invalid --interface-option (empty key): "${pair}"`);
+      }
+      interfaceOptions[key] = value;
+    }
   }
 
   return { name, options: interfaceOptions };

@@ -5,7 +5,7 @@
     type PrgJob,
   } from "@emdzej/ediabasx-best-parser";
   import { state as app } from "../lib/app.svelte";
-  import { runtime, runJob, isWebSerialSupported } from "../lib/runtime.svelte";
+  import { runtime, runJob, clearResults, isWebSerialSupported } from "../lib/runtime.svelte";
   import ResultsPanel from "../components/ResultsPanel.svelte";
   import RunJobDialog from "../components/RunJobDialog.svelte";
 
@@ -44,6 +44,21 @@
     if (selectedJob && selectedJob.name !== selectedName) {
       selectedName = selectedJob.name;
     }
+  });
+
+  // Wipe stale results when the user switches SGBD file or picks a
+  // different job — results stuck on screen from the previous selection
+  // are misleading. Tracked outside `$state` so we can detect "the
+  // selection actually changed" instead of clearing on first mount.
+  let lastSelectionKey: string | null = null;
+  $effect(() => {
+    const sgbd = app.loadedFile?.relativePath ?? "";
+    const job = selectedJob?.name ?? "";
+    const key = `${sgbd}|${job}`;
+    if (lastSelectionKey !== null && key !== lastSelectionKey) {
+      clearResults();
+    }
+    lastSelectionKey = key;
   });
 
   // Compute disassembly only when the panel is open, so navigating jobs

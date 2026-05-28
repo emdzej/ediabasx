@@ -1,7 +1,7 @@
 {
-  "name": "@emdzej/ediabasx-core",
+  "name": "@emdzej/ediabasx-host-config",
   "version": "0.4.0",
-  "description": "EDIABAS / EdiabasX shared primitives: CP1252 encoding, XOR decryption (key 0xF7), error codes, type definitions.",
+  "description": "Shared loader for ~/.config/ediabasx/config.json + interface-selection resolver. Consumed by @emdzej/ediabasx-cli and external CLIs that drive ediabasx (e.g. nfsx) so the config schema + override rules stay in one place.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -14,8 +14,11 @@
     "typecheck": "tsc --noEmit",
     "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
   },
+  "dependencies": {
+    "@emdzej/ediabasx-interfaces": "workspace:*"
+  },
   "devDependencies": {
-    "@types/node": "^25.2.0"
+    "@types/node": "^22.0.0"
   },
   "publishConfig": {
     "access": "public"

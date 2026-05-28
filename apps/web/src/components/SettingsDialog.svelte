@@ -4,7 +4,6 @@
     LOG_LEVELS,
     resetConfig,
     saveConfig,
-    type InterfaceType,
     type LogLevel,
   } from "../lib/config";
   import {
@@ -15,6 +14,7 @@
   import { settings, setTheme, type ThemeChoice } from "../lib/settings.svelte";
   import { applyLoggerConfig } from "../lib/logger-wiring";
   import { LOG_CATEGORIES as EDIABASX_LOG_CATEGORIES } from "@emdzej/ediabasx-ediabas";
+  import { InterfaceConfigPanel } from "@emdzej/ediabasx-web-ui";
 
   /**
    * Persist on every config mutation. Writes are tiny; eager flushing
@@ -76,21 +76,6 @@
       app.config.gateway = { ...(app.config.gateway ?? {}), ...fresh.gateway };
     }
   }
-
-  function setInterface(value: InterfaceType): void {
-    app.config = { ...app.config, interface: value };
-  }
-
-  function isWebSerialSupported(): boolean {
-    return typeof navigator !== "undefined" && "serial" in navigator;
-  }
-
-  function isSecureContext(): boolean {
-    return typeof window !== "undefined" && window.isSecureContext === true;
-  }
-
-  const webSerialAvailable = $derived(isWebSerialSupported());
-  const secure = $derived(isSecureContext());
 
   /**
    * Drop every install-derived piece of state when the user changes or
@@ -231,154 +216,8 @@
           </div>
         </div>
 
-        <!-- Interface -->
-        <div>
-          <label for="iface" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-faint">Interface</label>
-          <select
-            id="iface"
-            class="w-full rounded border border-rule bg-base px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
-            value={app.config.interface}
-            onchange={(e) =>
-              setInterface((e.currentTarget as HTMLSelectElement).value as InterfaceType)}
-          >
-            <option value="webserial">Web Serial (local USB cable)</option>
-            <option value="gateway">Gateway (remote ediabasx server)</option>
-          </select>
-          {#if app.config.interface === "webserial" && !webSerialAvailable}
-            <p class="mt-1 text-xs text-red-500">
-              Web Serial is not available in this browser. Use Chrome / Edge / Opera /
-              Brave on desktop, served over HTTPS or localhost.
-            </p>
-          {/if}
-        </div>
-
-        <!-- Serial parameters -->
-        {#if app.config.interface === "webserial" && app.config.serial}
-          <fieldset class="space-y-3 rounded border border-divider bg-base p-3">
-            <legend class="px-1 text-xs font-semibold uppercase tracking-wider text-faint">
-              Serial / K-line
-            </legend>
-            <div class="grid grid-cols-2 gap-3">
-              <label class="text-xs text-muted">
-                Baud
-                <input
-                  type="number"
-                  class="mt-0.5 w-full rounded border border-rule bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
-                  bind:value={app.config.serial.baudRate}
-                />
-              </label>
-              <label class="text-xs text-muted">
-                Timeout (ms)
-                <input
-                  type="number"
-                  class="mt-0.5 w-full rounded border border-rule bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
-                  bind:value={app.config.serial.timeoutMs}
-                />
-              </label>
-              <label class="text-xs text-muted">
-                Protocol
-                <select
-                  class="mt-0.5 w-full rounded border border-rule bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
-                  bind:value={app.config.serial.protocol}
-                >
-                  <option value="kwp">KWP2000 (K-line)</option>
-                  <option value="isotp">ISO-TP (D-CAN)</option>
-                  <option value="uart">UART (raw)</option>
-                  <option value="tp20">TP2.0 (VAG)</option>
-                </select>
-              </label>
-              <label class="text-xs text-muted">
-                Init mode
-                <select
-                  class="mt-0.5 w-full rounded border border-rule bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
-                  bind:value={app.config.serial.initMode}
-                >
-                  <option value="fast">fast</option>
-                  <option value="five-baud">5-baud</option>
-                </select>
-              </label>
-              <label class="text-xs text-muted">
-                Data bits
-                <select
-                  class="mt-0.5 w-full rounded border border-rule bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
-                  bind:value={app.config.serial.dataBits}
-                >
-                  <option value={8}>8</option>
-                  <option value={7}>7</option>
-                </select>
-              </label>
-              <label class="text-xs text-muted">
-                Parity
-                <select
-                  class="mt-0.5 w-full rounded border border-rule bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
-                  bind:value={app.config.serial.parity}
-                >
-                  <option value="none">none</option>
-                  <option value="even">even</option>
-                  <option value="odd">odd</option>
-                </select>
-              </label>
-              <label class="text-xs text-muted">
-                Stop bits
-                <select
-                  class="mt-0.5 w-full rounded border border-rule bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
-                  bind:value={app.config.serial.stopBits}
-                >
-                  <option value={1}>1</option>
-                  <option value={2}>2</option>
-                </select>
-              </label>
-              {#if app.config.serial.protocol === "isotp"}
-                <label class="text-xs text-muted">
-                  Tester CAN ID
-                  <input
-                    type="text"
-                    placeholder="0x7E0"
-                    class="mt-0.5 w-full rounded border border-rule bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
-                    bind:value={app.config.serial.testerCanId}
-                  />
-                </label>
-                <label class="text-xs text-muted">
-                  ECU CAN ID
-                  <input
-                    type="text"
-                    placeholder="0x7E8"
-                    class="mt-0.5 w-full rounded border border-rule bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none"
-                    bind:value={app.config.serial.ecuCanId}
-                  />
-                </label>
-              {/if}
-            </div>
-          </fieldset>
-        {/if}
-
-        <!-- Gateway config -->
-        {#if app.config.interface === "gateway"}
-          <fieldset class="space-y-2 rounded border border-divider bg-base p-3">
-            <legend class="px-1 text-xs font-semibold uppercase tracking-wider text-faint">
-              Gateway
-            </legend>
-            <label class="text-xs text-muted">
-              WebSocket URL
-              <input
-                type="text"
-                placeholder="ws://localhost:6801"
-                class="mt-0.5 w-full rounded border border-rule bg-surface px-2 py-1 font-mono text-sm text-foreground focus:border-accent focus:outline-none"
-                bind:value={app.config.gateway!.url}
-              />
-            </label>
-            {#if !secure && app.config.gateway?.url?.startsWith("ws://")}
-              <p class="text-xs text-amber-500">
-                ⚠ Page loaded over HTTPS — browsers refuse plain <code>ws://</code>.
-                Use <code>wss://</code> or load this page over <code>http://localhost</code>.
-              </p>
-            {/if}
-            <p class="text-xs text-faint">
-              Run <code>ediabasx gateway --transport websocket</code> on the machine
-              that owns the cable; point this URL at it.
-            </p>
-          </fieldset>
-        {/if}
+        <!-- Interface selector + per-interface fieldsets (shared web-ui). -->
+        <InterfaceConfigPanel bind:config={app.config} />
 
         <!-- Logging — bimmerz-logger central config -->
         <fieldset class="space-y-2 rounded border border-divider bg-base p-3">

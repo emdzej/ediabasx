@@ -1,54 +1,61 @@
-import fs from "node:fs";
-import path from "node:path";
-import os from "node:os";
-import type { InterfaceOptions } from "@emdzej/ediabasx-interfaces";
+/**
+ * Thin compatibility layer over `@emdzej/ediabasx-host-config`.
+ *
+ * The shared package owns the file schema, loader, save, and selection
+ * resolver — that's what nfsx-cli (and any future external consumer)
+ * also imports. This file keeps the CLI-internal alias `EdiabasConfig`
+ * (with a typed `logging` field) and the legacy named exports the
+ * existing call sites use, so the migration is local and reversible.
+ */
+
+import {
+  DEFAULT_CONFIG_PATH,
+  EdiabasConfigError,
+  type EdiabasHostConfig,
+  loadConfig as loadHostConfig,
+  saveConfig as saveHostConfig,
+} from "@emdzej/ediabasx-host-config";
 import type { LoggerFileConfig } from "./logger-config.js";
 
-type EdiabasConfig = {
-  interface: string;
-  options: InterfaceOptions;
-  /**
-   * Optional `logging` section — pass-through to `@emdzej/bimmerz-logger`'s
-   * `configureLogger()`. Env vars (`EDIABASX_LOG_*`) override values here.
-   */
+/**
+ * The shared schema's `logging` field is opaque (`unknown`) so the
+ * host-config package doesn't depend on bimmerz-logger. The CLI knows
+ * the concrete shape, so we narrow it here for type-safe local use.
+ */
+type EdiabasConfig = EdiabasHostConfig & {
   logging?: LoggerFileConfig;
 };
-
-const DEFAULT_CONFIG_DIR = path.join(os.homedir(), ".config", "ediabasx");
-const DEFAULT_CONFIG_PATH = path.join(DEFAULT_CONFIG_DIR, "config.json");
 
 function getConfigPath(configPath?: string): string {
   return configPath ?? DEFAULT_CONFIG_PATH;
 }
 
+/**
+ * Load `~/.config/ediabasx/config.json` (or the explicit `configPath`).
+ * Wraps the shared loader: legacy callers expect "throws on missing
+ * file" when a path is given; the shared loader already enforces that.
+ */
 function loadConfig(configPath: string): EdiabasConfig {
-  const resolved = path.resolve(configPath);
-  if (!fs.existsSync(resolved)) {
-    throw new Error(`Config file not found: ${resolved}`);
+  const cfg = loadHostConfig(configPath);
+  if (!cfg) {
+    // Shared loader returns `undefined` only when called with no arg
+    // and the default path doesn't exist — can't happen here since
+    // we always pass an explicit path. Defensive throw matches the
+    // old API contract.
+    throw new EdiabasConfigError(`Config file not found: ${configPath}`);
   }
-  const raw = fs.readFileSync(resolved, "utf-8");
-  const parsed = JSON.parse(raw) as EdiabasConfig;
-
-  if (!parsed.interface || typeof parsed.interface !== "string") {
-    throw new Error(`Invalid config: "interface" must be a string`);
-  }
-  if (parsed.options !== undefined && typeof parsed.options !== "object") {
-    throw new Error(`Invalid config: "options" must be an object`);
-  }
-
-  return {
-    interface: parsed.interface,
-    options: parsed.options ?? {},
-    logging: parsed.logging,
-  };
+  return cfg as EdiabasConfig;
 }
 
 function saveConfig(config: EdiabasConfig, configPath: string): void {
-  const resolved = path.resolve(configPath);
-  const dir = path.dirname(resolved);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(resolved, JSON.stringify(config, null, 2) + "\n", "utf-8");
+  saveHostConfig(config, configPath);
 }
 
 export type { EdiabasConfig };
-export { DEFAULT_CONFIG_PATH, getConfigPath, loadConfig, saveConfig };
+export {
+  DEFAULT_CONFIG_PATH,
+  EdiabasConfigError,
+  getConfigPath,
+  loadConfig,
+  saveConfig,
+};
