@@ -320,6 +320,61 @@ const interfaceRegistry: InterfaceMetadata[] = [
         type: "string"
       }
     ]
+  },
+  {
+    name: "j2534",
+    description:
+      "SAE J2534 PassThru via Tactrix OpenPort 2.0 (frame-level integrity; no UART jitter).",
+    options: [
+      {
+        name: "transport",
+        description:
+          "How to reach the OpenPort 2.0. `serial` uses the kernel CDC ACM driver (no sudo on macOS). `usb` uses libusb directly (requires sudo on macOS/Linux).",
+        type: "enum",
+        values: ["serial", "usb"],
+        default: "serial"
+      },
+      {
+        name: "protocol",
+        description:
+          "BMW protocol over the J2534 channel. `ds2` (default) for E36/E39/E46 K-line ECUs; `kwp` for KWP2000 fast-init; `can` for raw CAN frames.",
+        type: "enum",
+        values: ["ds2", "kwp", "can"],
+        default: "ds2"
+      },
+      {
+        name: "port",
+        description:
+          "Serial device path (e.g. /dev/cu.usbmodemXXXX). Optional — auto-detected for the `serial` transport when omitted.",
+        type: "string"
+      },
+      {
+        name: "baudRate",
+        description: "K-line baud rate. 9600 is standard for DS2/KWP.",
+        type: "number",
+        default: 9600
+      },
+      {
+        name: "loopback",
+        description:
+          "Have OpenPort echo TX back via Read. Off by default — EdiabasInterface expects clean ECU-only responses.",
+        type: "boolean",
+        default: false
+      },
+      {
+        name: "readTimeoutMs",
+        description: "Per-poll receive timeout in milliseconds.",
+        type: "number",
+        default: 1000
+      },
+      {
+        name: "defaultBatteryMv",
+        description:
+          "Fallback battery voltage in millivolts when READ_VBATT fails (e.g. before channel is open).",
+        type: "number",
+        default: 12000
+      }
+    ]
   }
 ];
 

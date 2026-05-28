@@ -11,6 +11,12 @@ import {
 } from "@emdzej/ediabasx-interface-serial";
 import { NodeSerialTransport } from "@emdzej/ediabasx-interface-serial/node";
 import { EnetInterface } from "@emdzej/ediabasx-interface-enet";
+import {
+  J2534Interface,
+  type J2534InterfaceConfig,
+  type J2534Protocol,
+  type J2534TransportSpec
+} from "@emdzej/ediabasx-interface-j2534";
 import { GatewayClient } from "./gateway-client";
 import { getInterfaceMetadata, type InterfaceMetadata } from "./registry";
 
@@ -51,9 +57,59 @@ export function createInterface(name: string, rawOptions: InterfaceOptions = {})
     case "serial":
     case "kdcan":
       return createSerialInterface(options);
+    case "j2534":
+      return createJ2534Interface(options);
     default:
       throw new Error(`Interface "${metadata.name}" is not supported`);
   }
+}
+
+function createJ2534Interface(
+  options: Record<string, string | number | boolean>
+): J2534Interface {
+  const transportKind = String(options.transport ?? "serial").toLowerCase();
+
+  const protocol = String(options.protocol ?? "ds2").toLowerCase() as J2534Protocol;
+  if (protocol !== "ds2" && protocol !== "kwp" && protocol !== "can") {
+    throw new Error(`Unknown j2534 protocol "${options.protocol}" (use ds2, kwp, or can)`);
+  }
+
+  // We build a TransportSpec instead of constructing the transport now.
+  // The j2534 packages ship as pure ESM with no CJS export, and
+  // `createInterface` lives in a CJS-compiled package — a synchronous
+  // require would throw ERR_PACKAGE_PATH_NOT_EXPORTED. The interface
+  // resolves the spec via `await import()` inside `connect()`.
+  let transportSpec: J2534TransportSpec;
+  if (transportKind === "usb") {
+    transportSpec = { kind: "usb" };
+  } else if (transportKind === "serial") {
+    const spec: J2534TransportSpec = { kind: "serial" };
+    if (typeof options.port === "string" && options.port.length > 0) {
+      spec.port = options.port;
+    }
+    transportSpec = spec;
+  } else {
+    throw new Error(`Unknown j2534 transport "${transportKind}" (use serial or usb)`);
+  }
+
+  const config: J2534InterfaceConfig = {
+    transport: transportSpec,
+    protocol,
+    baudRate:
+      options.baudRate !== undefined ? parseNumber("baudRate", options.baudRate) : undefined,
+    defaultBatteryMv:
+      options.defaultBatteryMv !== undefined
+        ? parseNumber("defaultBatteryMv", options.defaultBatteryMv)
+        : undefined,
+    loopback:
+      options.loopback !== undefined ? parseBoolean("loopback", options.loopback) : undefined,
+    readTimeoutMs:
+      options.readTimeoutMs !== undefined
+        ? parseNumber("readTimeoutMs", options.readTimeoutMs)
+        : undefined
+  };
+
+  return new J2534Interface(config);
 }
 
 function resolveInterfaceOptions(

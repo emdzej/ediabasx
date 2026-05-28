@@ -27,7 +27,12 @@
   "dependencies": {
     "@emdzej/ediabasx-interface-base": "workspace:*",
     "@emdzej/ediabasx-interface-enet": "workspace:*",
+    "@emdzej/ediabasx-interface-j2534": "workspace:*",
     "@emdzej/ediabasx-interface-serial": "workspace:*",
+    "@emdzej/j2534-driver": "^0.1.0",
+    "@emdzej/j2534-serial": "^0.1.0",
+    "@emdzej/j2534-types": "^0.1.0",
+    "@emdzej/j2534-usb": "^0.1.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {

@@ -213,6 +213,24 @@ importers:
         specifier: workspace:*
         version: link:../interface-base
 
+  packages/interface-j2534:
+    dependencies:
+      '@emdzej/ediabasx-interface-base':
+        specifier: workspace:*
+        version: link:../interface-base
+      '@emdzej/j2534-driver':
+        specifier: ^0.1.0
+        version: 0.1.0
+      '@emdzej/j2534-serial':
+        specifier: ^0.1.0
+        version: 0.1.0
+      '@emdzej/j2534-types':
+        specifier: ^0.1.0
+        version: 0.1.0
+      '@emdzej/j2534-usb':
+        specifier: ^0.1.0
+        version: 0.1.0
+
   packages/interface-serial:
     dependencies:
       '@emdzej/ediabasx-core':
@@ -236,9 +254,24 @@ importers:
       '@emdzej/ediabasx-interface-enet':
         specifier: workspace:*
         version: link:../interface-enet
+      '@emdzej/ediabasx-interface-j2534':
+        specifier: workspace:*
+        version: link:../interface-j2534
       '@emdzej/ediabasx-interface-serial':
         specifier: workspace:*
         version: link:../interface-serial
+      '@emdzej/j2534-driver':
+        specifier: ^0.1.0
+        version: 0.1.0
+      '@emdzej/j2534-serial':
+        specifier: ^0.1.0
+        version: 0.1.0
+      '@emdzej/j2534-types':
+        specifier: ^0.1.0
+        version: 0.1.0
+      '@emdzej/j2534-usb':
+        specifier: ^0.1.0
+        version: 0.1.0
       ws:
         specifier: ^8.18.0
         version: 8.19.0
@@ -900,6 +933,21 @@ packages:
 
   '@emdzej/bimmerz-logger@0.1.2':
     resolution: {integrity: sha512-RPlnIAxo1+uLSTH97VifBCRAxjhylagKqyiyUDYtQSzB7fkgtJh4fedBxvB/T8T5Pr/bQKE68NUi6/o6Op21LQ==}
+
+  '@emdzej/j2534-core@0.1.0':
+    resolution: {integrity: sha512-w3/t6/mmJw5DfY7WjBOHrgB1VakD6Zp0LYxTrWRgnpNdAByOJNMKREr5+7VhMZpuCvu0yDAAuB+Wp5qWohDgTA==}
+
+  '@emdzej/j2534-driver@0.1.0':
+    resolution: {integrity: sha512-eTqWywG1zwsYWx/OfDAIjwkmf7AdZx6ldsCKuAn+lGHgO6M8m1a6Hb6L57X5f72qjhROX2y9cM54DBRQPdN9Mg==}
+
+  '@emdzej/j2534-serial@0.1.0':
+    resolution: {integrity: sha512-3GnrN9T8SHSLzgaz9VM9zl3QZCM3WGVb+qgkTW+Bu8j7Cfw23KA10DGCLbA8e6OQNC4gyA2cXMg4Tor2GUyc7w==}
+
+  '@emdzej/j2534-types@0.1.0':
+    resolution: {integrity: sha512-ej9Hult1j8QtE5r/7RFtjRulQe17w6rd1Or6IYQhDroz4TmDvNa+iZLDJOrl3+yPUoERYnmjyHnw7G4Hc6VXKw==}
+
+  '@emdzej/j2534-usb@0.1.0':
+    resolution: {integrity: sha512-tO6HA+82xMEAfpnEhm/LDKjQgIK5ZE+HhNcV3bXTDq24tVdsV/T2VT7ipB8yLHab0Yf6XsU/iPn80zqxaMxYMg==}
 
   '@emnapi/runtime@1.10.0':
     resolution: {integrity: sha512-ewvYlk86xUoGI0zQRNq/mC+16R1QeDlKQy21Ki3oSYXNgLb45GV1P6A0M+/s6nyCuNDqe5VpaY84BzXGwVbwFA==}
@@ -1756,6 +1804,9 @@ packages:
 
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
+
+  '@types/w3c-web-usb@1.0.14':
+    resolution: {integrity: sha512-Qu3Nn6JFuF4+sHKYl+IcX9vYiI40ogleXzFFSxoE1W94rG98o/kXs8uJ0QSfFzuwBCZWlGfUGpPkgwuuX4PchA==}
 
   '@types/web-bluetooth@0.0.21':
     resolution: {integrity: sha512-oIQLCGWtcFZy2JW77j9k8nHzAOpqMHLQejDA48XXMWH6tjCQHz5RCFz1bzsmROyL6PUm+LLnUiI4BCn221inxA==}
@@ -3241,6 +3292,10 @@ packages:
   node-addon-api@7.0.0:
     resolution: {integrity: sha512-vgbBJTS4m5/KkE16t5Ly0WW9hz46swAstv0hYYwMtbG7AznRhNyfLRe8HZAiWIpcHzoO7HxhLuBQj9rJ/Ho0ZA==}
 
+  node-addon-api@8.8.0:
+    resolution: {integrity: sha512-c5Ko1fZJIJmzhFIkhRN76WTq+fC6tWnGy9CXA0fA+XygsWZmEwG8vmbkNqxMyoaa0Tin4djul49NzdVcJJcjeA==}
+    engines: {node: ^18 || ^20 || >= 21}
+
   node-gyp-build@4.6.0:
     resolution: {integrity: sha512-NTZVKn9IylLwUzaKjkas1e4u2DLNcV4rdYagA4PWdPwW87Bi7z+BznyKSRwS/761tV/lzCGXplWsiaMjLqP2zQ==}
     hasBin: true
@@ -4104,6 +4159,10 @@ packages:
 
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
+
+  usb@2.17.0:
+    resolution: {integrity: sha512-UuFgrlglgDn5ll6d5l7kl3nDb2Yx43qLUGcDq+7UNLZLtbNug0HZBb2Xodhgx2JZB1LqvU+dOGqLEeYUeZqsHg==}
+    engines: {node: '>=12.22.0 <13.0 || >=14.17.0'}
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
@@ -5209,6 +5268,29 @@ snapshots:
       pino: 9.14.0
       pino-pretty: 11.3.0
 
+  '@emdzej/j2534-core@0.1.0':
+    dependencies:
+      '@emdzej/j2534-types': 0.1.0
+
+  '@emdzej/j2534-driver@0.1.0':
+    dependencies:
+      '@emdzej/j2534-core': 0.1.0
+      '@emdzej/j2534-types': 0.1.0
+
+  '@emdzej/j2534-serial@0.1.0':
+    dependencies:
+      '@emdzej/j2534-types': 0.1.0
+      serialport: 12.0.0
+    transitivePeerDependencies:
+      - supports-color
+
+  '@emdzej/j2534-types@0.1.0': {}
+
+  '@emdzej/j2534-usb@0.1.0':
+    dependencies:
+      '@emdzej/j2534-types': 0.1.0
+      usb: 2.17.0
+
   '@emnapi/runtime@1.10.0':
     dependencies:
       tslib: 2.8.1
@@ -5848,6 +5930,8 @@ snapshots:
   '@types/trusted-types@2.0.7': {}
 
   '@types/unist@3.0.3': {}
+
+  '@types/w3c-web-usb@1.0.14': {}
 
   '@types/web-bluetooth@0.0.21': {}
 
@@ -7481,6 +7565,8 @@ snapshots:
 
   node-addon-api@7.0.0: {}
 
+  node-addon-api@8.8.0: {}
+
   node-gyp-build@4.6.0: {}
 
   node-releases@2.0.38: {}
@@ -8501,6 +8587,12 @@ snapshots:
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
+
+  usb@2.17.0:
+    dependencies:
+      '@types/w3c-web-usb': 1.0.14
+      node-addon-api: 8.8.0
+      node-gyp-build: 4.6.0
 
   util-deprecate@1.0.2: {}
 

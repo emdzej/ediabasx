@@ -47,11 +47,13 @@ const COMMON_SERIAL_OPTIONS = new Set([
 
 const COMMON_ENET_OPTIONS = new Set(["host", "port"]);
 const COMMON_GATEWAY_OPTIONS = new Set(["host", "port"]);
+const COMMON_J2534_OPTIONS = new Set(["transport", "protocol", "port", "baudRate"]);
 
 function isCommonOption(interfaceName: string, optName: string): boolean {
   if (interfaceName === "serial" || interfaceName === "kdcan") return COMMON_SERIAL_OPTIONS.has(optName);
   if (interfaceName === "enet") return COMMON_ENET_OPTIONS.has(optName);
   if (interfaceName === "gateway") return COMMON_GATEWAY_OPTIONS.has(optName);
+  if (interfaceName === "j2534") return COMMON_J2534_OPTIONS.has(optName);
   return true;
 }
 

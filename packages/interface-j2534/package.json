@@ -1,0 +1,37 @@
+{
+  "name": "@emdzej/ediabasx-interface-j2534",
+  "version": "0.3.0",
+  "description": "SAE J2534 PassThru transport for EdiabasX via Tactrix OpenPort 2.0 — wraps @emdzej/j2534-driver as an EdiabasInterface, with frame-level integrity that K+DCAN UART bridges can't provide.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
+  },
+  "dependencies": {
+    "@emdzej/ediabasx-interface-base": "workspace:*",
+    "@emdzej/j2534-driver": "^0.1.0",
+    "@emdzej/j2534-types": "^0.1.0"
+  },
+  "peerDependencies": {
+    "@emdzej/j2534-serial": "^0.1.0",
+    "@emdzej/j2534-usb": "^0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@emdzej/j2534-serial": { "optional": true },
+    "@emdzej/j2534-usb": { "optional": true }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emdzej/ediabasx.git"
+  }
+}
