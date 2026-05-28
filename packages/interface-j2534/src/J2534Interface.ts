@@ -69,7 +69,6 @@ export interface J2534InterfaceConfig {
 }
 
 const PARITY_NONE = 0;
-const PARITY_EVEN = 2;
 
 /**
  * BMW-flavoured EdiabasInterface backed by a Tactrix OpenPort 2.0 via
