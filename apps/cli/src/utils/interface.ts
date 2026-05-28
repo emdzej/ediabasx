@@ -89,7 +89,7 @@ function addInterfaceOptions(command: Command): Command {
     )
     .option(
       "-i, --interface <name>",
-      "interface to use (simulation|serial|kdcan|enet|gateway)"
+      "interface to use (simulation|serial|kdcan|enet|gateway|j2534)"
     )
     .option("--serial-port <path>", "serial device path")
     .option("--serial-baud <baud>", "serial baud rate")
@@ -166,7 +166,17 @@ function resolveInterfaceSelection(options: InterfaceCliOptions, fallback: strin
     throw new Error("--gateway can only be used with the gateway interface");
   }
 
-  const interfaceOptions: InterfaceOptions = { ...(fileConfig?.options ?? {}) };
+  // Only inherit file's options when the resolved interface matches what
+  // the file was configured for. Otherwise the file's serial-specific
+  // keys (e.g. `protocol: "uart"`, `initMode: "fast"`) leak into a
+  // different interface's factory (e.g. j2534 rejects `protocol: "uart"`
+  // because its enum is ds2/kwp/can). This matches the spirit of "the
+  // file is a fallback when no CLI override is supplied".
+  const fileInterfaceMatches =
+    fileConfig?.interface !== undefined && fileConfig.interface === name;
+  const interfaceOptions: InterfaceOptions = fileInterfaceMatches
+    ? { ...(fileConfig?.options ?? {}) }
+    : {};
   const serialOptions: InterfaceOptions = {};
 
   if (options.serialPort) {
