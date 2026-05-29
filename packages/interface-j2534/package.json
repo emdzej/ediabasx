@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-interface-j2534",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "SAE J2534 PassThru transport for EdiabasX via Tactrix OpenPort 2.0 — wraps @emdzej/j2534-driver as an EdiabasInterface, with frame-level integrity that K+DCAN UART bridges can't provide.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

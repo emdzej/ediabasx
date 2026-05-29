@@ -44,6 +44,13 @@ const DEFAULT_CONFIG: SerialTransportConfig = {
   stopBits: 1
 };
 
+// Software-side "no bytes for N ms after the last one ⇒ return the
+// telegram". 20 ms is the conservative pre-flash-era default; SGBDs
+// that need a wider window declare `ParTimeoutTelEnd` (parameters[7])
+// via `xsetpar`, which `SerialInterface.setCommParameter` now pushes
+// down via the optional `setTelegramEndTimeout` setter on this class.
+// Bumping the default risks capturing pre-TX line noise on the
+// half-duplex K-line; keep it tight and let the SGBD widen per job.
 const DEFAULT_TELEGRAM_END_TIMEOUT_MS = 20;
 
 export class NodeSerialTransport implements SerialTransport {
@@ -51,7 +58,7 @@ export class NodeSerialTransport implements SerialTransport {
   private portPath: string | null = null;
   private config: SerialTransportConfig = { ...DEFAULT_CONFIG };
   private readonly portClass: SerialPortCtor;
-  private readonly telegramEndTimeoutMs: number;
+  private telegramEndTimeoutMs: number;
   private bufferedData: number[] = [];
   private pendingReads: PendingRead[] = [];
 
@@ -138,6 +145,12 @@ export class NodeSerialTransport implements SerialTransport {
     await this.setSignals({ brk: true });
     await this.delay(durationMs);
     await this.setSignals({ brk: false });
+  }
+
+  setTelegramEndTimeout(ms: number): void {
+    if (Number.isFinite(ms) && ms > 0) {
+      this.telegramEndTimeoutMs = ms;
+    }
   }
 
   async purge(): Promise<void> {

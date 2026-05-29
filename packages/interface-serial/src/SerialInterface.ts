@@ -46,13 +46,25 @@ const DEFAULT_CONFIG = {
   parity: "none",
   stopBits: 1,
   timeoutMs: 5000,
+  // Conservative pre-flash-era default; SGBDs that need a wider window
+  // declare `ParTimeoutTelEnd` (parameters[7]) via `xsetpar`, which
+  // `setCommParameter` now pushes down via the transport's
+  // `setTelegramEndTimeout()` setter.
   telegramEndTimeoutMs: 20,
   receiveBufferSize: 4096,
   p1DelayMs: 0,
   kwpModeSelectPayload: Uint8Array.from([0x10, 0x81]),
   kwpTesterPresentPayload: Uint8Array.from([0x3e, 0x00]),
   kwpWakeAddress: 0x33,
-  latencyTimerMs: 1
+  // FTDI USB-side latency timer. Default `0` = "don't touch FTDI — use
+  // whatever the OS driver sets (macOS 16 ms / Linux 16 ms / Windows 16 ms
+  // per FTDIBUS regkey)". 0.5.0 shipped this at `1`, which on macOS sets
+  // IOSSDATALAT below the per-byte transit time at 9600 baud (~1.15 ms)
+  // and put `AppleUSBFTDI` into a state where reads silently truncate
+  // — the damage persisted in the kernel driver until physical unplug
+  // or reboot. Set this knob to a higher value (≥ 2 ms at 9600 baud)
+  // only if you've measured a real problem with the OS default.
+  latencyTimerMs: 0
 } as const;
 
 const SerialTiming = {
@@ -650,6 +662,15 @@ export class SerialInterface extends EdiabasInterface {
       const timeoutStdMs = Math.max(requestedTimeoutStdMs, envFloor);
       const regenTimeMs = parameters[6] || 0;
       const telegramEndTimeoutMs = parameters[7] || this.config.telegramEndTimeoutMs;
+      // Push the SGBD-declared end-of-telegram timeout down into the
+      // transport so the read loop's "no bytes for N ms ⇒ return what
+      // we have" cutoff matches what the SGBD expects. Without this,
+      // the transport stays at its constructor-time default (100 ms)
+      // and slow ECUs whose `ParTimeoutTelEnd` is wider than that get
+      // truncated mid-response.
+      if (typeof this.transport.setTelegramEndTimeout === "function") {
+        this.transport.setTelegramEndTimeout(telegramEndTimeoutMs);
+      }
       const interByteTimeMs = parameters.length >= 9 ? parameters[8] : 0;
       const checksumByUser = parameters.length >= 10 ? parameters[9] !== 0 : false;
 

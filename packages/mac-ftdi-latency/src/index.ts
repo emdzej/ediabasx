@@ -33,9 +33,16 @@ function loadBinding(): NativeBinding {
  * Apply the FTDI USB-side latency timer to a macOS serial device.
  *
  * @param devicePath  e.g. "/dev/cu.usbserial-A50285BI"
- * @param latencyUs   microseconds, 1..255000 (1..255 ms). Default FTDI
- *                    is ~16000 (16 ms). For K-line slow-init ECUs, 1000
- *                    (1 ms) is the recommended value.
+ * @param latencyUs   microseconds. **Safe range at 9600 baud: 2000+ µs.**
+ *                    Setting below the per-byte UART transit time
+ *                    (1.15 ms at 9600 8E1) creates a flush-vs-receive
+ *                    race in `AppleUSBFTDI` that corrupts reads.
+ *                    Pass `0` to reset the driver to its built-in
+ *                    default — this also clears any FIFO state left
+ *                    over from a previous bad latency value, which a
+ *                    plain re-set to e.g. 16000 does NOT do. The
+ *                    setting persists at the kernel-driver level and
+ *                    survives process exit / `close()`.
  */
 export function setLatencyMicros(devicePath: string, latencyUs: number): LatencyResult {
   if (process.platform !== "darwin") {

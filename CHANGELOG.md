@@ -4,6 +4,44 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.5.1] — 2026-05-29
+
+Regression fix. 0.5.0's `latencyTimerMs: 1` default actively corrupted
+K+DCAN reads on macOS and the damage persisted in the driver across
+process restarts. Anyone who picked up 0.5.0 and ran `ediabasx run`
+once against an FTDI K+DCAN cable saw subsequent jobs fail with
+`DS2: short tail` until the cable was unplugged or the system rebooted.
+
+### Fixed
+
+- **`SerialInterfaceConfig.latencyTimerMs` default changed from `1` → `0`**
+  (default: don't touch the FTDI). The OS-level driver default
+  (typically 16 ms) is fine for K+DCAN; the original "we need to drop
+  this for slow K-line ECUs" premise was a misdiagnosis of a different
+  bug. Users who *do* want to tune it should pass an explicit value ≥
+  2 ms at 9600 baud — setting below the per-byte UART transit time
+  (~1.15 ms at 9600 8E1) creates a flush-vs-receive race in
+  `AppleUSBFTDI` that drops bytes mid-response.
+- **`@emdzej/ediabasx-mac-ftdi-latency`** — JSDoc updated to document the
+  safe range and the `setLatencyMicros(path, 0)` recovery: passing
+  `latencyUs = 0` resets the driver to its built-in default *and*
+  clears FIFO state from a previous bad value. Passing `16000`
+  rewrites the latency value but doesn't reset the FIFO — recovery
+  from a 0.5.0-poisoned cable requires `0` (or replug / reboot).
+
+### Notes
+
+- If you ran 0.5.0 with the FTDI K+DCAN cable, your cable's driver
+  state is still corrupted. Recover with one of:
+  ```ts
+  import { setLatencyMicros } from '@emdzej/ediabasx-mac-ftdi-latency';
+  setLatencyMicros('/dev/cu.usbserial-XXXXXX', 0);
+  ```
+  …or physical replug, or reboot.
+- Verified against `UTILITY.PRG HW_REFERENZ` on a real GS20: pre-fix
+  → `short tail (56/74)`, post-recovery → returns
+  `HW_REF_SG_KENNUNG=G22 / HW_REF_PROJEKT=10_00 / HW_REF_STATUS=71`.
+
 ## [0.5.0] — 2026-05-29
 
 The FTDI / J2534 / Gateway sweep. Most consumer-visible thing: slow K-line

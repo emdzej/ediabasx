@@ -21,6 +21,14 @@ export interface SerialTransport {
   purge(): Promise<void>;
   read(length: number, timeoutMs: number): Promise<Uint8Array>;
   write(data: Uint8Array): Promise<void>;
+  /**
+   * Update the telegram-end timer (ms) — software-side "received some
+   * bytes, no more for N ms ⇒ treat as end of response and return what
+   * we have to the caller". Driven by the SGBD's `ParTimeoutTelEnd`
+   * via `setCommParameter`. Optional: a transport that doesn't model
+   * an end-of-telegram cutoff can ignore it.
+   */
+  setTelegramEndTimeout?(ms: number): void;
   sendPulse?(
     dataBits: number,
     length: number,

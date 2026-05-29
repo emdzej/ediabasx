@@ -27,7 +27,7 @@ export class MockSerialTransport implements SerialTransport {
   };
   private bufferedData: number[] = [];
   private pendingReads: PendingRead[] = [];
-  private readonly telegramEndTimeoutMs: number;
+  private telegramEndTimeoutMs: number;
   private readonly writeLog: Uint8Array[] = [];
 
   constructor(options: { telegramEndTimeoutMs?: number } = {}) {
@@ -63,6 +63,12 @@ export class MockSerialTransport implements SerialTransport {
   async setBreak(durationMs: number): Promise<void> {
     void durationMs;
     this.assertOpen();
+  }
+
+  setTelegramEndTimeout(ms: number): void {
+    if (Number.isFinite(ms) && ms > 0) {
+      this.telegramEndTimeoutMs = ms;
+    }
   }
 
   async purge(): Promise<void> {
