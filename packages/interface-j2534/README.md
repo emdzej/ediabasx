@@ -2,12 +2,31 @@
 
 SAE J2534 PassThru transport for EdiabasX via the **Tactrix OpenPort 2.0**. Wraps [`@emdzej/j2534-driver`](https://www.npmjs.com/package/@emdzej/j2534-driver) as an `EdiabasInterface` so any SGBD that runs over the K+DCAN serial path can also run over a frame-level OpenPort.
 
+> Requires `@emdzej/j2534-driver` (and `@emdzej/j2534-types`) `^0.3.0` — declared as **peer dependencies** so consumers control the version. Optional peers `@emdzej/j2534-usb` (Node) and `@emdzej/j2534-webserial` (browser) pick the USB transport.
+
 ## Why J2534 (vs K+DCAN passthrough)
 
 K+DCAN cables are FTDI USB-UART bridges — fine for fast ECUs but timing-noisy on slow K-line lines. The OpenPort 2.0 is an active J2534 device with its own K-line transceiver, so bit timing, direction switching, and parity are handled in hardware. Verified end-to-end against:
 
 - E46 GS20 transmission (`10GD20.prg IDENT`)
 - E46 KMB46 cluster (`C_KMB46.prg C_ZCS_LESEN` — slow EEPROM read, ~250 ms round-trip)
+
+## Interface identity: we masquerade as `OBD`
+
+`UTILITY.PRG`'s `INTERFACE` job (and any BEST2 `xtype` / `xvers` call) reports:
+
+```
+TYP     = "OBD"
+VERSION = 0xD1 (209)
+```
+
+— **identical to what BMW's reference `OBD32.dll` (K+DCAN over FTDI) publishes**, even though this transport is actually SAE J2534 over an OpenPort 2.0.
+
+**Why**: J2534 isn't one of the IFH variants BMW shipped with EDIABAS (the known set is `STD:OBD` / `STD:ADS` / `STD:OMITEC` / `ENET`). SGBDs that branch on TYP (e.g. `if interface_type = "OBD" then ... else ...`) would either reject a literal `"J2534"` or fall through to an untested else-branch. The whole point of this package is "drop-in K+DCAN replacement over OpenPort 2.0" — upper layers should be unable to tell whether the K-line is being driven by an FTDI bridge or a J2534 PassThru device. The masquerade keeps that promise.
+
+The trade-off: a job that legitimately needs to distinguish J2534-from-K+DCAN can't. None of the BMW SGBDs we've encountered do this; if one ever does, the right fix is a separate capability-probe channel, not a different TYP literal.
+
+Values verified via Ghidra of `OBD32.dll`'s WRITEDATA dispatcher (case `0x12` → `"OBD\0"` literal at `_DAT_1000d1d0`, case `0x0B` → hardcoded `0xD1` immediate). Both constants are static — they don't depend on the `Hardware=` INI mode or on any on-wire adapter info.
 
 ## Use
 
@@ -48,7 +67,7 @@ Without a host-side `ParRegenTime` wait between transactions, OpenPort firmware 
 
 Some related findings (verified via Ghidra of `op20pt32.dll`):
 
-- Tactrix's DLL silently drops `SET_CONFIG` calls containing `P2_MAX` / `P2_MIN` / `P3_MAX` / `P4_MAX` / `P1_MIN`. The firmware never sees those values.
+- Tactrix's DLL silently drops `SET_CONFIG` / `GET_CONFIG` calls containing `P1_MIN` / `P2_MIN` / `P2_MAX` / `P3_MAX` / `P4_MAX`. The firmware never sees those values via the DLL. **`@emdzej/j2534-driver` 0.3.0+ mirrors this blacklist** in its own `passThruIoctl` — sending non-default values for those params on OpenPort 2.0 has been observed to corrupt the device's persistent configuration and require a Tactrix EcuFlash firmware reflash to recover. Override the safety with `allowUnsafeConfigParams: true` only when knowingly attempting recovery (e.g. writing the J2534 §6.4 sentinel `0xFFFFFFFF` = "use default").
 - The `att` (transmit) USB cmd carries a `<timeoutMicros>` field — Tactrix defaults to 1 s for K-line. `@emdzej/j2534-driver` 0.2.0+ propagates the J2534 `Timeout` argument here.
 
 ## Configuration

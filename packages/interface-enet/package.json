@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-interface-enet",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Ethernet / DoIP transport for the EdiabasX BEST2 interpreter (work in progress).",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

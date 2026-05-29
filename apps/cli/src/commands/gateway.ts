@@ -15,8 +15,8 @@ function registerGatewayCommand(program: Command): void {
     .option("--port <port>", "port to bind the gateway server", "6801")
     .option(
       "--transport <transport>",
-      "wire framing: 'tcp' (line-delimited JSON, default) or 'websocket' (browser-friendly)",
-      "tcp"
+      "wire framing: 'websocket' (default, browser-friendly) or 'tcp' (line-delimited JSON, Node-only clients)",
+      "websocket"
     )
     .description("Start the JSON-RPC gateway server")
     .action(
@@ -34,7 +34,7 @@ function registerGatewayCommand(program: Command): void {
             throw new Error("Port must be a positive number");
           }
 
-          const rawTransport = (options.transport ?? "tcp").toLowerCase();
+          const rawTransport = (options.transport ?? "websocket").toLowerCase();
           if (rawTransport !== "tcp" && rawTransport !== "websocket") {
             throw new Error("--transport must be 'tcp' or 'websocket'");
           }

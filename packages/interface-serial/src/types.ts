@@ -120,4 +120,12 @@ export type SerialInterfaceConfig = {
    * false (default in tests) the cable is treated as a dumb FTDI passthrough.
    */
   probeAdapterOnConnect?: boolean;
+  /**
+   * FTDI USB-side latency timer in ms (1..255). Default `1` — overrides
+   * the FTDI driver default of 16 ms, which is too coarse for slow-init
+   * K-line ECUs. Applied via OS-specific paths (Linux sysfs write; macOS
+   * and Windows currently emit a hint and rely on user setup). Set to
+   * `0` or `undefined` to skip the apply call entirely.
+   */
+  latencyTimerMs?: number;
 };

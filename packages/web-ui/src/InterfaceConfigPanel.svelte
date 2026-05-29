@@ -33,9 +33,9 @@
   const secure = $derived(isSecureContext());
 
   const INTERFACE_LABELS: Record<InterfaceType, string> = {
-    webserial: "Web Serial (local USB cable)",
-    j2534: "J2534 (Tactrix OpenPort 2.0)",
-    gateway: "Gateway (remote ediabasx server)",
+    webserial: "Web Serial — K+DCAN cable (local)",
+    j2534: "J2534 — Tactrix OpenPort 2.0",
+    gateway: "Gateway — remote ediabasx host",
   };
 </script>
 
@@ -73,6 +73,14 @@
       <legend class="px-1 text-xs font-semibold uppercase tracking-wider text-faint">
         Serial / K-line
       </legend>
+      <p class="text-xs text-muted">
+        The FTDI USB-side latency timer (default 16 ms) isn't reachable from the
+        browser — slow K-line ECUs (cluster, IKE) may time out their response
+        windows. If you hit reliability issues, run
+        <code class="rounded bg-surface px-1 py-0.5 text-foreground">ediabasx gateway</code>
+        on a Linux/Windows host and switch the interface to <strong>Gateway</strong>;
+        the gateway tunes the cable for you.
+      </p>
       <div class="grid grid-cols-2 gap-3">
         <label class="text-xs text-muted">
           Baud

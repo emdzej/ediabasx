@@ -308,10 +308,10 @@ const interfaceRegistry: InterfaceMetadata[] = [
       {
         name: "transport",
         description:
-          "Wire framing for the gateway connection. 'tcp' is the original line-delimited transport; 'websocket' uses the global WebSocket (browser + Node 22+).",
+          "Wire framing for the gateway connection. 'websocket' (default) is browser-friendly and works in Node 22+ via the global WebSocket; 'tcp' is the original line-delimited transport for Node-only clients.",
         type: "enum",
         values: ["tcp", "websocket"],
-        default: "tcp"
+        default: "websocket"
       },
       {
         name: "url",

@@ -5,7 +5,7 @@ Shared Svelte 5 components for the EdiabasX-family web apps — `ediabasx-web`, 
 Currently ships:
 
 - **`ConnectButton`** — presentational connect/disconnect button. Takes `phase` (`idle` / `connecting` / `connected` / `error` / `disconnected`), an idle/connected/error tooltip, and `onconnect` / `ondisconnect` callbacks. No runtime imports — the consumer wires its own state.
-- **`InterfaceConfigPanel`** — the interface `<select>` + per-interface fieldsets (Serial, J2534, Gateway). Two-way binds to a config object satisfying `InterfaceConfig`. `available={["webserial", "j2534"]}` lets a consumer hide options it can't drive.
+- **`InterfaceConfigPanel`** — the interface `<select>` + per-interface fieldsets. Three transports surfaced with BMW-familiar labels: *Web Serial — K+DCAN cable (local)*, *J2534 — Tactrix OpenPort 2.0*, *Gateway — remote ediabasx host*. Two-way binds to a config object satisfying `InterfaceConfig`. `available={["webserial", "j2534"]}` lets a consumer hide options it can't drive. The Web Serial fieldset includes a note pointing users at the Gateway path when they hit FTDI-latency issues the browser can't fix.
 - **Shared types** — `InterfaceConfig`, `InterfaceType`, `SerialConfig`, `GatewayConfig`, `ConnectionPhase`. Each app's `WebConfig` typically extends `InterfaceConfig` with its own app-specific fields (logging, install handle, …).
 
 ## Install

@@ -15,7 +15,7 @@ export type GatewayClientTransport = "tcp" | "websocket";
 type GatewayClientOptions = {
   host?: string;
   port?: number;
-  /** Wire framing. Defaults to "tcp" for backwards-compat. */
+  /** Wire framing. Defaults to "websocket" — works in both Node 22+ (global WebSocket) and browsers. Set to "tcp" for the original line-delimited JSON-RPC over a raw socket (Node-only). */
   transport?: GatewayClientTransport;
   /**
    * Explicit URL override for the WebSocket transport. When unset we
@@ -65,11 +65,25 @@ export class GatewayClient extends EdiabasInterface {
   private pending = new Map<JsonRpcId, PendingRequest>();
   private connectPromise?: Promise<void>;
 
+  /**
+   * Cached interface identity from the gateway server's underlying
+   * iface. Populated lazily on first `connect()` so the synchronous
+   * `xtype` / `xvers` BEST2 opcodes (which read `interfaceType` /
+   * `interfaceVersion` directly) work without an RPC round-trip in
+   * the middle of job execution. Cleared on `disconnect()`.
+   *
+   * Defaults are empty / 0 — same as the interpreter's xtype/xvers
+   * fallback path, so a job that queries identity before `connect()`
+   * completes sees the same value as on a no-info backend.
+   */
+  interfaceType = "";
+  interfaceVersion = 0;
+
   constructor(options: GatewayClientOptions = {}) {
     super();
     this.host = options.host ?? DEFAULT_HOST;
     this.port = options.port ?? DEFAULT_PORT;
-    this.transport = options.transport ?? "tcp";
+    this.transport = options.transport ?? "websocket";
     this.url = options.url;
   }
 
@@ -77,6 +91,23 @@ export class GatewayClient extends EdiabasInterface {
     await this.ensureConnection();
     const result = await this.request<{ connected: boolean }>("connect");
     this.connected = Boolean(result?.connected);
+    // Eager-fetch the server-side iface identity so the synchronous
+    // `xtype` / `xvers` opcodes can read `this.interfaceType` /
+    // `this.interfaceVersion` as plain properties — the interpreter
+    // can't await a Promise here. We swallow errors: an older
+    // gateway that doesn't implement these methods leaves the
+    // defaults in place (empty / 0).
+    try {
+      const [typeResult, versionResult] = await Promise.all([
+        this.request<{ value: string }>("getInterfaceType"),
+        this.request<{ value: number }>("getInterfaceVersion"),
+      ]);
+      this.interfaceType = typeResult?.value ?? "";
+      this.interfaceVersion = versionResult?.value ?? 0;
+    } catch {
+      // Gateway server too old to expose getInterfaceType /
+      // getInterfaceVersion — leave defaults untouched.
+    }
   }
 
   async disconnect(): Promise<void> {
@@ -95,6 +126,8 @@ export class GatewayClient extends EdiabasInterface {
       }
       this.connection = undefined;
       this.connected = false;
+      this.interfaceType = "";
+      this.interfaceVersion = 0;
     }
   }
 
@@ -208,6 +241,55 @@ export class GatewayClient extends EdiabasInterface {
     this.assertConnected();
     await this.request("switchSiRelais", { time });
   }
+
+  // ---- Frequent-mode (xfrequent / keepalive loops) ----
+  // Base EdiabasInterface has no-op defaults; we override so the
+  // gateway forwards them to whatever backend the server is driving.
+
+  async transmitFrequent(data: Uint8Array): Promise<void> {
+    this.assertConnected();
+    await this.request("transmitFrequent", { data: Array.from(data) });
+  }
+
+  async receiveFrequent(): Promise<Uint8Array> {
+    this.assertConnected();
+    const result = await this.request<{ data: number[] }>("receiveFrequent");
+    return Uint8Array.from(result?.data ?? []);
+  }
+
+  async stopFrequent(): Promise<void> {
+    this.assertConnected();
+    await this.request("stopFrequent");
+  }
+
+  // ---- SerialInterface-specific diagnostic accessors ----
+  // Not on the abstract base, so we expose them as Promise<number>
+  // getters and let the server decide whether the underlying iface
+  // supports them (returns 0 on backends that don't).
+
+  get ignitionStatus(): Promise<number> {
+    this.assertConnected();
+    return this.request<{ value: number }>("getIgnitionStatus").then((r) => r?.value ?? 0);
+  }
+
+  get adapterType(): Promise<number> {
+    this.assertConnected();
+    return this.request<{ value: number }>("getAdapterType").then((r) => r?.value ?? 0);
+  }
+
+  get adapterVersion(): Promise<number> {
+    this.assertConnected();
+    return this.request<{ value: number }>("getAdapterVersion").then((r) => r?.value ?? 0);
+  }
+
+  // Note: `interfaceType` / `interfaceVersion` are exposed as the
+  // plain properties declared at the top of this class (populated
+  // eagerly in `connect()`), not as async functions. BEST2's `xtype`
+  // / `xvers` opcodes are synchronous, so a Promise-returning getter
+  // would coerce to `"[object Promise]"` when the interpreter writes
+  // the string register. The eager-fetch + cache approach matches how
+  // SerialInterface / J2534Interface / EnetInterface expose them as
+  // sync `readonly` fields.
 
   private async ensureConnection(): Promise<void> {
     if (this.connection) {

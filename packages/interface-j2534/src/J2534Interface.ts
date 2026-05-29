@@ -139,6 +139,43 @@ export class J2534Interface extends EdiabasInterface {
   commAnswerLen: number[] = [];
   commRepeats = 0;
 
+  // BEST2 xtype / xvers — surfaced via UTILITY.PRG's INTERFACE job
+  // (TYP / VERSION result fields).
+  //
+  // We DELIBERATELY publish the same values as BMW's OBD32.dll
+  // ("OBD" / 0xD1), even though this transport actually runs over
+  // SAE J2534 (Tactrix OpenPort 2.0), NOT K+DCAN/FTDI.
+  //
+  // Why masquerade:
+  //
+  //   BMW SGBDs are written assuming one of the IFH variants BMW
+  //   ships with EDIABAS (`STD:OBD`, `STD:ADS`, `STD:OMITEC`, `ENET`,
+  //   …). J2534 is NOT one of those — it's an SAE-standard PassThru
+  //   API that BMW's tools never exposed to SGBD authors. So a job
+  //   that branches on TYP (e.g. `if interface_type = "OBD" then…
+  //   else…`) would hit the `else` branch on a literal "J2534" and
+  //   either reject the request or fall through to an untested path.
+  //
+  //   Our design goal for this package is "drop-in replacement for
+  //   K+DCAN over OpenPort 2.0" — the upper layers shouldn't need
+  //   to know the wire is being driven via J2534 PassThru instead
+  //   of an FTDI USB-serial bridge. Reporting TYP=OBD/VERSION=0xD1
+  //   keeps SGBD checks happy and exercises the OBD-path code in
+  //   every test we run.
+  //
+  //   Trade-off: a job that genuinely needs to know the cable
+  //   capability differences (e.g. to use a J2534-only feature)
+  //   can't tell us apart from a real K+DCAN cable. None of the BMW
+  //   SGBDs we've encountered do that, but if one ever does, the
+  //   right fix is a separate `getInterfaceCapabilities()` channel,
+  //   not a different TYP literal.
+  //
+  // Values verified via Ghidra of OBD32.dll's WRITEDATA dispatcher
+  // (case 0x12 → "OBD", case 0x0B → 0xD1). Identical to what
+  // SerialInterface (the actual K+DCAN backend) returns.
+  readonly interfaceType = "OBD";
+  readonly interfaceVersion = 0xd1;
+
   setAnswerLengths(lengths: number[]): void {
     this.commAnswerLen = lengths;
   }

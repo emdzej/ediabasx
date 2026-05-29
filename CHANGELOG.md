@@ -4,6 +4,81 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.5.0] — 2026-05-29
+
+The FTDI / J2534 / Gateway sweep. Most consumer-visible thing: slow K-line
+ECUs over OpenPort 2.0 and K+DCAN cables now Just Work without the user
+having to touch Device Manager / sysfs / Tactrix EcuFlash, and `UTILITY.PRG
+INTERFACE` finally returns the right `TYP` / `VERSION` across every
+transport.
+
+### Added
+
+- **New package `@emdzej/ediabasx-mac-ftdi-latency`** — macOS-only N-API
+  native addon that calls `ioctl(fd, IOSSDATALAT, &latencyUs)` on Apple's
+  built-in `AppleUSBFTDI` driver. Solves the "FTDI defaults to 16 ms
+  latency and there's no GUI knob on macOS" problem. Ships as an
+  `optionalDependency` of `@emdzej/ediabasx-interface-serial`; `"os":
+  ["darwin"]` so Linux/Windows installs skip the gyp build entirely.
+- **`SerialInterfaceConfig.latencyTimerMs`** (default `1`). Applied on
+  `connect()` via OS-specific paths: Linux sysfs write, macOS via the
+  native addon above, Windows emits a Device-Manager hint and no-ops.
+  Browser path is a clean no-op (Web Serial can't reach FTDI internals
+  — recommend the Gateway for affected web users).
+- **Gateway RPC surface fills the coverage holes** that previously
+  silenced jobs:
+  - `transmitFrequent` / `receiveFrequent` / `stopFrequent` — for BEST2
+    `xfrequent` / keepalive loops. Base-class no-op defaults on the
+    client side previously hung silently over the gateway.
+  - `getIgnitionStatus` / `getAdapterType` / `getAdapterVersion` —
+    SerialInterface-specific accessors now forwarded.
+  - `getInterfaceType` / `getInterfaceVersion` — for `UTILITY.PRG
+    INTERFACE` (`xtype` / `xvers`). Eagerly fetched and cached at
+    `connect()` so the synchronous BEST2 opcodes can read them as
+    plain properties without an RPC round-trip.
+- **`interfaceType` / `interfaceVersion` on every real backend.** Match
+  BMW's OBD32.dll reference (verified via Ghidra: case `0x12` →
+  `"OBD\0"`, case `0x0B` → `0xD1` = 209):
+  - `SerialInterface` (K+DCAN): `"OBD"` / `0xD1`
+  - `J2534Interface` (OpenPort 2.0): `"OBD"` / `0xD1` —
+    **deliberate masquerade**. J2534 isn't one of EDIABAS's known IFH
+    variants and SGBDs that branch on TYP would hit the `else` path on
+    a literal `"J2534"`. Reporting OBD keeps the K+DCAN-tested code
+    path active. See the [interface-j2534
+    README](packages/interface-j2534/README.md#interface-identity-we-masquerade-as-obd).
+  - `EnetInterface`: `"ENET"` / `1`
+- **WebSerial-in-browser UX hint** in `@emdzej/ediabasx-web-ui`'s
+  `InterfaceConfigPanel` — under the Web Serial fieldset, a note pointing
+  affected users at `ediabasx gateway` for the FTDI-latency problem the
+  browser can't fix. Interface labels updated to mention K+DCAN /
+  OpenPort 2.0 by name.
+
+### Changed
+
+- **Gateway default transport flipped from `"tcp"` → `"websocket"`.**
+  Affects `GatewayServer`, `GatewayClient`, `createInterface("gateway",
+  …)`, and `ediabasx gateway --transport`. Works in both Node 22+ (via
+  global `WebSocket`) and browsers. Set `transport: "tcp"` explicitly
+  if you need the raw line-delimited socket — the path itself is
+  unchanged.
+- **`@emdzej/j2534-driver` peer bumped to `^0.3.0`** in
+  `interface-j2534` (consistent with the safety blacklist released in
+  j2534-driver 0.3.0).
+- **`@emdzej/j2534-{driver,types,serial,usb}` moved to
+  `peerDependencies`** in `interface-j2534` and `interfaces` — apps
+  pick concrete versions, libraries leave the choice to consumers.
+
+### Fixed
+
+- **`Ediabas.buildCommAdapter` forwards `interfaceType` /
+  `interfaceVersion`** to the interpreter-facing adapter object. The
+  adapter shim previously omitted them, so even on backends that set
+  `interfaceType = "OBD"`, `UTILITY.PRG INTERFACE.TYP` came back as
+  `""`. Fixed via property forwarding mirroring the existing
+  `setCommParameter` / `transmitData` / etc. forwards.
+- **`ediabasx --version`** now reads from `package.json` instead of a
+  hardcoded `"0.1.0"` that hadn't been touched since the early scaffold.
+
 ## [0.4.2] — 2026-05-29
 
 The 0.4.1 release was a regression — re-enabling `ParTimeoutStd` →

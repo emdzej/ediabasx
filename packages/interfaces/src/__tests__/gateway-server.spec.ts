@@ -147,7 +147,7 @@ describe("GatewayServer", () => {
     iface.responses.push(Uint8Array.from([9, 10]));
     iface.ports.set(2, 99);
 
-    server = new GatewayServer({ interface: iface, port: 0, logger });
+    server = new GatewayServer({ interface: iface, port: 0, logger, transport: "tcp" });
     await server.start();
 
     socket = createConnection(server.address.port, server.address.host);
@@ -273,7 +273,7 @@ describe("GatewayServer", () => {
       }
     });
 
-    server = new GatewayServer({ interface: iface, port: 0, logger });
+    server = new GatewayServer({ interface: iface, port: 0, logger, transport: "tcp" });
     await server.start();
 
     socket = createConnection(server.address.port, server.address.host);

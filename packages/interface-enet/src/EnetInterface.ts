@@ -1,6 +1,13 @@
 import { EdiabasInterface } from "@emdzej/ediabasx-interface-base";
 
 export class EnetInterface extends EdiabasInterface {
+  // BEST2 xtype / xvers — surfaced via UTILITY.PRG's INTERFACE job.
+  // BMW's reference XEnet32.dll publishes "ENET" via the same IFH
+  // type/version path OBD32 uses. Matching the literal lets jobs
+  // that branch on TYP recognise this transport.
+  readonly interfaceType = "ENET";
+  readonly interfaceVersion = 1;
+
   async connect(): Promise<void> {
     throw new Error("Not implemented");
   }

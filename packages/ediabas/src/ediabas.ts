@@ -660,12 +660,27 @@ export class Ediabas {
       setAnswerLengths?: (lengths: number[]) => Promise<void> | void;
       setAnswerLength?: (length: number) => Promise<void> | void;
       setRepeatCounter?: (count: number) => Promise<void> | void;
+      interfaceType?: string;
+      type?: string;
+      interfaceVersion?: number;
+      version?: number;
     };
     if (fwd.setCommParameter) adapter.setCommParameter = (params) => Promise.resolve(fwd.setCommParameter!(params));
     if (fwd.transmitData) adapter.transmitData = (data) => Promise.resolve(fwd.transmitData!(data));
     if (fwd.setAnswerLengths) adapter.setAnswerLengths = (lengths) => Promise.resolve(fwd.setAnswerLengths!(lengths));
     if (fwd.setAnswerLength) adapter.setAnswerLength = (length) => Promise.resolve(fwd.setAnswerLength!(length));
     if (fwd.setRepeatCounter) adapter.setRepeatCounter = (count) => Promise.resolve(fwd.setRepeatCounter!(count));
+    // BEST2 xtype / xvers — UTILITY.PRG's INTERFACE job. The interpreter
+    // reads these off the adapter object (not the underlying iface), so
+    // forward the iface's declared identity through. Without this, real
+    // backends that *do* set interfaceType (SerialInterface = "OBD",
+    // J2534Interface = "OBD" via masquerade, EnetInterface = "ENET",
+    // GatewayClient = whatever its server returned at connect time) all
+    // surface as empty string through this adapter shim.
+    const typeValue = fwd.interfaceType ?? fwd.type;
+    if (typeValue !== undefined) adapter.interfaceType = typeValue;
+    const versionValue = fwd.interfaceVersion ?? fwd.version;
+    if (versionValue !== undefined) adapter.interfaceVersion = versionValue;
     return adapter;
   }
 

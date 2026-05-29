@@ -26,7 +26,7 @@ export type GatewayTransport = "tcp" | "websocket";
 export type GatewayServerOptions = {
   host?: string;
   port?: number;
-  /** Wire framing. Defaults to "tcp" for backwards-compat with existing clients. */
+  /** Wire framing. Defaults to "websocket" — browser-friendly and works in Node 22+ via the global WebSocket. Set to "tcp" for line-delimited JSON-RPC over a raw socket (Node-only clients). */
   transport?: GatewayTransport;
   interface: EdiabasInterface & {
     setParameter?: (parameter: number, value: number) => Promise<void> | void;
@@ -107,7 +107,7 @@ export class GatewayServer {
   constructor(options: GatewayServerOptions) {
     this.host = options.host ?? DEFAULT_HOST;
     this.port = options.port ?? DEFAULT_PORT;
-    this.transport = options.transport ?? "tcp";
+    this.transport = options.transport ?? "websocket";
     this.iface = options.interface;
     this.logger = options.logger ?? console;
   }
@@ -491,6 +491,73 @@ export class GatewayServer {
         const time = this.extractValue(params, "time");
         await this.iface.switchSiRelais(time);
         return { ok: true };
+      }
+      case "transmitFrequent": {
+        const payload = this.extractData(params);
+        await this.iface.transmitFrequent(payload);
+        return { ok: true };
+      }
+      case "receiveFrequent": {
+        const response = await this.iface.receiveFrequent();
+        return { data: Array.from(response) };
+      }
+      case "stopFrequent": {
+        await this.iface.stopFrequent();
+        return { ok: true };
+      }
+      // The next three accessors are SerialInterface-specific (K+DCAN
+      // adapter info, ignition-key status). Other backends — Simulation,
+      // J2534, ENET, Gateway-itself — don't expose them. We probe with
+      // `in` so each call reflects whatever the server-side iface
+      // actually offers; clients get a stable 0 fallback otherwise.
+      case "getIgnitionStatus": {
+        const iface = this.iface as { ignitionStatus?: number | Promise<number> };
+        const value = "ignitionStatus" in iface ? await iface.ignitionStatus : 0;
+        return { value: value ?? 0 };
+      }
+      case "getAdapterType": {
+        const iface = this.iface as { adapterType?: number | Promise<number> };
+        const value = "adapterType" in iface ? await iface.adapterType : 0;
+        return { value: value ?? 0 };
+      }
+      case "getAdapterVersion": {
+        const iface = this.iface as { adapterVersion?: number | Promise<number> };
+        const value = "adapterVersion" in iface ? await iface.adapterVersion : 0;
+        return { value: value ?? 0 };
+      }
+      // BEST2 xtype / xvers — UTILITY.PRG INTERFACE job's TYP/VERSION
+      // fields. The interpreter (`xtype`/`xvers` in
+      // @emdzej/ediabasx-interpreter) reads `interfaceType` /
+      // `interfaceVersion` (with `type` / `version` fallbacks) off the
+      // interface. We forward whatever the server-side backend
+      // publishes; clients see "" / 0 when the backend hasn't set them.
+      case "getInterfaceType": {
+        const iface = this.iface as {
+          interfaceType?: string;
+          type?: string;
+          getInterfaceType?: () => string | Promise<string>;
+        };
+        let value: string | Promise<string> | undefined;
+        if (typeof iface.getInterfaceType === "function") {
+          value = iface.getInterfaceType();
+        } else {
+          value = iface.interfaceType ?? iface.type;
+        }
+        return { value: (await value) ?? "" };
+      }
+      case "getInterfaceVersion": {
+        const iface = this.iface as {
+          interfaceVersion?: number;
+          version?: number;
+          getInterfaceVersion?: () => number | Promise<number>;
+        };
+        let value: number | Promise<number> | undefined;
+        if (typeof iface.getInterfaceVersion === "function") {
+          value = iface.getInterfaceVersion();
+        } else {
+          value = iface.interfaceVersion ?? iface.version;
+        }
+        return { value: (await value) ?? 0 };
       }
       default:
         throw this.buildJsonRpcError(jsonRpcErrors.methodNotFound);

@@ -1,0 +1,38 @@
+{
+  "name": "@emdzej/ediabasx-mac-ftdi-latency",
+  "version": "0.5.0",
+  "description": "macOS-only native addon: set the FTDI USB-side latency timer via the IOSSDATALAT ioctl. Used by @emdzej/ediabasx-interface-serial.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src/native",
+    "binding.gyp"
+  ],
+  "os": ["darwin"],
+  "scripts": {
+    "install": "node-gyp rebuild",
+    "build:ts": "tsc -p tsconfig.json",
+    "build": "node-gyp rebuild && tsc -p tsconfig.json",
+    "clean": "node-gyp clean && rm -rf dist build",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "node-addon-api": "^8.3.1",
+    "node-gyp": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emdzej/ediabasx.git"
+  }
+}

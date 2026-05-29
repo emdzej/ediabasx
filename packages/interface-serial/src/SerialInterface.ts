@@ -2,6 +2,7 @@ import { utf8ToCp1252 } from "@emdzej/ediabasx-core";
 import { EdiabasInterface, EdiabasTimeoutError } from "@emdzej/ediabasx-interface-base";
 import { IsoTpFrameTypes, parseIsoTpFrame } from "@emdzej/ediabasx-protocol-uds";
 import { SerialTimeoutError } from "./errors";
+import { applyFtdiLatencyTimer } from "./ftdiLatencyTimer";
 // `NodeSerialTransport` is imported lazily inside the constructor so the
 // browser bundle doesn't pull in `serialport` (a Node-only native dep).
 // Browser consumers pass a `WebSerialTransport` via `config.transport`
@@ -50,7 +51,8 @@ const DEFAULT_CONFIG = {
   p1DelayMs: 0,
   kwpModeSelectPayload: Uint8Array.from([0x10, 0x81]),
   kwpTesterPresentPayload: Uint8Array.from([0x3e, 0x00]),
-  kwpWakeAddress: 0x33
+  kwpWakeAddress: 0x33,
+  latencyTimerMs: 1
 } as const;
 
 const SerialTiming = {
@@ -131,6 +133,7 @@ export class SerialInterface extends EdiabasInterface {
       kwpModeSelectPayload: Uint8Array.from(merged.kwpModeSelectPayload),
       kwpTesterPresentPayload: Uint8Array.from(merged.kwpTesterPresentPayload),
       kwpWakeAddress: merged.kwpWakeAddress,
+      latencyTimerMs: merged.latencyTimerMs,
       probeAdapterOnConnect: config.probeAdapterOnConnect ?? false,
     };
 
@@ -166,6 +169,28 @@ export class SerialInterface extends EdiabasInterface {
     await this.transport.configure(transportConfig);
     await this.transport.open(this.config.port);
     this.connected = true;
+
+    // FTDI USB-side latency timer. Skipped if 0 / undefined or on
+    // platforms where we can't reach it (browser, macOS without a
+    // native addon, Windows without admin). Never throws — a failed
+    // apply just leaves the FTDI default (16 ms) in place.
+    if (this.config.latencyTimerMs && this.config.latencyTimerMs > 0) {
+      try {
+        const result = await applyFtdiLatencyTimer(
+          this.config.port,
+          this.config.latencyTimerMs
+        );
+        if (typeof process !== "undefined" && process.env?.EDIABASX_VERBOSE === "1") {
+          const msg = result.applied
+            ? `latency timer set to ${result.valueMs} ms (${result.path})`
+            : `latency timer skipped: ${result.reason}${result.hint ? " — " + result.hint : ""}`;
+          process.stderr.write(`[serial:ftdi] ${msg}\n`);
+        }
+      } catch {
+        // Defensive — applyFtdiLatencyTimer is supposed to swallow
+        // its own errors, but never let it break the connect path.
+      }
+    }
 
     // Guard process.env reads — this class is also used by the browser bundle
     // (via @emdzej/ediabasx-interface-serial in the web app) where `process`
@@ -365,6 +390,16 @@ export class SerialInterface extends EdiabasInterface {
   get adapterVersion(): number {
     return this.adapterInfo.adapterVersion;
   }
+
+  // BEST2 xtype / xvers — surfaced via UTILITY.PRG's INTERFACE job
+  // (TYP / VERSION result fields). Match BMW's OBD32.dll reference
+  // exactly: a hardcoded literal "OBD" + version 0xD1 (209). Verified
+  // via Ghidra of OBD32 — both values are static constants regardless
+  // of the `Hardware=OBD|ADS|USB` INI mode, and don't reflect the
+  // cable's own adapterType/Version (those live on this class as
+  // separate accessors above).
+  readonly interfaceType = "OBD";
+  readonly interfaceVersion = 0xd1;
 
   get loopTest(): number {
     return this._loopTest;

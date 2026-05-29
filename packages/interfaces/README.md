@@ -8,7 +8,7 @@ Factory and JSON-RPC gateway for all [EdiabasX](https://github.com/emdzej/ediaba
 pnpm add @emdzej/ediabasx-interfaces
 ```
 
-(Pulls in all `@emdzej/ediabasx-interface-*` packages as dependencies.)
+(Pulls in all `@emdzej/ediabasx-interface-*` packages as dependencies. The `@emdzej/j2534-*` USB packages are peer deps — auto-installed on pnpm, declare manually on classic npm.)
 
 ## Factory
 
@@ -25,14 +25,18 @@ const transport = createInterface("kdcan", {
 for (const meta of listInterfaces()) console.log(meta.name, meta.options);
 ```
 
-Supported names: `simulation`, `serial`, `kdcan`, `enet`, `gateway`.
+Supported names: `simulation`, `serial`, `kdcan`, `j2534`, `enet`, `gateway`.
+
+`kdcan` is a flavour of `serial` — same `SerialInterface` class with `probeAdapterOnConnect: true` so the K+DCAN cable's adapter telegrams (type / version / serial / voltage) are queried on connect. The factory injects `NodeSerialTransport` in this package; browser consumers construct `SerialInterface` directly with `WebSerialTransport`.
+
+`j2534` and the `j2534-*` USB transports are **peer dependencies** of this package — consumers control the version. `pnpm add @emdzej/ediabasx-interfaces` will install required peers automatically (pnpm ≥ 7) or warn on classic npm.
 
 ## JSON-RPC gateway
 
 Share one physical cable across processes / machines. Two transports are supported:
 
-- **`tcp`** (default) — line-delimited JSON-RPC over a raw TCP socket. Node-only clients; lowest overhead.
-- **`websocket`** — one JSON-RPC message per WebSocket frame, served via `http.Server` + `ws`. Browser-friendly: any page can `new WebSocket("ws://host:6801")`.
+- **`websocket`** (default) — one JSON-RPC message per WebSocket frame, served via `http.Server` + `ws`. Works from both Node 22+ (global WebSocket) and browsers — any page can `new WebSocket("ws://host:6801")`.
+- **`tcp`** — line-delimited JSON-RPC over a raw TCP socket. Node-only clients; lowest overhead. Set explicitly when you need it.
 
 Both speak the same JSON-RPC 2.0 vocabulary; only the framing differs. Pick one transport per server instance (no multiplexing).
 
@@ -45,7 +49,7 @@ const iface = createInterface("kdcan", { port: "/dev/cu.usbserial-A50285BI", bau
 
 const server = new GatewayServer({
   port: 6801,
-  transport: "websocket", // or "tcp" (default)
+  // transport defaults to "websocket"; set "tcp" for Node-only line-delimited clients.
   interface: iface,
 });
 await server.start();
