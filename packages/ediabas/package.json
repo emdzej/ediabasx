@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-ediabas",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "Main EdiabasX library: load BMW PRG/GRP files, run BEST2 jobs against a configured transport, get back grouped result sets.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

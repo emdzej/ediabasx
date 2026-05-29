@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-interface-serial",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "Serial / K-line / K+DCAN transport (DS2 framing, KWP fast-init, ISO-TP) for the EdiabasX BEST2 interpreter.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

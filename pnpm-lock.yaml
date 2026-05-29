@@ -121,14 +121,14 @@ importers:
         specifier: workspace:*
         version: link:../../packages/web-ui
       '@emdzej/j2534-driver':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@emdzej/j2534-types':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@emdzej/j2534-webserial':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       workbox-window:
         specifier: ^7.4.1
         version: 7.4.1
@@ -249,19 +249,19 @@ importers:
       '@emdzej/ediabasx-interface-base':
         specifier: workspace:*
         version: link:../interface-base
-      '@emdzej/j2534-driver':
-        specifier: ^0.2.0
-        version: 0.2.0
       '@emdzej/j2534-serial':
-        specifier: ^0.2.0
-        version: 0.2.0
-      '@emdzej/j2534-types':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@emdzej/j2534-usb':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
     devDependencies:
+      '@emdzej/j2534-driver':
+        specifier: ^0.3.0
+        version: 0.3.0
+      '@emdzej/j2534-types':
+        specifier: ^0.3.0
+        version: 0.3.0
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.8
@@ -296,17 +296,17 @@ importers:
         specifier: workspace:*
         version: link:../interface-serial
       '@emdzej/j2534-driver':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@emdzej/j2534-serial':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@emdzej/j2534-types':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@emdzej/j2534-usb':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       ws:
         specifier: ^8.18.0
         version: 8.19.0
@@ -996,23 +996,23 @@ packages:
     peerDependencies:
       tailwindcss: ^3.4.0
 
-  '@emdzej/j2534-core@0.2.0':
-    resolution: {integrity: sha512-gAWlgCT9ihLV/msXUaN0qhQ053q8aOUGnieJyGCeEcW5KYcyCweLWK2IxQcM5sSlZsafu33UAIN3MBYZSZtXKg==}
+  '@emdzej/j2534-core@0.3.0':
+    resolution: {integrity: sha512-w4mcWWRToceEzWGwEj1kyiQpItaN0n4PHnvrPuxs5iBKv/reqjiGXNkm0BLn02Zlx9Yn2erxzHgrXCNsT0b0Pg==}
 
-  '@emdzej/j2534-driver@0.2.0':
-    resolution: {integrity: sha512-N1kSPiaSgbI7AHOAjv0jXMWogyt+9tzXjGQUBE7B+Zi8Rw4RNe3/erMSA4PxcogKp4hKGRvQWcBGGUNFePP0XA==}
+  '@emdzej/j2534-driver@0.3.0':
+    resolution: {integrity: sha512-RMkyxxbKSLBzoVFVGxlUCIUeZGeJT41KO1TnMq4mvA9zJFc58L8Hu7MlmwdKjS7kfsvP3hCAa4tc69ZJhNK/lg==}
 
-  '@emdzej/j2534-serial@0.2.0':
-    resolution: {integrity: sha512-jk6d4ZmSh4NImeMalcNSBN4sCbrW7FsIRAagFlacCwfop4eXIiBbKKYyrVtMeXQ4iYwhkwUE0k/G66yOqG/prQ==}
+  '@emdzej/j2534-serial@0.3.0':
+    resolution: {integrity: sha512-IgLLtB2X6vJsmuU5xr0hsqa8O0IBAWq2hp9lvqvU9ypiHAzg36iXIM5bPednqrUkoBpJwOPTmZ/b8szxPVxp5Q==}
 
-  '@emdzej/j2534-types@0.2.0':
-    resolution: {integrity: sha512-O2hrh5oKth/idQ4uwOLW65jt8/S57wN+A+jRDEO7xC/N/opfappbT3Zr89VDU8ukIRTxVWnhJ+5RUx/d+jTpiA==}
+  '@emdzej/j2534-types@0.3.0':
+    resolution: {integrity: sha512-qsKtHOi3WwJtgrtK+O8pDXw7O84e4/W6vnVLKdq3A3IVODEoykaG0AJGuguGPguIajC9cFe61btjj+45JGRixw==}
 
-  '@emdzej/j2534-usb@0.2.0':
-    resolution: {integrity: sha512-1tLIP3XpNMWNxx39fnn215fJBwIPngfvBEgnivQwfikMO0+lcFAuoF95+4CZEKKSLFqRB1x1XQuZxPZ2AyDrHQ==}
+  '@emdzej/j2534-usb@0.3.0':
+    resolution: {integrity: sha512-PTHh6D/GipxOi7GVpRA7frc3pMsLhdL3Gnpr/dZeH5cQKtdQJ14VFt07rlqMvGdWGk5imr1x9cdTC/eoisWQUw==}
 
-  '@emdzej/j2534-webserial@0.2.0':
-    resolution: {integrity: sha512-alj2d5X+YeFUXPQCUdE1F7wcSBK4/Cj3GDr8Odql9GVe2wtnlMjkR2zXvzITnNkHdry/zabT0DutvSyuFo+XSw==}
+  '@emdzej/j2534-webserial@0.3.0':
+    resolution: {integrity: sha512-rMJTDIJC25kB9E7LiPNBh0UVRzcx+EHUiWBhGqrKAqg1Ph/6E2Z4Jkf4AOgh0KivJeidOVO5gwkBbfrzGkOZ/g==}
 
   '@emnapi/runtime@1.10.0':
     resolution: {integrity: sha512-ewvYlk86xUoGI0zQRNq/mC+16R1QeDlKQy21Ki3oSYXNgLb45GV1P6A0M+/s6nyCuNDqe5VpaY84BzXGwVbwFA==}
@@ -5337,32 +5337,32 @@ snapshots:
     dependencies:
       tailwindcss: 3.4.19
 
-  '@emdzej/j2534-core@0.2.0':
+  '@emdzej/j2534-core@0.3.0':
     dependencies:
-      '@emdzej/j2534-types': 0.2.0
+      '@emdzej/j2534-types': 0.3.0
 
-  '@emdzej/j2534-driver@0.2.0':
+  '@emdzej/j2534-driver@0.3.0':
     dependencies:
-      '@emdzej/j2534-core': 0.2.0
-      '@emdzej/j2534-types': 0.2.0
+      '@emdzej/j2534-core': 0.3.0
+      '@emdzej/j2534-types': 0.3.0
 
-  '@emdzej/j2534-serial@0.2.0':
+  '@emdzej/j2534-serial@0.3.0':
     dependencies:
-      '@emdzej/j2534-types': 0.2.0
+      '@emdzej/j2534-types': 0.3.0
       serialport: 12.0.0
     transitivePeerDependencies:
       - supports-color
 
-  '@emdzej/j2534-types@0.2.0': {}
+  '@emdzej/j2534-types@0.3.0': {}
 
-  '@emdzej/j2534-usb@0.2.0':
+  '@emdzej/j2534-usb@0.3.0':
     dependencies:
-      '@emdzej/j2534-types': 0.2.0
+      '@emdzej/j2534-types': 0.3.0
       usb: 2.17.0
 
-  '@emdzej/j2534-webserial@0.2.0':
+  '@emdzej/j2534-webserial@0.3.0':
     dependencies:
-      '@emdzej/j2534-types': 0.2.0
+      '@emdzej/j2534-types': 0.3.0
 
   '@emnapi/runtime@1.10.0':
     dependencies:

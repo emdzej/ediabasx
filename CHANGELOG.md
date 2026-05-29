@@ -4,6 +4,43 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.4.2] — 2026-05-29
+
+The 0.4.1 release was a regression — re-enabling `ParTimeoutStd` →
+`P2_MAX` SET_CONFIG broke slow K-line ECUs over OpenPort 2.0 and
+appears to have corrupted at least one test device's persistent
+configuration (slow-init negotiation now fails even on Windows with
+the official Tactrix DLL). 0.4.1 was force-removed from git and
+unpublished from npm where the registry policy allowed; the four
+packages it couldn't be removed from are deprecated. 0.4.2 restores
+the 0.4.0 behaviour and moves the underlying safety down into the
+J2534 driver where it belongs.
+
+### Changed
+
+- **`@emdzej/j2534-driver` peer bumped to `^0.3.0`** — that release adds
+  the Tactrix-DLL-aligned SET_CONFIG / GET_CONFIG blacklist (P1_MIN,
+  P2_MIN, P2_MAX, P3_MAX, P4_MAX) by default. Any consumer who ever
+  shipped non-default values for those params via this transport was
+  silently writing them through to OpenPort 2.0's persistent config
+  region; the driver now refuses them unless `allowUnsafeConfigParams:
+  true` is passed explicitly (intended only for sentinel-write recovery).
+- **`@emdzej/j2534-driver`, `@emdzej/j2534-types`, `@emdzej/j2534-serial`,
+  `@emdzej/j2534-usb` moved to `peerDependencies`** in
+  `@emdzej/ediabasx-interface-j2534` and `@emdzej/ediabasx-interfaces`.
+  Apps install concrete versions; libraries leave the choice to the
+  consumer, avoiding duplicate j2534 copies in transitive trees.
+- **`J2534Interface.setCommParameter` now forwards `P2_MAX`** to the
+  driver instead of skipping it host-side. Net effect identical to
+  0.4.0 (the driver drops it), but operator traces see the SGBD's
+  declared intent.
+
+### Fixed
+
+- Reverts the 0.4.1 P2_MAX SET_CONFIG breakage. 0.4.2 behaves like
+  0.4.0 on every job we've validated; the safety guarantee is now
+  enforced one layer below us.
+
 ## [0.4.0] — 2026-05-28
 
 Three new packages, a J2534 transport, and the BMW slow-K-line-ECU

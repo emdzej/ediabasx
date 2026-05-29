@@ -544,18 +544,15 @@ export class J2534Interface extends EdiabasInterface {
     // Timing knobs that DO map to SET_CONFIG. Values in ms.
     const typesMod = await import("@emdzej/j2534-types");
     const list: SConfig[] = [];
-    // P2_MAX intentionally NOT set: Tactrix's own DLL hardcodes a
-    // blacklist that drops SET_CONFIG calls containing P2_MAX (along
-    // with P2_MIN, P3_MAX, P4_MAX, P1_MIN). The firmware accepts the
-    // value via the `ats` USB cmd if we send it directly — but stores
-    // it as 25 of-some-internal-unit which appears to be a *short*
-    // timeout, breaking slow K-line ECUs (cluster, IKE) whose
-    // responses arrive after that window. Leaving the firmware to
-    // use its built-in default — which presumably works since BMW's
-    // own J2534-based Windows tooling consumes OpenPort via the
-    // Tactrix DLL that never sends P2_MAX. Verified via Ghidra
-    // decompile of op20pt32.dll PassThruIoctl.
-    void timeoutStdMs;
+    // ParTimeoutStd → P2_MAX. The driver (`@emdzej/j2534-driver` ≥0.3.0)
+    // silently drops this and the rest of Tactrix's host-DLL blacklist
+    // (P1_MIN/P2_MIN/P3_MAX/P4_MAX) before forwarding to firmware —
+    // sending non-default values has been observed to corrupt OpenPort
+    // 2.0's persistent config. We push the value here for the operator's
+    // intent to remain explicit in the trace; the driver enforces safety.
+    if (timeoutStdMs > 0) {
+      list.push({ parameter: typesMod.ConfigParam.P2_MAX, value: timeoutStdMs });
+    }
     if (regenTimeMs > 0) {
       // ParRegenTime → P3_MIN (idle between response and next request).
       list.push({ parameter: typesMod.ConfigParam.P3_MIN, value: regenTimeMs });

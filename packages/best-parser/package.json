@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-best-parser",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "Parser and disassembler for BMW EDIABAS PRG/GRP (BEST2) files.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

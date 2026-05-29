@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-host-config",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "Shared loader for ~/.config/ediabasx/config.json + interface-selection resolver. Consumed by @emdzej/ediabasx-cli and external CLIs that drive ediabasx (e.g. nfsx) so the config schema + override rules stay in one place.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

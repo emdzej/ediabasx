@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-interfaces",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "Factory + JSON-RPC gateway server/client wiring all EdiabasX transports under a single `createInterface(name, opts)` entry point.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,11 +29,17 @@
     "@emdzej/ediabasx-interface-enet": "workspace:*",
     "@emdzej/ediabasx-interface-j2534": "workspace:*",
     "@emdzej/ediabasx-interface-serial": "workspace:*",
-    "@emdzej/j2534-driver": "^0.2.0",
-    "@emdzej/j2534-serial": "^0.2.0",
-    "@emdzej/j2534-types": "^0.2.0",
-    "@emdzej/j2534-usb": "^0.2.0",
     "ws": "^8.18.0"
+  },
+  "peerDependencies": {
+    "@emdzej/j2534-driver": "^0.3.0",
+    "@emdzej/j2534-types": "^0.3.0",
+    "@emdzej/j2534-serial": "^0.3.0",
+    "@emdzej/j2534-usb": "^0.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@emdzej/j2534-serial": { "optional": true },
+    "@emdzej/j2534-usb": { "optional": true }
   },
   "devDependencies": {
     "@types/node": "^25.2.1",

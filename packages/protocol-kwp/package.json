@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-protocol-kwp",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "KWP2000 / KWP1281 service identifiers, negative-response codes, and constants.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

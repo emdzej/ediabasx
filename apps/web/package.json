@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-web",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "Browser SPA for EdiabasX — pick a PRG/GRP file, configure an interface, and explore jobs. Pure client-side; uses the File API and Web Serial for everything.",
   "private": true,
   "type": "module",
@@ -24,9 +24,9 @@
     "@emdzej/ediabasx-interfaces": "workspace:*",
     "@emdzej/ediabasx-interpreter": "workspace:*",
     "@emdzej/ediabasx-web-ui": "workspace:*",
-    "@emdzej/j2534-driver": "^0.2.0",
-    "@emdzej/j2534-types": "^0.2.0",
-    "@emdzej/j2534-webserial": "^0.2.0",
+    "@emdzej/j2534-driver": "^0.3.0",
+    "@emdzej/j2534-types": "^0.3.0",
+    "@emdzej/j2534-webserial": "^0.3.0",
     "workbox-window": "^7.4.1"
   },
   "devDependencies": {
