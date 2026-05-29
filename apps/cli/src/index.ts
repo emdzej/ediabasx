@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { Command } from "commander";
 import { configureLogger } from "@emdzej/bimmerz-logger";
 import { resolveLoggerConfig } from "./utils/logger-config.js";
@@ -37,12 +40,18 @@ configureLogger(
   }),
 );
 
+// dist/index.js → ../package.json. Bundlers / `npm pack` keep
+// package.json next to dist/, so this resolves in both the
+// `pnpm dev` (ts-node from src/) and shipped-tarball cases.
+const pkgPath = join(dirname(fileURLToPath(import.meta.url)), "..", "package.json");
+const pkgVersion = (JSON.parse(readFileSync(pkgPath, "utf8")) as { version: string }).version;
+
 const program = new Command();
 
 program
   .name("ediabasx")
   .description("CLI for parsing EDIABAS PRG/GRP files")
-  .version("0.1.0");
+  .version(pkgVersion);
 
 registerConfigureCommand(program);
 registerInterfacesCommand(program);
