@@ -165,7 +165,7 @@ async function startWithRelay(server: EdiabasServer, relayUrl: string): Promise<
     console.log(chalk.green("  Authenticated.\n"));
   }
 
-  let cached = await store.load();
+  const cached = await store.load();
   if (!cached || (cached.expires_at && cached.expires_at < Date.now())) {
     await authenticate();
   }
