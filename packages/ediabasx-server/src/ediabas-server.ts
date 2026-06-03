@@ -1,11 +1,10 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join, extname } from "node:path";
+import { readFileSync, readdirSync } from "node:fs";
 import { createServer as createHttpServer, type Server as HttpServer } from "node:http";
 import { createServer as createTcpServer, type Server as NetServer, type Socket } from "node:net";
 import { WebSocketServer, type WebSocket } from "ws";
 
 import { parsePrg, disassembleJob, formatInstruction } from "@emdzej/ediabasx-best-parser";
-import type { PrgFile, PrgJob, PrgArg, PrgResult } from "@emdzej/ediabasx-best-parser";
+import type { PrgFile, PrgArg, PrgResult } from "@emdzej/ediabasx-best-parser";
 import { Ediabas, type EdiabasJobResult } from "@emdzej/ediabasx-ediabas";
 import { EdiabasInterface } from "@emdzej/ediabasx-interface-base";
 import { resolveSgbd } from "@emdzej/ediabasx-host-config";
