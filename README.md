@@ -149,6 +149,59 @@ ediabasx gateway --transport websocket --interface kdcan --serial-port /dev/cu.u
 
 The server prints its backend interface + transport on startup, and forwards the full BEST2 communication surface (`setCommParameter`, `setAnswerLength`, `setRepeatCounter`, `transmitData`, …) so `INITIALISIERUNG` and downstream jobs run unmodified through the gateway.
 
+### Remote diagnostics — `serve` + Bimmerz Connect
+
+The EdiabasX server wraps the full runtime (SGBD loading, job execution, result caching) behind a JSON-RPC API. Clients send `job("IKE", "IDENT")` — no local SGBD files or hardware needed.
+
+Two ways to connect:
+
+- **Direct** — `ws://host:port` on the same LAN or VPN.
+- **Bimmerz Connect** — relay-mediated NAT traversal via `connect.bimmerz.app`. No port forwarding, no VPN.
+
+#### End-to-end walkthrough (Bimmerz Connect)
+
+**1. Server side** — the machine with the cable and SGBD files:
+
+```bash
+ediabasx serve --connect \
+  --sgbd-path ~/ECU --interface kdcan --serial-port /dev/cu.usbserial-A50285BI
+```
+
+First run opens a device-flow login: the CLI prints a short code and a URL. Open the URL in any browser, enter the code, and authorize. Credentials are cached for subsequent runs.
+
+Once authenticated, the server prints:
+
+```
+Bimmerz Connect session active
+
+  Session token: Zmh1wHft.rycSNAOMhAd
+  Link:          https://ediabasx.bimmerz.app?connect=Zmh1wHft.rycSNAOMhAd
+```
+
+**2. Browser side** — any machine, any network:
+
+- **Deep link** — click (or share) the link. The web app opens, auto-connects through the relay, and shows the SGBD sidebar.
+- **Manual** — open [ediabasx.bimmerz.app](https://ediabasx.bimmerz.app), go to Settings → Client mode → Bimmerz Connect, then click **Connect** and paste the session token.
+
+**3. Run jobs** — pick an ECU from the sidebar, select a job, click Run. Results, metadata, disassembly, and server logs all stream through the relay in real time.
+
+#### Direct server (LAN)
+
+```bash
+# Start the server
+ediabasx serve --sgbd-path ~/ECU \
+  --interface kdcan --serial-port /dev/cu.usbserial-A50285BI
+
+# Run a job from another terminal or machine
+ediabasx run IKE IDENT --server 192.168.1.50:6802
+
+# Or open the web app → Settings → Client → Direct → ws://192.168.1.50:6802
+```
+
+Combine `--connect` with `--host`/`--port` to serve both locally and via the relay simultaneously.
+
+See [`@emdzej/ediabasx-server`](packages/ediabasx-server) and [`@emdzej/ediabasx-client`](packages/ediabasx-client) for the library APIs.
+
 ### `simulator` — interactive ECU response simulator for development
 
 ```bash

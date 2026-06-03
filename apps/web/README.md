@@ -7,7 +7,17 @@ Browser SPA for [EdiabasX](https://github.com/emdzej/ediabasx). Two modes:
   - **Direct** — enter a `ws://host:port` server URL (LAN / VPN).
   - **Bimmerz Connect** — relay-mediated NAT traversal via `connect.bimmerz.app`. The server operator runs `ediabasx serve --connect` and shares a deep link or session token. No port forwarding needed.
 
-Deep link format: `https://ediabasx.bimmerz.app?connect=<sessionId.token>` — clicking auto-connects through the relay. The session token can also be pasted manually via the Connect button.
+### Bimmerz Connect walkthrough
+
+1. Server operator runs `ediabasx serve --connect` (see [CLI docs](../cli/README.md#bimmerz-connect-relay-mediated-remote-access)) and gets a session token + deep link.
+2. Remote user opens the deep link — the app auto-connects, switches to client mode, and populates the SGBD sidebar from the server.
+3. Alternatively: open the app manually → Settings → Client → Bimmerz Connect → click **Connect** → paste the session token (`sessionId.token` format) in the dialog.
+
+The relay URL defaults to `wss://connect.bimmerz.app` and is configurable in Settings under the Bimmerz Connect panel.
+
+Session tokens are transient (not persisted to localStorage). Refreshing the page after a session expires shows the app in its default state — just connect again with a fresh token.
+
+Deep link format: `https://ediabasx.bimmerz.app?connect=<sessionId.token>`. The URL params are stripped after parsing to prevent stale-session reuse on refresh.
 
 ## Stack
 
