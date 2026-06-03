@@ -2,13 +2,17 @@ import type { Command } from "commander";
 import chalk from "chalk";
 import { disassemble, disassembleJob, formatInstruction, parsePrg, type DisassemblyOptions } from "@emdzej/ediabasx-best-parser";
 import type { PrgBinaryJob, PrgFile } from "@emdzej/ediabasx-best-parser";
+import { decompileToSource } from "@emdzej/ediabasx-best-decompiler";
 import { readFileBuffer } from "../utils/prg.js";
 import { handleError } from "../utils/output.js";
+import { writeFileSync } from "node:fs";
 
 interface DisasmCommandOptions {
   noColor?: boolean;
   noOffset?: boolean;
   decimal?: boolean;
+  source?: boolean;
+  output?: string;
 }
 
 function resolveBinaryJobSlices(prg: PrgFile): Array<{ job: PrgBinaryJob; start: number; end: number }> {
@@ -96,11 +100,24 @@ function registerDecompileCommand(program: Command): void {
     .option("--no-color", "Disable colored output")
     .option("--no-offset", "Hide instruction offsets")
     .option("--decimal", "Show offsets in decimal instead of hex")
-    .description("Decompile BEST/2 bytecode into readable assembly")
+    .option("--source", "Decompile to BEST/2 near-source (.b2v) instead of assembly")
+    .option("-o, --output <file>", "Write output to file instead of stdout")
+    .description("Decompile BEST/2 bytecode into readable assembly or near-source")
     .action((filePath: string, jobName: string | undefined, cmdOptions: DisasmCommandOptions) => {
       try {
         const buffer = readFileBuffer(filePath);
         const prg = parsePrg(buffer);
+
+        if (cmdOptions.source) {
+          const source = decompileToSource(prg, buffer);
+          if (cmdOptions.output) {
+            writeFileSync(cmdOptions.output, source, "utf-8");
+            process.stdout.write(`Written to ${cmdOptions.output}\n`);
+          } else {
+            process.stdout.write(source);
+          }
+          return;
+        }
 
         const options: DisassemblyOptions = {
           color: cmdOptions.noColor !== true,

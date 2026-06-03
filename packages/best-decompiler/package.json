@@ -1,0 +1,27 @@
+{
+  "name": "@emdzej/ediabasx-best-decompiler",
+  "version": "0.1.0",
+  "description": "BEST/2 near-source decompiler for BMW EDIABAS PRG/GRP files.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@emdzej/ediabasx-best-parser": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc -p tsconfig.json -w --preserveWatchOutput"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emdzej/ediabasx.git"
+  }
+}

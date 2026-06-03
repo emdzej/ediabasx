@@ -44,6 +44,9 @@ importers:
       '@emdzej/bimmerz-logger':
         specifier: ^0.1.2
         version: 0.1.2
+      '@emdzej/ediabasx-best-decompiler':
+        specifier: workspace:*
+        version: link:../../packages/best-decompiler
       '@emdzej/ediabasx-best-parser':
         specifier: workspace:*
         version: link:../../packages/best-parser
@@ -169,6 +172,12 @@ importers:
       vite-plugin-pwa:
         specifier: ^1.3.0
         version: 1.3.0(@vite-pwa/assets-generator@1.0.2)(vite@5.4.21(@types/node@25.2.1)(terser@5.47.1))(workbox-build@7.4.1)(workbox-window@7.4.1)
+
+  packages/best-decompiler:
+    dependencies:
+      '@emdzej/ediabasx-best-parser':
+        specifier: workspace:*
+        version: link:../best-parser
 
   packages/best-parser:
     dependencies:

@@ -13,6 +13,7 @@
   ],
   "dependencies": {
     "@emdzej/bimmerz-logger": "^0.1.2",
+    "@emdzej/ediabasx-best-decompiler": "workspace:*",
     "@emdzej/ediabasx-best-parser": "workspace:*",
     "@emdzej/ediabasx-core": "workspace:*",
     "@emdzej/ediabasx-ediabas": "workspace:*",
