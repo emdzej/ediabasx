@@ -50,6 +50,9 @@ importers:
       '@emdzej/ediabasx-best-parser':
         specifier: workspace:*
         version: link:../../packages/best-parser
+      '@emdzej/ediabasx-client':
+        specifier: workspace:*
+        version: link:../../packages/ediabasx-client
       '@emdzej/ediabasx-core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -65,6 +68,9 @@ importers:
       '@emdzej/ediabasx-interfaces':
         specifier: workspace:*
         version: link:../../packages/interfaces
+      '@emdzej/ediabasx-server':
+        specifier: workspace:*
+        version: link:../../packages/ediabasx-server
       chalk:
         specifier: ^5.4.1
         version: 5.6.2
@@ -99,6 +105,9 @@ importers:
       '@emdzej/ediabasx-best-parser':
         specifier: workspace:*
         version: link:../../packages/best-parser
+      '@emdzej/ediabasx-client':
+        specifier: workspace:*
+        version: link:../../packages/ediabasx-client
       '@emdzej/ediabasx-core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -234,6 +243,59 @@ importers:
       vitest:
         specifier: ^3.0.5
         version: 3.2.4(@types/node@22.19.8)(terser@5.47.1)
+
+  packages/ediabasx-client:
+    dependencies:
+      '@emdzej/ediabasx-core':
+        specifier: workspace:*
+        version: link:../core
+      '@emdzej/ediabasx-ediabas':
+        specifier: workspace:*
+        version: link:../ediabas
+      '@emdzej/ediabasx-host-config':
+        specifier: workspace:*
+        version: link:../host-config
+      '@emdzej/ediabasx-interface-base':
+        specifier: workspace:*
+        version: link:../interface-base
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.5
+        version: 22.19.8
+
+  packages/ediabasx-server:
+    dependencies:
+      '@emdzej/bimmerz-logger':
+        specifier: ^0.1.2
+        version: 0.1.2
+      '@emdzej/ediabasx-best-parser':
+        specifier: workspace:*
+        version: link:../best-parser
+      '@emdzej/ediabasx-core':
+        specifier: workspace:*
+        version: link:../core
+      '@emdzej/ediabasx-ediabas':
+        specifier: workspace:*
+        version: link:../ediabas
+      '@emdzej/ediabasx-host-config':
+        specifier: workspace:*
+        version: link:../host-config
+      '@emdzej/ediabasx-interface-base':
+        specifier: workspace:*
+        version: link:../interface-base
+      '@emdzej/ediabasx-interfaces':
+        specifier: workspace:*
+        version: link:../interfaces
+      ws:
+        specifier: ^8.18.0
+        version: 8.19.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.5
+        version: 22.19.8
+      '@types/ws':
+        specifier: ^8.5.0
+        version: 8.18.1
 
   packages/host-config:
     dependencies:

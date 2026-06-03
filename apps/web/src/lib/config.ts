@@ -14,11 +14,13 @@
 // Interface-shape types come from `@emdzej/ediabasx-web-ui` so the
 // InterfaceConfigPanel and this storage layer agree on a single shape.
 
-import type { InterfaceConfig, InterfaceType } from "@emdzej/ediabasx-web-ui";
+import type { AppMode, InterfaceConfig, InterfaceType, ModeConfig } from "@emdzej/ediabasx-web-ui";
 
 export type {
+  AppMode,
   InterfaceConfig,
   InterfaceType,
+  ModeConfig,
   SerialProtocol,
   SerialInitMode,
 } from "@emdzej/ediabasx-web-ui";
@@ -67,8 +69,8 @@ export interface WebLoggerConfig {
   categories?: Record<string, LogLevel>;
 }
 
-/** Full app config = the shared interface shape + ediabasx-specific extras. */
-export interface WebConfig extends InterfaceConfig {
+/** Full app config = the shared interface shape + mode shape + ediabasx-specific extras. */
+export interface WebConfig extends InterfaceConfig, ModeConfig {
   /** Logger settings — applied via `configureLogger()` at boot + on Settings save. */
   logging?: WebLoggerConfig;
 }
@@ -76,6 +78,7 @@ export interface WebConfig extends InterfaceConfig {
 const STORAGE_KEY = "ediabasx.web.config.v1";
 
 const DEFAULT_CONFIG: WebConfig = {
+  mode: "embedded",
   interface: "webserial",
   serial: {
     baudRate: 9600,
@@ -89,6 +92,7 @@ const DEFAULT_CONFIG: WebConfig = {
   gateway: {
     url: "ws://localhost:6801",
   },
+  serverUrl: "ws://localhost:6802",
   logging: {
     level: "info",
   },
@@ -109,9 +113,14 @@ export function loadConfig(): WebConfig {
       parsed.interface === "gateway"
         ? parsed.interface
         : DEFAULT_CONFIG.interface;
+    const mode: AppMode =
+      parsed.mode === "embedded" || parsed.mode === "client"
+        ? parsed.mode
+        : "embedded";
     return {
       ...structuredClone(DEFAULT_CONFIG),
       ...parsed,
+      mode,
       interface: iface,
       serial: { ...DEFAULT_CONFIG.serial, ...parsed.serial },
       gateway: { ...DEFAULT_CONFIG.gateway, ...parsed.gateway },

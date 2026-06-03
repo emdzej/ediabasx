@@ -18,6 +18,13 @@ export type View =
   | "picker"        // welcome screen — pick install folder
   | "browse";       // sidebar + detail layout
 
+export interface RemoteJob {
+  name: string;
+  comment?: string;
+  argCount: number;
+  resultCount: number;
+}
+
 interface AppState {
   view: View;
   /** The discovered BMW Standard Tools install — null until the picker runs. */
@@ -32,6 +39,10 @@ interface AppState {
   showSettings: boolean;
   /** Toast-style error surfaced from background tasks (install discovery, etc.). */
   error: string | null;
+  /** Client mode: jobs fetched from server for the loaded SGBD. */
+  remoteJobs: RemoteJob[] | null;
+  /** Client mode: table count from server. */
+  remoteTableCount: number | null;
 }
 
 export const state = $state<AppState>({
@@ -45,6 +56,8 @@ export const state = $state<AppState>({
   showAbout: false,
   showSettings: false,
   error: null,
+  remoteJobs: null,
+  remoteTableCount: null,
 });
 
 export function goto(view: View): void {
@@ -67,7 +80,11 @@ export async function loadSgbd(picked: PickedFile): Promise<void> {
   }
 }
 
-// The wizard now binds inputs directly to `state.config.*` and an effect
-// in the wizard component mirrors changes to localStorage. There's no
-// `updateConfig` helper because there's no longer a draft to commit —
-// reactivity flows through the proxy in place.
+export function selectRemoteSgbd(name: string, ext: string): void {
+  state.loadedFile = { name, relativePath: name, ext, file: new File([], name) };
+  state.prg = null;
+  state.prgBuffer = null;
+  state.loadError = null;
+  state.remoteJobs = null;
+  state.remoteTableCount = null;
+}

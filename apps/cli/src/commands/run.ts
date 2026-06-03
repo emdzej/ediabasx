@@ -1,10 +1,13 @@
 import type { Command } from "commander";
 import chalk from "chalk";
+import fs from "node:fs";
 import path from "node:path";
 import { render } from "ink";
 import React from "react";
 import type { EdiabasJobResult } from "@emdzej/ediabasx-ediabas";
 import { createInterface } from "@emdzej/ediabasx-interfaces";
+import { resolveSgbd, DEFAULT_SERVER_PORT } from "@emdzej/ediabasx-host-config";
+import type { EdiabasJobResponse, EdiabasResultSet } from "@emdzej/ediabasx-core";
 import { RunnerApp } from "../tui/RunnerApp.js";
 import { readPrgFile } from "../utils/prg.js";
 import { handleError, printJson } from "../utils/output.js";
@@ -14,6 +17,7 @@ import {
   resolveInterfaceSelection,
 } from "../utils/interface.js";
 import type { InterfaceCliOptions } from "../utils/interface.js";
+import { DEFAULT_CONFIG_PATH, loadConfig } from "../utils/config.js";
 import type { PrgJob } from "@emdzej/ediabasx-best-parser";
 
 function printJobInfo(job: PrgJob): void {
@@ -392,15 +396,71 @@ async function createRunnerSession(
 
 export type { ConnectionStatus, ConnectionPhase, RunnerSession };
 
+function resolveFileArg(fileArg: string, configPath?: string): string {
+  const lower = fileArg.toLowerCase();
+  const hasPathSep = fileArg.includes(path.sep) || fileArg.includes("/");
+  const hasExt = lower.endsWith(".prg") || lower.endsWith(".grp");
+
+  if (hasPathSep || hasExt) return path.resolve(fileArg);
+
+  const cfgPath = configPath ?? (fs.existsSync(DEFAULT_CONFIG_PATH) ? DEFAULT_CONFIG_PATH : undefined);
+  const cfg = cfgPath ? loadConfig(cfgPath) : undefined;
+  return resolveSgbd(fileArg, cfg?.sgbdPath);
+}
+
+function wireTypeToLocal(type: string): EdiabasJobResult["type"] {
+  switch (type) {
+    case "text": return "string";
+    case "integer": return "int";
+    default: return type as EdiabasJobResult["type"];
+  }
+}
+
+function wireResultsToLocal(response: EdiabasJobResponse): EdiabasJobResult[][] {
+  return response.sets.map((set: EdiabasResultSet) =>
+    Object.values(set).map((entry) => ({
+      name: entry.name,
+      type: wireTypeToLocal(entry.type),
+      value: Array.isArray(entry.value) ? new Uint8Array(entry.value) : entry.value,
+    })),
+  );
+}
+
+function resolveServerAddress(
+  serverFlag: string | true | undefined,
+  configPath?: string,
+): { host: string; port: number; transport: "tcp" | "websocket" } | undefined {
+  if (!serverFlag) return undefined;
+
+  const cfgPath = configPath ?? (fs.existsSync(DEFAULT_CONFIG_PATH) ? DEFAULT_CONFIG_PATH : undefined);
+  const cfg = cfgPath ? loadConfig(cfgPath) : undefined;
+  const serverCfg = cfg?.server;
+
+  if (serverFlag === true) {
+    return {
+      host: serverCfg?.host ?? "127.0.0.1",
+      port: serverCfg?.port ?? DEFAULT_SERVER_PORT,
+      transport: serverCfg?.transport ?? "websocket",
+    };
+  }
+
+  const parts = serverFlag.split(":");
+  const host = parts[0] || serverCfg?.host || "127.0.0.1";
+  const port = parts[1] ? Number.parseInt(parts[1], 10) : (serverCfg?.port ?? DEFAULT_SERVER_PORT);
+  return { host, port, transport: serverCfg?.transport ?? "websocket" };
+}
+
 function registerRunCommand(program: Command): void {
   const runCommand = program
     .command("run")
-    .argument("<file>", "PRG/GRP file")
+    .argument("<file>", "PRG/GRP file path or bare ECU name (resolved via sgbdPath)")
     .argument("[job]", "Job name to execute")
     .argument("[params...]", "Job parameters")
     .option("-s, --simulation", "Run in simulation mode (alias for --interface simulation)")
     .option("-t, --timeout <ms>", "Communication timeout in milliseconds", "5000")
     .option("--gateway <host:port>", "Use a remote gateway server (alias for --interface gateway)")
+    .option("--server [host:port]", "Execute via remote EdiabasX server (reads config if no address)")
+    .option("--server-transport <transport>", "Server wire transport: 'websocket' (default) or 'tcp'")
     .option("--json", "Output results as JSON")
     .option("--results <names>", "Filter specific results (comma-separated)")
     .option("--info", "Show job info instead of executing")
@@ -413,9 +473,79 @@ function registerRunCommand(program: Command): void {
         json?: boolean;
         results?: string;
         info?: boolean;
+        server?: string | true;
+        serverTransport?: string;
       }
     ) => {
       try {
+        // Server mode: route through EdiabasClient instead of local Ediabas
+        const serverAddr = resolveServerAddress(options.server, options.config);
+        if (serverAddr) {
+          if (!jobName) {
+            process.stderr.write(`${chalk.red("Error:")} Job name is required in server mode.\n`);
+            process.stderr.write(`Usage: ediabasx run <ecu> <job> [params...] --server\n`);
+            process.exitCode = 1;
+            return;
+          }
+          if (options.serverTransport) {
+            const t = options.serverTransport.toLowerCase();
+            if (t === "tcp" || t === "websocket") serverAddr.transport = t;
+          }
+
+          const { EdiabasClient } = await import("@emdzej/ediabasx-client");
+          const client = new EdiabasClient({
+            host: serverAddr.host,
+            port: serverAddr.port,
+            transport: serverAddr.transport,
+          });
+
+          const resultsFilter = options.results
+            ? new Set(options.results.split(",").map((v) => v.trim().toUpperCase()))
+            : undefined;
+
+          if (!options.json) {
+            process.stdout.write(`${chalk.gray(`Server: ${serverAddr.host}:${serverAddr.port} (${serverAddr.transport})`)}\n`);
+            process.stdout.write(`${chalk.cyan("Executing job:")} ${chalk.bold(filePath)}/${chalk.bold(jobName)}\n`);
+            if (params.length > 0) {
+              process.stdout.write(`${chalk.cyan("Parameters:")} ${params.join(", ")}\n`);
+            }
+            process.stdout.write("\n");
+          }
+
+          const startTime = Date.now();
+          try {
+            await client.init();
+            const response = await client.job(filePath, jobName, params.length > 0 ? params.join(";") : undefined);
+            const executionTime = Date.now() - startTime;
+
+            const resultSets = wireResultsToLocal(response);
+            const filteredSets = resultsFilter
+              ? resultSets
+                  .map((set) => set.filter((r) => resultsFilter.has(r.name.toUpperCase())))
+                  .filter((set) => set.length > 0)
+              : resultSets;
+
+            if (options.json) {
+              printJson({
+                job: jobName,
+                ecu: filePath,
+                params,
+                resultSets: filteredSets.map((set) =>
+                  set.map((r) => ({ name: r.name, type: r.type, value: formatResultValueJson(r) })),
+                ),
+                executionTimeMs: executionTime,
+              });
+            } else {
+              printResultsHuman(filteredSets);
+              process.stdout.write(`\n${chalk.gray(`Execution time: ${executionTime}ms`)}\n`);
+            }
+          } finally {
+            await client.end();
+          }
+          return;
+        }
+
+        filePath = resolveFileArg(filePath, options.config);
         const prg = readPrgFile(filePath);
         if (!jobName) {
           const selection = resolveInterfaceSelection(options, "simulation");

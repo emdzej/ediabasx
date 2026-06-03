@@ -15,6 +15,7 @@ import { registerInterfacesCommand } from "./commands/interfaces.js";
 import { registerJobCommand } from "./commands/job.js";
 import { registerJobsCommand } from "./commands/jobs.js";
 import { registerRunCommand } from "./commands/run.js";
+import { registerServeCommand } from "./commands/serve.js";
 import { registerSimulatorCommand } from "./commands/simulator.js";
 import { registerTableCommand } from "./commands/table.js";
 import { registerTablesCommand } from "./commands/tables.js";
@@ -65,6 +66,7 @@ registerExploreCommand(program);
 registerSimulatorCommand(program);
 registerDecompileCommand(program);
 registerRunCommand(program);
+registerServeCommand(program);
 registerDocsCommand(program);
 
 program.parse();

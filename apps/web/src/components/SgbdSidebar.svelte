@@ -1,10 +1,37 @@
 <script lang="ts">
-  import { state as app, loadSgbd } from "../lib/app.svelte";
+  import { state as app, loadSgbd, selectRemoteSgbd } from "../lib/app.svelte";
+  import type { PickedFile } from "../lib/files";
   import { settings, setSidebarCollapsed } from "../lib/settings.svelte";
+  import { runtime, fetchRemoteSgbdList } from "../lib/runtime.svelte";
 
   let filter = $state("");
 
-  const sgbds = $derived(app.install?.sgbds ?? []);
+  const isClient = $derived(app.config.mode === "client");
+
+  type SgbdListEntry = { name: string; relativePath: string; ext: string; file?: File };
+
+  // Remote SGBD list — fetched from server when connected in client mode.
+  let remoteSgbds = $state<SgbdListEntry[]>([]);
+
+  $effect(() => {
+    if (isClient && runtime.phase === "connected") {
+      fetchRemoteSgbdList()
+        .then((list) => {
+          remoteSgbds = list.map((s) => ({
+            name: s.name,
+            relativePath: s.name,
+            ext: s.ext,
+          }));
+        })
+        .catch((err) => {
+          app.error = err instanceof Error ? err.message : String(err);
+        });
+    } else if (isClient) {
+      remoteSgbds = [];
+    }
+  });
+
+  const sgbds = $derived<SgbdListEntry[]>(isClient ? remoteSgbds : (app.install?.sgbds ?? []));
 
   const filtered = $derived.by(() => {
     const q = filter.trim().toLowerCase();
@@ -35,7 +62,11 @@
         <p class="text-xs font-semibold uppercase tracking-wider text-faint">
           SGBDs · {sgbds.length}
         </p>
-        {#if app.install}
+        {#if isClient}
+          <p class="mt-0.5 truncate text-xs text-faint">
+            from <span class="font-mono text-muted">server</span>
+          </p>
+        {:else if app.install}
           <p class="mt-0.5 truncate text-xs text-faint" title={app.install.root.name}>
             from <span class="font-mono text-muted">{app.install.root.name}</span>
             {#if app.install.layout === "ecu-direct"}
@@ -81,7 +112,7 @@
               class:font-semibold={selected}
               class:border-l-transparent={!selected}
               class:hover:bg-elevated={!selected}
-              onclick={() => void loadSgbd(f)}
+              onclick={() => isClient ? selectRemoteSgbd(f.name, f.ext) : void loadSgbd(f as PickedFile)}
             >
               <span
                 class="font-mono text-xs uppercase"
@@ -91,7 +122,9 @@
                 {f.ext}
               </span>
               <span class="flex-1 truncate text-foreground">{f.name}</span>
-              <span class="text-faint">{(f.file.size / 1024).toFixed(1)}K</span>
+              {#if !isClient && f.file}
+                <span class="text-faint">{(f.file.size / 1024).toFixed(1)}K</span>
+              {/if}
             </button>
           </li>
         {/each}

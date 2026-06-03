@@ -127,8 +127,12 @@
       class="max-w-md rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-600/40 dark:bg-red-950/40 dark:text-red-300"
     >
       <strong class="font-semibold">Unsupported browser.</strong>
-      EDIABASX needs the File System Access API and Web Serial — both
-      Chromium-only. Use Chrome, Edge, Opera, or Brave on desktop.
+      Embedded mode needs the File System Access API and Web Serial — both
+      Chromium-only. Use Chrome, Edge, Opera, or Brave on desktop, or
+      <button
+        class="inline underline underline-offset-2 hover:text-red-600 dark:hover:text-red-200"
+        onclick={() => { app.config.mode = "client"; app.view = "browse"; }}
+      >switch to Client mode</button> to connect to a remote EdiabasX server instead.
     </div>
   {:else if restoring}
     <p class="text-sm text-faint">Restoring last folder…</p>

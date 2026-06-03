@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../best-parser" },
+    { "path": "../core" },
+    { "path": "../ediabas" },
+    { "path": "../host-config" },
+    { "path": "../interface-base" },
+    { "path": "../interfaces" }
+  ]
+}

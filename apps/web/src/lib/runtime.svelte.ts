@@ -7,6 +7,8 @@
 // internal `this` references. Only the UI-visible fields are in `$state`.
 
 import { Ediabas, type EdiabasConfig, type EdiabasJobResult } from "@emdzej/ediabasx-ediabas";
+import { EdiabasClient } from "@emdzej/ediabasx-client/client";
+import type { EdiabasJobResponse, EdiabasResultEntry } from "@emdzej/ediabasx-core";
 import { GatewayClient } from "@emdzej/ediabasx-interfaces/client";
 import {
   SerialInterface,
@@ -51,6 +53,7 @@ export const runtime = $state<RuntimeUiState>({
 
 // Non-reactive — methods would break under a proxy.
 let ediabasInstance: Ediabas | null = null;
+let clientInstance: EdiabasClient | null = null;
 let serialPort: WebSerialPortLike | null = null;
 /**
  * Relative path of the SGBD currently loaded into `ediabasInstance` (or
@@ -97,6 +100,83 @@ function getSerial(): WebNavigatorSerial | null {
 
 export function isWebSerialSupported(): boolean {
   return getSerial() !== null;
+}
+
+// ---- Server log streaming state ----
+
+export interface ServerLogEntry {
+  level: string;
+  category: string | null;
+  msg: string;
+  time: number;
+}
+
+const MAX_SERVER_LOGS = 1000;
+export const serverLogs = $state<{ entries: ServerLogEntry[] }>({ entries: [] });
+
+function handleServerNotification(method: string, params: unknown): void {
+  if (method === "log" && params && typeof params === "object") {
+    const p = params as ServerLogEntry;
+    serverLogs.entries.push(p);
+    if (serverLogs.entries.length > MAX_SERVER_LOGS) {
+      serverLogs.entries.splice(0, serverLogs.entries.length - MAX_SERVER_LOGS);
+    }
+  }
+}
+
+export function clearServerLogs(): void {
+  serverLogs.entries.length = 0;
+}
+
+// ---- Wire type → local type conversion ----
+
+function wireTypeToLocal(wireType: string): EdiabasJobResult["type"] {
+  switch (wireType) {
+    case "integer": return "int";
+    case "text": return "string";
+    default: return wireType as EdiabasJobResult["type"];
+  }
+}
+
+function convertClientResults(response: EdiabasJobResponse): EdiabasJobResult[][] {
+  return response.sets.map((set) =>
+    Object.values(set).map((entry: EdiabasResultEntry) => ({
+      name: entry.name,
+      type: wireTypeToLocal(entry.type),
+      value: Array.isArray(entry.value) ? new Uint8Array(entry.value) : entry.value,
+    })),
+  );
+}
+
+// ---- Remote SGBD listing ----
+
+export async function fetchRemoteSgbdList(): Promise<{ name: string; ext: string }[]> {
+  if (!clientInstance) throw new Error("Not connected to server");
+  return clientInstance.listSgbd();
+}
+
+export async function fetchRemoteJobs(ecu: string): Promise<{
+  jobs: { name: string; comment?: string; argCount: number; resultCount: number }[];
+  tableCount: number;
+}> {
+  if (!clientInstance) throw new Error("Not connected to server");
+  return clientInstance.listJobs(ecu);
+}
+
+export async function fetchRemoteJobMetadata(ecu: string, job: string): Promise<{
+  name: string;
+  comment?: string;
+  args: { name: string; type: string; comment?: string }[];
+  results: { name: string; type: string; comment?: string }[];
+}> {
+  if (!clientInstance) throw new Error("Not connected to server");
+  return clientInstance.getJobMetadata(ecu, job);
+}
+
+export async function fetchRemoteDisassembly(ecu: string, job: string): Promise<string[]> {
+  if (!clientInstance) throw new Error("Not connected to server");
+  const result = await clientInstance.disassembleJob(ecu, job);
+  return result.lines;
 }
 
 /**
@@ -184,10 +264,34 @@ async function buildEdiabas(): Promise<Ediabas> {
  */
 export async function connect(): Promise<void> {
   if (runtime.phase === "connecting") return;
-  if (runtime.phase === "connected" && ediabasInstance) return;
+  if (runtime.phase === "connected" && (ediabasInstance || clientInstance)) return;
 
   setStatus("connecting", "Connecting…");
   runtime.errorMessage = null;
+
+  if (app.config.mode === "client") {
+    try {
+      const url = app.config.serverUrl?.trim();
+      if (!url) throw new Error("Server URL is empty — set it in Settings");
+      if (!/^wss?:\/\//i.test(url)) throw new Error("Server URL must start with ws:// or wss://");
+      const c = new EdiabasClient({
+        transport: "websocket",
+        url,
+        onNotification: handleServerNotification,
+      });
+      await c.init();
+      await c.subscribeLogs(app.config.logging?.level ?? "info");
+      clientInstance = c;
+      loadedSgbdName = null;
+      setStatus("connected", `Connected · Server · ${url}`);
+    } catch (error) {
+      clientInstance = null;
+      setStatus("error", "Connect failed");
+      runtime.errorMessage = error instanceof Error ? error.message : String(error);
+    }
+    return;
+  }
+
   try {
     const e = await buildEdiabas();
     await e.connect();
@@ -203,17 +307,15 @@ export async function connect(): Promise<void> {
 }
 
 export async function disconnect(): Promise<void> {
+  if (clientInstance) {
+    try { await clientInstance.end(); } catch { /* tearing down */ }
+    clientInstance = null;
+  }
   if (ediabasInstance) {
-    try {
-      await ediabasInstance.disconnect();
-    } catch {
-      /* ignore — we're tearing down anyway */
-    }
+    try { await ediabasInstance.disconnect(); } catch { /* tearing down */ }
     ediabasInstance = null;
   }
   if (serialPort) {
-    // SerialInterface.disconnect() above closes the WebSerial port via its
-    // transport, but null the local handle to release any references.
     serialPort = null;
   }
   loadedSgbdName = null;
@@ -230,11 +332,11 @@ export async function runJob(
   jobName: string,
   params: (string | Uint8Array)[] = [],
 ): Promise<void> {
-  if (!ediabasInstance || runtime.phase !== "connected") {
+  if (runtime.phase !== "connected") {
     runtime.errorMessage = "Not connected — click Connect first.";
     return;
   }
-  if (!app.prgBuffer || !app.loadedFile) {
+  if (!app.loadedFile) {
     runtime.errorMessage = "Pick a PRG/GRP from the sidebar first.";
     return;
   }
@@ -246,10 +348,38 @@ export async function runJob(
   runtime.resultsJobName = jobName;
   runtime.resultsExecMs = null;
 
-  // Lazy-load the SGBD into the Ediabas instance if it changed since
-  // last run (or hasn't been loaded yet on this connection). Means the
-  // user can connect first and pick a file later, or switch files mid-
-  // session without bouncing the transport.
+  // Client mode — delegate to remote server
+  if (app.config.mode === "client" && clientInstance) {
+    const ecuName = app.loadedFile.name.replace(/\.(prg|grp)$/i, "");
+    const startedAt = Date.now();
+    try {
+      const paramStr = params.map((p) =>
+        p instanceof Uint8Array ? Array.from(p).map((b) => b.toString(16).padStart(2, "0")).join("") : String(p),
+      ).join(";");
+      const response = await clientInstance.job(ecuName, jobName, paramStr || undefined);
+      runtime.results = convertClientResults(response);
+      runtime.resultsExecMs = Date.now() - startedAt;
+    } catch (error) {
+      runtime.resultsExecMs = Date.now() - startedAt;
+      runtime.errorMessage = error instanceof Error ? error.message : String(error);
+    } finally {
+      runtime.isRunning = false;
+    }
+    return;
+  }
+
+  // Embedded mode — local Ediabas
+  if (!ediabasInstance) {
+    runtime.errorMessage = "Not connected — click Connect first.";
+    runtime.isRunning = false;
+    return;
+  }
+  if (!app.prgBuffer) {
+    runtime.errorMessage = "Pick a PRG/GRP from the sidebar first.";
+    runtime.isRunning = false;
+    return;
+  }
+
   const currentName = app.loadedFile.relativePath;
   if (loadedSgbdName !== currentName) {
     try {

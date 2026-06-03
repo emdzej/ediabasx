@@ -36,8 +36,10 @@ pnpm cli info ./MS430DS0.prg
 | `ediabasx run <file> [job] [params...]` | Execute a job against an ECU (or pop a TUI to browse jobs) |
 | `ediabasx explore <file>` | TUI for browsing jobs / tables / metadata side by side |
 | `ediabasx gateway [opts]` | Share a local interface over JSON-RPC (TCP or WebSocket) |
+| `ediabasx serve` | Start the EdiabasX JSON-RPC server for remote job execution |
+| `ediabasx serve configure` | Interactive server configuration wizard |
 | `ediabasx simulator [opts]` | Interactive ECU response simulator |
-| `ediabasx configure` | Interactive config wizard |
+| `ediabasx configure` | Interactive config wizard (interface + sgbdPath) |
 | `ediabasx docs <src> <out>` | Generate Markdown documentation for a directory of PRG/GRP files |
 
 ## Hardware
@@ -104,6 +106,56 @@ Gateway server listening on 127.0.0.1:6801 (transport=websocket)
 ```
 
 > The server-binding flag is `--transport`; the client-side flag is `--gateway-transport`. They're deliberately named differently because the same `run` invocation can mix a gateway client with other interface flags.
+
+## EdiabasX Server
+
+Higher-level than the gateway: the server wraps the full `Ediabas` runtime (SGBD loading, job execution, result caching). Clients send `job("IKE", "IDENT")` — no local SGBD files needed.
+
+```bash
+# Start the server (reads sgbdPath + server config from ~/.config/ediabasx/config.json)
+ediabasx serve
+
+# Or with explicit flags
+ediabasx serve --sgbd-path ~/ECU --port 6802 --transport websocket \
+  --interface kdcan --serial-port /dev/cu.usbserial-A50285BI
+
+# Interactive server config wizard
+ediabasx serve configure
+```
+
+### Remote job execution
+
+Use `--server` on the `run` command to execute jobs via a remote EdiabasX server instead of locally:
+
+```bash
+# Connect to server from config (server.host / server.port)
+ediabasx run IKE IDENT --server
+
+# Explicit server address
+ediabasx run IKE IDENT --server 192.168.1.50:6802
+
+# JSON output
+ediabasx run IKE IDENT --server --json
+
+# Filter results
+ediabasx run IKE IDENT --server --results VARIANTE,JOB_STATUS
+```
+
+In server mode, the first argument is the ECU name (resolved by the server) and the second is the job name. No local PRG file is needed.
+
+## Bare ECU names
+
+When `sgbdPath` is configured (in `~/.config/ediabasx/config.json` or via `ediabasx configure`), the `run` command accepts bare ECU names instead of file paths:
+
+```bash
+# Instead of:
+ediabasx run /path/to/ECU/IKE.prg IDENT
+
+# You can write:
+ediabasx run IKE IDENT
+```
+
+Resolution order: `.prg` > `.PRG` > `.grp` > `.GRP`, then uppercase variants. Paths with separators or extensions bypass resolution.
 
 ## TUI
 

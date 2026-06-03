@@ -16,6 +16,7 @@
     "@emdzej/bimmerz-logger": "^0.1.2",
     "@emdzej/bimmerz-theme": "^0.1.0",
     "@emdzej/ediabasx-best-parser": "workspace:*",
+    "@emdzej/ediabasx-client": "workspace:*",
     "@emdzej/ediabasx-core": "workspace:*",
     "@emdzej/ediabasx-ediabas": "workspace:*",
     "@emdzej/ediabasx-interface-base": "workspace:*",

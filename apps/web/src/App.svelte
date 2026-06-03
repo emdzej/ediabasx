@@ -6,6 +6,12 @@
   import AboutDialog from "./components/AboutDialog.svelte";
   import SettingsDialog from "./components/SettingsDialog.svelte";
   import ConnectButton from "./components/ConnectButton.svelte";
+
+  $effect(() => {
+    if (app.config.mode === "client" && app.view === "picker") {
+      app.view = "browse";
+    }
+  });
 </script>
 
 <div class="flex h-full flex-col">
@@ -62,7 +68,11 @@
       {#if app.loadedFile}
         <span class="text-xs text-faint">
           <span class="text-muted">{app.loadedFile.relativePath}</span>
-          · {app.prg?.jobs.length ?? 0} jobs · {app.prg?.tables.length ?? 0} tables
+          {#if app.prg}
+            · {app.prg.jobs.length} jobs · {app.prg.tables.length} tables
+          {:else if app.remoteJobs}
+            · {app.remoteJobs.length} jobs{#if app.remoteTableCount != null} · {app.remoteTableCount} tables{/if}
+          {/if}
         </span>
       {/if}
       <button
@@ -83,7 +93,7 @@
       <div class="flex h-full">
         <SgbdSidebar />
         <section class="min-w-0 flex-1 overflow-hidden bg-base">
-          {#if app.prg}
+          {#if app.prg || (app.config.mode === "client" && app.loadedFile)}
             <Jobs />
           {:else if app.loadError}
             <div class="m-6 max-w-2xl rounded border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300">

@@ -6,6 +6,9 @@
 // Each app's full config typically extends `InterfaceConfig` with
 // app-specific fields (logging, install handle, etc.).
 
+/** Top-level operating mode: local hardware or remote server. */
+export type AppMode = "embedded" | "client";
+
 /** Which transport the app uses to reach the ECU. */
 export type InterfaceType = "webserial" | "j2534" | "gateway";
 
@@ -46,6 +49,15 @@ export interface InterfaceConfig {
   interface: InterfaceType;
   serial?: SerialConfig;
   gateway?: GatewayConfig;
+}
+
+/**
+ * Config shape the ModeConfigPanel + ServerConfigPanel bind to.
+ * Apps extend this alongside InterfaceConfig.
+ */
+export interface ModeConfig {
+  mode: AppMode;
+  serverUrl?: string;
 }
 
 /**

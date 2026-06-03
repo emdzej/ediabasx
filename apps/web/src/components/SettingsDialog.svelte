@@ -6,6 +6,7 @@
     saveConfig,
     type LogLevel,
   } from "../lib/config";
+  import { disconnect, runtime } from "../lib/runtime.svelte";
   import {
     clearInstallHandle,
     saveInstallHandle,
@@ -14,7 +15,12 @@
   import { settings, setTheme, type ThemeChoice } from "../lib/settings.svelte";
   import { applyLoggerConfig } from "../lib/logger-wiring";
   import { LOG_CATEGORIES as EDIABASX_LOG_CATEGORIES } from "@emdzej/ediabasx-ediabas";
-  import { InterfaceConfigPanel } from "@emdzej/ediabasx-web-ui";
+  import {
+    InterfaceConfigPanel,
+    ModeConfigPanel,
+    ServerConfigPanel,
+    type AppMode,
+  } from "@emdzej/ediabasx-web-ui";
 
   /**
    * Persist on every config mutation. Writes are tiny; eager flushing
@@ -74,6 +80,12 @@
     }
     if (fresh.gateway) {
       app.config.gateway = { ...(app.config.gateway ?? {}), ...fresh.gateway };
+    }
+  }
+
+  function onModeChange(_mode: AppMode): void {
+    if (runtime.phase === "connected" || runtime.phase === "connecting") {
+      void disconnect();
     }
   }
 
@@ -143,11 +155,16 @@
       </header>
 
       <section class="flex-1 space-y-4 overflow-y-auto px-4 py-4 text-sm text-foreground">
-        <!-- Install root — surfaces the picked BMW Standard Tools
-             folder + lets the user swap it (e.g. moved the install) or
-             forget the saved handle entirely (handy when the saved
-             folder is gone). Same shape as ncsx-web's Settings panel. -->
-        <div>
+        <ModeConfigPanel bind:config={app.config} onmodechange={onModeChange} />
+
+        {#if app.config.mode === "client"}
+          <ServerConfigPanel bind:config={app.config} />
+        {:else}
+          <!-- Install root — surfaces the picked BMW Standard Tools
+               folder + lets the user swap it (e.g. moved the install) or
+               forget the saved handle entirely (handy when the saved
+               folder is gone). Same shape as ncsx-web's Settings panel. -->
+          <div>
           <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-faint">
             Install
           </span>
@@ -185,18 +202,15 @@
           </div>
         </div>
 
+          <!-- Interface selector + per-interface fieldsets (shared web-ui). -->
+          <InterfaceConfigPanel bind:config={app.config} />
+        {/if}
+
         <!-- Theme -->
         <div>
           <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-faint">
             Theme
           </span>
-          <!--
-            Three-way picker rendered as a segmented control. "System"
-            (default) tracks `prefers-color-scheme`; "Light" / "Dark"
-            pin the page regardless of the OS. Choice persists via the
-            `settings` module; `applyTheme()` flips the `dark` class
-            on <html> on every change.
-          -->
           <div class="flex gap-0 overflow-hidden rounded border border-rule">
             {#each ["light", "dark", "system"] as choice (choice)}
               {@const active = settings.theme === choice}
@@ -215,9 +229,6 @@
             {/each}
           </div>
         </div>
-
-        <!-- Interface selector + per-interface fieldsets (shared web-ui). -->
-        <InterfaceConfigPanel bind:config={app.config} />
 
         <!-- Logging — bimmerz-logger central config -->
         <fieldset class="space-y-2 rounded border border-divider bg-base p-3">

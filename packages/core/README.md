@@ -15,6 +15,9 @@ pnpm add @emdzej/ediabasx-core
 | `cp1252ToUtf8(bytes)` / `utf8ToCp1252(str)` | Round-trip BMW's Windows-1252 strings to/from JS strings |
 | `xorDecrypt(bytes, key)` / `xorEncrypt(bytes, key)` | PRG/GRP payload de/encryption (BEST2 uses key `0xF7`) |
 | `EdiabasError`, `EdiabasErrorCodes` | Typed errors mirroring the C# `ErrorCodes` enum (`EDIABAS_IFH_*`, `EDIABAS_BIP_*`, `EDIABAS_SYS_*`, …) |
+| `IEdiabas` interface | Unified contract for local (`EmbeddedEdiabas`) and remote (`EdiabasClient`) usage |
+| `EdiabasJobResponse`, `EdiabasResultSet`, `EdiabasResultEntry` | Wire-format types for JSON-RPC job results |
+| `EdiabasResultType`, `EdiabasState` | Enums for result types and session state |
 | Constants & type definitions | Stable shapes shared by parser, interpreter, transports |
 
 ## Example

@@ -3,3 +3,4 @@ export * from "./encoding";
 export * from "./crypto";
 export * from "./constants";
 export * from "./errors";
+export * from "./ediabas-api";

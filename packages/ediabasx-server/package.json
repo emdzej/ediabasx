@@ -1,36 +1,26 @@
 {
-  "name": "@emdzej/ediabasx-cli",
-  "version": "0.5.1",
-  "description": "ediabasx CLI — inspect, decompile, and run BMW PRG/GRP diagnostic files from the terminal, with a built-in TUI.",
+  "name": "@emdzej/ediabasx-server",
+  "version": "0.1.0",
+  "description": "EdiabasX JSON-RPC server — run diagnostic jobs remotely over TCP or WebSocket.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": {
-    "ediabasx": "dist/index.js"
-  },
   "files": [
     "dist"
   ],
   "dependencies": {
     "@emdzej/bimmerz-logger": "^0.1.2",
-    "@emdzej/ediabasx-best-decompiler": "workspace:*",
     "@emdzej/ediabasx-best-parser": "workspace:*",
     "@emdzej/ediabasx-core": "workspace:*",
     "@emdzej/ediabasx-ediabas": "workspace:*",
     "@emdzej/ediabasx-host-config": "workspace:*",
     "@emdzej/ediabasx-interface-base": "workspace:*",
-    "@emdzej/ediabasx-client": "workspace:*",
     "@emdzej/ediabasx-interfaces": "workspace:*",
-    "@emdzej/ediabasx-server": "workspace:*",
-    "chalk": "^5.4.1",
-    "commander": "^12.1.0",
-    "ink": "^5.0.0",
-    "ink-use-stdout-dimensions": "^1.0.5",
-    "react": "^18.3.1"
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",
-    "@types/react": "^18.3.3"
+    "@types/ws": "^8.5.0"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

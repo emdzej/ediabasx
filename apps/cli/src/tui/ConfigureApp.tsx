@@ -8,6 +8,7 @@ import type { EdiabasConfig } from "../utils/config.js";
 type WizardStep =
   | { kind: "interface" }
   | { kind: "options"; phase: "common" | "advanced-prompt" | "advanced" }
+  | { kind: "sgbd-path" }
   | { kind: "confirm" };
 
 type SelectItem = { label: string; value: string };
@@ -111,6 +112,7 @@ export function ConfigureApp({ initialConfig, outputPath, onSave }: ConfigureApp
     return 0;
   });
   const [configOptions, setConfigOptions] = useState<InterfaceOptions>(initialConfig?.options ?? {});
+  const [sgbdPath, setSgbdPath] = useState(initialConfig?.sgbdPath ?? "");
   const [currentOptIndex, setCurrentOptIndex] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [inputError, setInputError] = useState<string | null>(null);
@@ -142,11 +144,9 @@ export function ConfigureApp({ initialConfig, outputPath, onSave }: ConfigureApp
           ? meta.options.filter((o) => !isCommonOption(ifaceName, o.name))
           : meta.options.filter((o) => isCommonOption(ifaceName, o.name));
       if (filtered.length === 0) {
-        if (phase === "common") {
-          setStep({ kind: "confirm" });
-        } else {
-          setStep({ kind: "confirm" });
-        }
+        setInputValue(sgbdPath);
+        setInputError(null);
+        setStep({ kind: "sgbd-path" });
         return;
       }
       setCurrentOptIndex(0);
@@ -207,13 +207,17 @@ export function ConfigureApp({ initialConfig, outputPath, onSave }: ConfigureApp
           // Yes - configure advanced
           startOptionsPhase("advanced", selectedInterface, configOptions);
         } else {
-          // No - skip to confirm
-          setStep({ kind: "confirm" });
+          // No - skip to sgbd-path
+          setInputValue(sgbdPath);
+          setInputError(null);
+          setStep({ kind: "sgbd-path" });
         }
         return;
       }
       if (key.escape) {
-        setStep({ kind: "confirm" });
+        setInputValue(sgbdPath);
+        setInputError(null);
+        setStep({ kind: "sgbd-path" });
       }
       return;
     }
@@ -267,7 +271,9 @@ export function ConfigureApp({ initialConfig, outputPath, onSave }: ConfigureApp
           setStep({ kind: "options", phase: "advanced-prompt" });
           setAdvancePromptIndex(1); // Default to "No"
         } else {
-          setStep({ kind: "confirm" });
+          setInputValue(sgbdPath);
+          setInputError(null);
+          setStep({ kind: "sgbd-path" });
         }
         return;
       }
@@ -305,6 +311,37 @@ export function ConfigureApp({ initialConfig, outputPath, onSave }: ConfigureApp
       return;
     }
 
+    // SGBD path step
+    if (step.kind === "sgbd-path") {
+      if (key.return) {
+        setSgbdPath(inputValue.trim());
+        setStep({ kind: "confirm" });
+        return;
+      }
+      if (key.escape) {
+        // Go back to options or interface
+        if (metadata?.options && metadata.options.length > 0) {
+          if (hasAdvancedOptions(selectedInterface, metadata.options)) {
+            setStep({ kind: "options", phase: "advanced-prompt" });
+            setAdvancePromptIndex(1);
+          } else {
+            startOptionsPhase("common", selectedInterface, configOptions);
+          }
+        } else {
+          setStep({ kind: "interface" });
+        }
+        return;
+      }
+      if (key.backspace || key.delete) {
+        setInputValue((v) => v.slice(0, -1));
+        return;
+      }
+      if (input && !key.ctrl && !key.meta) {
+        setInputValue((v) => v + input);
+      }
+      return;
+    }
+
     // Confirm step
     if (step.kind === "confirm") {
       if (key.upArrow || key.downArrow) {
@@ -318,6 +355,7 @@ export function ConfigureApp({ initialConfig, outputPath, onSave }: ConfigureApp
             interface: selectedInterface,
             options: configOptions,
           };
+          if (sgbdPath) config.sgbdPath = sgbdPath;
           onSave(config, outputPath);
           exit();
         } else {
@@ -430,6 +468,30 @@ export function ConfigureApp({ initialConfig, outputPath, onSave }: ConfigureApp
     );
   }
 
+  // SGBD path step
+  if (step.kind === "sgbd-path") {
+    const lines: string[] = [];
+    lines.push("");
+    lines.push("  Path to SGBD directory (.prg/.grp files):");
+    lines.push("  Used by the server and 'run' command for ECU name resolution.");
+    lines.push("  Leave empty to skip.");
+    lines.push("");
+    lines.push(`  > ${inputValue}_`);
+    lines.push("");
+
+    const bottomBorder = buildBorderBottom("Enter: Next | Esc: Back | Ctrl+C: Quit", width);
+
+    return (
+      <Box flexDirection="column">
+        <Text>{topBorder}</Text>
+        {lines.map((line, idx) => (
+          <Text key={idx}>{buildLine(line, width)}</Text>
+        ))}
+        <Text>{bottomBorder}</Text>
+      </Box>
+    );
+  }
+
   // Confirm step
   if (step.kind === "confirm") {
     const configLines: string[] = [];
@@ -437,6 +499,7 @@ export function ConfigureApp({ initialConfig, outputPath, onSave }: ConfigureApp
     configLines.push("  Configuration summary:");
     configLines.push("");
     configLines.push(`  Interface: ${selectedInterface}`);
+    configLines.push(`  SGBD path: ${sgbdPath || "(not set)"}`);
 
     const optEntries = Object.entries(configOptions);
     if (optEntries.length > 0) {

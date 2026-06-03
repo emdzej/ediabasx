@@ -29,8 +29,18 @@ export interface EdiabasHostConfig {
   interface: string;
   /** Free-form per-interface options bag. Validated by the interface's registry entry at use time. */
   options: InterfaceOptions;
+  /** Directory containing .prg/.grp SGBD files. Used by server, EmbeddedEdiabas, and CLI run. */
+  sgbdPath?: string;
   /** Optional logger config — opaque pass-through. */
   logging?: unknown;
+  /** Server configuration — only used by `ediabasx serve`. */
+  server?: EdiabasServerConfig;
+}
+
+export interface EdiabasServerConfig {
+  host?: string;
+  port?: number;
+  transport?: "tcp" | "websocket";
 }
 
 export class EdiabasConfigError extends Error {
@@ -94,8 +104,14 @@ export function loadConfig(configPath?: string): EdiabasHostConfig | undefined {
     interface: obj.interface,
     options: (obj.options as InterfaceOptions | undefined) ?? {},
   };
+  if (typeof obj.sgbdPath === "string" && obj.sgbdPath.length > 0) {
+    config.sgbdPath = obj.sgbdPath;
+  }
   if (obj.logging !== undefined) {
     config.logging = obj.logging;
+  }
+  if (obj.server && typeof obj.server === "object") {
+    config.server = obj.server as EdiabasServerConfig;
   }
   return config;
 }
@@ -216,6 +232,51 @@ export function summariseSelection(selection: EdiabasHostConfig): string {
     default:
       return `${selection.interface} · ${JSON.stringify(o)}`;
   }
+}
+
+export const DEFAULT_SERVER_PORT = 6802;
+
+/**
+ * Resolve a bare ECU name (e.g. `"IKE"`) to an absolute file path
+ * by searching `sgbdPath` for `.prg` then `.grp` (case-insensitive).
+ *
+ * If the input already contains a path separator or a recognised
+ * extension, it's returned as-is (absolute or resolved against cwd).
+ *
+ * Throws `EdiabasConfigError` when `sgbdPath` is needed but missing,
+ * or when no matching file is found.
+ */
+export function resolveSgbd(nameOrPath: string, sgbdPath: string | undefined): string {
+  if (nameOrPath.includes(path.sep) || nameOrPath.includes("/")) {
+    return path.resolve(nameOrPath);
+  }
+  const lower = nameOrPath.toLowerCase();
+  if (lower.endsWith(".prg") || lower.endsWith(".grp")) {
+    if (sgbdPath) return path.join(sgbdPath, nameOrPath);
+    return path.resolve(nameOrPath);
+  }
+
+  if (!sgbdPath) {
+    throw new EdiabasConfigError(
+      `Cannot resolve ECU name "${nameOrPath}": no sgbdPath configured. ` +
+      `Set sgbdPath in ~/.config/ediabasx/config.json or pass a file path.`,
+    );
+  }
+
+  for (const ext of [".prg", ".PRG", ".grp", ".GRP"]) {
+    const candidate = path.join(sgbdPath, nameOrPath + ext);
+    if (fs.existsSync(candidate)) return candidate;
+  }
+
+  const upperCandidate = nameOrPath.toUpperCase();
+  for (const ext of [".PRG", ".GRP"]) {
+    const candidate = path.join(sgbdPath, upperCandidate + ext);
+    if (fs.existsSync(candidate)) return candidate;
+  }
+
+  throw new EdiabasConfigError(
+    `SGBD "${nameOrPath}" not found in ${sgbdPath}`,
+  );
 }
 
 /**
