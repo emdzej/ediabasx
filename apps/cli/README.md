@@ -37,6 +37,7 @@ pnpm cli info ./MS430DS0.prg
 | `ediabasx explore <file>` | TUI for browsing jobs / tables / metadata side by side |
 | `ediabasx gateway [opts]` | Share a local interface over JSON-RPC (TCP or WebSocket) |
 | `ediabasx serve` | Start the EdiabasX JSON-RPC server for remote job execution |
+| `ediabasx serve --connect` | Start the server with Bimmerz Connect relay (NAT traversal) |
 | `ediabasx serve configure` | Interactive server configuration wizard |
 | `ediabasx simulator [opts]` | Interactive ECU response simulator |
 | `ediabasx configure` | Interactive config wizard (interface + sgbdPath) |
@@ -122,6 +123,31 @@ ediabasx serve --sgbd-path ~/ECU --port 6802 --transport websocket \
 # Interactive server config wizard
 ediabasx serve configure
 ```
+
+### Bimmerz Connect (relay-mediated remote access)
+
+When the server is behind NAT or on a different network, `--connect` tunnels JSON-RPC traffic through the `connect.bimmerz.app` relay — no port forwarding or VPN needed.
+
+```bash
+# Register on the relay (first run authenticates via device flow)
+ediabasx serve --connect \
+  --sgbd-path ~/ECU --interface kdcan --serial-port /dev/cu.usbserial-A50285BI
+```
+
+The server prints a session token and deep link:
+
+```
+Session token: abc123.def456...
+Link:          https://ediabasx.bimmerz.app?connect=abc123.def456...
+```
+
+Share the link with the remote user — clicking it opens the web app and auto-connects through the relay. Or the remote user can paste the session token manually via the Connect button in the web app.
+
+Options:
+- `--connect` — register on the Bimmerz Connect relay
+- `--relay-url <url>` — custom relay URL (default: `https://connect.bimmerz.app`)
+
+Combine with `--host`/`--port` to serve both locally and via the relay simultaneously. Without `--host`/`--port`, relay-only mode runs (no local TCP/WS listener).
 
 ### Remote job execution
 

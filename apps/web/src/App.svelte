@@ -1,15 +1,38 @@
 <script lang="ts">
   import { state as app } from "./lib/app.svelte";
+  import { connect } from "./lib/runtime.svelte";
   import InstallPicker from "./components/InstallPicker.svelte";
   import SgbdSidebar from "./components/SgbdSidebar.svelte";
   import Jobs from "./routes/Jobs.svelte";
   import AboutDialog from "./components/AboutDialog.svelte";
   import SettingsDialog from "./components/SettingsDialog.svelte";
+  import ConnectSessionDialog from "./components/ConnectSessionDialog.svelte";
   import ConnectButton from "./components/ConnectButton.svelte";
 
   $effect(() => {
     if (app.config.mode === "client" && app.view === "picker") {
       app.view = "browse";
+    }
+  });
+
+  // Bimmerz Connect deep link: ?connect=<sessionId.token>
+  let deepLinkHandled = false;
+  $effect(() => {
+    if (deepLinkHandled || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("connect");
+    if (raw) {
+      const dot = raw.indexOf(".");
+      if (dot > 0 && dot < raw.length - 1) {
+        deepLinkHandled = true;
+        app.connectSessionId = raw.slice(0, dot);
+        app.connectToken = raw.slice(dot + 1);
+        app.config.mode = "client";
+        app.config.connectionMethod = "connect";
+        app.view = "browse";
+        window.history.replaceState({}, "", window.location.pathname);
+        void connect();
+      }
     }
   });
 </script>
@@ -113,4 +136,5 @@
 </div>
 
 <SettingsDialog />
+<ConnectSessionDialog />
 <AboutDialog />

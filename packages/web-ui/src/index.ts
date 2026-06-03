@@ -12,12 +12,14 @@
  */
 
 export { default as ConnectButton } from "./ConnectButton.svelte";
+export { default as ConnectConfigPanel } from "./ConnectConfigPanel.svelte";
 export { default as InterfaceConfigPanel } from "./InterfaceConfigPanel.svelte";
 export { default as ModeConfigPanel } from "./ModeConfigPanel.svelte";
 export { default as ServerConfigPanel } from "./ServerConfigPanel.svelte";
 
 export type {
   AppMode,
+  ClientConnectionMethod,
   ConnectionPhase,
   GatewayConfig,
   InterfaceConfig,

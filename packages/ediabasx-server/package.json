@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-server",
-  "version": "0.1.0",
+  "version": "0.6.0",
   "description": "EdiabasX JSON-RPC server — run diagnostic jobs remotely over TCP or WebSocket.",
   "type": "module",
   "main": "dist/index.js",

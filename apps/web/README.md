@@ -1,6 +1,13 @@
 # @emdzej/ediabasx-web
 
-Browser SPA for [EdiabasX](https://github.com/emdzej/ediabasx). Pick a PRG/GRP file, configure an interface, browse jobs, and run them against an ECU over **Web Serial** — all in the browser, no backend, no upload.
+Browser SPA for [EdiabasX](https://github.com/emdzej/ediabasx). Two modes:
+
+- **Embedded** — pick a PRG/GRP from disk, connect via Web Serial / J2534 / Gateway, run jobs. All in the browser, no backend, no upload. Chromium-only.
+- **Client** — connect to a remote `ediabasx serve` instance. Two connection methods:
+  - **Direct** — enter a `ws://host:port` server URL (LAN / VPN).
+  - **Bimmerz Connect** — relay-mediated NAT traversal via `connect.bimmerz.app`. The server operator runs `ediabasx serve --connect` and shares a deep link or session token. No port forwarding needed.
+
+Deep link format: `https://ediabasx.bimmerz.app?connect=<sessionId.token>` — clicking auto-connects through the relay. The session token can also be pasted manually via the Connect button.
 
 ## Stack
 
@@ -8,6 +15,7 @@ Browser SPA for [EdiabasX](https://github.com/emdzej/ediabasx). Pick a PRG/GRP f
 - [Vite](https://vitejs.dev/) for dev/build
 - [TailwindCSS](https://tailwindcss.com/) for styling
 - `@emdzej/ediabasx-best-parser`, `@emdzej/ediabasx-interpreter`, `@emdzej/ediabasx-ediabas`, `@emdzej/ediabasx-interface-serial` (`WebSerialTransport`)
+- `@emdzej/swsrs-client` — Bimmerz Connect relay client (lazy-loaded)
 
 ## Develop
 

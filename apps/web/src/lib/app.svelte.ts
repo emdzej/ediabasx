@@ -37,12 +37,17 @@ interface AppState {
   config: WebConfig;
   showAbout: boolean;
   showSettings: boolean;
+  showConnectSession: boolean;
   /** Toast-style error surfaced from background tasks (install discovery, etc.). */
   error: string | null;
   /** Client mode: jobs fetched from server for the loaded SGBD. */
   remoteJobs: RemoteJob[] | null;
   /** Client mode: table count from server. */
   remoteTableCount: number | null;
+  /** Bimmerz Connect: transient session ID (not persisted). */
+  connectSessionId: string | null;
+  /** Bimmerz Connect: transient initiator token (not persisted). */
+  connectToken: string | null;
 }
 
 export const state = $state<AppState>({
@@ -55,9 +60,12 @@ export const state = $state<AppState>({
   config: loadConfig(),
   showAbout: false,
   showSettings: false,
+  showConnectSession: false,
   error: null,
   remoteJobs: null,
   remoteTableCount: null,
+  connectSessionId: null,
+  connectToken: null,
 });
 
 export function goto(view: View): void {

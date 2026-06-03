@@ -39,6 +39,18 @@ await client.end();
 
 The WebSocket transport uses `globalThis.WebSocket` (Node 22+ / browsers) — no native dependencies. TCP uses a dynamic `import("node:net")` so the module stays browser-bundleable when only the WebSocket path is used.
 
+### Pre-connected WebSocket (Bimmerz Connect)
+
+Pass a `socket` option to use a pre-connected `WebSocket` instead of creating one internally — used for relay-mediated connections via `@emdzej/swsrs-client`:
+
+```ts
+import { dial } from "@emdzej/swsrs-client";
+
+const peer = await dial({ relayURL: "wss://connect.bimmerz.app", sessionId, token });
+const client = new EdiabasClient({ transport: "websocket", socket: peer.socket });
+await client.init();
+```
+
 ## EmbeddedEdiabas (in-process)
 
 Wraps the [`Ediabas`](../ediabas) class behind the same `IEdiabas` interface. Use this when the cable and SGBD files are local but you want the unified API.

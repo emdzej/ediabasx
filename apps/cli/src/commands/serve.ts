@@ -16,6 +16,9 @@ import { handleError } from "../utils/output.js";
 import { DEFAULT_CONFIG_PATH, loadConfig, saveConfig } from "../utils/config.js";
 import { ServerConfigureApp } from "../tui/ServerConfigureApp.js";
 
+const DEFAULT_RELAY_URL = "https://connect.bimmerz.app";
+const DEFAULT_WEB_APP_URL = "https://ediabasx.bimmerz.app";
+
 function registerServeCommand(program: Command): void {
   const serveCommand = program
     .command("serve")
@@ -31,6 +34,8 @@ function registerServeCommand(program: Command): void {
       "wire framing: 'websocket' (default) or 'tcp' (line-delimited JSON)",
     )
     .option("--sgbd-path <path>", "path to SGBD (.prg/.grp) directory")
+    .option("--connect", "register on Bimmerz Connect relay for remote access")
+    .option("--relay-url <url>", "Bimmerz Connect relay URL", DEFAULT_RELAY_URL)
     .action(
       async (
         options: InterfaceCliOptions & {
@@ -38,6 +43,8 @@ function registerServeCommand(program: Command): void {
           port?: string;
           transport?: string;
           sgbdPath?: string;
+          connect?: boolean;
+          relayUrl?: string;
         },
       ) => {
         try {
@@ -85,7 +92,12 @@ function registerServeCommand(program: Command): void {
             interface: iface,
             logger: console,
           });
-          await server.start();
+
+          if (options.connect) {
+            await startWithRelay(server, options.relayUrl ?? DEFAULT_RELAY_URL);
+          } else {
+            await server.start();
+          }
         } catch (error) {
           handleError(error);
         }
@@ -128,6 +140,78 @@ function registerServeCommand(program: Command): void {
         handleError(error);
       }
     });
+}
+
+async function startWithRelay(server: EdiabasServer, relayUrl: string): Promise<void> {
+  const { discoverConfig, deviceLogin, AdminClient, AdminError, accept } = await import("@emdzej/swsrs-client");
+  const { FileTokenStore } = await import("@emdzej/swsrs-client/node");
+
+  console.log(`\nBimmerz Connect: ${relayUrl}`);
+
+  const config = await discoverConfig(relayUrl);
+  const store = new FileTokenStore();
+
+  async function authenticate(): Promise<void> {
+    console.log("\nAuthenticate to create a relay session:");
+    const token = await deviceLogin({
+      config,
+      onPrompt: (prompt) => {
+        console.log(`\n  Code:  ${chalk.bold(prompt.userCode)}`);
+        console.log(`  Open:  ${chalk.underline(prompt.verificationUriComplete ?? prompt.verificationUri)}\n`);
+        console.log("  Waiting for authorization…");
+      },
+    });
+    await store.save(token);
+    console.log(chalk.green("  Authenticated.\n"));
+  }
+
+  let cached = await store.load();
+  if (!cached || (cached.expires_at && cached.expires_at < Date.now())) {
+    await authenticate();
+  }
+
+  const admin = new AdminClient({
+    baseURL: relayUrl,
+    token: async () => {
+      const t = await store.load();
+      return t!.access_token;
+    },
+  });
+
+  let session;
+  try {
+    session = await admin.createSession();
+  } catch (err) {
+    if (err instanceof AdminError && err.status === 401) {
+      console.log(chalk.yellow("Cached token expired — re-authenticating…"));
+      await store.clear();
+      await authenticate();
+      session = await admin.createSession();
+    } else {
+      throw err;
+    }
+  }
+
+  const relayWsUrl = relayUrl.replace(/^http/, "ws");
+  const peer = await accept({
+    relayURL: relayWsUrl,
+    sessionId: session.id,
+    token: session.responder_token,
+  });
+
+  const sessionToken = `${session.id}.${session.initiator_token}`;
+  const deepLink = `${DEFAULT_WEB_APP_URL}?connect=${encodeURIComponent(sessionToken)}`;
+
+  console.log(chalk.green("Bimmerz Connect session active\n"));
+  console.log(`  Session token: ${chalk.bold(sessionToken)}`);
+  console.log(`  Link:          ${chalk.underline(deepLink)}\n`);
+
+  server.attachStandardWebSocket(peer.socket);
+  server.ensureBroadcastSink();
+  server.bindSignalHandlers();
+
+  await peer.closed;
+  console.log(chalk.yellow("\nRelay connection closed."));
 }
 
 export { registerServeCommand };

@@ -4,6 +4,36 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.6.0] — 2026-06-03
+
+Bimmerz Connect — relay-mediated remote diagnostics through
+`connect.bimmerz.app`. The server operator runs `ediabasx serve
+--connect`, authenticates via device flow, and gets a session token +
+deep link. The remote user clicks the link (or pastes the session token)
+and the web app connects through the relay. No port forwarding, no VPN.
+
+### Added
+
+- **`ediabasx serve --connect`** — register on the Bimmerz Connect relay
+  for NAT-traversed remote access. `--relay-url <url>` overrides the
+  default relay. Device-flow OIDC authentication with cached credentials
+  via `FileTokenStore`. Automatic re-auth on 401 expired token.
+- **`EdiabasServer.attachStandardWebSocket(ws)`** — accept a standard
+  (`globalThis.WebSocket`) as a client channel. Used for relay-mediated
+  connections where the socket is already established externally.
+- **`EdiabasServer.ensureBroadcastSink()`** / **`bindSignalHandlers()`**
+  made public for relay-only mode (no local TCP/WS listener).
+- **`EdiabasClient` `socket` option** — accept a pre-connected WebSocket
+  instead of creating one internally. Enables relay dial path.
+- **Web app: Bimmerz Connect** — new connection method under Client mode.
+  Settings stores the relay URL; Connect button opens a session token
+  dialog. Deep link `?connect=<sessionId.token>` auto-connects.
+- **`ConnectConfigPanel`** shared component in `@emdzej/ediabasx-web-ui`
+  — Direct / Bimmerz Connect segmented control with relay URL config.
+- **`ClientConnectionMethod`** type + `connectionMethod` and
+  `connectRelayUrl` fields on `ModeConfig` in `@emdzej/ediabasx-web-ui`.
+- **`@emdzej/swsrs-client`** dependency added to CLI and web app.
+
 ## [0.5.1] — 2026-05-29
 
 Regression fix. 0.5.0's `latencyTimerMs: 1` default actively corrupted

@@ -8,9 +8,10 @@ A TypeScript port of BMW's EDIABAS (Electronic Diagnostic Basic System) — a mo
 - **BEST/2 decompiler** — readable assembly output bounded by next-job offsets so multi-`eoj` jobs (e.g. `FS_LESEN` fault iteration) decode in full
 - **BEST/2 interpreter** — register file (B/A/I/L/S/F), flags (Z/C/V/S), call & data stacks, 184 opcodes, table/file/timer/shared-memory state, `enewset`-aware result sets matching C# `_resultSetsTemp`
 - **Hardware interfaces** — Serial K-Line / K+DCAN (DS2 + ISO-TP), SAE J2534 PassThru (Tactrix OpenPort 2.0), Ethernet/ENET (DoIP), JSON-RPC gateway client/server
+- **Remote diagnostics** — `ediabasx serve` JSON-RPC server + `EdiabasClient` for remote job execution. **Bimmerz Connect** tunnels traffic through `connect.bimmerz.app` for NAT traversal — no port forwarding or VPN needed
 - **Protocols** — KWP2000 (ISO 14230), UDS (ISO 14229), DoIP/HSFZ (ISO 13400)
 - **CLI + TUI** — `ediabasx` command with interactive job browser, batch run, decompile, info, job/table inspection
-- **Logging** — structured logs via pino
+- **Logging** — structured logs via `@emdzej/bimmerz-logger` (hierarchical categories, configurable sinks)
 
 ## Installation
 
@@ -221,6 +222,9 @@ All published to npmjs.org under the `@emdzej/ediabasx-*` namespace.
 | `@emdzej/ediabasx-interface-base` | Abstract interface + simulation |
 | `@emdzej/ediabasx-interface-serial` | Serial K-Line / K+DCAN cable driver (browser + Node) |
 | `@emdzej/ediabasx-interface-enet` | Ethernet / ENET (DoIP) driver |
+| `@emdzej/ediabasx-server` | JSON-RPC server — remote job execution over TCP/WebSocket + Bimmerz Connect relay |
+| `@emdzej/ediabasx-client` | JSON-RPC client (`EdiabasClient`) + in-process wrapper (`EmbeddedEdiabas`) |
+| `@emdzej/ediabasx-web-ui` | Shared Svelte 5 components (ConnectButton, ConnectConfigPanel, InterfaceConfigPanel, etc.) |
 | `@emdzej/ediabasx-interfaces` | Factory: `createInterface(name, options)` |
 | `@emdzej/ediabasx-protocol-kwp` | KWP2000 (ISO 14230) |
 | `@emdzej/ediabasx-protocol-uds` | UDS (ISO 14229) |

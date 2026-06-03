@@ -14,43 +14,91 @@ Migrating from C# EdiabasLib to a modern TypeScript monorepo.
 Read this first when resuming a session. The sections below cover the
 workspace map, the cross-repo dependency, the release / deploy story,
 and the limitations / gotchas accumulated in real use — so a new agent
-doesn't have to derive them from git history + reading 14 package.jsons.
+doesn't have to derive them from git history + reading 20 package.jsons.
 
 ### Workspace layout
 
-12 library packages under `packages/` + 2 end-user apps under `apps/`.
+18 library packages under `packages/` + 2 end-user apps under `apps/`.
 What each does:
 
 | Path | Role |
 |---|---|
-| `packages/core` | CP1252 encoding, XOR (key `0xF7`) decryption, error codes, shared types |
+| `packages/core` | CP1252 encoding, XOR (key `0xF7`) decryption, error codes, shared types, `IEdiabas` interface |
 | `packages/best-parser` | PRG / GRP byte-level parser; disassembles the BEST2 bytecode |
+| `packages/best-decompiler` | BEST/2 near-source decompiler — lifts bytecode to `.b2v` pseudo-source |
 | `packages/interpreter` | BEST2 VM — registers, flags, call/value stacks, ~184 opcodes. The TS port of EdiabasLib's interpreter core |
 | `packages/interface-base` | Abstract `EdiabasInterface` + in-memory `SimulationInterface` |
 | `packages/interface-serial` | K-line / K+DCAN / serial transport, DS2 / KWP / ISO-TP / TP2.0 sessions. Browser-safe core; Node-only `/node` subpath ships the `serialport`-backed transport |
+| `packages/interface-j2534` | SAE J2534 PassThru transport via Tactrix OpenPort 2.0. Frame-level integrity that K+DCAN UART bridges can't provide |
 | `packages/interface-enet` | DoIP / HSFZ over Ethernet |
 | `packages/interfaces` | Factory (`createInterface(name, opts)`), interface registry, JSON-RPC gateway server + client. Browser-safe `/client` subpath exports `GatewayClient` only |
 | `packages/protocol-uds` | UDS (ISO 14229) service IDs, NRCs, ISO-TP framing |
 | `packages/protocol-kwp` | KWP2000 / KWP1281 service IDs, NRCs |
 | `packages/protocol-doip` | DoIP / HSFZ (ISO 13400) primitives — WIP |
-| `packages/ediabas` | Main `Ediabas` class — loads PRG/GRP, drives the VM, returns grouped result sets |
-| `packages/logger` | pino-backed structured logger, honours `EDIABASX_LOG_LEVEL` |
-| `apps/cli` | `ediabasx` terminal binary — `info` / `jobs` / `tables` / `parse` / `disasm` / `run` / `explore` / `gateway` / `simulator` / `configure` / `docs` subcommands. Has a TUI for interactive job runs |
-| `apps/web` | Browser SPA at `ediabasx.bimmerz.app` — pick a PRG/GRP file, configure an interface, browse jobs. PWA-installable |
+| `packages/ediabas` | Main `Ediabas` class — loads PRG/GRP, drives the VM, returns grouped result sets. Exports `LOG_CATEGORIES` for UI/config surfaces |
+| `packages/ediabasx-server` | JSON-RPC server — exposes `init`, `end`, `job`, `listSgbd`, `listJobs`, `getJobMetadata`, `disassembleJob`, `log.subscribe`/`log.unsubscribe` over TCP or WebSocket. Accepts external standard WebSockets via `attachStandardWebSocket()` (relay / Bimmerz Connect). Node-only |
+| `packages/ediabasx-client` | JSON-RPC client (`EdiabasClient`) + embedded in-process wrapper (`EmbeddedEdiabas`), both implementing `IEdiabas`. Accepts pre-connected WebSockets via `socket` option (relay / Bimmerz Connect). Browser-safe `./client` subpath exports `EdiabasClient` only |
+| `packages/host-config` | Shared loader for `~/.config/ediabasx/config.json` + interface-selection resolver + SGBD path resolution. Node-only (CJS) |
+| `packages/mac-ftdi-latency` | macOS-only native addon: sets the FTDI USB-side latency timer via IOSSDATALAT ioctl |
+| `packages/web-ui` | Shared Svelte 5 source-only components (`ConnectButton`, `ConnectConfigPanel`, `InterfaceConfigPanel`, `ModeConfigPanel`, `ServerConfigPanel`) + config types. Consumed by ediabasx-web, inpax-web, ncsx-web. Requires `@emdzej/bimmerz-theme` Tailwind preset |
+| `apps/cli` | `ediabasx` terminal binary — `info` / `jobs` / `job` / `tables` / `table` / `decompile` / `run` / `explore` / `gateway` / `serve` (with `--connect` for Bimmerz Connect relay) / `simulator` / `configure` / `interfaces` / `docs` subcommands. Has a TUI for interactive job runs |
+| `apps/web` | Browser SPA at `ediabasx.bimmerz.app` — two modes: **embedded** (local Web Serial / J2534 / gateway + File System Access, Chromium-only) and **client** (connects to a remote `ediabasx serve` instance over WebSocket, any browser). PWA-installable |
 
-### Sibling repo: inpax (consumer)
+### Sibling repos (consumers)
 
-`@emdzej/ediabasx-*` packages are consumed by the **inpax** monorepo at
-`~/Projects/my/inpax` (single maintainer, same npm scope). Bumps here
-ripple through inpax's `apps/cli`, `apps/inpax-web`, and
-`packages/ediabasx-provider` via *npm pins* (not workspace links). When
-changing a public API surface, ping inpax to update its pins; when
-shipping a fix that affects browser bundling, the inpax-web app picks
-it up automatically through the `^x.y` semver range on next install.
+`@emdzej/ediabasx-*` packages are consumed by three sibling monorepos
+(single maintainer, same npm scope). Bumps here ripple through each
+via npm pins (not workspace links):
+
+| Repo | Location | What consumes ediabasx |
+|---|---|---|
+| **inpax** | `~/Projects/my/inpax` | `apps/cli`, `apps/inpax-web`, `packages/ediabasx-provider` |
+| **ncsx** | `~/Projects/my/ncsx` | `apps/cli`, `apps/ncsx-web`, coding/NCS runtime |
+| **nfsx** | `~/Projects/my/nfsx` | `apps/cli`, `nfsx-runtime`, flash/FSC orchestration |
+
+When changing a public API surface, ping all consumers to update their
+pins. Browser-bundling fixes propagate automatically via `^x.y` semver
+ranges on next install.
+
+### Server / client architecture
+
+`packages/ediabasx-server` + `packages/ediabasx-client` form the
+remote-diagnostics layer:
+
+- **`EdiabasServer`** — JSON-RPC 2.0 server over TCP or WebSocket.
+  Owns the cable, SGBD directory, and an `Ediabas` instance. Methods:
+  `init`, `end`, `job`, `listSgbd`, `listJobs`, `getJobMetadata`,
+  `disassembleJob`, `log.subscribe`, `log.unsubscribe`. Sends log
+  entries as JSON-RPC notifications (`method: "log"`, no `id`).
+  CLI: `ediabasx serve --sgbd-path <dir> --interface <name>`.
+  `attachStandardWebSocket(ws)` accepts a pre-connected standard
+  `WebSocket` (e.g. from Bimmerz Connect relay); `ensureBroadcastSink()`
+  and `bindSignalHandlers()` are public for relay-only mode (no local
+  TCP/WS listener).
+- **`EdiabasClient`** — JSON-RPC client implementing `IEdiabas`.
+  Uses `globalThis.WebSocket` — browser-ready. Has convenience
+  methods beyond `IEdiabas`: `listSgbd()`, `listJobs()`,
+  `getJobMetadata()`, `disassembleJob()`, `subscribeLogs()`.
+  Constructor accepts `onNotification` callback for server-pushed
+  log entries. Accepts `socket` option to use a pre-connected
+  `WebSocket` (e.g. from `@emdzej/swsrs-client`'s `dial()`).
+- **`EmbeddedEdiabas`** — in-process `IEdiabas` wrapper around the
+  real `Ediabas` class. Lives in the same package (`ediabasx-client`).
+
+**Browser-safe subpath:** `@emdzej/ediabasx-client/client` exports only
+`EdiabasClient` (no Node deps). Browser bundles (ediabasx-web) must use
+this subpath, not the default entry which also exports `EmbeddedEdiabas`
+(pulls in Node-only `@emdzej/ediabasx-ediabas`).
+
+**`IEdiabas` interface** (`packages/core/src/ediabas-api.ts`): shared
+contract that both `EdiabasClient` and `EmbeddedEdiabas` implement.
+Defines `init()`, `end()`, `job()`, `state`.
 
 ### Gateway architecture
 
-`packages/interfaces` ships a JSON-RPC gateway in two pieces:
+`packages/interfaces` ships a lower-level JSON-RPC gateway (predates
+the server/client packages above — the gateway proxies raw interface
+commands, while the server proxies ediabas-level jobs):
 
 - **Server** (`GatewayServer`, default `.` export) — runs anywhere the
   cable is (Node, typically `ediabasx gateway --transport <tcp|websocket>
@@ -83,7 +131,7 @@ etc.), not the directory path.
 
 ### Versioning & release
 
-- **Uniform versioning.** All 14 `package.json` files move in lockstep.
+- **Uniform versioning.** All 20 `package.json` files move in lockstep.
   Canonical commit shape: `chore: bump packages to X.Y.Z`.
 - **Tags use plain `0.2.1` form** — no `v` prefix.
 - **CHANGELOG.md** at the repo root, Keep-a-Changelog format with
@@ -99,6 +147,29 @@ etc.), not the directory path.
 `actions/deploy-pages` with a `CNAME` for the custom domain. **Manual
 trigger** (`workflow_dispatch`) — click "Run workflow" in Actions.
 Concurrency-gated on the `pages` group.
+
+### Web app modes
+
+The web app (`apps/web`) supports two runtime modes, selectable in Settings:
+
+- **Embedded** — local hardware via Web Serial (K+DCAN), J2534 (Tactrix
+  OpenPort 2.0), or gateway (remote cable via `ediabasx gateway`). SGBD
+  files loaded from disk via File System Access API. Chromium-only.
+- **Client** — connects to a remote `ediabasx serve` instance over
+  WebSocket. The server owns the cable + SGBD files. Works in any
+  browser (Firefox, Safari, mobile). SGBD list, job metadata, and
+  disassembly are fetched from the server. Log entries stream as
+  JSON-RPC notifications. Two connection methods:
+  - **Direct** — enter a `ws://host:port` server URL (LAN / VPN).
+  - **Bimmerz Connect** — relay-mediated via `connect.bimmerz.app`.
+    The server operator runs `ediabasx serve --connect` and shares a
+    session token (or a deep link). No port forwarding needed.
+    Deep link format: `https://ediabasx.bimmerz.app?connect=<sessionId.token>`.
+
+Config types (`AppMode`, `ModeConfig`, `InterfaceConfig`,
+`ClientConnectionMethod`) and shared components (`ModeConfigPanel`,
+`ConnectConfigPanel`, `ServerConfigPanel`, `InterfaceConfigPanel`,
+`ConnectButton`) live in `@emdzej/ediabasx-web-ui`.
 
 ### Known limitations
 
@@ -122,9 +193,9 @@ Concurrency-gated on the `pages` group.
   → `Unknown register opcode 0x44`). Fixed in 0.2.0; user's explicit
   call IS the IDENT, a post-job hook captures VARIANTE for subsequent
   jobs.
-- **Web app needs Web Serial AND File System Access** — Chromium-only.
-  Firefox / Safari users see an "Unsupported browser" message at the
-  picker.
+- **Embedded mode needs Web Serial AND File System Access** — Chromium-only.
+  Non-Chromium users see a banner suggesting they switch to **client mode**
+  (connects to a remote `ediabasx serve` instance — no browser APIs needed).
 - **Gateway server's signal handler force-exits.** SIGINT / SIGTERM now
   disconnects the backend interface AND calls `process.exit(0)` — open
   serial port handles were keeping the event loop alive forever in
@@ -135,8 +206,10 @@ Concurrency-gated on the `pages` group.
 
 - **No `v` prefix on git tags** — `0.2.1`, not `v0.2.1`.
 - **Browser bundles must use `/client` subpath** of
-  `@emdzej/ediabasx-interfaces`, never the default entry. The factory +
-  server + Node-only transports live behind the default entry.
+  `@emdzej/ediabasx-interfaces` and `@emdzej/ediabasx-client`, never
+  the default entry. The factory + server + Node-only transports live
+  behind the default entry. Never use deep `dist/` imports — always
+  use proper `exports` subpaths defined in `package.json`.
 - **`xbatt` / `xignit` returning 12000 mV / 0 is *correct* per
   EdiabasLib** — don't "fix" it by sampling the cable probe byte. The
   scripts expect the constant; the cable-probe byte is a separate
@@ -165,6 +238,20 @@ Concurrency-gated on the `pages` group.
 - **Linting**: ESLint + Prettier
 - **Build**: TypeScript (`tsc`)
 - **CLI**: Commander + Ink
+- **Web**: Svelte 5 (runes: `$state`, `$derived`, `$effect`) + Vite + Tailwind CSS
+- **Logging**: `@emdzej/bimmerz-logger` (external, not in-repo) — structured, hierarchical category system, configurable sinks. Replaces the old `packages/logger` (pino-based, removed)
+- **Theming**: `@emdzej/bimmerz-theme` (external) — Tailwind preset with semantic tokens (`bg-surface`, `text-muted`, `border-divider`, etc.)
+
+### External `bimmerz-*` packages
+
+These are published npm packages outside this monorepo, consumed as
+regular dependencies (not `workspace:*`):
+
+| Package | Purpose |
+|---|---|
+| `@emdzej/bimmerz-logger` | Structured logger with hierarchical categories, configurable sinks (`consoleSink`, `multiSink`), `configureLogger()`, `levelPasses()` |
+| `@emdzej/bimmerz-theme` | Tailwind CSS preset — semantic color tokens, shared across all bimmerz-family web apps |
+| `@emdzej/swsrs-client` | Client SDK for the Simple WebSocket Relay Service (swsrs). `dial()` / `accept()` → `PeerConnection { socket: WebSocket }`, `AdminClient`, `discoverConfig()`, `deviceLogin()`. Browser-safe default entry; Node-only `./node` subpath exports `FileTokenStore`. Used by Bimmerz Connect |
 
 ---
 

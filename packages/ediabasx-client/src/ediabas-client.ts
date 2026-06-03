@@ -12,6 +12,8 @@ export interface EdiabasClientOptions {
   port?: number;
   transport?: EdiabasClientTransport;
   url?: string;
+  /** Pre-connected WebSocket (e.g. from a Bimmerz Connect relay). Skips internal socket creation. */
+  socket?: WebSocket;
   onNotification?: (method: string, params: unknown) => void;
 }
 
@@ -42,6 +44,7 @@ export class EdiabasClient implements IEdiabas {
   private readonly port: number;
   private readonly transport: EdiabasClientTransport;
   private readonly url?: string;
+  private readonly externalSocket?: WebSocket;
   private readonly onNotification?: (method: string, params: unknown) => void;
   private connection?: ClientConnection;
   private nextId = 1;
@@ -58,6 +61,7 @@ export class EdiabasClient implements IEdiabas {
     this.port = options.port ?? DEFAULT_PORT;
     this.transport = options.transport ?? "websocket";
     this.url = options.url;
+    this.externalSocket = options.socket;
     this.onNotification = options.onNotification;
   }
 
@@ -249,6 +253,8 @@ export class EdiabasClient implements IEdiabas {
   }
 
   private connectWebSocket(): Promise<void> {
+    if (this.externalSocket) return this.attachExternalSocket(this.externalSocket);
+
     const url = this.url ?? `ws://${this.host}:${this.port}`;
 
     const WS: typeof WebSocket | undefined = (globalThis as { WebSocket?: typeof WebSocket }).WebSocket;
@@ -299,6 +305,41 @@ export class EdiabasClient implements IEdiabas {
 
       ws.addEventListener("close", () => this.handleTransportClose());
     });
+  }
+
+  private attachExternalSocket(ws: WebSocket): Promise<void> {
+    ws.binaryType = "arraybuffer";
+
+    const conn: ClientConnection = {
+      send: (payload) => {
+        if (ws.readyState === ws.OPEN) ws.send(payload);
+      },
+      close: () =>
+        new Promise<void>((res) => {
+          if (ws.readyState === ws.CLOSED) { res(); return; }
+          const onClose = () => { ws.removeEventListener("close", onClose); res(); };
+          ws.addEventListener("close", onClose);
+          try { ws.close(); } catch { res(); }
+        }),
+    };
+
+    ws.addEventListener("message", (event: MessageEvent) => {
+      const data = event.data;
+      const text = typeof data === "string"
+        ? data
+        : new TextDecoder().decode(new Uint8Array(data as ArrayBuffer));
+      const line = text.trim();
+      if (line) this.handleLine(line);
+    });
+
+    ws.addEventListener("error", () => {
+      this.handleTransportError(new Error("WebSocket error"));
+    });
+
+    ws.addEventListener("close", () => this.handleTransportClose());
+
+    this.connection = conn;
+    return Promise.resolve();
   }
 
   // ---- JSON-RPC plumbing ----

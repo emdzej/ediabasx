@@ -16,9 +16,9 @@
   import { applyLoggerConfig } from "../lib/logger-wiring";
   import { LOG_CATEGORIES as EDIABASX_LOG_CATEGORIES } from "@emdzej/ediabasx-ediabas";
   import {
+    ConnectConfigPanel,
     InterfaceConfigPanel,
     ModeConfigPanel,
-    ServerConfigPanel,
     type AppMode,
   } from "@emdzej/ediabasx-web-ui";
 
@@ -158,7 +158,7 @@
         <ModeConfigPanel bind:config={app.config} onmodechange={onModeChange} />
 
         {#if app.config.mode === "client"}
-          <ServerConfigPanel bind:config={app.config} />
+          <ConnectConfigPanel bind:config={app.config} />
         {:else}
           <!-- Install root — surfaces the picked BMW Standard Tools
                folder + lets the user swap it (e.g. moved the install) or

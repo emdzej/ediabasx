@@ -89,6 +89,7 @@ export class EdiabasServer {
   private logSubscriptions = new Map<ClientChannel, LogLevel>();
   private queue: Promise<void> = Promise.resolve();
   private shuttingDown = false;
+  private broadcastSinkInstalled = false;
 
   constructor(options: EdiabasServerOptions) {
     this.host = options.host ?? DEFAULT_HOST;
@@ -116,7 +117,7 @@ export class EdiabasServer {
       await this.startWebSocket();
     }
 
-    this.installBroadcastSink();
+    this.ensureBroadcastSink();
 
     this.logger.info(
       `EdiabasX server listening on ${this.host}:${this.port} (transport=${this.transport})`,
@@ -126,7 +127,7 @@ export class EdiabasServer {
 
   async stop(): Promise<void> {
     if (this.shuttingDown) return;
-    if (!this.tcpServer && !this.httpServer) return;
+    if (!this.tcpServer && !this.httpServer && this.channels.size === 0) return;
     this.shuttingDown = true;
     this.logger.info("EdiabasX server shutting down");
 
@@ -198,6 +199,35 @@ export class EdiabasServer {
 
   // ---- Per-connection adapters ----
 
+  /**
+   * Attach a standard (globalThis) WebSocket as a client channel.
+   * Used for relay-mediated connections where the WebSocket is already
+   * established externally (e.g. via swsrs/Bimmerz Connect).
+   */
+  attachStandardWebSocket(ws: InstanceType<typeof globalThis.WebSocket>): void {
+    const OPEN = 1;
+    const channel: ClientChannel = {
+      send: (payload) => { if (ws.readyState === OPEN) ws.send(payload); },
+      close: () => { try { ws.close(); } catch { /* */ } },
+      isOpen: () => ws.readyState === OPEN,
+    };
+    this.registerChannel(channel, "Relay");
+
+    ws.addEventListener("message", (event: MessageEvent) => {
+      const data = event.data;
+      const text = typeof data === "string"
+        ? data
+        : new TextDecoder().decode(new Uint8Array(data as ArrayBuffer));
+      const line = text.trim();
+      if (line) this.handleMessage(channel, line);
+    });
+    ws.addEventListener("close", () => this.unregisterChannel(channel, "Relay"));
+    ws.addEventListener("error", () => {
+      this.logger.error("Relay websocket error");
+      try { ws.close(); } catch { /* */ }
+    });
+  }
+
   private attachTcpSocket(socket: Socket): void {
     const channel: ClientChannel = {
       send: (payload) => { if (!socket.destroyed) socket.write(`${payload}\n`); },
@@ -244,15 +274,15 @@ export class EdiabasServer {
     });
   }
 
-  private registerChannel(channel: ClientChannel): void {
+  private registerChannel(channel: ClientChannel, label = "Client"): void {
     this.channels.add(channel);
-    this.logger.info(`Client connected (${this.channels.size} total)`);
+    this.logger.info(`${label} connected (${this.channels.size} total)`);
   }
 
-  private unregisterChannel(channel: ClientChannel): void {
+  private unregisterChannel(channel: ClientChannel, label = "Client"): void {
     this.logSubscriptions.delete(channel);
     if (this.channels.delete(channel)) {
-      this.logger.info(`Client disconnected (${this.channels.size} total)`);
+      this.logger.info(`${label} disconnected (${this.channels.size} total)`);
     }
   }
 
@@ -524,7 +554,9 @@ export class EdiabasServer {
 
   // ---- Log broadcast sink ----
 
-  private installBroadcastSink(): void {
+  ensureBroadcastSink(): void {
+    if (this.broadcastSinkInstalled) return;
+    this.broadcastSinkInstalled = true;
     const broadcastSink: Sink = {
       write: (record: LogRecord) => this.broadcastLog(record),
     };
@@ -630,7 +662,7 @@ export class EdiabasServer {
     }));
   }
 
-  private bindSignalHandlers(): void {
+  bindSignalHandlers(): void {
     let force = false;
     const handler = () => {
       if (force) process.exit(1);

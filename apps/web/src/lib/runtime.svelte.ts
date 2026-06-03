@@ -263,27 +263,57 @@ async function buildEdiabas(): Promise<Ediabas> {
  * first, then browse the sidebar (or vice versa).
  */
 export async function connect(): Promise<void> {
-  if (runtime.phase === "connecting") return;
   if (runtime.phase === "connected" && (ediabasInstance || clientInstance)) return;
 
+  if (app.config.mode === "client") {
+    const isConnect = app.config.connectionMethod === "connect";
+
+    if (isConnect && !app.connectSessionId) {
+      app.showConnectSession = true;
+      return;
+    }
+  }
+
+  if (runtime.phase === "connecting") return;
   setStatus("connecting", "Connecting…");
   runtime.errorMessage = null;
 
   if (app.config.mode === "client") {
+    const isConnect = app.config.connectionMethod === "connect";
+
     try {
-      const url = app.config.serverUrl?.trim();
-      if (!url) throw new Error("Server URL is empty — set it in Settings");
-      if (!/^wss?:\/\//i.test(url)) throw new Error("Server URL must start with ws:// or wss://");
-      const c = new EdiabasClient({
-        transport: "websocket",
-        url,
-        onNotification: handleServerNotification,
-      });
+      let c: EdiabasClient;
+
+      if (isConnect && app.connectSessionId && app.connectToken) {
+        const relayUrl = app.config.connectRelayUrl?.trim() || "wss://connect.bimmerz.app";
+        const { dial } = await import("@emdzej/swsrs-client");
+        const peer = await dial({
+          relayURL: relayUrl,
+          sessionId: app.connectSessionId,
+          token: app.connectToken,
+        });
+        c = new EdiabasClient({
+          transport: "websocket",
+          socket: peer.socket,
+          onNotification: handleServerNotification,
+        });
+      } else {
+        const url = app.config.serverUrl?.trim();
+        if (!url) throw new Error("Server URL is empty — set it in Settings");
+        if (!/^wss?:\/\//i.test(url)) throw new Error("Server URL must start with ws:// or wss://");
+        c = new EdiabasClient({
+          transport: "websocket",
+          url,
+          onNotification: handleServerNotification,
+        });
+      }
+
       await c.init();
       await c.subscribeLogs(app.config.logging?.level ?? "info");
       clientInstance = c;
       loadedSgbdName = null;
-      setStatus("connected", `Connected · Server · ${url}`);
+      const label = app.connectSessionId ? "Bimmerz Connect" : `Server · ${app.config.serverUrl}`;
+      setStatus("connected", `Connected · ${label}`);
     } catch (error) {
       clientInstance = null;
       setStatus("error", "Connect failed");

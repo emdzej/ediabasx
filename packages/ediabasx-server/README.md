@@ -64,8 +64,25 @@ The `job` method is the primary entry point — it resolves the ECU name, loads 
 ediabasx serve --sgbd-path ~/ECU \
   --interface kdcan --serial-port /dev/cu.usbserial-A50285BI
 
+# With Bimmerz Connect relay (NAT traversal, no port forwarding)
+ediabasx serve --connect \
+  --sgbd-path ~/ECU --interface kdcan --serial-port /dev/cu.usbserial-A50285BI
+
 # Interactive server config wizard
 ediabasx serve configure
+```
+
+## Bimmerz Connect (relay)
+
+`attachStandardWebSocket(ws)` accepts a pre-connected standard `WebSocket` — used by the CLI's `--connect` flag to tunnel JSON-RPC through the `connect.bimmerz.app` relay. In relay-only mode (no `--host`/`--port`), call `ensureBroadcastSink()` and `bindSignalHandlers()` directly instead of `start()`.
+
+```ts
+import { accept } from "@emdzej/swsrs-client";
+
+const peer = await accept({ relayURL, sessionId, token });
+server.attachStandardWebSocket(peer.socket);
+server.ensureBroadcastSink();
+server.bindSignalHandlers();
 ```
 
 ## Architecture

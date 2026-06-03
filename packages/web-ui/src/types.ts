@@ -9,6 +9,9 @@
 /** Top-level operating mode: local hardware or remote server. */
 export type AppMode = "embedded" | "client";
 
+/** How the client reaches the server: direct WebSocket or via Bimmerz Connect relay. */
+export type ClientConnectionMethod = "direct" | "connect";
+
 /** Which transport the app uses to reach the ECU. */
 export type InterfaceType = "webserial" | "j2534" | "gateway";
 
@@ -58,6 +61,8 @@ export interface InterfaceConfig {
 export interface ModeConfig {
   mode: AppMode;
   serverUrl?: string;
+  connectionMethod?: ClientConnectionMethod;
+  connectRelayUrl?: string;
 }
 
 /**
