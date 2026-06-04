@@ -12,6 +12,7 @@ A TypeScript port of BMW's EDIABAS (Electronic Diagnostic Basic System) — a mo
 - **Protocols** — KWP2000 (ISO 14230), UDS (ISO 14229), DoIP/HSFZ (ISO 13400)
 - **CLI + TUI** — `ediabasx` command with interactive job browser, batch run, decompile, info, job/table inspection
 - **Logging** — structured logs via `@emdzej/bimmerz-logger` (hierarchical categories, configurable sinks)
+- **C11 native port** — companion implementation in [`native/`](native/) targeting embedded hosts (POSIX serial today, ESP32 dongle next). Feature-parity with the TS interpreter for opcode dispatch + GRP→PRG variant switching; ~50 KB VM struct, no malloc in hot paths. See [`native/README.md`](native/README.md).
 
 ## Installation
 

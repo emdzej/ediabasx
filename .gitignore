@@ -4,3 +4,4 @@ dist
 *.tsbuildinfo
 packages/interpreter/coverage
 .DS_Store
+native/build/
