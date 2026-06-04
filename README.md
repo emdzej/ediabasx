@@ -227,14 +227,27 @@ const ediabas = new Ediabas({
 
 await ediabas.loadSgbd("D_MOTOR.prg");
 
-// Returns EdiabasJobResult[][] — one entry per result set emitted by
-// the bytecode. Single-record jobs return [[...]]; multi-record jobs
-// (e.g. FS_LESEN reading N fault entries) return [[set1], [set2], ...].
+// `executeJob` returns EdiabasJobResult[][] in the **native EDIABAS
+// C-API shape** — index 0 is the system set, indices 1..N are the
+// data sets emitted by the bytecode:
+//
+//   sets[0]    — system set: VARIANTE, OBJECT, JOBNAME, SAETZE (= data-
+//                set count) + persistent metadata (ECU, ORIGIN, REVISION,
+//                AUTHOR, COMMENT, PACKAGE, SPRACHE, JOB_STATUS). Matches
+//                C# `EdiabasNet._resultSets[0]`.
+//   sets[1..N] — data sets. Single-record jobs have one; multi-record
+//                jobs (e.g. FS_LESEN with N fault entries) have N.
 const sets = await ediabas.executeJob("FS_LESEN");
 
-for (const [index, set] of sets.entries()) {
-  console.log(`Set ${index + 1}/${sets.length}`);
-  for (const result of set) {
+// System set — read SGBD identity and metadata
+const sysSet = sets[0];
+console.log("VARIANTE:", sysSet.find(r => r.name === "VARIANTE")?.value);
+console.log("SAETZE:",   sysSet.find(r => r.name === "SAETZE")?.value);
+
+// Data sets — one section per fault record
+for (let i = 1; i < sets.length; i++) {
+  console.log(`Data set ${i}/${sets.length - 1}`);
+  for (const result of sets[i]) {
     console.log(`  ${result.name} (${result.type}) = ${result.value}`);
   }
 }
@@ -411,9 +424,21 @@ merges with the file's categories rather than replacing it wholesale.
 
 The parser handles decryption transparently.
 
-### Result sets (`enewset`)
+### Result sets (`enewset`) and the system-set convention
 
-BMW BEST2 jobs emit "result sets" via the `enewset` opcode — each call commits the current collector and starts a new one. Multi-record jobs (e.g. `FS_LESEN` reading N fault records) call `enewset` once per record, so `executeJob` returns `EdiabasJobResult[][]` rather than a flat list. Single-record jobs simply return a single-element array.
+BMW BEST2 jobs emit "result sets" via the `enewset` opcode — each call commits the current collector and starts a new one. The interpreter layer (`@emdzej/ediabasx-interpreter`) returns just those data sets.
+
+The Ediabas layer above the interpreter (`@emdzej/ediabasx-ediabas`, plus the `IEdiabas` adapters in `@emdzej/ediabasx-client` / `@emdzej/ediabasx-server`) **prepends a system set at index 0** so the returned shape matches native EDIABAS / C# `EdiabasNet._resultSets`:
+
+- `sets[0]` — system set, materialised fresh per job. Always contains `VARIANTE`, `OBJECT`, `JOBNAME`, `SAETZE` (= data-set count), plus a merge from the persistent `Ediabas.getSystemResults()` accumulator (ECU/ORIGIN/REVISION/AUTHOR/COMMENT/PACKAGE/SPRACHE/JOB_STATUS …). Mirrors C# `CreateSystemResultDict`.
+- `sets[1..N]` — data sets emitted by the bytecode. Multi-record jobs (e.g. `FS_LESEN`) emit one set per record.
+
+Granular accessors mirror the native EDIABAS C API:
+
+- `resultSets()` returns the **data**-set count (i.e. `sets.length - 1`) — matches `apiResultSets`.
+- `resultText(name, 0, …)` reads the system set; `resultText(name, 1..N, …)` reads data sets.
+
+`EdiabasJobResult` carries `name`/`type`/`value`/`unit`/`comment` — all five fields propagate through the JSON-RPC wire to remote clients.
 
 ## Contributing
 

@@ -4,6 +4,124 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.6.1] — 2026-06-04
+
+Result-set shape brought back into line with native EDIABAS / C#
+`EdiabasLib`, plus a real bug fix for the web app's variant swap and a
+substantial cleanup of the server / embedded lifecycle. Native port
+gains a wrapper layer (`edxn_ediabas_t`) that matches the TS `Ediabas`
+class.
+
+### Changed
+
+- **`Ediabas.executeJob` now returns `[systemSet, ...dataSets]`** — index 0
+  is the system set (VARIANTE, OBJECT, JOBNAME, SAETZE, GRUPPE, FAMILIE
+  + merged persistent metadata), indices 1..N are the data sets. Matches
+  C# `EdiabasNet._resultSets` and native EDIABAS `apiResultText(name, 0, …)`
+  reading the system set. Pre-fix the return was data-sets-only and the
+  system set was inaccessible. **Observable for consumers iterating from
+  index 0**: read via `set >= 1` for data, or use the C-API-compatible
+  `resultText(name, set)` accessors on `IEdiabas` (set 0 = system,
+  set 1..N = data).
+- **`EdiabasClient.resultSets()` returns `length - 1`** — was returning
+  total length; now aligned with `EmbeddedEdiabas` / `EdiabasServer` and
+  matches native `apiResultSets` (data-set count).
+
+### Added
+
+- **`EdiabasResultEntry.unit` / `.comment`** — optional fields now
+  preserved on the JSON-RPC wire. Both `EmbeddedEdiabas` and
+  `EdiabasServer`'s `convertResultSet` helpers copy them through.
+- **`Ediabas.buildSystemSet`** — materialises the per-job system set
+  (mirrors C# `CreateSystemResultDict`). Seeds VARIANTE/OBJECT/JOBNAME/
+  SAETZE/GRUPPE/FAMILIE, then merges in the persistent
+  `systemResults` accumulator. `getSystemResults()` re-documented as the
+  persistent accumulator (analogue of C# `_resultSysDict`).
+- **`Interpreter.requestBreak()`** — cooperative cancel primitive. The
+  step loop throws `EDIABAS_BIP_0008` at the next instruction boundary.
+  Higher-layer `break()` methods on `EmbeddedEdiabas` /
+  `EdiabasServer` / `EdiabasClient` carry `TODO(break)` comments —
+  forwarding to the interpreter is the next step.
+- **`edxn_ediabas_t` (native)** — C wrapper layer above `edxn_vm_t`,
+  mirroring TS `Ediabas`. Persistent `system_results`, INIT/IDENT
+  bootstrap, variant swap, group-mapping cache, materialised
+  `[system_set, …data_sets]` result shape. New `edxn_vm_exec_raw`
+  non-bootstrapping exec entry. `native/test/run.c` migrated to the
+  wrapper.
+- **Native smoke test** — `native/test/test_ediabas.c` exercises
+  wrapper lifecycle / load_sgbd / error paths; wired into ctest.
+
+### Fixed
+
+- **Web variant swap was silently failing.** `Ediabas`'s browser path
+  needs a `loadSgbdResolver` to fetch sibling variant `.prg` files —
+  `swapToVariant` was falling into the Node `fs/promises` branch
+  (stubbed in browser bundles), the `try/catch` swallowed the failure,
+  and the loaded SGBD stayed at the unresolved `.grp` (system set
+  surfaced VARIANTE = `.grp` basename, no INFO metadata). The web app
+  (`apps/web/src/lib/runtime.svelte.ts`) now wires a resolver via the
+  install's discovered `sgbds[]` catalogue.
+- **`Ediabas.swapToVariant` throws on failure** —
+  `EdiabasError("Variant swap to <variant>.prg failed: <msg>")` instead
+  of silent `log.warn`. Matches C# `ResolveSgbdFile`'s "No variant
+  found" semantics. Consumers (CLI, web, embedded host) now see a
+  clear diagnostic instead of "everything looks fine, VARIANTE is
+  somehow still the .grp".
+- **`EdiabasServer` now owns one persistent `Ediabas` for its lifetime.**
+  Pre-fix every client `init` instantiated a new `Ediabas` and torn
+  down the transport, breaking any other connected client mid-session
+  and re-running INITIALISIERUNG + IDENT against the ECU. Now
+  `handleInit` is idempotent (creates lazily on first call, just
+  ensures connected thereafter); `handleEnd` is a no-op on the shared
+  instance; only `server.stop()` disconnects.
+- **`EmbeddedEdiabas` mirrors that lifecycle** — `init()` creates the
+  inner `Ediabas` exactly once; subsequent calls just ensure connected.
+  `job()`/`end()`/`init()` now run through an internal promise queue so
+  concurrent JS-async calls can't race on shared state. Mirrors
+  `EdiabasServer.enqueue`.
+- **Redundant `loadSgbd` skip** — both `EmbeddedEdiabas` and
+  `EdiabasServer` track the loaded SGBD path and skip
+  `Ediabas.loadSgbd` on consecutive jobs against the same ECU. Pre-fix
+  every job reset `initialized` / `identRan` / `systemResults` inside
+  `Ediabas` and forced INITIALISIERUNG + IDENT to re-run against the
+  ECU — defeating the whole persistent-instance benefit.
+- **C# parity for variant resolution**:
+  - `FAMILIE` captured from IDENT alongside `VARIANTE` (was: `VARIANTE`
+    only). Both cached in `groupMappingCache` — now stores
+    `{ variant, family }`, matching C# `VariantInfo(variantName,
+    familyName)`.
+  - System set seeds `GRUPPE` and `FAMILIE` in addition to
+    `VARIANTE/OBJECT/JOBNAME/SAETZE` — matches C#
+    `CreateSystemResultDict` (under `IsMinVersion760`). Empty strings
+    for non-`.grp` loads / when IDENT didn't emit `FAMILIE`.
+  - `groupName` / `familyName` re-pinned after `swapToVariant` so the
+    variant `.prg` load doesn't wipe the originating `.grp` identity.
+
+### Docs
+
+- Result-set shape documented end-to-end: root README, `native/README`,
+  and 5 package READMEs (`@emdzej/ediabasx-ediabas`, `-client`,
+  `-server`, `-core`, `-interpreter`) all describe the
+  set-0-is-system convention, the persistent-vs-per-job system-result
+  distinction, the single-persistent-Ediabas server lifecycle, and the
+  `unit`/`comment` wire fields.
+- `native/README` describes the new wrapper layer + result-set shape;
+  `native/src/vm.c` top-of-file comment now documents `edxn_vm_exec`
+  (legacy bootstrapped) vs `edxn_vm_exec_raw` (non-bootstrapping)
+  split.
+
+### Notes
+
+- The shape change to `Ediabas.executeJob` is technically observable
+  for consumers that iterated `sets` from index 0 expecting their
+  first data set. Updating to iterate from `sets.slice(1)` (or reading
+  via the `resultText(name, set)` accessors, which now do the right
+  thing for `set=0` = system / `set=1..N` = data) restores prior
+  semantics. Reasoning for landing this as a patch: the pre-fix shape
+  was internally inconsistent with native EDIABAS, C#, and the
+  documented `IEdiabas` accessor semantics; calling it a fix
+  acknowledges the gap.
+
 ## [0.6.0] — 2026-06-03
 
 Bimmerz Connect — relay-mediated remote diagnostics through

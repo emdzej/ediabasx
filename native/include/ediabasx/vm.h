@@ -180,6 +180,12 @@ void         edxn_vm_reset(edxn_vm_t *vm);
 
 edxn_error_t edxn_vm_set_params(edxn_vm_t *vm, const char *args);
 edxn_error_t edxn_vm_exec(edxn_vm_t *vm, const char *job_name, const char *args);
+/* Run a job by name without the auto-INITIALISIERUNG / IDENT bootstrap.
+   The wrapper layer (`edxn_ediabas_t`) owns the bootstrap and calls this
+   for both load-time INFO and per-job execution. Mirrors TS
+   `Interpreter.execute` vs `Ediabas.executeJob`. */
+edxn_error_t edxn_vm_exec_raw(edxn_vm_t *vm, const char *job_name,
+                               const char *args);
 edxn_error_t edxn_vm_step(edxn_vm_t *vm);
 
 /* Wire loader callbacks. Pass NULL fn to disable. */

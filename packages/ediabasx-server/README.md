@@ -35,22 +35,35 @@ All requests follow [JSON-RPC 2.0](https://www.jsonrpc.org/specification). Reque
 
 | Method | Params | Returns | Purpose |
 |---|---|---|---|
-| `init` | — | `{ ok: true }` | Connect to the hardware interface |
-| `end` | — | `{ ok: true }` | Disconnect and reset |
-| `job` | `{ ecu, job, params? }` | `{ sets: EdiabasResultSet[] }` | Execute a job — resolves bare ECU names via `sgbdPath` |
-| `resultSets` | — | `{ count }` | Number of result sets from the last job (EDIABAS compat) |
-| `resultText` | `{ name, set }` | `{ value }` | Read a text result from the cache |
-| `resultInt` | `{ name, set }` | `{ value }` | Read an integer result from the cache |
-| `resultReal` | `{ name, set }` | `{ value }` | Read a real/float result from the cache |
-| `resultBinary` | `{ name, set }` | `{ value: number[] }` | Read a binary result from the cache |
-| `resultFormat` | `{ name, set }` | `{ format }` | Get the wire type of a cached result |
+| `init` | — | `{ ok: true }` | Ensure the shared Ediabas's transport is connected. **Idempotent** — does not replace the persistent Ediabas instance the server owns; just primes per-client state for the next job. |
+| `end` | — | `{ ok: true }` | Clear per-client cached results. **Does not** disconnect the shared Ediabas (other clients may still be using it). The transport is torn down only via `server.stop()`. |
+| `job` | `{ ecu, job, params? }` | `{ sets: EdiabasResultSet[] }` | Execute a job — resolves bare ECU names via `sgbdPath`. `sets[0]` is the system set; `sets[1..N]` are data sets. See [Result-set shape](#result-set-shape) below. |
+| `resultSets` | — | `{ count }` | Number of **data** sets from the last job (excludes the system set at index 0). Matches `apiResultSets`. |
+| `resultText` | `{ name, set }` | `{ value }` | Read a text result. `set=0` reads the system set; `set>=1` reads data set N. |
+| `resultInt` | `{ name, set }` | `{ value }` | Same indexing as `resultText`. |
+| `resultReal` | `{ name, set }` | `{ value }` | Same indexing as `resultText`. |
+| `resultBinary` | `{ name, set }` | `{ value: number[] }` | Same indexing as `resultText`. |
+| `resultFormat` | `{ name, set }` | `{ format }` | Same indexing as `resultText`. |
 | `state` | — | `{ state }` | Current server state (`ready` / `busy` / `error` / `break`) |
 | `break` | — | `{ ok: true }` | Signal a break |
 | `errorCode` | — | `{ code }` | Last error code |
 | `errorText` | — | `{ text }` | Last error message |
 | `info` | — | connection / server metadata | Server and connection status |
 
-The `job` method is the primary entry point — it resolves the ECU name, loads the SGBD, executes the job, and returns all result sets in one response. The granular `resultText` / `resultInt` / etc. accessors operate on the cached results from the last `job` call, matching the original EDIABAS C API pattern.
+The `job` method is the primary entry point — it resolves the ECU name, loads the SGBD (skipped if the same ECU is targeted by consecutive jobs — INITIALISIERUNG and IDENT/swap state stays warm across calls), executes the job, and returns all result sets in one response. The granular `resultText` / `resultInt` / etc. accessors operate on the cached results from the last `job` call, matching the native EDIABAS C API pattern.
+
+### Result-set shape
+
+`job` returns `{ sets: EdiabasResultSet[] }` where `sets` follows the native EDIABAS C-API convention (also used by `Ediabas.executeJob` and mirrored in C# `EdiabasNet._resultSets`):
+
+- **`sets[0]` — system set.** Always present. Contains `VARIANTE`, `OBJECT`, `JOBNAME`, `SAETZE` (data-set count) plus the persistent system-results accumulator (`ECU`, `ORIGIN`, `REVISION`, `AUTHOR`, `COMMENT`, `PACKAGE`, `SPRACHE`, `JOB_STATUS`, …). Materialised fresh per job.
+- **`sets[1..N]` — data sets.** One per `enewset` plus the trailing batch (whatever the job emitted after the last `enewset`). Multi-record jobs (e.g. `FS_LESEN`) emit one set per record.
+
+Each `EdiabasResultEntry` carries `name`, `type`, `value` and optional `unit` / `comment` — all preserved on the wire.
+
+### Single-Ediabas-per-server lifecycle
+
+The server holds **one** `Ediabas` instance for its lifetime — lazily created on the first `init`, never replaced. Multiple clients connecting do **not** trigger transport teardown / re-INITIALISIERUNG / variant-swap re-runs. Subsequent jobs against the same ECU also skip a redundant `loadSgbd`, preserving the cached `initialized` / `identRan` / `systemResults` state. The transport is closed only when the server itself stops.
 
 ## Transports
 
@@ -87,7 +100,7 @@ server.bindSignalHandlers();
 
 ## Architecture
 
-The server is single-tenant: one active session at a time, matching the physical bus reality. Requests are queued sequentially via an internal promise chain — no concurrent job execution.
+The server is single-tenant: one active session at a time, matching the physical bus reality. Requests are queued sequentially via an internal promise chain — no concurrent job execution. The shared `Ediabas` instance is created on first `init` and lives for the server's lifetime (see [Single-Ediabas-per-server lifecycle](#single-ediabas-per-server-lifecycle)).
 
 ## See also
 

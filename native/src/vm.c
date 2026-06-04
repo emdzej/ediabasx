@@ -1,11 +1,26 @@
 /**
  * VM lifecycle, opcode dispatch table, job execution.
  *
- * `edxn_vm_exec` is the top-level entry: runs INITIALISIERUNG once per
- * loaded SGBD, then dispatches IDENTIFIKATION + variant-swap for .grp
- * files, then executes the requested job. The reset/init split keeps
- * INITIALISIERUNG's parameter setup alive across subsequent jobs
- * (mirrors C# `_initialized` gate).
+ * Two public exec entry points:
+ *
+ *   • `edxn_vm_exec_raw` — runs the named job directly with no auto-INIT
+ *     / IDENT / variant-swap. The Ediabas-layer wrapper
+ *     (`edxn_ediabas_t` in `ediabas.c`) calls this and owns the
+ *     bootstrap state itself. New code should reach the wrapper, not
+ *     the VM directly.
+ *
+ *   • `edxn_vm_exec` — legacy bootstrapped exec: runs INITIALISIERUNG
+ *     once per loaded SGBD, then dispatches IDENTIFIKATION + variant-
+ *     swap for .grp files, then executes the requested job. Kept for
+ *     backwards-compat with embedders that read `vm->current_results`
+ *     directly (e.g. minimal ESP32 hosts). The reset/init split keeps
+ *     INITIALISIERUNG's parameter setup alive across subsequent jobs
+ *     (mirrors C# `_initialized` gate).
+ *
+ * Note: when callers go through `edxn_ediabas_t`, the wrapper handles
+ * bootstrap (via `edxn_vm_exec_raw`) — the VM's own auto-INIT path in
+ * `edxn_vm_exec` is bypassed. Both paths converge on the same
+ * `run_job` helper for the actual bytecode execution.
  *
  * Opcode routing in `dispatch()`: BEST/2 opcodes are mostly categorised by
  * hex range (arithmetic = 0x00–0x0A, jumps = 0x0B–0x15, etc.) but the ISA
@@ -275,6 +290,18 @@ static edxn_error_t run_job(edxn_vm_t *vm, int job_idx, const char *args) {
         if (err != EDXN_OK) return err;
     }
     return EDXN_OK;
+}
+
+/* Public non-bootstrapping job exec — mirrors TS `Interpreter.execute`.
+   Looks up the job by name and runs it directly without auto-INIT /
+   IDENT / variant-swap. Use this when a caller layer (e.g. the
+   `edxn_ediabas_t` wrapper) owns the bootstrap; for legacy direct
+   consumers, `edxn_vm_exec` still does the bootstrap. */
+edxn_error_t edxn_vm_exec_raw(edxn_vm_t *vm, const char *job_name,
+                               const char *args) {
+    int idx = edxn_prg_find_job(vm->prg, job_name);
+    if (idx < 0) return EDXN_ERR_JOB_NOT_FOUND;
+    return run_job(vm, idx, args);
 }
 
 /* Run IDENTIFIKATION on a loaded .grp, look up VARIANTE in the results, and

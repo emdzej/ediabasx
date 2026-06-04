@@ -18,6 +18,48 @@ import {
 import { J2534Interface } from "@emdzej/ediabasx-interface-j2534";
 import { WebSerialTransport as J2534WebSerialTransport } from "@emdzej/j2534-webserial";
 import { state as app } from "./app.svelte";
+import { readFileBytes } from "./files";
+
+/**
+ * SGBD resolver for the browser path of `Ediabas.swapToVariant` (and
+ * the GRP→PRG load chain in general). Looks up the requested filename
+ * inside the install's discovered `sgbds[]` catalogue case-insensitively,
+ * with a `.prg ↔ .grp` extension swap as a fallback (mirrors the
+ * Node-fs side's `resolveCaseInsensitive`). Without this wired in,
+ * `swapToVariant` falls into the Node `fs/promises` branch and fails
+ * silently in the browser — leaving the loaded SGBD at the original
+ * .grp and the system set's VARIANTE pinned to the .grp basename.
+ */
+async function resolveSgbdInInstall(
+  filename: string,
+): Promise<{ bytes: Uint8Array; name: string }> {
+  if (!app.install) {
+    throw new Error(`SGBD resolver invoked with no install loaded (file: ${filename})`);
+  }
+  const lower = filename.toLowerCase();
+  const stripped = lower.replace(/\.(prg|grp)$/, "");
+  const altExt = lower.endsWith(".prg") ? ".grp" : ".prg";
+
+  /* Match against either the relative path (preserves subdir layouts)
+     or just the basename (BMW installs occasionally nest variants). */
+  const candidates = [
+    lower,
+    `${stripped}${altExt}`,
+  ];
+  let picked = app.install.sgbds.find(
+    (s) => candidates.includes(s.relativePath.toLowerCase()),
+  );
+  if (!picked) {
+    picked = app.install.sgbds.find(
+      (s) => candidates.includes(s.name.toLowerCase()),
+    );
+  }
+  if (!picked) {
+    throw new Error(`SGBD not found in install: ${filename}`);
+  }
+  const bytes = await readFileBytes(picked.file);
+  return { bytes, name: picked.name };
+}
 
 export type ConnectionPhase =
   | "idle"           // no connection attempted yet
@@ -248,6 +290,11 @@ async function buildEdiabas(): Promise<Ediabas> {
     ecuPath: ".",
     transport: transport as unknown as EdiabasConfig["transport"],
     timeout: config.serial?.timeoutMs ?? 5000,
+    /* Required for GRP→PRG variant resolution in the browser. Without
+       this, swapToVariant falls into a node:fs path that's stubbed in
+       the Vite bundle, silently catching the failure and leaving the
+       loaded SGBD at the unresolved .grp. */
+    loadSgbdResolver: resolveSgbdInInstall,
   });
 }
 

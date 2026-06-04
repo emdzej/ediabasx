@@ -14,7 +14,7 @@ pnpm add @emdzej/ediabasx-interpreter @emdzej/ediabasx-best-parser
 - **Flags**: Z, C, V, S — with per-opcode update rules matching C# `OpCode` handlers (incl. the `strcmp` Z-inversion, `pop`'s flag refresh, …)
 - **Call stack** and **data stack** with the exact push/pop byte ordering EdiabasLib uses
 - **184 opcodes** dispatched from a single table — arithmetic, control flow, string, float, communication (`x*`), result emission (`erg*`), parameters (`par*`), tables, file I/O, timers, shared memory, error traps
-- **Result sets**: `enewset` commits the current collector into an archive and starts a new one. `execute()` returns `JobResult[][]` — one entry per emitted set, with the trailing pending set auto-committed (mirrors C# `ExecuteJobPrivate`)
+- **Result sets**: `enewset` commits the current collector into an archive and starts a new one. `execute()` returns `JobResult[][]` containing **just the data sets** — one entry per emitted set, with the trailing pending set auto-committed (mirrors C# `_resultSetsTemp` *before* the system set is prepended). The Ediabas-layer wrapper above the interpreter (`@emdzej/ediabasx-ediabas`) is responsible for materialising the per-job system set and returning `[systemSet, ...dataSets]` to consumers; the interpreter itself stays at the bytecode-execution layer.
 - **Trap bits** and `eerr` for structured error handling
 
 ## Usage
@@ -32,13 +32,23 @@ const sets = await interpreter.execute("FS_LESEN", {
   // optional: parameters, communicationInterface, tableState, …
 });
 
-// Multi-record jobs (FS_LESEN: N fault entries) return N+ sets, each
-// with the same field names (F_ORT_NR, F_ORT_TEXT, …).
+// Multi-record jobs (FS_LESEN: N fault entries) return N sets, each
+// with the same field names (F_ORT_NR, F_ORT_TEXT, …). Note: only
+// **data** sets are returned here — the system set (VARIANTE / OBJECT /
+// JOBNAME / SAETZE) lives one layer up in `@emdzej/ediabasx-ediabas`'s
+// `Ediabas.executeJob`. Use that wrapper if you want the C-API-compatible
+// `[systemSet, ...dataSets]` shape.
 for (const [i, set] of sets.entries()) {
   console.log(`Set ${i + 1}/${sets.length}`);
   for (const r of set) console.log(`  ${r.name} (${r.type}) = ${r.value}`);
 }
 ```
+
+## Break / cancel
+
+`requestBreak()` asks the step loop to abort the in-flight job at the next instruction boundary — `step()` throws `EdiabasError(EDIABAS_BIP_0008)`, matching native EDIABAS `apiBreak` semantics. The flag is cooperative: an `xrecv` already in flight only unwinds once its timeout fires. Call it from outside the loop while `execute()` is in flight.
+
+**Status:** the interpreter primitive is in place, but the higher layers (`EmbeddedEdiabas.break()` / `EdiabasServer` `break` JSON-RPC method) currently flip a state flag without forwarding to the active interpreter — see the `TODO(break)` comments on those classes. Embedders that drive `Interpreter` directly can already use `requestBreak()` today; consumers going through the Ediabas / IEdiabas surface have to wait for that wiring.
 
 ## Communication interface
 

@@ -105,7 +105,11 @@ export class EdiabasClient implements IEdiabas {
   }
 
   resultSets(): number {
-    return this.cachedResults ? this.cachedResults.sets.length : 0;
+    // Match C# `apiResultSets` / native EDIABAS: returns the **data**
+    // set count, i.e. total length minus the system set at index 0.
+    if (!this.cachedResults) return 0;
+    const n = this.cachedResults.sets.length;
+    return n > 0 ? n - 1 : 0;
   }
 
   resultText(name: string, set: number, _format?: string): string {
@@ -141,6 +145,14 @@ export class EdiabasClient implements IEdiabas {
     return this.cachedState;
   }
 
+  /**
+   * TODO(break): server-side `handleBreak` is a stub — it just flips
+   * state and doesn't actually abort the running job. See the matching
+   * TODO on `EdiabasServer.handleBreak`. When that lands, the server's
+   * dispatcher also needs to special-case `"break"` to bypass its
+   * request queue, otherwise the abort signal can only fire after the
+   * job it's trying to interrupt finishes.
+   */
   async break(): Promise<void> {
     await this.request("break");
     this.cachedState = "break";

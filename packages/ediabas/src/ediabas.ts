@@ -219,12 +219,26 @@ export class Ediabas {
    * Group → resolved variant cache, mirroring C# `_groupMappingDict`.
    * Once a `.grp` has been probed and its variant matched, a future
    * `loadSgbd` of the same group skips the IDENT probe and loads the
-   * variant `.prg` directly. Keyed by lowercased group basename, stores
-   * the resolved variant name (also lowercased to match the cache key
-   * style; the actual `.prg` lookup is case-insensitive via
-   * resolveCaseInsensitive).
+   * variant `.prg` directly. Keyed by lowercased group basename; the
+   * value stores both the resolved variant name **and** the FAMILIE
+   * emitted by IDENT (C# stores `VariantInfo(variantName, familyName)`).
+   * Names are stored lowercased to match the cache key style; the
+   * actual `.prg` lookup is case-insensitive via resolveCaseInsensitive.
    */
-  private groupMappingCache: Map<string, string> = new Map();
+  private groupMappingCache: Map<string, { variant: string; family: string }> = new Map();
+  /**
+   * Set when this Ediabas instance is loaded from a `.grp` file —
+   * lowercase basename, surfaced as `GRUPPE` in the system set
+   * (matches C# `_groupName`). Empty for direct `.prg` loads.
+   */
+  private groupName = "";
+  /**
+   * Variant family captured from IDENT's `FAMILIE` result (matches C#
+   * `_familyName`). Surfaced as `FAMILIE` in the system set.
+   * Lowercase to mirror C# (`FamilyName.ToLower(Culture)`). Empty
+   * when not loaded via .grp or IDENT didn't emit it.
+   */
+  private familyName = "";
   /**
    * System / metadata results — VARIANTE (SGBD basename), JOB_STATUS, plus
    * everything emitted by the INFO job (ECU, ORIGIN, REVISION, etc.).
@@ -307,10 +321,11 @@ export class Ediabas {
     // canonical lowercased name; the `.prg` extension is added and the
     // case-insensitive resolver finds the actual on-disk file.
     const baseName = stripExtension(basenameOf(filename)).toLowerCase();
-    const cachedVariant = filename.toLowerCase().endsWith(".grp")
+    const isGroupLoad = filename.toLowerCase().endsWith(".grp");
+    const cachedEntry = isGroupLoad
       ? this.groupMappingCache.get(baseName)
       : undefined;
-    const effectiveFilename = cachedVariant ? `${cachedVariant}.prg` : filename;
+    const effectiveFilename = cachedEntry ? `${cachedEntry.variant}.prg` : filename;
 
     const fullPath = path.resolve(this.config.ecuPath, effectiveFilename);
 
@@ -318,8 +333,20 @@ export class Ediabas {
       const resolved = await resolveCaseInsensitive(fs, path, fullPath);
       const buffer = await fs.readFile(resolved);
       this.loadSgbdFromBuffer(new Uint8Array(buffer), resolved);
-      if (cachedVariant) {
-        log.debug(`Loaded SGBD: ${filename} → cached variant ${cachedVariant}`);
+      // Pin GRUPPE / FAMILIE from the original .grp load context (the
+      // user asked for a group file → we surface the group's name even
+      // after we've cached our way directly to the variant `.prg`).
+      // Matches C# `_groupName` / `_familyName` which stay set across
+      // the post-resolution variant load. loadSgbdFromBuffer cleared
+      // them when it parsed the variant, so we re-pin here.
+      if (isGroupLoad) {
+        this.groupName = baseName;
+        if (cachedEntry) {
+          this.familyName = cachedEntry.family;
+        }
+      }
+      if (cachedEntry) {
+        log.debug(`Loaded SGBD: ${filename} → cached variant ${cachedEntry.variant}`);
       } else {
         log.debug(`Loaded SGBD: ${filename}`);
       }
@@ -370,6 +397,16 @@ export class Ediabas {
         type: "string",
         value: extractVariantName(name),
       });
+      /* Reset group / family — they're per-load metadata. The
+         `loadSgbd` caller knows whether this load came from a `.grp`
+         (and therefore needs `groupName` re-pinned) and overrides
+         after this buffer parse completes. For web's
+         `loadSgbdFromBuffer(buffer, "foo.grp")` direct usage, the
+         `.grp` extension on `name` is the signal we use here. */
+      this.groupName = name.toLowerCase().endsWith(".grp")
+        ? stripExtension(basenameOf(name)).toLowerCase()
+        : "";
+      this.familyName = "";
       log.debug(`Loaded SGBD: ${name}`);
       log.debug(`  Jobs: ${this.prg.jobs.length}`);
       log.debug(`  Tables: ${this.prg.tables.length}`);
@@ -432,16 +469,20 @@ export class Ediabas {
     this.identRan = true;
 
     let variantName: string | undefined;
+    let family: string | undefined;
     try {
       const sets = await this.executeJobRaw("IDENTIFIKATION", []);
-      // IDENTIFIKATION emits VARIANTE = S1 (the resolved variant
-      // name) once it finds a match — scan all sets and take the
-      // last non-empty VARIANTE so retries / multi-pass probes
-      // surface their final answer rather than an intermediate.
+      /* IDENTIFIKATION emits VARIANTE and (optionally) FAMILIE once it
+         finds a match — scan all sets and take the last non-empty
+         value of each so retries / multi-pass probes surface their
+         final answer rather than an intermediate. C# `ExecuteIdentJob`
+         reads both fields from `_resultSets[1]`. */
       for (const set of sets) {
         for (const r of set) {
           if (r.name.toUpperCase() === "VARIANTE" && r.value) {
             variantName = String(r.value);
+          } else if (r.name.toUpperCase() === "FAMILIE" && r.value) {
+            family = String(r.value);
           }
         }
       }
@@ -451,12 +492,17 @@ export class Ediabas {
     }
 
     if (!variantName) return;
+    if (family) this.familyName = family.toLowerCase();
 
     // Cache so a later `loadSgbd(<group>.grp)` short-circuits to the
-    // variant `.prg` without re-probing the ECU.
+    // variant `.prg` without re-probing the ECU. Both variant and
+    // family are stored — C# `VariantInfo` is the equivalent.
     const groupBaseName = stripExtension(basenameOf(this.prgPath ?? "")).toLowerCase();
     if (groupBaseName) {
-      this.groupMappingCache.set(groupBaseName, variantName.toLowerCase());
+      this.groupMappingCache.set(groupBaseName, {
+        variant: variantName.toLowerCase(),
+        family: this.familyName,
+      });
     }
 
     // Swap the loaded SGBD from `.grp` to the variant `.prg`. Real
@@ -478,13 +524,22 @@ export class Ediabas {
    * occasional alias).
    */
   private async swapToVariant(variantName: string): Promise<void> {
+    /* Snapshot the .grp identity so we can re-pin it after the variant
+       `.prg` is loaded. Without this, the parse below sets `groupName`
+       back to empty (the variant is a `.prg`, not a `.grp`) and a
+       later `GRUPPE` system-set lookup would lose track of the fact
+       we came from a `.grp` load. */
+    const groupSnapshot = this.groupName;
+    const familySnapshot = this.familyName;
+
+    let bytes: Uint8Array;
+    let resolvedName: string;
     try {
-      let bytes: Uint8Array;
-      let resolvedName: string;
       if (this.config.loadSgbdResolver) {
-        // Browser path — host reads bytes from a directory handle and
-        // hands back the canonical filename it picked. Same hook the
-        // initial `loadSgbd` uses.
+        /* Browser path — host reads bytes from a directory handle
+           (e.g. FileSystemDirectoryHandle) and hands back the
+           canonical filename it picked. Same hook the initial
+           `loadSgbd` uses. */
         const result = await this.config.loadSgbdResolver(`${variantName}.prg`);
         bytes = result.bytes;
         resolvedName = result.name;
@@ -499,32 +554,85 @@ export class Ediabas {
         bytes = new Uint8Array(buffer);
         resolvedName = resolved;
       }
-      this.prg = parsePrg(bytes);
-      this.prgPath = resolvedName;
-      // systemResults is reset so the .grp's INFO outputs don't leak
-      // through; rebuild VARIANTE first so the rerun-INFO honour-our-
-      // basename guard keeps the resolved name in place.
-      this.systemResults = new Map();
-      this.systemResults.set("VARIANTE", {
-        name: "VARIANTE",
-        type: "string",
-        value: variantName,
-      });
-      await this.runInfoForSystemResults();
-      log.debug(`Swapped to variant ${variantName} (${resolvedName})`);
     } catch (err) {
-      log.warn(`Variant swap to ${variantName}.prg failed: ${(err as Error).message}`);
+      /* C# `ResolveSgbdFile` throws "No variant found" when IDENT
+         emits a variant whose `.prg` can't be loaded. Mirror that
+         here — silently swallowing the failure (the pre-fix
+         behaviour) left consumers on a stale .grp with no diagnostic,
+         which is what bit the web app. */
+      throw new EdiabasError(
+        EdiabasErrorCodes.UNKNOWN,
+        `Variant swap to ${variantName}.prg failed: ${(err as Error).message}`,
+      );
     }
+
+    this.prg = parsePrg(bytes);
+    this.prgPath = resolvedName;
+    /* systemResults is reset so the .grp's INFO outputs don't leak
+       through; rebuild VARIANTE first so the rerun-INFO honour-our-
+       basename guard keeps the resolved name in place. */
+    this.systemResults = new Map();
+    this.systemResults.set("VARIANTE", {
+      name: "VARIANTE",
+      type: "string",
+      value: variantName,
+    });
+    /* Re-pin GRUPPE / FAMILIE — `loadSgbdFromBuffer` resets them
+       based on the loaded file's extension, but the post-swap
+       variant is a `.prg` even though the user originally asked for
+       a `.grp`. Matches C# `_groupName` / `_familyName` which stay
+       set across the variant load. */
+    this.groupName = groupSnapshot;
+    this.familyName = familySnapshot;
+    await this.runInfoForSystemResults();
+    log.debug(`Swapped to variant ${variantName} (${resolvedName})`);
   }
 
   /**
-   * System / metadata result set — VARIANTE + INFO job outputs + the
-   * most-recent JOB_STATUS. Consumers (e.g. inpax's ediabasx-provider)
-   * fall back here when a per-set lookup misses, mirroring the way
-   * native EDIABAS exposes SGBD metadata transparently.
+   * Persistent system / metadata accumulator — mirrors C# EdiabasNet
+   * `_resultSysDict`. Survives across jobs (loaded SGBD's INFO outputs,
+   * the most-recent JOB_STATUS, IDENT-resolved VARIANTE). The per-job
+   * set-0 view returned by `executeJob` is materialised from this map
+   * via {@link buildSystemSet}; mutating this map between jobs is the
+   * intended way for SGBDs / loaders to influence what later jobs see
+   * at set 0.
    */
   getSystemResults(): Map<string, EdiabasJobResult> {
     return this.systemResults;
+  }
+
+  /**
+   * Build the per-job system result set (the set that lives at index 0
+   * of `executeJob`'s return). Mirrors C# `CreateSystemResultDict`:
+   * always-present fields (`VARIANTE`, `OBJECT`, `JOBNAME`, `SAETZE`,
+   * plus `GRUPPE` / `FAMILIE` on min-version 760) are seeded first,
+   * then everything from the persistent {@link systemResults}
+   * accumulator merges in without overwriting the seeded keys.
+   * `SAETZE` is the **data**-set count — i.e. the length of
+   * `_resultSetsTemp` BEFORE the system set is prepended, matching
+   * native EDIABAS.
+   *
+   * `GRUPPE` and `FAMILIE` always emit (we target modern EDIABAS).
+   * Empty when the SGBD wasn't loaded via a `.grp` (GRUPPE) or IDENT
+   * didn't emit FAMILIE — C# does the same with its
+   * `GroupName` / `FamilyName` defaulting to `string.Empty`.
+   */
+  private buildSystemSet(jobName: string, dataSetCount: number): EdiabasJobResult[] {
+    const basename = extractVariantName(this.prgPath ?? "");
+    const entries = new Map<string, EdiabasJobResult>();
+    entries.set("VARIANTE", { name: "VARIANTE", type: "string", value: basename });
+    entries.set("OBJECT", { name: "OBJECT", type: "string", value: basename });
+    entries.set("JOBNAME", { name: "JOBNAME", type: "string", value: jobName });
+    entries.set("SAETZE", { name: "SAETZE", type: "int", value: dataSetCount });
+    entries.set("GRUPPE", { name: "GRUPPE", type: "string", value: this.groupName });
+    entries.set("FAMILIE", { name: "FAMILIE", type: "string", value: this.familyName });
+    for (const [key, value] of this.systemResults) {
+      const upper = key.toUpperCase();
+      if (!entries.has(upper)) {
+        entries.set(upper, { ...value, name: value.name });
+      }
+    }
+    return Array.from(entries.values());
   }
 
   /**
@@ -808,22 +916,34 @@ export class Ediabas {
       ) {
         this.identRan = true;
         let variantName: string | undefined;
+        let family: string | undefined;
         for (const set of mapped) {
           for (const r of set) {
             if (r.name.toUpperCase() === "VARIANTE" && r.value) {
               variantName = String(r.value);
+            } else if (r.name.toUpperCase() === "FAMILIE" && r.value) {
+              family = String(r.value);
             }
           }
         }
         if (variantName) {
+          if (family) this.familyName = family.toLowerCase();
           const groupBaseName = stripExtension(basenameOf(this.prgPath ?? "")).toLowerCase();
           if (groupBaseName) {
-            this.groupMappingCache.set(groupBaseName, variantName.toLowerCase());
+            this.groupMappingCache.set(groupBaseName, {
+              variant: variantName.toLowerCase(),
+              family: this.familyName,
+            });
           }
           await this.swapToVariant(variantName);
         }
       }
-      return mapped;
+      // Prepend the per-job system set so the returned shape matches
+      // C# `_resultSets`: index 0 is the system set, 1..N are data
+      // sets. `SAETZE` carries the data-set count (`mapped.length`)
+      // before the prepend — same as native EDIABAS.
+      const systemSet = this.buildSystemSet(jobName, mapped.length);
+      return [systemSet, ...mapped];
     } catch (err) {
       if (err instanceof EdiabasError) {
         throw err;

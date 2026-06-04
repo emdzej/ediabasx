@@ -1,18 +1,20 @@
 # ediabasx-native
 
 C11 port of the BMW BEST/2 interpreter — embedded-friendly companion to the
-TypeScript reference at `packages/interpreter/`.
+TypeScript reference at `packages/interpreter/`. The wrapper layer in
+`ediabas.h` / `ediabas.c` mirrors the TS `Ediabas` class (one layer above
+the pure interpreter).
 
 ## What's here
 
 | Path | Purpose |
 |------|---------|
-| `include/ediabasx/` | Public headers. `vm.h` is the entry point. |
-| `src/` | Portable VM core. No POSIX / no filesystem assumptions. |
-| `src/opcodes_*.c` | BEST/2 opcode handlers, grouped by category. |
+| `include/ediabasx/` | Public headers. `vm.h` is the low-level interpreter; `ediabas.h` is the higher-level wrapper (the recommended entry point). |
+| `src/vm.c`, `src/opcodes_*.c` | Portable VM core + BEST/2 opcode handlers. No POSIX / no filesystem assumptions. |
+| `src/ediabas.c` | `edxn_ediabas_t` wrapper — persistent system results, INIT/IDENT bootstrap, variant swap, materialised `[system_set, …data_sets]` result shape. |
 | `platform/posix/` | POSIX-specific backends (serial K-line, file loaders). |
 | `platform/esp32/` | Reserved for the ESP32 dongle port. Empty for now. |
-| `test/` | Unit tests + `edxn_run` CLI driver. |
+| `test/` | Unit tests + `edxn_run` CLI driver (uses the wrapper). |
 
 ## Build
 
@@ -33,10 +35,36 @@ cd build && ctest --output-on-failure
 ./build/edxn_run --port /dev/cu.usbserial-XXXX path/to/MS420DS0.prg IDENT
 ```
 
-The runner dumps PRG metadata + tables, then executes the named job. With a
-`.grp` group file it runs IDENTIFIKATION first, looks up `VARIANTE` in the
-result set, loads the resolved variant's `.prg` from the same directory, and
-re-dispatches the job — mirrors the TS `Ediabas.runIdentAfterInit` flow.
+The runner dumps PRG metadata + tables, then executes the named job through
+the `edxn_ediabas_t` wrapper. With a `.grp` group file the wrapper runs
+INITIALISIERUNG + IDENTIFIKATION first, looks up `VARIANTE` in the IDENT
+results, calls the registered `sgbd_loader` to fetch the resolved
+variant's `.prg` from the same directory, swaps the variant in, and
+re-dispatches subsequent jobs against it — mirrors TS
+`Ediabas.runIdentAfterInit` + `swapToVariant`.
+
+Output uses the **C-API-compatible result shape**: a labelled `System set`
+section (VARIANTE/OBJECT/JOBNAME/SAETZE + persistent metadata from the
+SGBD's INFO job and IDENT-resolved variant), followed by `Data set N/M`
+sections — one per emission in `result_sets[]` plus the trailing
+`current_results` batch if non-empty.
+
+## Library layering
+
+```
+edxn_ediabas_t        ← recommended entry point (C-API-compatible result shape)
+  ↓ uses
+edxn_vm_t             ← pure BEST/2 interpreter (data sets only, no system set)
+```
+
+The wrapper owns: persistent `system_results` (ECU/ORIGIN/REVISION/AUTHOR/
+COMMENT/PACKAGE/SPRACHE/JOB_STATUS + IDENT-resolved VARIANTE), the loaded
+PRG, the group→variant mapping cache, INIT/IDENT bootstrap state. Per job
+it materialises `[system_set, …data_sets]` into `built_sets` and exposes
+that array via `edxn_ediabas_get_sets()`. The interpreter (`edxn_vm_t`)
+stays at the bytecode-execution layer and is also publicly callable
+(`edxn_vm_exec`, `edxn_vm_exec_raw`) for embedders that don't want the
+Ediabas-layer state machine. New code should prefer the wrapper.
 
 ## Architecture
 
@@ -118,13 +146,19 @@ BMW ships two file types:
   probes the ECU through a sequence of concepts (CAN, DS1, DS2, …) and emits
   `VARIANTE = "MS420DS0"` once one matches.
 
-`edxn_vm_exec` detects a GRP at first call (header `version == 0`), runs
-INITIALISIERUNG + IDENTIFIKATION, scans for `VARIANTE`, and asks the
-registered `sgbd_loader` to produce the matching `.prg`. The variant prg
-replaces `vm->prg`; the originally requested job is then looked up in the
-variant's job table.
+The wrapper (`edxn_ediabas_load_sgbd` + first `edxn_ediabas_exec`) detects
+a GRP via header `version == 0`, runs INITIALISIERUNG + IDENTIFIKATION,
+scans for `VARIANTE`, and asks the registered `sgbd_loader` to produce the
+matching `.prg`. The variant prg replaces the wrapper's `prg`; the
+originally requested job is then looked up in the variant's job table.
+The group → variant mapping is cached, so a subsequent `load_sgbd` of the
+same `.grp` short-circuits straight to the variant `.prg` (matches TS
+`Ediabas.groupMappingCache`).
 
-If no `sgbd_loader` is registered, the GRP runs as-is — useful for embedded
+`edxn_vm_exec` (legacy direct VM entry point) does the same auto-bootstrap
+internally — kept around so existing consumers that haven't migrated to
+the wrapper don't break. New code should use the wrapper. If no
+`sgbd_loader` is registered, the GRP runs as-is — useful for embedded
 hosts that ship a single hard-linked variant.
 
 ### tabsetex external tables
@@ -151,10 +185,32 @@ Future targets (ESP32, bare-metal) plug in here by implementing the same
 transport + loader interfaces. See `include/ediabasx/transport.h` and the
 loader signatures in `include/ediabasx/vm.h`.
 
+## Result-set shape
+
+`edxn_ediabas_exec` materialises results into `built_sets` matching the
+native EDIABAS C-API shape (also used by the TS `Ediabas` class and C#
+`EdiabasNet._resultSets`):
+
+| Index | Content |
+|-------|---------|
+| `sets[0]` | **System set.** Always present. `VARIANTE`, `OBJECT`, `JOBNAME`, `SAETZE` (= data-set count), then merge from the persistent `system_results` accumulator (ECU/ORIGIN/REVISION/AUTHOR/COMMENT/PACKAGE/SPRACHE/JOB_STATUS, IDENT-resolved VARIANTE, …). |
+| `sets[1..N]` | **Data sets.** One per `enewset`; the trailing `current_results` batch if non-empty. Multi-record jobs (e.g. `FS_LESEN`) emit one set per record. |
+
+Access via:
+
+- `edxn_ediabas_get_sets(eb, &count)` — full array (including system set at `[0]`).
+- `edxn_ediabas_result_sets(eb)` — **data**-set count (i.e. `count - 1`). Matches `apiResultSets`.
+- `edxn_ediabas_find_result(eb, name, set_index)` — `set_index = 0` reads the system set, `set_index >= 1` reads data sets.
+- `edxn_ediabas_get_system_results(eb)` — the **persistent** accumulator (analogue of C# `_resultSysDict`). Survives across jobs; the per-job set-0 view is materialised fresh from it via `build_system_set` (mirrors `CreateSystemResultDict`).
+
+The raw `edxn_vm_t.result_sets[]` (data sets only) and `edxn_vm_t.system_results` (per-job accumulator wiped on every `edxn_vm_reset`) remain accessible at the interpreter layer for embedders that don't want the wrapper's bookkeeping.
+
 ## Status vs the TS reference
 
 The native port targets feature-parity with the TS interpreter for the
-opcode dispatch surface. Two ongoing gaps:
+opcode dispatch surface, and now also with the TS `Ediabas` wrapper
+class for the result-shape / system-set / variant-swap semantics. Three
+ongoing gaps:
 
 1. **Comm transport surface** is a subset of the TS
    `CommunicationInterface` — frequent-mode, port write, programming
@@ -164,6 +220,12 @@ opcode dispatch surface. Two ongoing gaps:
 2. **No simulation backend** — the TS port has a `SimulationInterface`
    that records and replays job traffic; the native port doesn't ship one
    yet. Use a real ECU or build one against the `edxn_transport_t` interface.
+3. **No cooperative break / cancel signal** on the C VM yet. TS now
+   has `Interpreter.requestBreak()` that aborts the in-flight job
+   with `EDIABAS_BIP_0008`; the higher-layer `EmbeddedEdiabas.break()`
+   / `EdiabasServer` break method don't forward to it yet (see those
+   classes' `TODO(break)` comments). The native port doesn't expose
+   an equivalent.
 
 The TS interpreter and TypeScript Ediabas class remain the source of truth
 for every opcode's semantics. If you find a behavioural mismatch, the TS

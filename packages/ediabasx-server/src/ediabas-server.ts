@@ -78,6 +78,15 @@ export class EdiabasServer {
   private readonly logger: EdiabasServerLogger;
 
   private ediabas: Ediabas | null = null;
+  /**
+   * Tracks the SGBD currently loaded into the shared `Ediabas` so
+   * `handleJob` can skip a redundant `loadSgbd` when the same ECU is
+   * targeted by consecutive jobs. Without this, every job would reset
+   * `initialized` / `identRan` / `systemResults` inside `Ediabas` and
+   * force INITIALISIERUNG + IDENT to re-run against the ECU — exactly
+   * what the persistent-instance contract is supposed to avoid.
+   */
+  private loadedSgbdPath: string | null = null;
   private lastResults: EdiabasJobResult[][] = [];
   private lastError: { code: number; text: string } = { code: 0, text: "" };
   private currentState: EdiabasState = "ready";
@@ -139,6 +148,7 @@ export class EdiabasServer {
         await this.ediabas.disconnect();
       } catch { /* best effort */ }
       this.ediabas = null;
+      this.loadedSgbdPath = null;
     }
 
     if (this.wsServer) {
@@ -389,23 +399,45 @@ export class EdiabasServer {
 
   // ---- Method handlers ----
 
+  /**
+   * Lazily create the single Ediabas instance the server owns for its
+   * lifetime, mirroring the original (single-process) Ediabas class:
+   * one loaded SGBD / one transport / one accumulator across all
+   * clients. Subsequent client `init` calls are idempotent — they
+   * just ensure the transport is connected without recreating state
+   * (loaded SGBD, INITIALISIERUNG flag, group cache, systemResults).
+   *
+   * Per-job state (`lastResults`, `lastError`, `currentState`) is
+   * reset because that mirrors the per-API-handle semantics a client
+   * expects from `apiInit`. The shared `Ediabas` itself is preserved.
+   */
   private async handleInit(): Promise<{ ok: true }> {
-    this.ediabas = new Ediabas({
-      ecuPath: this.sgbdPath,
-      transport: this.iface,
-    });
-    await this.ediabas.connect();
+    if (!this.ediabas) {
+      this.ediabas = new Ediabas({
+        ecuPath: this.sgbdPath,
+        transport: this.iface,
+      });
+    }
+    if (!this.ediabas.isConnected()) {
+      await this.ediabas.connect();
+    }
     this.lastResults = [];
     this.lastError = { code: 0, text: "" };
     this.currentState = "ready";
     return { ok: true };
   }
 
+  /**
+   * Per-client `end` is a no-op on the shared `Ediabas`. Tearing it
+   * down here would break any other connected client mid-session, and
+   * recreating it on the next `init` would drop the cached SGBD /
+   * INITIALISIERUNG state. Server lifecycle (`stop()`) is what
+   * actually disconnects the transport.
+   *
+   * Per-handle state is still cleared so the calling client sees a
+   * fresh slate on its next `init`.
+   */
   private async handleEnd(): Promise<{ ok: true }> {
-    if (this.ediabas) {
-      await this.ediabas.disconnect();
-      this.ediabas = null;
-    }
     this.lastResults = [];
     this.lastError = { code: 0, text: "" };
     this.currentState = "ready";
@@ -427,7 +459,10 @@ export class EdiabasServer {
 
     try {
       const sgbdPath = resolveSgbd(ecu, this.sgbdPath);
-      await this.ediabas.loadSgbd(sgbdPath);
+      if (sgbdPath !== this.loadedSgbdPath) {
+        await this.ediabas.loadSgbd(sgbdPath);
+        this.loadedSgbdPath = sgbdPath;
+      }
 
       const params = paramsStr ? paramsStr.split(";") : [];
       const rawResults = await this.ediabas.executeJob(jobName, {
@@ -448,6 +483,23 @@ export class EdiabasServer {
     }
   }
 
+  /**
+   * TODO(break): this is a stub. Native EDIABAS `apiBreak` aborts the
+   * **currently-running** job (analogue of `_jobStdExit` in C#); we
+   * just flip `currentState`. Two pieces need to land before this is
+   * real:
+   *
+   *   1. The interpreter needs a cooperative cancel signal (check
+   *      `context.breakRequested` between steps and unwind cleanly).
+   *      `Ediabas.executeJob` would propagate the abort up to the
+   *      caller of `handleJob`.
+   *   2. **`break` must bypass `enqueue`.** Routing it through the
+   *      same queue as `job` means it can only run AFTER the job it's
+   *      trying to interrupt finishes — which defeats the point. The
+   *      dispatcher in `handleMessage` should special-case `"break"`
+   *      and run it inline, signalling the in-flight job instead of
+   *      queuing behind it.
+   */
   private async handleBreak(): Promise<{ ok: true }> {
     this.currentState = "break";
     return { ok: true };
@@ -702,6 +754,8 @@ function convertResultSet(results: EdiabasJobResult[]): EdiabasResultSet {
         ? Array.from(r.value)
         : r.value ?? "",
     };
+    if (r.unit !== undefined) entry.unit = r.unit;
+    if (r.comment !== undefined) entry.comment = r.comment;
     set[r.name] = entry;
   }
   return set;

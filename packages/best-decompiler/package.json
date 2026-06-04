@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-best-decompiler",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "BEST/2 near-source decompiler for BMW EDIABAS PRG/GRP files.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -12,6 +12,7 @@ add_library(ediabasx
   src/flags.c
   src/stack.c
   src/vm.c
+  src/ediabas.c
   src/opcodes_arith.c
   src/opcodes_flow.c
   src/opcodes_string.c
@@ -44,6 +45,10 @@ if(EDXN_BUILD_TESTS)
   add_executable(test_vm test/test_vm.c)
   target_link_libraries(test_vm ediabasx)
   add_test(NAME vm_core COMMAND test_vm)
+
+  add_executable(test_ediabas test/test_ediabas.c)
+  target_link_libraries(test_ediabas ediabasx)
+  add_test(NAME ediabas_wrapper COMMAND test_ediabas)
 
   add_executable(edxn_run test/run.c)
   target_link_libraries(edxn_run ediabasx)

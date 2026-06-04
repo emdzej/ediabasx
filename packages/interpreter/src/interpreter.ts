@@ -1152,6 +1152,19 @@ export class Interpreter {
   private context: InterpreterState | null = null;
   private readonly tableRegistry: ReturnType<typeof createTableRegistry>;
   private tableLoader?: (baseFileName: string) => ReturnType<typeof createTableRegistry> | undefined;
+  /**
+   * Set by {@link requestBreak} to ask the step loop to abort the
+   * currently-running job at the next safe point. The flag is read at
+   * the top of {@link step}; if set, step throws `EDIABAS_BIP_0008`
+   * ("user break") and clears the flag so the next `execute` call
+   * starts fresh. Mirrors native EDIABAS `apiBreak` semantics.
+   *
+   * Cooperative cancellation: an `xrecv` already in flight will only
+   * unwind once its underlying timeout fires (or transport returns).
+   * The break flag is sampled *between* instructions, not inside
+   * blocking I/O.
+   */
+  private breakRequested = false;
 
   constructor(prg: PrgFile) {
     this.prg = prg;
@@ -1159,7 +1172,22 @@ export class Interpreter {
     this.tableRegistry = createTableRegistry(prg.tables);
   }
 
+  /**
+   * Ask the step loop to abort the running job at the next safe
+   * point. Idempotent — re-calling before the next step is harmless.
+   * The flag is cleared automatically when the break fires (or when
+   * a fresh {@link start} kicks off a new job), so callers don't need
+   * to reset state.
+   */
+  requestBreak(): void {
+    this.breakRequested = true;
+  }
+
   start(jobName: string, options: ExecutionOptions = {}): void {
+    /* A fresh job starts with no pending break. A break set after the
+       previous job halted but before this start is intentionally
+       dropped — `apiBreak` only targets in-flight execution. */
+    this.breakRequested = false;
     const job = resolveJobEntry(this.prg, jobName);
     const binaryOffset = resolveBinaryJobOffset(this.prg, jobName);
     // Prefer binaryOffset for EDIABAS OBJECT format (job.offset may be 0 placeholder)
@@ -1250,6 +1278,20 @@ export class Interpreter {
     const context = assertContext(this.context);
     if (context.halted) {
       return false;
+    }
+
+    /* Honour a pending break request before decoding the next
+       instruction. Throws `EDIABAS_BIP_0008` to match native EDIABAS
+       `apiBreak` semantics; the executeJob caller surfaces this as a
+       rejected promise. Flag is cleared so a subsequent `start` for
+       a different job isn't tainted. */
+    if (this.breakRequested) {
+      this.breakRequested = false;
+      context.halted = true;
+      throw new EdiabasError(
+        EdiabasErrorCodes.EDIABAS_BIP_0008,
+        "Job aborted by break request",
+      );
     }
 
     const instructionPc = context.pc;

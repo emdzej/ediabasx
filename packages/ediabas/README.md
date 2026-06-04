@@ -36,12 +36,22 @@ await ediabas.connect();
 const sets = await ediabas.executeJob("FS_LESEN");
 await ediabas.disconnect();
 
-// `sets` is EdiabasJobResult[][] — one entry per result set emitted by
-// the bytecode. Multi-record jobs like FS_LESEN return one set per fault
-// record, plus a trailing JOB_STATUS set.
-for (const [i, set] of sets.entries()) {
-  console.log(`Set ${i + 1}/${sets.length}`);
-  for (const r of set) console.log(`  ${r.name} (${r.type}) = ${r.value}`);
+// `sets` is EdiabasJobResult[][] in the **native EDIABAS C-API shape**:
+//
+//   sets[0]    — system set (VARIANTE, OBJECT, JOBNAME, SAETZE + the
+//                persistent metadata accumulator — ECU, ORIGIN, REVISION,
+//                AUTHOR, COMMENT, PACKAGE, SPRACHE, JOB_STATUS, …).
+//                Same content native EDIABAS exposes via
+//                `apiResultText(name, 0, …)`.
+//   sets[1..N] — data sets emitted by the bytecode. Multi-record jobs
+//                like FS_LESEN return one set per fault record.
+//
+// So sets.length === data-set-count + 1 (system set at index 0).
+// `sets[0].find(r => r.name === "SAETZE")?.value` gives the data-set
+// count, mirroring C# `EdiabasNet._resultSets.Count - 1`.
+for (let i = 1; i < sets.length; i++) {
+  console.log(`Data set ${i}/${sets.length - 1}`);
+  for (const r of sets[i]) console.log(`  ${r.name} (${r.type}) = ${r.value}`);
 }
 ```
 
@@ -80,11 +90,25 @@ const ediabas = await createFromConfigFile("./ediabas.config.json");
 
 ## What you get
 
-- `loadSgbd(filename)` — parse a PRG/GRP file from `ecuPath`
-- `executeJob(name, { params })` — run a BEST2 job, get all emitted result sets
+- `loadSgbd(filename)` — parse a PRG/GRP file from `ecuPath`. For `.grp` files, runs INFO at load time to seed the persistent system-results accumulator.
+- `executeJob(name, { params })` — run a BEST2 job, returns `[systemSet, ...dataSets]` (see [Result-set shape](#result-set-shape) below).
 - `connect()` / `disconnect()` — transport lifecycle
 - `getJobs()` / `getJob(name)` — job introspection
-- Auto-runs the SGBD's `INITIALISIERUNG` bootstrap on the first job (mirrors EDIABAS host behaviour)
+- `getSystemResults()` — the **persistent** system-results map (`_resultSysDict` analogue). Survives across jobs; holds INFO outputs, IDENT-resolved VARIANTE, latest JOB_STATUS.
+- Auto-runs the SGBD's `INITIALISIERUNG` bootstrap on the first job + `IDENTIFIKATION` / variant swap for `.grp` files (mirrors EDIABAS host behaviour).
+
+### Result-set shape
+
+`executeJob` returns `EdiabasJobResult[][]` in the native EDIABAS C-API shape — index 0 is **always** the system set, indices 1..N are the data sets emitted by the bytecode. Matches C# `EdiabasNet._resultSets` exactly.
+
+| Index    | Content                                                                                                  | C-API equivalent                  |
+|----------|----------------------------------------------------------------------------------------------------------|-----------------------------------|
+| `sets[0]` | System set — `VARIANTE`, `OBJECT`, `JOBNAME`, `SAETZE` (= data-set count) + merge from the persistent system-results map (ECU/ORIGIN/REVISION/AUTHOR/COMMENT/PACKAGE/SPRACHE/JOB_STATUS) | `apiResultText(name, 0, …)`       |
+| `sets[i]` (i ≥ 1) | One emission per `enewset`, plus a trailing set with anything `ergX` wrote after the last `enewset` (e.g. `JOB_STATUS = "OKAY"`). For multi-record jobs like `FS_LESEN`, one set per record. | `apiResultText(name, i, …)`       |
+
+The system set is materialised fresh per job from the persistent accumulator (`getSystemResults()`) plus four always-present fields. Mutating the persistent map between jobs (advanced; SGBDs do this via `ergsysi`) influences what the next job sees at `sets[0]`.
+
+`EdiabasJobResult` carries `name`, `type`, `value`, and optional `unit` / `comment` — all five are preserved when the result travels over the JSON-RPC wire to `EdiabasClient`.
 
 ### Parameter channels — string vs. binary
 

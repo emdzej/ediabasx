@@ -20,6 +20,8 @@ export interface EdiabasResultEntry {
   name: string;
   type: EdiabasResultType;
   value: string | number | number[];
+  unit?: string;
+  comment?: string;
 }
 
 export type EdiabasResultSet = Record<string, EdiabasResultEntry>;

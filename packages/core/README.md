@@ -15,8 +15,8 @@ pnpm add @emdzej/ediabasx-core
 | `cp1252ToUtf8(bytes)` / `utf8ToCp1252(str)` | Round-trip BMW's Windows-1252 strings to/from JS strings |
 | `xorDecrypt(bytes, key)` / `xorEncrypt(bytes, key)` | PRG/GRP payload de/encryption (BEST2 uses key `0xF7`) |
 | `EdiabasError`, `EdiabasErrorCodes` | Typed errors mirroring the C# `ErrorCodes` enum (`EDIABAS_IFH_*`, `EDIABAS_BIP_*`, `EDIABAS_SYS_*`, …) |
-| `IEdiabas` interface | Unified contract for local (`EmbeddedEdiabas`) and remote (`EdiabasClient`) usage |
-| `EdiabasJobResponse`, `EdiabasResultSet`, `EdiabasResultEntry` | Wire-format types for JSON-RPC job results |
+| `IEdiabas` interface | Unified contract for local (`EmbeddedEdiabas`) and remote (`EdiabasClient`) usage. Methods mirror the native EDIABAS C API: `init`/`end`/`job`, plus `resultSets()` / `resultText/Int/Real/Binary(name, set)` accessors with **set 0 = system set, set 1..N = data sets** (matches C# `EdiabasNet`). |
+| `EdiabasJobResponse`, `EdiabasResultSet`, `EdiabasResultEntry` | Wire-format types for JSON-RPC job results. `EdiabasJobResponse.sets[0]` is always the system set (VARIANTE/OBJECT/JOBNAME/SAETZE + persistent metadata); `sets[1..N]` are the data sets emitted by the bytecode. `EdiabasResultEntry` carries `name`/`type`/`value` plus optional `unit`/`comment`. |
 | `EdiabasResultType`, `EdiabasState` | Enums for result types and session state |
 | Constants & type definitions | Stable shapes shared by parser, interpreter, transports |
 

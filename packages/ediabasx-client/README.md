@@ -24,18 +24,30 @@ const client = new EdiabasClient({
 await client.init();
 const response = await client.job("IKE", "IDENT");
 
-for (const set of response.sets) {
-  for (const [name, entry] of Object.entries(set)) {
+// `response.sets` matches the native EDIABAS C-API shape (see
+// @emdzej/ediabasx-ediabas README — "Result-set shape"):
+//
+//   sets[0]    — system set (VARIANTE, OBJECT, JOBNAME, SAETZE +
+//                persistent metadata: ECU, ORIGIN, REVISION, JOB_STATUS, …)
+//   sets[1..N] — data sets emitted by the bytecode
+for (let i = 1; i < response.sets.length; i++) {
+  for (const [name, entry] of Object.entries(response.sets[i])) {
     console.log(`${name}: ${entry.value}`);
   }
 }
 
-// Granular accessors (EDIABAS C API compat)
-console.log(client.resultText("VARIANTE", 0));
+// Granular accessors mirror the native EDIABAS C API:
+//   resultText("VARIANTE", 0, …) reads from the system set
+//   resultText(name, 1..N, …)    reads from data sets 1..N
+//   resultSets()                 returns the **data**-set count
+//                                (== sets.length - 1), matching apiResultSets
+console.log(client.resultText("VARIANTE", 0));  // resolved variant name
 console.log(client.resultSets());
 
 await client.end();
 ```
+
+Each `EdiabasResultEntry` carries `name`, `type`, `value`, plus optional `unit` and `comment` — all five fields propagate through the JSON-RPC wire untouched.
 
 The WebSocket transport uses `globalThis.WebSocket` (Node 22+ / browsers) — no native dependencies. TCP uses a dynamic `import("node:net")` so the module stays browser-bundleable when only the WebSocket path is used.
 

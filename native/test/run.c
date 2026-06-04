@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ediabasx/prg.h"
-#include "ediabasx/vm.h"
+#include "ediabasx/ediabas.h"
 #include "ediabasx/serial.h"
 
 static uint8_t *read_file(const char *path, size_t *out_len) {
@@ -49,6 +49,59 @@ static void print_prg_info(const edxn_prg_t *prg) {
     }
 }
 
+static void print_result_entry(const edxn_result_entry_t *e) {
+    printf("  %-24s ", e->name);
+    switch (e->type) {
+    case EDXN_TYPE_INT:
+    case EDXN_TYPE_LONG:
+    case EDXN_TYPE_CHAR:
+    case EDXN_TYPE_WORD:
+    case EDXN_TYPE_DWORD:
+    case EDXN_TYPE_BYTE:
+        printf("= %lld\n", (long long)e->value.i);
+        break;
+    case EDXN_TYPE_FLOAT:
+        printf("= %f\n", e->value.f);
+        break;
+    case EDXN_TYPE_STRING:
+        printf("= \"%.*s\"\n", (int)e->value.bin.len, e->value.bin.data);
+        break;
+    case EDXN_TYPE_BINARY:
+        printf("= [%zu bytes]", e->value.bin.len);
+        if (e->value.bin.len > 0 && e->value.bin.len <= 32) {
+            printf(" ");
+            for (size_t j = 0; j < e->value.bin.len; j++)
+                printf("%02X", e->value.bin.data[j]);
+        }
+        printf("\n");
+        break;
+    }
+}
+
+static void print_result_sets(const edxn_ediabas_t *eb) {
+    size_t count = 0;
+    const edxn_result_set_t *sets = edxn_ediabas_get_sets(eb, &count);
+    if (count == 0) {
+        printf("Results: (none)\n");
+        return;
+    }
+
+    /* Set 0 is the system set (VARIANTE / OBJECT / JOBNAME / SAETZE +
+       persistent metadata). Sets 1..N-1 are the job's data sets, in
+       emission order. Matches C# `_resultSets` indexing. */
+    printf("Result sets (%zu data, plus system set):\n", count - 1);
+    printf("  System set:\n");
+    for (size_t i = 0; i < sets[0].count; i++) {
+        print_result_entry(&sets[0].entries[i]);
+    }
+    for (size_t s = 1; s < count; s++) {
+        printf("  Data set %zu/%zu:\n", s, count - 1);
+        for (size_t i = 0; i < sets[s].count; i++) {
+            print_result_entry(&sets[s].entries[i]);
+        }
+    }
+}
+
 int main(int argc, char *argv[]) {
     const char *port = NULL;
     int i = 1;
@@ -76,15 +129,20 @@ int main(int argc, char *argv[]) {
     uint8_t *data = read_file(prg_path, &len);
     if (!data) return 1;
 
-    edxn_prg_t prg;
-    edxn_error_t err = edxn_prg_parse(&prg, data, len);
+    /* Parse once into a heap-allocated PRG. The wrapper takes ownership
+       at load_sgbd time and frees both prg and data on free; pre-load
+       we keep a local pointer for `print_prg_info`. */
+    edxn_prg_t *prg = (edxn_prg_t *)calloc(1, sizeof(*prg));
+    if (!prg) { free(data); return 1; }
+    edxn_error_t err = edxn_prg_parse(prg, data, len);
     if (err != EDXN_OK) {
         fprintf(stderr, "Parse error: %d\n", err);
+        free(prg);
         free(data);
         return 1;
     }
 
-    print_prg_info(&prg);
+    print_prg_info(prg);
 
     if (job) {
         edxn_serial_t *serial = NULL;
@@ -94,7 +152,8 @@ int main(int argc, char *argv[]) {
             serial = edxn_serial_create(port);
             if (!serial) {
                 fprintf(stderr, "Failed to create serial transport for %s\n", port);
-                edxn_prg_free(&prg);
+                edxn_prg_free(prg);
+                free(prg);
                 free(data);
                 return 1;
             }
@@ -103,68 +162,60 @@ int main(int argc, char *argv[]) {
 
         printf("\n--- Running job: %s(%s) ---\n", job, args);
 
-        edxn_vm_t vm;
-        err = edxn_vm_init(&vm, &prg);
+        edxn_ediabas_t eb;
+        err = edxn_ediabas_init(&eb);
         if (err != EDXN_OK) {
-            fprintf(stderr, "VM init error: %d\n", err);
-        } else {
-            if (transport)
-                vm.transport = transport;
-
-            /* Derive ECU directory from the prg_path so loaders can find
-               sibling .prg / .grp / .tab files for variant resolution and
-               tabsetex. */
-            char ecu_dir[1024];
-            strncpy(ecu_dir, prg_path, sizeof(ecu_dir) - 1);
-            ecu_dir[sizeof(ecu_dir) - 1] = '\0';
-            char *slash = strrchr(ecu_dir, '/');
-            if (slash) *slash = '\0'; else ecu_dir[0] = '.', ecu_dir[1] = '\0';
-
-            edxn_vm_set_sgbd_loader(&vm, edxn_vm_posix_sgbd_loader, ecu_dir);
-            edxn_vm_set_table_loader(&vm, edxn_vm_posix_table_loader, ecu_dir);
-
-            err = edxn_vm_exec(&vm, job, args);
-            if (err != EDXN_OK)
-                fprintf(stderr, "Exec error: %d\n", err);
-
-            printf("Results (%zu entries):\n", vm.current_results.count);
-            for (size_t r = 0; r < vm.current_results.count; r++) {
-                edxn_result_entry_t *e = &vm.current_results.entries[r];
-                printf("  %-24s ", e->name);
-                switch (e->type) {
-                case EDXN_TYPE_INT:
-                case EDXN_TYPE_LONG:
-                case EDXN_TYPE_CHAR:
-                case EDXN_TYPE_WORD:
-                case EDXN_TYPE_DWORD:
-                case EDXN_TYPE_BYTE:
-                    printf("= %lld\n", (long long)e->value.i);
-                    break;
-                case EDXN_TYPE_FLOAT:
-                    printf("= %f\n", e->value.f);
-                    break;
-                case EDXN_TYPE_STRING:
-                    printf("= \"%.*s\"\n", (int)e->value.bin.len, e->value.bin.data);
-                    break;
-                case EDXN_TYPE_BINARY:
-                    printf("= [%zu bytes]", e->value.bin.len);
-                    if (e->value.bin.len > 0 && e->value.bin.len <= 32) {
-                        printf(" ");
-                        for (size_t j = 0; j < e->value.bin.len; j++)
-                            printf("%02X", e->value.bin.data[j]);
-                    }
-                    printf("\n");
-                    break;
-                }
-            }
-            edxn_vm_free(&vm);
+            fprintf(stderr, "Ediabas init error: %d\n", err);
+            edxn_prg_free(prg);
+            free(prg);
+            free(data);
+            if (serial) edxn_serial_destroy(serial);
+            return 1;
         }
 
-        if (serial)
-            edxn_serial_destroy(serial);
+        if (transport) {
+            edxn_ediabas_set_transport(&eb, transport);
+        }
+
+        /* Derive ECU directory from the prg_path so loaders can find
+           sibling .prg / .grp / .tab files for variant resolution and
+           tabsetex. */
+        static char ecu_dir[1024];
+        strncpy(ecu_dir, prg_path, sizeof(ecu_dir) - 1);
+        ecu_dir[sizeof(ecu_dir) - 1] = '\0';
+        char *slash = strrchr(ecu_dir, '/');
+        if (slash) *slash = '\0'; else ecu_dir[0] = '.', ecu_dir[1] = '\0';
+
+        edxn_ediabas_set_sgbd_loader(&eb, edxn_vm_posix_sgbd_loader, ecu_dir);
+        edxn_ediabas_set_table_loader(&eb, edxn_vm_posix_table_loader, ecu_dir);
+
+        /* Hand prg + data ownership to the wrapper. Both must NOT be
+           freed locally from this point — the wrapper frees them on
+           load_sgbd (next load) and edxn_ediabas_free. */
+        err = edxn_ediabas_load_sgbd(&eb, prg, data, prg_path);
+        if (err != EDXN_OK) {
+            fprintf(stderr, "load_sgbd error: %d\n", err);
+            edxn_ediabas_free(&eb);
+            if (serial) edxn_serial_destroy(serial);
+            return 1;
+        }
+        prg = NULL;   /* wrapper owns now */
+        data = NULL;
+
+        err = edxn_ediabas_exec(&eb, job, args);
+        if (err != EDXN_OK)
+            fprintf(stderr, "Exec error: %d\n", err);
+
+        print_result_sets(&eb);
+
+        edxn_ediabas_free(&eb);
+        if (serial) edxn_serial_destroy(serial);
+    } else {
+        /* No job — just info. Wrapper not engaged; free locally. */
+        edxn_prg_free(prg);
+        free(prg);
+        free(data);
     }
 
-    edxn_prg_free(&prg);
-    free(data);
     return 0;
 }
