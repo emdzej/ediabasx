@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-client",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "EdiabasX client — remote (JSON-RPC) and embedded (in-process) implementations of IEdiabas.",
   "type": "module",
   "main": "dist/index.js",

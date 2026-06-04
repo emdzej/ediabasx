@@ -146,12 +146,17 @@ export class EdiabasClient implements IEdiabas {
   }
 
   /**
-   * TODO(break): server-side `handleBreak` is a stub — it just flips
-   * state and doesn't actually abort the running job. See the matching
-   * TODO on `EdiabasServer.handleBreak`. When that lands, the server's
-   * dispatcher also needs to special-case `"break"` to bypass its
-   * request queue, otherwise the abort signal can only fire after the
-   * job it's trying to interrupt finishes.
+   * Abort the in-flight job on the server. Sends a `break` JSON-RPC
+   * request which the server dispatches inline (bypassing its
+   * request queue) and forwards to the underlying `Ediabas.break()`.
+   * The server's `job` call then rejects with `EDIABAS_BIP_0008`
+   * once the interpreter reaches its next instruction boundary —
+   * which surfaces here as that same rejection on the pending
+   * `client.job(...)` promise.
+   *
+   * Cooperative cancel: an `xrecv` already in flight on the server
+   * unwinds only when its timeout fires, so there's a worst-case
+   * latency of `interface.timeoutMs` before the break takes effect.
    */
   async break(): Promise<void> {
     await this.request("break");

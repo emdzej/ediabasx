@@ -315,6 +315,24 @@ export class EdiabasServer {
     const req = request as JsonRpcRequest;
     const id = req.id ?? null;
 
+    /* `break` is the one method that MUST bypass the queue. Native
+       EDIABAS `apiBreak` aborts the currently-running job — if we
+       queue it behind that job's `handleJob` enqueue slot, the break
+       only fires after the job it's trying to interrupt finishes,
+       which defeats the point. Dispatch inline. Other read-only
+       accessors (`state`, `errorCode`, `errorText`) still queue —
+       they observe state set by `handleJob`, so serialising them
+       keeps the snapshot consistent. */
+    if (req.method === "break") {
+      try {
+        const result = this.handleBreakInline();
+        if (id !== null) this.sendResult(channel, id, result);
+      } catch (error) {
+        if (id !== null) this.sendError(channel, id, JSON_RPC_ERRORS.serverError, error);
+      }
+      return;
+    }
+
     if (req.id === undefined) {
       void this.enqueue(async () => {
         try { await this.execute(req, channel); } catch { /* notification — fire and forget */ }
@@ -330,6 +348,19 @@ export class EdiabasServer {
         this.sendError(channel, id, JSON_RPC_ERRORS.serverError, error);
       }
     });
+  }
+
+  /**
+   * Synchronous break — forwards to `Ediabas.break()` which marks the
+   * in-flight interpreter for cancellation. Called inline from
+   * `handleMessage` (bypasses {@link enqueue}). The in-flight
+   * `handleJob` will see the break flag at its next interpreter step
+   * and reject the user's `job` call with `EDIABAS_BIP_0008`.
+   */
+  private handleBreakInline(): { ok: true } {
+    this.ediabas?.break();
+    this.currentState = "break";
+    return { ok: true };
   }
 
   private enqueue(task: () => Promise<void | unknown>): Promise<void | unknown> {
@@ -484,25 +515,15 @@ export class EdiabasServer {
   }
 
   /**
-   * TODO(break): this is a stub. Native EDIABAS `apiBreak` aborts the
-   * **currently-running** job (analogue of `_jobStdExit` in C#); we
-   * just flip `currentState`. Two pieces need to land before this is
-   * real:
-   *
-   *   1. The interpreter needs a cooperative cancel signal (check
-   *      `context.breakRequested` between steps and unwind cleanly).
-   *      `Ediabas.executeJob` would propagate the abort up to the
-   *      caller of `handleJob`.
-   *   2. **`break` must bypass `enqueue`.** Routing it through the
-   *      same queue as `job` means it can only run AFTER the job it's
-   *      trying to interrupt finishes — which defeats the point. The
-   *      dispatcher in `handleMessage` should special-case `"break"`
-   *      and run it inline, signalling the in-flight job instead of
-   *      queuing behind it.
+   * Fallback path — kept so the `case "break":` switch arm in
+   * {@link execute} still has a target if a future caller bypasses
+   * {@link handleMessage}. In practice every `break` RPC is short-
+   * circuited inline by {@link handleBreakInline} before it reaches
+   * the queue; this method is unreachable through the normal
+   * dispatcher.
    */
   private async handleBreak(): Promise<{ ok: true }> {
-    this.currentState = "break";
-    return { ok: true };
+    return this.handleBreakInline();
   }
 
   private handleListSgbd(): { sgbds: { name: string; ext: string }[] } {

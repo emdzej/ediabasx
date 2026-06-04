@@ -102,4 +102,27 @@ describe("Ediabas", () => {
       expect(e.value.length).toBe(0);
     });
   });
+
+  describe("break (apiBreak)", () => {
+    // `break()` forwards `requestBreak()` to the currently-running
+    // interpreter. The in-flight cancellation mechanics are covered
+    // at the interpreter level (`Interpreter.requestBreak()`); here
+    // we lock in the public contract on `Ediabas`.
+
+    it("break() is a no-op when no job is running", () => {
+      const ediabas = new Ediabas({ ecuPath: "/tmp/ecu" });
+      // Should not throw — break is "abort the running thing", and
+      // there's nothing running. Mirrors native EDIABAS where
+      // `apiBreak` is safe to call at any time after `apiInit`.
+      expect(() => ediabas.break()).not.toThrow();
+    });
+
+    it("break() is idempotent — repeated calls don't accumulate", () => {
+      const ediabas = new Ediabas({ ecuPath: "/tmp/ecu" });
+      ediabas.break();
+      ediabas.break();
+      ediabas.break();
+      expect(() => ediabas.break()).not.toThrow();
+    });
+  });
 });

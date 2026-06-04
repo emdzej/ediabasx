@@ -160,17 +160,21 @@ export class EmbeddedEdiabas implements IEdiabas {
   }
 
   /**
-   * TODO(break): stub — flips state but does not abort the running
-   * job. Native EDIABAS `apiBreak` cancels the in-flight job. Two
-   * pieces are missing: (1) a cooperative cancel signal threaded
-   * through the interpreter so `Ediabas.executeJob` can unwind on
-   * demand; (2) **this method must NOT go through `enqueue`** — if
-   * it queues behind the running `job()` it can only fire after that
-   * job finishes, which defeats the point. Keep `break()` un-queued
-   * and signal the in-flight task instead. Mirror of the same TODO
-   * on `EdiabasServer.handleBreak`.
+   * Abort the currently-running job by forwarding `Ediabas.break()`
+   * to the underlying interpreter (which throws `EDIABAS_BIP_0008`
+   * at the next instruction boundary). Native EDIABAS `apiBreak`
+   * semantics.
+   *
+   * Critical: this method **bypasses {@link enqueue}**. Routing it
+   * through the same queue as `job()` would mean `break()` only
+   * fires after the job it's trying to interrupt finishes, which
+   * defeats the whole point. Calling `break()` while no job is in
+   * flight is a no-op on the underlying `Ediabas` (the active-
+   * interpreter pointer is null), so the timing race between "job
+   * starting" and "break landing" is benign.
    */
   async break(): Promise<void> {
+    this.ediabas?.break();
     this.currentState = "break";
   }
 

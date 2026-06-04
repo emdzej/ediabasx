@@ -240,6 +240,15 @@ export class Ediabas {
    */
   private familyName = "";
   /**
+   * The `Interpreter` currently executing inside this `Ediabas` (top-
+   * level user job, INITIALISIERUNG bootstrap, IDENT auto-chain, or
+   * INFO at load time). `break()` forwards `requestBreak()` to this
+   * instance to abort the in-flight bytecode at the next step boundary.
+   * Null when no job is in flight. Mirrors native EDIABAS `apiBreak`
+   * which targets whichever job is currently running.
+   */
+  private activeInterpreter: Interpreter | null = null;
+  /**
    * System / metadata results — VARIANTE (SGBD basename), JOB_STATUS, plus
    * everything emitted by the INFO job (ECU, ORIGIN, REVISION, etc.).
    * Native EDIABAS exposes these alongside per-job result sets so scripts
@@ -715,10 +724,19 @@ export class Ediabas {
     }
     const commAdapter = this.buildCommAdapter();
     const interpreter = new Interpreter(this.prg);
-    const sets = await interpreter.execute(jobName, {
-      parameters,
-      communicationInterface: commAdapter,
-    });
+    /* Expose the in-flight interpreter so `break()` can forward
+       `requestBreak()` to it. Mirrors native EDIABAS `apiBreak`
+       targeting the currently-running job. */
+    this.activeInterpreter = interpreter;
+    let sets;
+    try {
+      sets = await interpreter.execute(jobName, {
+        parameters,
+        communicationInterface: commAdapter,
+      });
+    } finally {
+      if (this.activeInterpreter === interpreter) this.activeInterpreter = null;
+    }
     return sets.map((set) =>
       set.map((r: JobResult) => ({
         name: r.name,
@@ -868,6 +886,10 @@ export class Ediabas {
       parameters,
       communicationInterface: this.buildCommAdapter(),
     };
+    /* Same active-interpreter tracking as `executeJobRaw` — the
+       top-level user job is what `break()` most often wants to
+       abort. */
+    this.activeInterpreter = interpreter;
 
     try {
       const sets = await interpreter.execute(jobName, execOptions);
@@ -952,6 +974,8 @@ export class Ediabas {
         EdiabasErrorCodes.UNKNOWN,
         `Job execution failed: ${(err as Error).message}`
       );
+    } finally {
+      if (this.activeInterpreter === interpreter) this.activeInterpreter = null;
     }
   }
 
@@ -984,6 +1008,24 @@ export class Ediabas {
    */
   isConnected(): boolean {
     return this.commInterface?.isConnected() ?? false;
+  }
+
+  /**
+   * Abort the currently-running job at its next instruction boundary.
+   * Mirrors native EDIABAS `apiBreak` semantics — the in-flight
+   * `executeJob` rejects with `EdiabasError(EDIABAS_BIP_0008)`.
+   *
+   * Cooperative cancel: an `xrecv` or other blocking I/O already in
+   * flight only unwinds once its underlying timeout fires (or the
+   * transport returns). The flag is sampled between bytecode
+   * instructions, not inside transport calls.
+   *
+   * No-op when no job is in flight — break is "abort the running
+   * thing", not "abort the next thing". Callers that need a sticky
+   * cancel should track that state themselves.
+   */
+  break(): void {
+    this.activeInterpreter?.requestBreak();
   }
 
   /**

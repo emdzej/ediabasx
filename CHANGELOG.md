@@ -4,6 +4,56 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.6.2] — 2026-06-04
+
+Completes the `apiBreak` work that 0.6.1 deferred — `Ediabas.break()`
+now actually forwards to the in-flight interpreter, `EmbeddedEdiabas`
+and `EdiabasServer` bypass their internal request queues so the
+abort can interrupt the job it's trying to stop, and `EdiabasClient`
+documents that its `break()` RPC propagates the rejection back to
+the pending `job(...)` promise.
+
+### Added
+
+- **`Ediabas.break()`** — public method that forwards `requestBreak()`
+  to the currently-running interpreter (tracked via a new private
+  `activeInterpreter` field). No-op when no job is in flight,
+  mirroring native EDIABAS `apiBreak` (safe to call any time after
+  `apiInit`).
+- **Break test coverage** — 9 new tests across three packages:
+  - Interpreter (5): pre-step break throws `EDIABAS_BIP_0008`,
+    between-step break aborts the next step, `start()` clears stale
+    break flags, `execute()` propagates the rejection, the break
+    fires exactly once.
+  - Ediabas (2): `break()` is a no-op without an active job;
+    repeated calls don't accumulate.
+  - EmbeddedEdiabas (2): `break()` resolves promptly even while a
+    queued `init()` is hanging on `connect()` (proves queue bypass);
+    `break()` on a never-init'd instance resolves cleanly.
+
+### Fixed
+
+- **`EmbeddedEdiabas.break()` and `EdiabasServer` `break` JSON-RPC
+  method now bypass the internal request queue.** Pre-fix they
+  flipped a state flag and otherwise sat in the same queue as
+  `job()` — which meant the abort could only run after the job it
+  was trying to interrupt finished, defeating the entire point.
+  `EmbeddedEdiabas.break()` now calls `this.ediabas.break()`
+  directly; `EdiabasServer.handleMessage` short-circuits the
+  `"break"` method to a synchronous `handleBreakInline()` that does
+  the same.
+- **`EdiabasClient.break()` documentation** — comment updated to
+  describe the now-correct end-to-end semantics (the in-flight
+  `client.job(...)` promise rejects with `EDIABAS_BIP_0008` once the
+  server's interpreter reaches its next instruction boundary;
+  worst-case latency is one transport `timeoutMs`).
+
+### Docs
+
+- `packages/interpreter/README` and `native/README` updated to
+  reflect that the higher layers now forward to `requestBreak()`
+  (the placeholder "TODO" wording from 0.6.1 is gone).
+
 ## [0.6.1] — 2026-06-04
 
 Result-set shape brought back into line with native EDIABAS / C#

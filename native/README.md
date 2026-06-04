@@ -220,12 +220,12 @@ ongoing gaps:
 2. **No simulation backend** — the TS port has a `SimulationInterface`
    that records and replays job traffic; the native port doesn't ship one
    yet. Use a real ECU or build one against the `edxn_transport_t` interface.
-3. **No cooperative break / cancel signal** on the C VM yet. TS now
-   has `Interpreter.requestBreak()` that aborts the in-flight job
-   with `EDIABAS_BIP_0008`; the higher-layer `EmbeddedEdiabas.break()`
-   / `EdiabasServer` break method don't forward to it yet (see those
-   classes' `TODO(break)` comments). The native port doesn't expose
-   an equivalent.
+3. **No cooperative break / cancel signal** on the C VM yet. TS has
+   `Interpreter.requestBreak()` (+ `Ediabas.break()` /
+   `EmbeddedEdiabas.break()` / `EdiabasServer` break-method
+   forwarding, bypassing the request queue) that aborts the
+   in-flight job with `EDIABAS_BIP_0008`. The native port doesn't
+   expose an equivalent yet.
 
 The TS interpreter and TypeScript Ediabas class remain the source of truth
 for every opcode's semantics. If you find a behavioural mismatch, the TS

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Interpreter } from "./interpreter";
 import { RegisterSet } from "./registers";
 import { Flags } from "./flags";
+import { EdiabasErrorCodes } from "@emdzej/ediabasx-core";
 import type { PrgFile, PrgJob, PrgHeader, PrgMetadata, PrgTable } from "@emdzej/ediabasx-best-parser";
 
 function createHeader(): PrgHeader {
@@ -571,6 +572,94 @@ describe("Interpreter", () => {
       expect(state.registers.b[0]).toBe(0xf0); // masked to 8 bits
       expect(state.flags.s).toBe(true);
       expect(state.flags.z).toBe(false);
+    });
+  });
+
+  describe("break / cancel (apiBreak)", () => {
+    // The interpreter's `requestBreak()` is the building block that
+    // the higher Ediabas / EmbeddedEdiabas / EdiabasServer break
+    // methods forward to. It must abort the in-flight job at the
+    // next instruction boundary with EDIABAS_BIP_0008 — native
+    // EDIABAS `apiBreak` semantics.
+    //
+    // Cooperative cancellation: the flag is sampled *between*
+    // instructions, not inside transport I/O. The tests cover the
+    // between-instruction sampling; transport timeouts are out of
+    // scope (they're a property of the comm layer, not the VM).
+
+    it("requestBreak before the first step throws EDIABAS_BIP_0008", async () => {
+      // Code is just nop + eoj — would normally complete in 2 steps.
+      const code = new Uint8Array([0x1c, 0x00, 0x1d, 0x00]);
+      const interpreter = new Interpreter(createPrg(code));
+      interpreter.start("TEST");
+      interpreter.requestBreak();
+      await expect(interpreter.step()).rejects.toMatchObject({
+        code: EdiabasErrorCodes.EDIABAS_BIP_0008,
+      });
+    });
+
+    it("requestBreak set between steps aborts the next step", async () => {
+      // Three nops then eoj — without break, runs to completion in 4 steps.
+      const code = new Uint8Array([
+        0x1c, 0x00, // nop
+        0x1c, 0x00, // nop
+        0x1c, 0x00, // nop
+        0x1d, 0x00, // eoj
+      ]);
+      const interpreter = new Interpreter(createPrg(code));
+      interpreter.start("TEST");
+      // First nop runs normally.
+      expect(await interpreter.step()).toBe(true);
+      interpreter.requestBreak();
+      // Second step should throw before decoding the next instruction.
+      await expect(interpreter.step()).rejects.toMatchObject({
+        code: EdiabasErrorCodes.EDIABAS_BIP_0008,
+      });
+    });
+
+    it("a fresh start clears a stale break flag", async () => {
+      // Set the flag without starting — must not taint the next job.
+      const code = new Uint8Array([0x1d, 0x00]); // eoj
+      const interpreter = new Interpreter(createPrg(code));
+      interpreter.requestBreak();
+      // start() is the canonical "reset everything" entry point and
+      // must clear breakRequested so the next job sees no pending abort.
+      interpreter.start("TEST");
+      const halted = await interpreter.step();
+      expect(halted).toBe(false); // eoj halts cleanly, no throw
+    });
+
+    it("execute() rejects with EDIABAS_BIP_0008 when break is set mid-flight", async () => {
+      // The flag is read at the top of step(); calling requestBreak
+      // immediately after start() but before execute()'s while-loop
+      // observes a true flag → first step throws → execute() rejects.
+      const code = new Uint8Array([
+        0x1c, 0x00, 0x1c, 0x00, 0x1c, 0x00, 0x1d, 0x00,
+      ]);
+      const interpreter = new Interpreter(createPrg(code));
+      const promise = interpreter.execute("TEST");
+      interpreter.requestBreak();
+      await expect(promise).rejects.toMatchObject({
+        code: EdiabasErrorCodes.EDIABAS_BIP_0008,
+      });
+    });
+
+    it("break fires exactly once — flag is cleared on throw", async () => {
+      // After a break throws, calling step() again on the now-halted
+      // interpreter must return false (halted) rather than throw a
+      // second time. Mirrors the pattern from C# EdiabasNet where
+      // _jobStdExit is consumed by the first detection.
+      const code = new Uint8Array([
+        0x1c, 0x00, 0x1c, 0x00, 0x1d, 0x00,
+      ]);
+      const interpreter = new Interpreter(createPrg(code));
+      interpreter.start("TEST");
+      interpreter.requestBreak();
+      await expect(interpreter.step()).rejects.toMatchObject({
+        code: EdiabasErrorCodes.EDIABAS_BIP_0008,
+      });
+      // Second call should report halted (false), not throw again.
+      expect(await interpreter.step()).toBe(false);
     });
   });
 });

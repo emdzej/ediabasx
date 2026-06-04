@@ -48,7 +48,7 @@ for (const [i, set] of sets.entries()) {
 
 `requestBreak()` asks the step loop to abort the in-flight job at the next instruction boundary — `step()` throws `EdiabasError(EDIABAS_BIP_0008)`, matching native EDIABAS `apiBreak` semantics. The flag is cooperative: an `xrecv` already in flight only unwinds once its timeout fires. Call it from outside the loop while `execute()` is in flight.
 
-**Status:** the interpreter primitive is in place, but the higher layers (`EmbeddedEdiabas.break()` / `EdiabasServer` `break` JSON-RPC method) currently flip a state flag without forwarding to the active interpreter — see the `TODO(break)` comments on those classes. Embedders that drive `Interpreter` directly can already use `requestBreak()` today; consumers going through the Ediabas / IEdiabas surface have to wait for that wiring.
+Higher layers forward to it: `Ediabas.break()` tracks the active interpreter and calls `requestBreak()` on it; `EmbeddedEdiabas.break()` forwards through `Ediabas.break()` while **bypassing** the internal queue (otherwise the abort would only fire after the job it's trying to interrupt finished); `EdiabasServer` does the same on the JSON-RPC `break` method (dispatched inline, not enqueued); `EdiabasClient.break()` sends the RPC and the in-flight `client.job(...)` promise rejects with `EDIABAS_BIP_0008` once the server's interpreter reaches its next instruction.
 
 ## Communication interface
 
