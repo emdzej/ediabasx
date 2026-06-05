@@ -100,6 +100,14 @@ edxn_error_t edxn_ediabas_load_sgbd(edxn_ediabas_t *eb,
    and materialises `built_sets` = [system_set, ...data_sets]. */
 edxn_error_t edxn_ediabas_exec(edxn_ediabas_t *eb,
                                 const char *job_name, const char *args);
+/* Same as `edxn_ediabas_exec` but also installs a binary payload
+   (apiJobData channel — read by the SGBD's `pary` opcode 0x7F and
+   the slot-indexed `parb`/`parw`/`parl`/`parr` reads). Pass NULL/0
+   for `bin`/`bin_len` to match the string-only `exec` behaviour.
+   Mirrors TS `IEdiabas.job(ecu, jobName, Uint8Array | mixed array)`. */
+edxn_error_t edxn_ediabas_exec_data(edxn_ediabas_t *eb,
+                                     const char *job_name, const char *args,
+                                     const uint8_t *bin, size_t bin_len);
 
 /* Number of **data** sets in the most recent exec — i.e.
    `built_set_count - 1` (clamped at 0). Mirrors C# `apiResultSets`. */

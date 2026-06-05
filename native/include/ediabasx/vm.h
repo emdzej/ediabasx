@@ -146,8 +146,15 @@ struct edxn_vm {
     int                  progress_range;
     int                  progress_pos;
 
-    /* Job parameter binary payload (for pary 0x7F) */
-    uint8_t              param_binary[1024];
+    /* Job parameter binary payload (for pary 0x7F). 1 KiB is the same
+       cap as the TS `Ediabas` runtime allows (`binaryPayload` is
+       backed by a single Uint8Array that callers fill before
+       executeJob). Excess bytes are silently truncated on set so a
+       too-long apiJobData input lands the SGBD on its own length
+       check (which produces a properly-formatted JOB_STATUS) rather
+       than failing earlier with a host-side reject. */
+#define EDXN_PARAM_BINARY_MAX 1024
+    uint8_t              param_binary[EDXN_PARAM_BINARY_MAX];
     size_t               param_binary_len;
 
     /* Shared memory map (shmset 0x93 / shmget 0x94) */
@@ -179,13 +186,31 @@ void         edxn_vm_free(edxn_vm_t *vm);
 void         edxn_vm_reset(edxn_vm_t *vm);
 
 edxn_error_t edxn_vm_set_params(edxn_vm_t *vm, const char *args);
+/* Set the binary payload param (apiJobData channel — read by the
+   SGBD's `pary` opcode 0x7F and the slot-indexed `parb`/`parw`/`parl`/
+   `parr` reads). Pass NULL or 0-len to clear. Bytes are copied into
+   the VM's internal buffer (capacity EDXN_PARAM_BINARY_MAX); excess
+   is silently truncated to match the TS behaviour where ediabasx
+   trusts the SGBD's input-length check rather than rejecting at the
+   host. Mirrors TS `Ediabas.executeJob({ params: [Uint8Array] })`
+   when the array carries a single binary entry — the difference is
+   the C ABI separates the channels at the function signature level
+   because we don't have a `string | Uint8Array` union here. */
+edxn_error_t edxn_vm_set_binary_params(edxn_vm_t *vm,
+                                        const uint8_t *bin, size_t bin_len);
 edxn_error_t edxn_vm_exec(edxn_vm_t *vm, const char *job_name, const char *args);
+edxn_error_t edxn_vm_exec_data(edxn_vm_t *vm, const char *job_name,
+                                const char *args,
+                                const uint8_t *bin, size_t bin_len);
 /* Run a job by name without the auto-INITIALISIERUNG / IDENT bootstrap.
    The wrapper layer (`edxn_ediabas_t`) owns the bootstrap and calls this
    for both load-time INFO and per-job execution. Mirrors TS
    `Interpreter.execute` vs `Ediabas.executeJob`. */
 edxn_error_t edxn_vm_exec_raw(edxn_vm_t *vm, const char *job_name,
                                const char *args);
+edxn_error_t edxn_vm_exec_raw_data(edxn_vm_t *vm, const char *job_name,
+                                    const char *args,
+                                    const uint8_t *bin, size_t bin_len);
 edxn_error_t edxn_vm_step(edxn_vm_t *vm);
 
 /* Wire loader callbacks. Pass NULL fn to disable. */

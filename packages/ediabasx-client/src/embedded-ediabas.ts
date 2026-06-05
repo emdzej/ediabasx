@@ -100,7 +100,11 @@ export class EmbeddedEdiabas implements IEdiabas {
     });
   }
 
-  async job(ecu: string, jobName: string, params?: string): Promise<EdiabasJobResponse> {
+  async job(
+    ecu: string,
+    jobName: string,
+    params?: string | Uint8Array | (string | Uint8Array)[],
+  ): Promise<EdiabasJobResponse> {
     return this.enqueue(async () => {
       if (!this.ediabas) throw new Error("Not initialised — call init() first");
 
@@ -122,7 +126,7 @@ export class EmbeddedEdiabas implements IEdiabas {
           this.loadedSgbdPath = cacheKey;
         }
 
-        const paramList = params ? params.split(";") : [];
+        const paramList = normalizeParams(params);
         const rawResults = await this.ediabas.executeJob(jobName, {
           params: paramList.length > 0 ? paramList : undefined,
         });
@@ -220,6 +224,28 @@ export class EmbeddedEdiabas implements IEdiabas {
       (r) => r.name.toUpperCase() === name.toUpperCase(),
     );
   }
+}
+
+/**
+ * Coerce the public {@link IEdiabas.job} params union into the
+ * `(string | Uint8Array)[]` shape `Ediabas.executeJob` expects. String
+ * shorthand is split on `;` to preserve the apiJob convention; bare
+ * `Uint8Array` becomes a single binary entry; arrays are passed
+ * through untouched. The element type carries the channel: string →
+ * indexed-string params (pari/pars), Uint8Array → binary payload
+ * (pary/parb/parw/parl/parr).
+ *
+ * Exported for test reach; not part of the public surface. Callers
+ * should drive `IEdiabas.job(...)` directly rather than reaching for
+ * this helper.
+ */
+export function normalizeParams(
+  params: string | Uint8Array | (string | Uint8Array)[] | undefined,
+): (string | Uint8Array)[] {
+  if (params === undefined) return [];
+  if (typeof params === "string") return params.length > 0 ? params.split(";") : [];
+  if (params instanceof Uint8Array) return [params];
+  return params;
 }
 
 function mapResultType(type: string): EdiabasResultType {

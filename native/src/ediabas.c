@@ -475,6 +475,12 @@ static void capture_job_status(edxn_ediabas_t *eb) {
 
 edxn_error_t edxn_ediabas_exec(edxn_ediabas_t *eb,
                                 const char *job_name, const char *args) {
+    return edxn_ediabas_exec_data(eb, job_name, args, NULL, 0);
+}
+
+edxn_error_t edxn_ediabas_exec_data(edxn_ediabas_t *eb,
+                                     const char *job_name, const char *args,
+                                     const uint8_t *bin, size_t bin_len) {
     if (!eb || !job_name || !eb->prg) return EDXN_ERR_OPERAND;
     if (!args) args = "";
 
@@ -482,7 +488,9 @@ edxn_error_t edxn_ediabas_exec(edxn_ediabas_t *eb,
 
     /* Bootstrap: INITIALISIERUNG + (for .grp) IDENT/swap. Runs at
        most once per load. The user's explicit IDENT skips the
-       auto-IDENT and is handled post-job below (matches TS). */
+       auto-IDENT and is handled post-job below (matches TS). The
+       bootstrap jobs themselves take no binary payload — that
+       channel is exclusively for the caller's user job. */
     if (!eb->init_ran && job_name[0] != '_'
         && strcasecmp(job_name, "INITIALISIERUNG") != 0
         && edxn_prg_find_job(eb->prg, "INITIALISIERUNG") >= 0) {
@@ -495,8 +503,8 @@ edxn_error_t edxn_ediabas_exec(edxn_ediabas_t *eb,
         }
     }
 
-    /* Execute the user's job. */
-    edxn_error_t err = edxn_vm_exec_raw(&eb->vm, job_name, args);
+    /* Execute the user's job — binary payload applied here. */
+    edxn_error_t err = edxn_vm_exec_raw_data(&eb->vm, job_name, args, bin, bin_len);
     if (err != EDXN_OK) return err;
 
     /* Capture JOB_STATUS into persistent system_results. */

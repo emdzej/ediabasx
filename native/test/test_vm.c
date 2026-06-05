@@ -7,6 +7,7 @@
 #include "ediabasx/stack.h"
 #include "ediabasx/decode.h"
 #include "ediabasx/result.h"
+#include "ediabasx/vm.h"
 
 static void test_registers(void) {
     edxn_registers_t regs;
@@ -175,6 +176,51 @@ static void test_results(void) {
     printf("  PASS: test_results\n");
 }
 
+static void test_binary_params(void) {
+    /* `edxn_vm_set_binary_params` is the host-side feed for the
+       apiJobData channel. Reading happens via `pary` (opcode 0x7F)
+       and the slot-indexed `parb`/`parw`/`parl`/`parr` opcodes,
+       all backed by the same `vm->param_binary[]` + `param_binary_len`
+       pair. These tests pin the setter contract; the opcode read
+       path is covered by `edxn_run` integrations against real
+       SGBDs with `pary`-using jobs. */
+    edxn_vm_t vm;
+    memset(&vm, 0, sizeof(vm));
+
+    /* Initial state: empty buffer, zero len. */
+    assert(vm.param_binary_len == 0);
+
+    /* Happy path: bytes land verbatim, len matches. */
+    const uint8_t bytes[] = {0xAB, 0xCD, 0xEF, 0x12};
+    assert(edxn_vm_set_binary_params(&vm, bytes, sizeof(bytes)) == EDXN_OK);
+    assert(vm.param_binary_len == sizeof(bytes));
+    assert(memcmp(vm.param_binary, bytes, sizeof(bytes)) == 0);
+
+    /* NULL or zero len clears — used by the run_job path between
+       a binary-payload job and the next bootstrap job. */
+    assert(edxn_vm_set_binary_params(&vm, NULL, 0) == EDXN_OK);
+    assert(vm.param_binary_len == 0);
+    assert(edxn_vm_set_binary_params(&vm, bytes, 0) == EDXN_OK);
+    assert(vm.param_binary_len == 0);
+
+    /* Truncation at EDXN_PARAM_BINARY_MAX. Mirrors the TS path
+       where ediabasx trusts the SGBD's own input-length check
+       rather than rejecting on the host. */
+    uint8_t big[EDXN_PARAM_BINARY_MAX + 64];
+    memset(big, 0x77, sizeof(big));
+    assert(edxn_vm_set_binary_params(&vm, big, sizeof(big)) == EDXN_OK);
+    assert(vm.param_binary_len == EDXN_PARAM_BINARY_MAX);
+    /* And the truncated bytes match the input prefix. */
+    for (size_t i = 0; i < EDXN_PARAM_BINARY_MAX; i++) {
+        assert(vm.param_binary[i] == 0x77);
+    }
+
+    /* Defensive: NULL vm is rejected, no crash. */
+    assert(edxn_vm_set_binary_params(NULL, bytes, sizeof(bytes)) != EDXN_OK);
+
+    printf("  PASS: test_binary_params\n");
+}
+
 int main(void) {
     printf("VM core tests:\n");
     test_registers();
@@ -182,6 +228,7 @@ int main(void) {
     test_stack();
     test_decode_register();
     test_decode_instruction();
+    test_binary_params();
     test_results();
     printf("All VM tests passed.\n");
     return 0;

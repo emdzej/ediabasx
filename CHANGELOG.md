@@ -4,6 +4,60 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.7.1] — 2026-06-05
+
+Fills a gap in the `IEdiabas` surface: `job(...)` now accepts binary
+params (the `apiJobData` channel) end-to-end. The interface was
+modelled after `apiJob` only — string params — when it was extracted
+for inpax, but the underlying `Ediabas.executeJob` has supported
+`Uint8Array` params since 0.2.4. Without this, IEdiabas-only consumers
+(EdiabasClient over Bimmerz Connect or WebSocket) couldn't drive
+binbuf-using jobs like BMW NCS coding's `C_S_SCHREIBEN` /
+`C_S_AUFTRAG` / `C_FA_AUFTRAG`. Unblocks ncsx's uplift to IEdiabas-
+based client mode.
+
+Additive only — every existing `params?: string` call site still
+works. No protocol break: a 0.7.1 client talking to a 0.7.0 server
+still uses the legacy `params: "a;b;c"` wire shape for string-only
+calls; only binary or mixed calls switch to the new array form.
+
+### Added
+
+- **`IEdiabas.job` params widened.** Was `params?: string`; now
+  `params?: string | Uint8Array | (string | Uint8Array)[]`. A bare
+  string keeps the semicolon-joined `apiJob` shorthand. A bare
+  `Uint8Array` lands in the SGBD's binary payload (`pary` / `parb` /
+  `parw` / `parl` / `parr`). An array interleaves the two channels
+  — the element type carries the channel choice.
+- **`EmbeddedEdiabas` / `EdiabasClient`** normalize the union before
+  forwarding to the underlying `Ediabas.executeJob` (which already
+  supports `(string | Uint8Array)[]`).
+- **JSON-RPC wire shape for binary params.** Pure-string calls keep
+  emitting `params: "a;b;c"` (back-compat with ≤0.7.0 servers). Calls
+  with any binary entry switch to `params: ["str", {binary: "<b64>"}, ...]`.
+  Server's `handleJob` accepts both forms; the array form base64-
+  decodes binary entries into `Uint8Array` before forwarding.
+- **Native C — `edxn_ediabas_exec_data(eb, name, args, bin, bin_len)`
+  + `edxn_vm_set_binary_params(vm, bin, bin_len)`.** Same widening at
+  the C ABI level (with the channels separated by argument because C
+  has no `string | bytes` union). The existing `edxn_ediabas_exec` /
+  `edxn_vm_exec` are now thin wrappers passing `NULL, 0` for the
+  binary payload — every existing caller keeps working. The
+  `param_binary[]` buffer in `edxn_vm_t` was already there for `pary`
+  opcode reads; it just wasn't reachable from outside the VM.
+- **`EDXN_PARAM_BINARY_MAX`** constant (1 KiB, matching the existing
+  buffer). Excess input is truncated to mirror the TS behaviour
+  (the SGBD's own input-length check is authoritative).
+
+### Tests
+
+- `embedded-ediabas-params.spec.ts` (9 cases): param-union normalization
+  + JSON-RPC encode shape.
+- `job-params.spec.ts` (9 cases): server-side decode of both legacy
+  and new wire shapes, with mixed entries + error positions.
+- `test_vm.c::test_binary_params`: setter contract — bytes land,
+  clear, truncation, NULL guard.
+
 ## [0.7.0] — 2026-06-05
 
 **Breaking** — naming cleanup around the EDIABAS communication

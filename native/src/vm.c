@@ -158,6 +158,22 @@ edxn_error_t edxn_vm_set_params(edxn_vm_t *vm, const char *args) {
     return EDXN_OK;
 }
 
+edxn_error_t edxn_vm_set_binary_params(edxn_vm_t *vm,
+                                        const uint8_t *bin, size_t bin_len) {
+    if (!vm) return EDXN_ERR_OPERAND;
+    if (!bin || bin_len == 0) {
+        vm->param_binary_len = 0;
+        return EDXN_OK;
+    }
+    /* Truncate at the buffer cap rather than refusing — matches the
+       TS runtime where the SGBD's own input-length check is the
+       authoritative source of "too long". */
+    if (bin_len > EDXN_PARAM_BINARY_MAX) bin_len = EDXN_PARAM_BINARY_MAX;
+    memcpy(vm->param_binary, bin, bin_len);
+    vm->param_binary_len = bin_len;
+    return EDXN_OK;
+}
+
 static edxn_error_t dispatch(edxn_vm_t *vm, uint8_t opcode,
                               const edxn_operand_t *a0,
                               const edxn_operand_t *a1) {
@@ -276,13 +292,22 @@ edxn_error_t edxn_vm_step(edxn_vm_t *vm) {
     return err;
 }
 
-static edxn_error_t run_job(edxn_vm_t *vm, int job_idx, const char *args) {
+/* Internal job runner. The binary payload is preserved across the
+   `edxn_vm_reset` call below (which would otherwise zero `param_binary_len`)
+   so the apiJobData channel survives into the SGBD's first opcode.
+   Pass NULL/0 for `bin`/`bin_len` when the caller only set string params. */
+static edxn_error_t run_job_with_bin(edxn_vm_t *vm, int job_idx,
+                                      const char *args,
+                                      const uint8_t *bin, size_t bin_len) {
     edxn_transport_t *saved_transport = vm->transport;
     bool saved_init = vm->initialized;
     edxn_vm_reset(vm);
     vm->transport = saved_transport;
     vm->initialized = saved_init;
     edxn_vm_set_params(vm, args);
+    /* `reset` zeroed `param_binary_len`; apply the caller's binary
+       payload (or clear if none) now, after reset. */
+    edxn_vm_set_binary_params(vm, bin, bin_len);
     vm->pc = vm->prg->jobs[job_idx].code_offset;
 
     while (!vm->halted) {
@@ -292,6 +317,10 @@ static edxn_error_t run_job(edxn_vm_t *vm, int job_idx, const char *args) {
     return EDXN_OK;
 }
 
+static edxn_error_t run_job(edxn_vm_t *vm, int job_idx, const char *args) {
+    return run_job_with_bin(vm, job_idx, args, NULL, 0);
+}
+
 /* Public non-bootstrapping job exec — mirrors TS `Interpreter.execute`.
    Looks up the job by name and runs it directly without auto-INIT /
    IDENT / variant-swap. Use this when a caller layer (e.g. the
@@ -299,9 +328,15 @@ static edxn_error_t run_job(edxn_vm_t *vm, int job_idx, const char *args) {
    consumers, `edxn_vm_exec` still does the bootstrap. */
 edxn_error_t edxn_vm_exec_raw(edxn_vm_t *vm, const char *job_name,
                                const char *args) {
+    return edxn_vm_exec_raw_data(vm, job_name, args, NULL, 0);
+}
+
+edxn_error_t edxn_vm_exec_raw_data(edxn_vm_t *vm, const char *job_name,
+                                    const char *args,
+                                    const uint8_t *bin, size_t bin_len) {
     int idx = edxn_prg_find_job(vm->prg, job_name);
     if (idx < 0) return EDXN_ERR_JOB_NOT_FOUND;
-    return run_job(vm, idx, args);
+    return run_job_with_bin(vm, idx, args, bin, bin_len);
 }
 
 /* Run IDENTIFIKATION on a loaded .grp, look up VARIANTE in the results, and
@@ -372,9 +407,17 @@ static edxn_error_t run_ident_and_swap_variant(edxn_vm_t *vm) {
 }
 
 edxn_error_t edxn_vm_exec(edxn_vm_t *vm, const char *job_name, const char *args) {
+    return edxn_vm_exec_data(vm, job_name, args, NULL, 0);
+}
+
+edxn_error_t edxn_vm_exec_data(edxn_vm_t *vm, const char *job_name,
+                                const char *args,
+                                const uint8_t *bin, size_t bin_len) {
     if (!vm->initialized) {
         int init_idx = edxn_prg_find_job(vm->prg, "INITIALISIERUNG");
         if (init_idx >= 0) {
+            /* Bootstrap jobs (INITIALISIERUNG, IDENT) take no binary
+               payload — they're internal handshakes the SGBD owns. */
             edxn_error_t err = run_job(vm, init_idx, "");
             vm->initialized = true;
             if (err != EDXN_OK) return err;
@@ -392,5 +435,5 @@ edxn_error_t edxn_vm_exec(edxn_vm_t *vm, const char *job_name, const char *args)
     if (idx < 0)
         return EDXN_ERR_JOB_NOT_FOUND;
 
-    return run_job(vm, idx, args);
+    return run_job_with_bin(vm, idx, args, bin, bin_len);
 }

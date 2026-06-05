@@ -480,7 +480,6 @@ export class EdiabasServer {
 
     const ecu = String(p.ecu ?? "");
     const jobName = String(p.job ?? "");
-    const paramsStr = String(p.params ?? "");
 
     if (!ecu) throw new Error("Missing required parameter: ecu");
     if (!jobName) throw new Error("Missing required parameter: job");
@@ -495,7 +494,7 @@ export class EdiabasServer {
         this.loadedSgbdPath = sgbdPath;
       }
 
-      const params = paramsStr ? paramsStr.split(";") : [];
+      const params = decodeJobParams(p.params);
       const rawResults = await this.ediabas.executeJob(jobName, {
         params: params.length > 0 ? params : undefined,
       });
@@ -763,6 +762,51 @@ function mapResultType(type: string): EdiabasResultType {
     case "bcd": return "text";
     default: return "text";
   }
+}
+
+/**
+ * Decode the JSON-RPC `params` field into the `(string | Uint8Array)[]`
+ * shape `Ediabas.executeJob` expects. Two accepted forms:
+ *
+ *   1. Legacy (≤0.7.0 clients): `"a;b;c"` — semicolon-joined string,
+ *      split into all-string params. The empty string yields no params.
+ *   2. New (≥0.7.1 clients): an array of `string | {binary: <base64>}`
+ *      entries. The tagged-object form base64-decodes into a
+ *      `Uint8Array` and lands in the SGBD's `pary` / `parb` channel.
+ *
+ * Mirror of the encoder in `ediabas-client.ts.encodeParamEntry`.
+ * Exported so the JSON-RPC symmetry test can drive it directly.
+ */
+export function decodeJobParams(wire: unknown): (string | Uint8Array)[] {
+  if (wire === undefined || wire === null) return [];
+  if (typeof wire === "string") {
+    return wire.length > 0 ? wire.split(";") : [];
+  }
+  if (!Array.isArray(wire)) {
+    throw new Error("Invalid params: expected string or array");
+  }
+  return wire.map((entry, i) => {
+    if (typeof entry === "string") return entry;
+    if (
+      entry !== null && typeof entry === "object"
+      && "binary" in entry && typeof (entry as { binary: unknown }).binary === "string"
+    ) {
+      return base64ToBytes((entry as { binary: string }).binary);
+    }
+    throw new Error(`Invalid params[${i}]: expected string or {binary: base64}`);
+  });
+}
+
+/**
+ * Decode a base64 string into raw bytes. Uses `atob` so this is
+ * portable across Node 16+ and browsers without pulling on
+ * `Buffer`. Symmetric with the client's `bytesToBase64`.
+ */
+function base64ToBytes(b64: string): Uint8Array {
+  const binary = atob(b64);
+  const out = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+  return out;
 }
 
 function convertResultSet(results: EdiabasJobResult[]): EdiabasResultSet {

@@ -3,6 +3,14 @@
  * (remote JSON-RPC) and `EmbeddedEdiabas` (in-process). Mirrors the
  * EDIABAS C API without the `api` prefix, minus config/device switching
  * (those are startup-time concerns).
+ *
+ * `job(...)` covers both `apiJob` (string params, read via the SGBD's
+ * `pari` / `pars` opcodes) and `apiJobData` (binary params, read via
+ * `pary` / `parb` / `parw` / `parl` / `parr`). Callers pick the channel
+ * by the element type they hand in: a string entry lands in the indexed-
+ * string params, a `Uint8Array` entry lands in the binary payload.
+ * Bare `string` and bare `Uint8Array` are shorthand for "all params on
+ * one channel"; the array form interleaves both.
  */
 
 export type EdiabasResultType =
@@ -36,7 +44,11 @@ export interface IEdiabas {
   init(): Promise<void>;
   end(): Promise<void>;
 
-  job(ecu: string, jobName: string, params?: string): Promise<EdiabasJobResponse>;
+  job(
+    ecu: string,
+    jobName: string,
+    params?: string | Uint8Array | (string | Uint8Array)[],
+  ): Promise<EdiabasJobResponse>;
 
   resultSets(): number;
   resultText(name: string, set: number, format?: string): string;

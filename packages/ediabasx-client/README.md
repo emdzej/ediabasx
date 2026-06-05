@@ -87,6 +87,24 @@ console.log(ediabas.resultText("VARIANTE", 0));
 await ediabas.end();
 ```
 
+## Binary params (`apiJobData`)
+
+`job(ecu, name, params)` covers both the indexed-string channel (`apiJob` — `pari` / `pars` opcodes) and the binary channel (`apiJobData` — `pary` / `parb` / `parw` / `parl` / `parr`). The element type carries the channel:
+
+```ts
+// All string params — semicolon shorthand for indexed slots.
+await ediabas.job("KMBI_E60", "STATUS_LESEN", "param1;param2");
+
+// Single binary buffer — apiJobData. Required for binbuf-using SGBDs
+// like NCS coding (C_S_LESEN / C_S_SCHREIBEN / C_S_AUFTRAG).
+await ediabas.job("KMBI_E60", "C_S_AUFTRAG", new Uint8Array([0x06, 0x10, /*…*/]));
+
+// Mixed — interleave string and binary params in one call.
+await ediabas.job("KMBI_E60", "JOB", ["prefix", new Uint8Array([0xDE, 0xAD]), "suffix"]);
+```
+
+Same shape for `EdiabasClient` — the wire encoding base64s binary entries automatically.
+
 ## Choosing between them
 
 | | `EdiabasClient` | `EmbeddedEdiabas` |

@@ -91,11 +91,28 @@ export class EdiabasClient implements IEdiabas {
     }
   }
 
-  async job(ecu: string, jobName: string, params?: string): Promise<EdiabasJobResponse> {
+  async job(
+    ecu: string,
+    jobName: string,
+    params?: string | Uint8Array | (string | Uint8Array)[],
+  ): Promise<EdiabasJobResponse> {
+    /* Wire shape: legacy hosts (≤0.7.0) accept `params: string`
+       (semicolon-joined). New hosts (≥0.7.1) accept either that
+       form OR an array of `string | {binary: <base64>}` entries.
+       Pick the array form whenever any binary entry is present —
+       the server normalizes both. Pure-string calls keep emitting
+       the legacy string so a 0.7.1 client can still talk to a
+       0.7.0 server until the user upgrades both sides. */
+    const list = normalizeClientParams(params);
+    const wireParams = list.some((p) => p instanceof Uint8Array)
+      ? list.map(encodeParamEntry)
+      : list.length > 0
+        ? list.join(";")
+        : "";
     const result = await this.request<EdiabasJobResponse>("job", {
       ecu,
       job: jobName,
-      params: params ?? "",
+      params: wireParams,
     });
     this.cachedResults = result;
     this.cachedState = "ready";
@@ -415,4 +432,54 @@ export class EdiabasClient implements IEdiabas {
       conn.send(JSON.stringify({ jsonrpc: "2.0", id, method, params }));
     });
   }
+}
+
+/**
+ * Mirror of `EmbeddedEdiabas`'s `normalizeParams`. Lives here so the
+ * client doesn't pull on `@emdzej/ediabasx-client/embedded-ediabas`'s
+ * inner Ediabas class (and its Node-only `node:fs` deps) when used in
+ * a browser bundle. Exported for the JSON-RPC round-trip test only.
+ */
+export function normalizeClientParams(
+  params: string | Uint8Array | (string | Uint8Array)[] | undefined,
+): (string | Uint8Array)[] {
+  if (params === undefined) return [];
+  if (typeof params === "string") return params.length > 0 ? params.split(";") : [];
+  if (params instanceof Uint8Array) return [params];
+  return params;
+}
+
+/**
+ * Encode one param entry for the JSON-RPC wire. Strings pass through
+ * unchanged so a mixed-channel call reads naturally on the server
+ * (`["abc", {binary: "..."}, "xyz"]`); `Uint8Array` becomes a tagged
+ * `{binary: <base64>}` object — base64 because JSON has no binary
+ * literal and we don't want to rely on `Buffer` (which doesn't exist
+ * in browsers). Matches the decode in `ediabas-server.ts.handleJob`.
+ * Exported so the symmetry test can drive it directly.
+ */
+export function encodeParamEntry(entry: string | Uint8Array): string | { binary: string } {
+  if (typeof entry === "string") return entry;
+  return { binary: bytesToBase64(entry) };
+}
+
+/**
+ * `btoa` works on Latin-1 strings, not byte arrays — feeding raw
+ * UTF-16 chars from a Uint8Array via String.fromCharCode is the
+ * standard idiom. Node 16+ also has `btoa` as a global. Avoids
+ * `Buffer` so the same code runs in browsers without polyfill.
+ */
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  /* Chunk to keep `String.fromCharCode(...spread)` below the V8 / JSC
+     arg-count limit (~65k). 8 KiB is comfortably under the 0xffff
+     ceiling and small enough to avoid a temporary copy of the buffer. */
+  const chunk = 8192;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(
+      null,
+      Array.from(bytes.subarray(i, i + chunk)),
+    );
+  }
+  return btoa(binary);
 }

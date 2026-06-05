@@ -66,6 +66,17 @@ stays at the bytecode-execution layer and is also publicly callable
 (`edxn_vm_exec`, `edxn_vm_exec_raw`) for embedders that don't want the
 Ediabas-layer state machine. New code should prefer the wrapper.
 
+For jobs that take a binary payload (`apiJobData` channel — `pary` opcode
+0x7F and the slot-indexed `parb`/`parw`/`parl`/`parr` reads, used by BMW
+NCS coding SGBDs and other binbuf-driven flows), call the `_data`
+sibling entry points: `edxn_ediabas_exec_data(eb, name, args, bin,
+bin_len)` or `edxn_vm_exec_data(vm, name, args, bin, bin_len)`. The
+non-`_data` variants are now thin wrappers passing `NULL, 0` for the
+binary payload, so existing callers don't need to change. The payload
+size is capped at `EDXN_PARAM_BINARY_MAX` (1 KiB); excess is truncated
+to mirror the TS runtime where the SGBD's own length check is
+authoritative.
+
 ## Architecture
 
 The VM is structured as a `struct edxn_vm` that owns:
