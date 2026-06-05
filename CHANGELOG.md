@@ -4,6 +4,115 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.7.0] — 2026-06-05
+
+**Breaking** — naming cleanup around the EDIABAS communication
+interface. Plus `EmbeddedEdiabas` widened to the same option set as
+`Ediabas`, the web app migrated end-to-end to the unified `IEdiabas`
+surface (one instance type for embedded and client modes), and the
+status pill format unified.
+
+### Breaking changes
+
+- **`EdiabasConfig.transport` → `EdiabasConfig.interface`.** The field
+  was always typed `EdiabasInterface`; "transport" was a misnomer that
+  collided with the lower-level wire transport (`WebSerialTransport`,
+  `J2534WebSerialTransport`). Now the three layers are named
+  consistently: **transport** (wire), **interface** (EDIABAS framing
+  on top of a transport), **adapter** (interpreter shim).
+- **`Ediabas.setTransport()` → `Ediabas.setInterface()`** to match.
+- **`EdiabasConfig.simulation` removed.** Pass
+  `interface: new SimulationInterface()` explicitly. One source of
+  truth — no parallel boolean to keep in sync.
+- **`EmbeddedEdiabasOptions.interface` now required**, no `simulation`
+  shorthand. Symmetric with `EdiabasConfig`.
+
+### Added
+
+- **`EmbeddedEdiabasOptions.timeout?` and `.loadSgbdResolver?`** —
+  piped through to the inner `Ediabas`. `EmbeddedEdiabas` now matches
+  the option surface of `Ediabas` and can replace it for both Node
+  hosts (CLI) and browser hosts that need GRP→PRG variant resolution.
+
+### Changed
+
+- **Ediabasx-web migrated to `IEdiabas`.** The runtime collapsed the
+  prior `ediabasInstance: Ediabas | null` + `clientInstance:
+  EdiabasClient | null` two-field branching into one
+  `instance: IEdiabas | null`. `runJob` now uses the same
+  `instance.job(ecu, jobName, params)` call regardless of mode;
+  embedded mode uses `EmbeddedEdiabas` (with `loadSgbdResolver`
+  reading from the install catalogue), client mode uses
+  `EdiabasClient` (direct WebSocket or Bimmerz Connect relay).
+  Validates the post-0.7.0 contract end-to-end before downstream
+  consumers (inpax) depend on it.
+- **`@emdzej/ediabasx-client` is now fully browser-safe.**
+  `EmbeddedEdiabas` no longer statically imports
+  `@emdzej/ediabasx-host-config` (which pulled `node:os.homedir()` at
+  module load and exploded in browser bundles). A small inline cache-
+  key lookup replaces the `resolveSgbd` call inside `EmbeddedEdiabas.job`.
+  The `/client` subpath still works as an alias; new code can import
+  `EmbeddedEdiabas` from the main entry too.
+- **Status pill format unified** in ediabasx-web —
+  `Connected: <device|url|bimmerzconnect>` (e.g.
+  `Connected: Web Serial @ 9600`, `Connected: ws://192.168.1.50:6802`,
+  `Connected: Bimmerz Connect`). Consistent regardless of mode.
+
+### Fixed
+
+- Internal: ediabasx-server, embedded-ediabas, config-loader, the
+  ediabasx CLI's `run`/`docs` commands and the ediabas spec — all
+  updated for the rename. ~10 internal call sites; no external API
+  surface left referencing `transport` for the EDIABAS-interface
+  meaning.
+
+### Migration guide
+
+For each `new Ediabas({...})` call site:
+
+```ts
+// Before (0.6.x)
+new Ediabas({ ecuPath, transport: myIface });
+new Ediabas({ ecuPath, simulation: true });
+
+// After (0.7.0)
+new Ediabas({ ecuPath, interface: myIface });
+new Ediabas({ ecuPath, interface: new SimulationInterface() });
+```
+
+For `Ediabas.setTransport()` callers (e.g. browser apps wiring the
+transport after a user-gesture Connect click):
+
+```ts
+// Before
+ediabas.setTransport(serialInterface);
+
+// After
+ediabas.setInterface(serialInterface);
+```
+
+For consumers ready to switch from `Ediabas` to `EmbeddedEdiabas`
+(unified `IEdiabas` surface — recommended for new code):
+
+```ts
+// Before
+const ediabas = new Ediabas({ ecuPath, interface, timeout, loadSgbdResolver });
+await ediabas.connect();
+const sets = await ediabas.executeJob(jobName, { params: paramArray });
+// `sets[0]` is the system set, `sets[1..N]` are data sets
+
+// After
+const ediabas: IEdiabas = new EmbeddedEdiabas({
+  sgbdPath: ecuPath,
+  interface,
+  timeout,
+  loadSgbdResolver,
+});
+await ediabas.init();
+const response = await ediabas.job(ecu, jobName, paramArray.join(";"));
+// response.sets[0] is the system set, response.sets[1..N] are data sets
+```
+
 ## [0.6.2] — 2026-06-04
 
 Completes the `apiBreak` work that 0.6.1 deferred — `Ediabas.break()`

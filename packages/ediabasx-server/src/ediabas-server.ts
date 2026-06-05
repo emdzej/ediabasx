@@ -446,7 +446,7 @@ export class EdiabasServer {
     if (!this.ediabas) {
       this.ediabas = new Ediabas({
         ecuPath: this.sgbdPath,
-        transport: this.iface,
+        interface: this.iface,
       });
     }
     if (!this.ediabas.isConnected()) {

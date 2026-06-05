@@ -239,12 +239,14 @@ export async function createFromConfig(
   const factory = options?.interfaceFactory ?? defaultInterfaceFactory;
   const basePath = options?.basePath ?? process.cwd();
   
-  // Create interface
-  const transport = await factory(config.interface);
-  
+  // Build the EDIABAS interface via the factory. The factory returns
+  // a `SimulationInterface` for `interface.type === 'simulation'` —
+  // no parallel `simulation` flag needed downstream.
+  const iface = await factory(config.interface);
+
   // Resolve paths relative to config file or cwd
   const sgbdPath = path.resolve(basePath, options?.pathOverrides?.sgbd ?? config.paths.sgbd);
-  
+
   // Build EdiabasConfig.
   //
   // `config.logging` (the file's logging section) used to drive a
@@ -256,11 +258,10 @@ export async function createFromConfig(
   // `configureLogger()` at startup; we don't need to thread it here.
   const edConfig: EdiabasConfig = {
     ecuPath: sgbdPath,
-    transport,
-    simulation: config.interface.type === 'simulation',
+    interface: iface,
     timeout: options?.timeoutOverrides?.response ?? config.timeouts?.response ?? DEFAULT_CONFIG.timeouts!.response,
   };
-  
+
   return new Ediabas(edConfig);
 }
 

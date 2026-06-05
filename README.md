@@ -222,7 +222,7 @@ import { Ediabas } from "@emdzej/ediabasx-ediabas";
 
 const ediabas = new Ediabas({
   ecuPath: "./ecu",
-  simulation: true,            // or pass `transport: <interface>` for real hardware
+  interface: new SimulationInterface(),  // or any other EdiabasInterface for real hardware
 });
 
 await ediabas.loadSgbd("D_MOTOR.prg");
@@ -259,13 +259,13 @@ for (let i = 1; i < sets.length; i++) {
 import { Ediabas } from "@emdzej/ediabasx-ediabas";
 import { createInterface } from "@emdzej/ediabasx-interfaces";
 
-const transport = createInterface("kdcan", {
+const iface = createInterface("kdcan", {
   port: "/dev/cu.usbserial-A50285BI",
   baudRate: 9600,
   protocol: "isotp",
 });
 
-const ediabas = new Ediabas({ ecuPath: "./ecu", transport });
+const ediabas = new Ediabas({ ecuPath: "./ecu", interface: iface });
 await ediabas.connect();
 const sets = await ediabas.executeJob("STATUS_LESEN");
 await ediabas.disconnect();

@@ -36,8 +36,8 @@ import { J2534Interface } from '@emdzej/ediabasx-interface-j2534';
 
 const ed = new Ediabas({
   ecuPath: '.',
-  transport: new J2534Interface({
-    transport: { kind: 'serial' },   // node: USB-FTDI driver
+  interface: new J2534Interface({
+    transport: { kind: 'serial' },   // J2534 wire transport: node USB-FTDI driver
     protocol: 'ds2',                 // ds2 | kwp | can
     baudRate: 9600,
   }),

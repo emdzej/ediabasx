@@ -196,20 +196,25 @@ async function createRunnerSession(
   options: InterfaceCliOptions & { results?: string }
 ): Promise<RunnerSession> {
   const { Ediabas } = await import("@emdzej/ediabasx-ediabas");
+  const { SimulationInterface } = await import("@emdzej/ediabasx-interface-base");
   const ecuPath = path.dirname(path.resolve(filePath));
   const timeout = Number.parseInt(options.timeout ?? "5000", 10);
   const selection = resolveInterfaceSelection(options, "simulation");
   const useSimulation = selection.name === "simulation";
 
-  const buildTransport = () =>
-    useSimulation ? undefined : createInterface(selection.name, selection.options);
+  /* One source of truth — explicit `SimulationInterface` for the fake
+     path, real interface factory otherwise. No parallel `simulation`
+     flag (removed from `EdiabasConfig` in 0.7.0). */
+  const buildInterface = () =>
+    useSimulation
+      ? new SimulationInterface()
+      : createInterface(selection.name, selection.options);
 
-  let transport = buildTransport();
+  let iface = buildInterface();
 
   let ediabas = new Ediabas({
     ecuPath,
-    transport,
-    simulation: useSimulation,
+    interface: iface,
     timeout: Number.isFinite(timeout) ? timeout : 5000,
   });
 
@@ -242,10 +247,10 @@ async function createRunnerSession(
     if (useSimulation) {
       return "Simulation";
     }
-    if (!transport) return "No transport";
+    if (!iface) return "No interface";
     // Best-effort feature detection — we don't want a hard import on
-    // SerialInterface here because the transport may be ENET, gateway, etc.
-    const candidate = transport as unknown as {
+    // SerialInterface here because the interface may be ENET, gateway, etc.
+    const candidate = iface as unknown as {
       isUsingKDCanAdapter?: () => boolean;
       getDs2ConceptId?: () => number | null;
       getAdapterInfo?: () => { adapterType: number; adapterVersion: number };
@@ -308,13 +313,12 @@ async function createRunnerSession(
     } catch {
       /* ignore — we're rebuilding anyway */
     }
-    transport = buildTransport();
+    iface = buildInterface();
     ediabas = new Ediabas({
       ecuPath,
-      transport,
-      simulation: useSimulation,
+      interface: iface,
       timeout: Number.isFinite(timeout) ? timeout : 5000,
-      });
+    });
     await ediabas.loadSgbd(path.basename(filePath));
     await ensureConnected();
   };
@@ -649,16 +653,16 @@ function registerRunCommand(program: Command): void {
         const selection = resolveInterfaceSelection(options, "simulation");
         const useSimulation = selection.name === "simulation";
 
-        const transport = useSimulation
-          ? undefined
+        const { SimulationInterface } = await import("@emdzej/ediabasx-interface-base");
+        const iface = useSimulation
+          ? new SimulationInterface()
           : createInterface(selection.name, selection.options);
 
         const ediabas = new Ediabas({
           ecuPath,
-          transport,
-          simulation: useSimulation,
+          interface: iface,
           timeout: Number.isFinite(timeout) ? timeout : 5000,
-              });
+        });
 
         await ediabas.loadSgbd(path.basename(filePath));
 

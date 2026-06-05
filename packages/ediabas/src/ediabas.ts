@@ -11,7 +11,7 @@ import {
   type CommunicationInterface,
   ParameterSet,
 } from "@emdzej/ediabasx-interpreter";
-import { EdiabasInterface, SimulationInterface } from "@emdzej/ediabasx-interface-base";
+import { EdiabasInterface } from "@emdzej/ediabasx-interface-base";
 import { getLogger } from "@emdzej/bimmerz-logger";
 
 // `fs/promises` and `path` are imported lazily inside `loadSgbd()` so the
@@ -147,10 +147,17 @@ async function resolveCaseInsensitive(
 export interface EdiabasConfig {
   /** Path to ECU files (.prg, .grp) */
   ecuPath: string;
-  /** Hardware interface (e.g., NodeSerialTransport) */
-  transport?: EdiabasInterface;
-  /** Use simulation interface (no hardware) */
-  simulation?: boolean;
+  /**
+   * EDIABAS communication interface — `SerialInterface`,
+   * `J2534Interface`, `EnetInterface`, `GatewayClient`,
+   * `SimulationInterface`, or any other `EdiabasInterface`
+   * subclass. This is the layer that adds BMW framing (DS2 / KWP /
+   * ISOTP / xkeyb wake-up) above a raw wire transport — not the wire
+   * transport itself. Pass `new SimulationInterface()` when you want
+   * a fake (the old `simulation: true` shorthand was removed in 0.7.0
+   * — one source of truth, no parallel boolean to keep in sync).
+   */
+  interface?: EdiabasInterface;
   /** Default timeout in ms */
   timeout?: number;
   /**
@@ -195,7 +202,7 @@ export interface EdiabasJobResult {
 }
 
 export class Ediabas {
-  private readonly config: EdiabasConfig & { timeout: number; simulation: boolean };
+  private readonly config: EdiabasConfig & { timeout: number };
   private prg: PrgFile | null = null;
   private prgPath: string | null = null;
   private commInterface: EdiabasInterface | null = null;
@@ -261,33 +268,31 @@ export class Ediabas {
   constructor(config: EdiabasConfig) {
     this.config = {
       ecuPath: config.ecuPath,
-      transport: config.transport,
-      simulation: config.simulation ?? false,
+      interface: config.interface,
       timeout: config.timeout ?? 5000,
       loadSgbdResolver: config.loadSgbdResolver,
     };
 
-    // Create interface
-    if (this.config.simulation) {
-      this.commInterface = new SimulationInterface();
-    } else if (this.config.transport) {
-      this.commInterface = this.config.transport;
-    }
+    /* One source of truth for the comm layer: the caller hands in an
+       `EdiabasInterface`, we keep it. No `simulation` shorthand —
+       callers that want a fake pass `new SimulationInterface()`
+       explicitly. */
+    this.commInterface = this.config.interface ?? null;
   }
 
   /**
    * Swap the active communication interface at runtime. Used by hosts
    * that construct an `Ediabas` instance up-front but only learn the
-   * actual transport later — e.g. the browser app waits for the user
+   * actual interface later — e.g. the browser app waits for the user
    * to click Connect (which opens a Web Serial port and builds a
-   * `SerialInterface`) and then needs to wire that transport into a
+   * `SerialInterface`) and then needs to wire that interface into a
    * VM that's already been started by an IPO selection.
    *
-   * Replaces whatever the constructor set (simulation or a previously
-   * configured transport). `connect()` afterwards uses the new one.
+   * Replaces whatever the constructor configured. `connect()`
+   * afterwards uses the new one.
    */
-  setTransport(transport: EdiabasInterface): void {
-    this.commInterface = transport;
+  setInterface(iface: EdiabasInterface): void {
+    this.commInterface = iface;
   }
 
   /**

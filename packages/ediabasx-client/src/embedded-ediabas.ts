@@ -5,18 +5,34 @@ import type {
   EdiabasResultSet,
   EdiabasState,
 } from "@emdzej/ediabasx-core";
-import { Ediabas, type EdiabasJobResult } from "@emdzej/ediabasx-ediabas";
+import { Ediabas, type EdiabasJobResult, type EdiabasConfig } from "@emdzej/ediabasx-ediabas";
 import { EdiabasInterface } from "@emdzej/ediabasx-interface-base";
-import { resolveSgbd } from "@emdzej/ediabasx-host-config";
 
 export interface EmbeddedEdiabasOptions {
+  /** Where `loadSgbd(name)` resolves bare ECU names against (Node path
+      lookup). Browser hosts supplying `loadSgbdResolver` can pass any
+      placeholder — the resolver short-circuits the path resolution. */
   sgbdPath: string;
+  /** EDIABAS communication interface — built by the caller. Pass
+      `new SimulationInterface()` for a fake. */
   interface: EdiabasInterface;
+  /** Default per-job comm timeout in ms (forwarded to inner Ediabas). */
+  timeout?: number;
+  /**
+   * Browser-side SGBD bytes resolver — same shape as
+   * `EdiabasConfig.loadSgbdResolver`. Required for variant swap on
+   * `.grp` loads in bundles where `node:fs` is stubbed (Vite, etc.).
+   * Forwarded straight through to the inner Ediabas. Node hosts can
+   * leave it unset.
+   */
+  loadSgbdResolver?: EdiabasConfig["loadSgbdResolver"];
 }
 
 export class EmbeddedEdiabas implements IEdiabas {
   private readonly sgbdPath: string;
   private readonly iface: EdiabasInterface;
+  private readonly timeout: number | undefined;
+  private readonly loadSgbdResolver: EdiabasConfig["loadSgbdResolver"];
   private ediabas: Ediabas | null = null;
   /**
    * Last SGBD path loaded into the shared `Ediabas`. `job()` skips
@@ -40,6 +56,8 @@ export class EmbeddedEdiabas implements IEdiabas {
   constructor(options: EmbeddedEdiabasOptions) {
     this.sgbdPath = options.sgbdPath;
     this.iface = options.interface;
+    this.timeout = options.timeout;
+    this.loadSgbdResolver = options.loadSgbdResolver;
   }
 
   /**
@@ -55,7 +73,9 @@ export class EmbeddedEdiabas implements IEdiabas {
       if (!this.ediabas) {
         this.ediabas = new Ediabas({
           ecuPath: this.sgbdPath,
-          transport: this.iface,
+          interface: this.iface,
+          timeout: this.timeout,
+          loadSgbdResolver: this.loadSgbdResolver,
         });
       }
       if (!this.ediabas.isConnected()) {
@@ -88,10 +108,18 @@ export class EmbeddedEdiabas implements IEdiabas {
       this.lastError = { code: 0, text: "" };
 
       try {
-        const sgbdPath = resolveSgbd(ecu, this.sgbdPath);
-        if (sgbdPath !== this.loadedSgbdPath) {
-          await this.ediabas.loadSgbd(sgbdPath);
-          this.loadedSgbdPath = sgbdPath;
+        /* Cache key + filename are the same — `Ediabas.loadSgbd`
+           handles path resolution (Node `node:fs` lookup with
+           `.prg ↔ .grp` extension swap + case-insensitive directory
+           scan) and browser-side resolver dispatch internally.
+           We just track which name the inner `Ediabas` was loaded
+           with to skip the reload (which would otherwise reset
+           `initialized` / `identRan` / `systemResults` and force a
+           re-probe). */
+        const cacheKey = ecu.toLowerCase();
+        if (cacheKey !== this.loadedSgbdPath) {
+          await this.ediabas.loadSgbd(ecu);
+          this.loadedSgbdPath = cacheKey;
         }
 
         const paramList = params ? params.split(";") : [];

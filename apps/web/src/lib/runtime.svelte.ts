@@ -1,20 +1,30 @@
 // Runtime state for the Jobs view: connection lifecycle (Web Serial /
-// simulation), the Ediabas instance, and the most recent run's results.
+// simulation / remote server), the IEdiabas instance, and the most
+// recent run's results.
 //
-// Non-reactive plumbing (the `Ediabas` class instance, the granted
-// SerialPort) lives in module-scoped `let` bindings — wrapping them with
-// `$state(...)` would proxy their methods, which breaks the interpreter's
-// internal `this` references. Only the UI-visible fields are in `$state`.
+// Non-reactive plumbing (the IEdiabas instance, the granted SerialPort)
+// lives in module-scoped `let` bindings — wrapping them with
+// `$state(...)` would proxy their methods, which breaks the
+// interpreter's internal `this` references. Only the UI-visible fields
+// are in `$state`.
+//
+// Unified `IEdiabas` surface: both embedded (EmbeddedEdiabas wrapping a
+// local Ediabas) and client (EdiabasClient over JSON-RPC) implement
+// the same interface. `instance: IEdiabas | null` is the single source
+// of truth — `connect()` picks which concrete implementation to build
+// based on `app.config.mode`, `runJob` calls `instance.job(...)`
+// uniformly.
 
-import { Ediabas, type EdiabasConfig, type EdiabasJobResult } from "@emdzej/ediabasx-ediabas";
-import { EdiabasClient } from "@emdzej/ediabasx-client/client";
-import type { EdiabasJobResponse, EdiabasResultEntry } from "@emdzej/ediabasx-core";
+import type { EdiabasJobResult } from "@emdzej/ediabasx-ediabas";
+import { EdiabasClient, EmbeddedEdiabas } from "@emdzej/ediabasx-client/client";
+import type { IEdiabas, EdiabasJobResponse, EdiabasResultEntry } from "@emdzej/ediabasx-core";
 import { GatewayClient } from "@emdzej/ediabasx-interfaces/client";
 import {
   SerialInterface,
   WebSerialTransport,
   type WebSerialPortLike,
 } from "@emdzej/ediabasx-interface-serial";
+import { EdiabasInterface } from "@emdzej/ediabasx-interface-base";
 import { J2534Interface } from "@emdzej/ediabasx-interface-j2534";
 import { WebSerialTransport as J2534WebSerialTransport } from "@emdzej/j2534-webserial";
 import { state as app } from "./app.svelte";
@@ -94,36 +104,47 @@ export const runtime = $state<RuntimeUiState>({
 });
 
 // Non-reactive — methods would break under a proxy.
-let ediabasInstance: Ediabas | null = null;
-let clientInstance: EdiabasClient | null = null;
-let serialPort: WebSerialPortLike | null = null;
 /**
- * Relative path of the SGBD currently loaded into `ediabasInstance` (or
- * `null` if no SGBD has been loaded yet on this instance). Used by
- * `runJob` to lazy-load / swap when the user picks a different file
- * from the sidebar without forcing a reconnect.
+ * The active IEdiabas implementation — either `EmbeddedEdiabas` (local
+ * cable / simulation) or `EdiabasClient` (remote server via direct
+ * WebSocket or Bimmerz Connect relay). `runJob` uses this uniformly
+ * regardless of mode.
  */
-let loadedSgbdName: string | null = null;
+let instance: IEdiabas | null = null;
+/**
+ * Same pointer as `instance` when mode is "client", `null` otherwise.
+ * Some accessors (`listSgbd` / `listJobs` / `getJobMetadata` /
+ * `disassembleJob` / `subscribeLogs`) are EdiabasClient-only — they
+ * sit above the IEdiabas surface for server introspection. Keep a
+ * typed handle so the UI's remote-sidebar paths don't have to type-
+ * test `instance`.
+ */
+let clientInstance: EdiabasClient | null = null;
 
 function setStatus(phase: ConnectionPhase, message: string): void {
   runtime.phase = phase;
   runtime.message = message;
 }
 
-function formatConnectedStatus(): string {
+/**
+ * Render the device descriptor for the embedded path — just the
+ * device, not the "Connected" prefix (the caller adds that uniformly
+ * via `Connected: <device|url|bimmerzconnect>`).
+ */
+function describeEmbeddedDevice(): string {
   const config = app.config;
   if (config.interface === "webserial") {
     const baud = config.serial?.baudRate;
-    return baud ? `Connected · Web Serial @ ${baud}` : "Connected · Web Serial";
+    return baud ? `Web Serial @ ${baud}` : "Web Serial";
   }
   if (config.interface === "j2534") {
-    return "Connected · J2534 (OpenPort 2.0)";
+    return "J2534 (OpenPort 2.0)";
   }
   if (config.interface === "gateway") {
     const url = config.gateway?.url?.trim();
-    return url ? `Connected · Gateway · ${url}` : "Connected · Gateway";
+    return url ? `Gateway · ${url}` : "Gateway";
   }
-  return `Connected · ${config.interface}`;
+  return config.interface;
 }
 
 // Minimal subset of navigator.serial used here — declared locally so the
@@ -222,14 +243,13 @@ export async function fetchRemoteDisassembly(ecu: string, job: string): Promise<
 }
 
 /**
- * Build the Ediabas comm interface based on the wizard config. For the
- * webserial path this prompts the user with the browser's port picker
- * (must run inside a user gesture, which the Connect button click is).
+ * Build the EDIABAS communication interface based on the wizard
+ * config. For the webserial path this prompts the user with the
+ * browser's port picker (must run inside a user gesture, which the
+ * Connect button click is). Returns an `EdiabasInterface` subclass.
  */
-async function buildEdiabas(): Promise<Ediabas> {
+async function buildInterface(): Promise<EdiabasInterface> {
   const config = app.config;
-
-  let transport: SerialInterface | GatewayClient | J2534Interface;
 
   if (config.interface === "webserial") {
     const serial = getSerial();
@@ -237,12 +257,11 @@ async function buildEdiabas(): Promise<Ediabas> {
       throw new Error("Web Serial API not available — needs Chrome / Edge / Opera on desktop");
     }
     const port = await serial.requestPort();
-    serialPort = port;
     const webTransport = new WebSerialTransport(port);
     // Use a plain SerialInterface with adapter probing disabled — Web
     // Serial doesn't have a working FTDI VCP shim, so the K+DCAN smart
     // adapter handshake can hang. The cable still works as a passthrough.
-    const ifaceConfig = {
+    return new SerialInterface({
       port: "webserial",
       baudRate: config.serial?.baudRate ?? 9600,
       dataBits: (config.serial?.dataBits ?? 8) as 7 | 8,
@@ -250,12 +269,11 @@ async function buildEdiabas(): Promise<Ediabas> {
       stopBits: (config.serial?.stopBits ?? 1) as 1 | 2,
       timeoutMs: config.serial?.timeoutMs ?? 5000,
       probeAdapterOnConnect: false,
-    };
-    transport = new SerialInterface({
-      ...ifaceConfig,
       transport: webTransport,
     });
-  } else if (config.interface === "j2534") {
+  }
+
+  if (config.interface === "j2534") {
     // J2534 path: Tactrix OpenPort 2.0 via Web Serial. The j2534-webserial
     // transport handles its own port picker via `navigator.serial.requestPort`
     // inside `open()` — must be called from a user gesture, which the
@@ -268,12 +286,14 @@ async function buildEdiabas(): Promise<Ediabas> {
     // before the SGBD issues setCommParameter. DS2 @ 9600 covers the
     // E36/E39/E46 K-line ECUs the OpenPort is realistic for; the SGBD
     // reconfigures on first job dispatch anyway.
-    transport = new J2534Interface({
+    return new J2534Interface({
       transport: { kind: "instance", transport: j2534Transport },
       protocol: "ds2",
       baudRate: 9600,
     });
-  } else if (config.interface === "gateway") {
+  }
+
+  if (config.interface === "gateway") {
     const url = config.gateway?.url?.trim();
     if (!url) {
       throw new Error("Gateway URL is empty — set ws://host:port in the wizard");
@@ -281,19 +301,31 @@ async function buildEdiabas(): Promise<Ediabas> {
     if (!/^wss?:\/\//i.test(url)) {
       throw new Error("Gateway URL must start with ws:// or wss://");
     }
-    transport = new GatewayClient({ transport: "websocket", url });
-  } else {
-    throw new Error(`Interface "${config.interface}" not supported in the web app`);
+    /* GatewayClient is an EdiabasInterface — the type assertion is
+       only because of inferred narrowing across packages, not a real
+       shape mismatch. */
+    return new GatewayClient({ transport: "websocket", url }) as unknown as EdiabasInterface;
   }
 
-  return new Ediabas({
-    ecuPath: ".",
-    transport: transport as unknown as EdiabasConfig["transport"],
+  throw new Error(`Interface "${config.interface}" not supported in the web app`);
+}
+
+/**
+ * Build the EmbeddedEdiabas wrapper around the configured interface.
+ * Returns an `IEdiabas` — same shape as `EdiabasClient`, so `runJob`
+ * doesn't care which mode it's in.
+ */
+async function buildEmbedded(): Promise<EmbeddedEdiabas> {
+  const iface = await buildInterface();
+  const config = app.config;
+  return new EmbeddedEdiabas({
+    /* No on-disk lookup in the browser — `loadSgbdResolver` does all
+       resolution from the install catalogue. `sgbdPath` is unused
+       (kept as a placeholder for parity with the option's required
+       shape). */
+    sgbdPath: ".",
+    interface: iface,
     timeout: config.serial?.timeoutMs ?? 5000,
-    /* Required for GRP→PRG variant resolution in the browser. Without
-       this, swapToVariant falls into a node:fs path that's stubbed in
-       the Vite bundle, silently catching the failure and leaving the
-       loaded SGBD at the unresolved .grp. */
     loadSgbdResolver: resolveSgbdInInstall,
   });
 }
@@ -310,11 +342,10 @@ async function buildEdiabas(): Promise<Ediabas> {
  * first, then browse the sidebar (or vice versa).
  */
 export async function connect(): Promise<void> {
-  if (runtime.phase === "connected" && (ediabasInstance || clientInstance)) return;
+  if (runtime.phase === "connected" && instance) return;
 
   if (app.config.mode === "client") {
     const isConnect = app.config.connectionMethod === "connect";
-
     if (isConnect && !app.connectSessionId) {
       app.showConnectSession = true;
       return;
@@ -325,10 +356,15 @@ export async function connect(): Promise<void> {
   setStatus("connecting", "Connecting…");
   runtime.errorMessage = null;
 
-  if (app.config.mode === "client") {
-    const isConnect = app.config.connectionMethod === "connect";
+  try {
+    let next: IEdiabas;
+    let label: string;
 
-    try {
+    if (app.config.mode === "client") {
+      /* Remote server — pick direct WebSocket or Bimmerz Connect
+         relay based on the user's choice in Settings. Both produce
+         an EdiabasClient implementing IEdiabas. */
+      const isConnect = app.config.connectionMethod === "connect";
       let c: EdiabasClient;
 
       if (isConnect && app.connectSessionId && app.connectToken) {
@@ -344,6 +380,7 @@ export async function connect(): Promise<void> {
           socket: peer.socket,
           onNotification: handleServerNotification,
         });
+        label = "Bimmerz Connect";
       } else {
         const url = app.config.serverUrl?.trim();
         if (!url) throw new Error("Server URL is empty — set it in Settings");
@@ -353,49 +390,50 @@ export async function connect(): Promise<void> {
           url,
           onNotification: handleServerNotification,
         });
+        /* Direct server — surface the URL so the user can see which
+           endpoint they're actually talking to (matters when one
+           machine hosts multiple ediabasx-servers on different
+           ports). */
+        label = url;
       }
 
       await c.init();
+      /* `subscribeLogs` is EdiabasClient-only (server log streaming
+         doesn't belong on the IEdiabas surface — it's a server
+         observability concern). Call it on the typed client before
+         we widen back to IEdiabas. */
       await c.subscribeLogs(app.config.logging?.level ?? "info");
       clientInstance = c;
-      loadedSgbdName = null;
-      const label = app.connectSessionId ? "Bimmerz Connect" : `Server · ${app.config.serverUrl}`;
-      setStatus("connected", `Connected · ${label}`);
-    } catch (error) {
-      clientInstance = null;
-      setStatus("error", "Connect failed");
-      runtime.errorMessage = error instanceof Error ? error.message : String(error);
+      next = c;
+    } else {
+      /* Local — EmbeddedEdiabas around a Web Serial / J2534 / Gateway
+         interface. Same IEdiabas surface as the remote path. */
+      const eb = await buildEmbedded();
+      await eb.init();
+      next = eb;
+      label = describeEmbeddedDevice();
     }
-    return;
-  }
 
-  try {
-    const e = await buildEdiabas();
-    await e.connect();
-    ediabasInstance = e;
-    loadedSgbdName = null;
-    setStatus("connected", formatConnectedStatus());
+    instance = next;
+    /* Unified format — `Connected: <device|url|bimmerzconnect>`. The
+       device descriptor for embedded mode is e.g. "Web Serial @ 9600",
+       for direct server it's the ws:// URL, for Bimmerz Connect it's
+       the literal "Bimmerz Connect" string. */
+    setStatus("connected", `Connected: ${label}`);
   } catch (error) {
-    ediabasInstance = null;
-    serialPort = null;
+    instance = null;
+    clientInstance = null;
     setStatus("error", "Connect failed");
     runtime.errorMessage = error instanceof Error ? error.message : String(error);
   }
 }
 
 export async function disconnect(): Promise<void> {
-  if (clientInstance) {
-    try { await clientInstance.end(); } catch { /* tearing down */ }
-    clientInstance = null;
+  if (instance) {
+    try { await instance.end(); } catch { /* tearing down */ }
+    instance = null;
   }
-  if (ediabasInstance) {
-    try { await ediabasInstance.disconnect(); } catch { /* tearing down */ }
-    ediabasInstance = null;
-  }
-  if (serialPort) {
-    serialPort = null;
-  }
-  loadedSgbdName = null;
+  clientInstance = null;
   setStatus("disconnected", "Disconnected");
   runtime.errorMessage = null;
 }
@@ -409,7 +447,7 @@ export async function runJob(
   jobName: string,
   params: (string | Uint8Array)[] = [],
 ): Promise<void> {
-  if (runtime.phase !== "connected") {
+  if (runtime.phase !== "connected" || !instance) {
     runtime.errorMessage = "Not connected — click Connect first.";
     return;
   }
@@ -425,54 +463,26 @@ export async function runJob(
   runtime.resultsJobName = jobName;
   runtime.resultsExecMs = null;
 
-  // Client mode — delegate to remote server
-  if (app.config.mode === "client" && clientInstance) {
-    const ecuName = app.loadedFile.name.replace(/\.(prg|grp)$/i, "");
-    const startedAt = Date.now();
-    try {
-      const paramStr = params.map((p) =>
-        p instanceof Uint8Array ? Array.from(p).map((b) => b.toString(16).padStart(2, "0")).join("") : String(p),
-      ).join(";");
-      const response = await clientInstance.job(ecuName, jobName, paramStr || undefined);
-      runtime.results = convertClientResults(response);
-      runtime.resultsExecMs = Date.now() - startedAt;
-    } catch (error) {
-      runtime.resultsExecMs = Date.now() - startedAt;
-      runtime.errorMessage = error instanceof Error ? error.message : String(error);
-    } finally {
-      runtime.isRunning = false;
-    }
-    return;
-  }
-
-  // Embedded mode — local Ediabas
-  if (!ediabasInstance) {
-    runtime.errorMessage = "Not connected — click Connect first.";
-    runtime.isRunning = false;
-    return;
-  }
-  if (!app.prgBuffer) {
-    runtime.errorMessage = "Pick a PRG/GRP from the sidebar first.";
-    runtime.isRunning = false;
-    return;
-  }
-
-  const currentName = app.loadedFile.relativePath;
-  if (loadedSgbdName !== currentName) {
-    try {
-      ediabasInstance.loadSgbdFromBuffer(app.prgBuffer, currentName);
-      loadedSgbdName = currentName;
-    } catch (error) {
-      runtime.errorMessage = error instanceof Error ? error.message : String(error);
-      runtime.isRunning = false;
-      return;
-    }
-  }
+  /* Unified IEdiabas path — same call regardless of mode:
+     • Embedded: EmbeddedEdiabas.job() runs `loadSgbd` via our
+       `loadSgbdResolver` (reads bytes from `app.install.sgbds[]`),
+       then executes the bytecode locally.
+     • Client: EdiabasClient.job() sends a JSON-RPC request; the
+       server resolves the SGBD from its `sgbdPath` and runs the
+       job there. */
+  const ecuName = app.loadedFile.name;
+  const paramStr = params
+    .map((p) =>
+      p instanceof Uint8Array
+        ? Array.from(p).map((b) => b.toString(16).padStart(2, "0")).join("")
+        : String(p),
+    )
+    .join(";");
 
   const startedAt = Date.now();
   try {
-    const sets = await ediabasInstance.executeJob(jobName, { params });
-    runtime.results = sets;
+    const response = await instance.job(ecuName, jobName, paramStr || undefined);
+    runtime.results = convertClientResults(response);
     runtime.resultsExecMs = Date.now() - startedAt;
   } catch (error) {
     runtime.resultsExecMs = Date.now() - startedAt;

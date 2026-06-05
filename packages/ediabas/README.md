@@ -1,6 +1,6 @@
 # @emdzej/ediabasx-ediabas
 
-Main library for the [EdiabasX](https://github.com/emdzej/ediabasx) project. Load a BMW PRG/GRP file, run BEST2 jobs against a configured transport, get back grouped result sets — the high-level entry point that most consumers want.
+Main library for the [EdiabasX](https://github.com/emdzej/ediabasx) project. Load a BMW PRG/GRP file, run BEST2 jobs against a configured EDIABAS communication interface, get back grouped result sets — the high-level entry point that most consumers want.
 
 ## Install
 
@@ -23,13 +23,13 @@ pnpm add @emdzej/ediabasx-interface-enet
 import { Ediabas } from "@emdzej/ediabasx-ediabas";
 import { createInterface } from "@emdzej/ediabasx-interfaces";
 
-const transport = createInterface("kdcan", {
+const iface = createInterface("kdcan", {
   port: "/dev/cu.usbserial-A50285BI",
   baudRate: 9600,
   protocol: "isotp",
 });
 
-const ediabas = new Ediabas({ ecuPath: "./ecu", transport });
+const ediabas = new Ediabas({ ecuPath: "./ecu", interface: iface });
 
 await ediabas.loadSgbd("MS430DS0.prg");
 await ediabas.connect();
@@ -58,7 +58,7 @@ for (let i = 1; i < sets.length; i++) {
 ## Simulation (no hardware)
 
 ```ts
-const ediabas = new Ediabas({ ecuPath: "./ecu", simulation: true });
+const ediabas = new Ediabas({ ecuPath: "./ecu", interface: new SimulationInterface() });
 await ediabas.loadSgbd("D_MOTOR.prg");
 const sets = await ediabas.executeJob("IDENT");
 ```

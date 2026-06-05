@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { SimulationInterface } from "@emdzej/ediabasx-interface-base";
 import { Ediabas, paramToEntry } from "./ediabas";
 
 describe("Ediabas", () => {
@@ -13,10 +14,10 @@ describe("Ediabas", () => {
       expect(ediabas.getSgbdInfo()).toBeNull();
     });
 
-    it("creates instance with simulation mode", () => {
+    it("creates instance with explicit simulation interface", () => {
       const ediabas = new Ediabas({
         ecuPath: "/tmp/ecu",
-        simulation: true,
+        interface: new SimulationInterface(),
       });
 
       expect(ediabas).toBeInstanceOf(Ediabas);
