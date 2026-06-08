@@ -1,10 +1,10 @@
 import "./app.css";
 import App from "./App.svelte";
 import { mount } from "svelte";
-import { registerSW } from "virtual:pwa-register";
 import { applyTheme, watchSystemTheme } from "./lib/settings.svelte";
 import { loadConfig } from "./lib/config";
 import { applyLoggerConfig } from "./lib/logger-wiring";
+import { isEmbedded } from "./lib/embedded";
 
 // Apply the persisted theme before Svelte mounts so the first paint
 // already matches the saved choice. The inline script in index.html
@@ -32,15 +32,25 @@ mount(App, { target });
 // Register the service worker. `autoUpdate` mode means a new build's
 // SW activates after the next page reload — no user-facing prompt
 // needed. The two optional callbacks are wired only for diagnostics.
-registerSW({
-  onRegisteredSW(swUrl) {
-    if (typeof console !== "undefined") {
-      console.info(`[pwa] service worker registered at ${swUrl}`);
-    }
-  },
-  onOfflineReady() {
-    if (typeof console !== "undefined") {
-      console.info("[pwa] offline-ready — bundle is cached, app works without network");
-    }
-  },
-});
+//
+// Skipped in the embedded build — `vite.config.ts` drops the PWA
+// plugin entirely there, so the `virtual:pwa-register` module
+// doesn't resolve. The `if (!isEmbedded)` gate is build-time
+// (substituted by Vite's `define`), so the dynamic import + the
+// whole branch tree-shake out of the embedded bundle.
+if (!isEmbedded) {
+  void import("virtual:pwa-register").then(({ registerSW }) => {
+    registerSW({
+      onRegisteredSW(swUrl) {
+        if (typeof console !== "undefined") {
+          console.info(`[pwa] service worker registered at ${swUrl}`);
+        }
+      },
+      onOfflineReady() {
+        if (typeof console !== "undefined") {
+          console.info("[pwa] offline-ready — bundle is cached, app works without network");
+        }
+      },
+    });
+  });
+}

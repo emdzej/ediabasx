@@ -11,6 +11,7 @@
     "cli": "node apps/cli/dist/index.js",
     "web": "pnpm --filter @emdzej/ediabasx-web dev",
     "web:build": "pnpm --filter @emdzej/ediabasx-web build",
+    "web:build:embedded": "pnpm --filter @emdzej/ediabasx-web build:embedded",
     "web:preview": "pnpm --filter @emdzej/ediabasx-web preview",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",

@@ -15,7 +15,7 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
     "prettier"
   ],
-  ignorePatterns: ["dist", "node_modules", ".turbo"],
+  ignorePatterns: ["dist", "dist-embedded", "node_modules", ".turbo"],
   rules: {
     // Allow `_`-prefixed args and bindings to mark intentionally-unused
     // parameters/captures — common when implementing an interface that

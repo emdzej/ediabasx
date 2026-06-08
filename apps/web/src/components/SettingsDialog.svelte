@@ -13,6 +13,7 @@
   } from "../lib/install-storage";
   import { discoverEdiabasxInstall } from "../lib/sgbd-install";
   import { settings, setTheme, type ThemeChoice } from "../lib/settings.svelte";
+  import { isEmbedded } from "../lib/embedded";
   import { applyLoggerConfig } from "../lib/logger-wiring";
   import { LOG_CATEGORIES as EDIABASX_LOG_CATEGORIES } from "@emdzej/ediabasx-ediabas";
   import {
@@ -155,6 +156,28 @@
       </header>
 
       <section class="flex-1 space-y-4 overflow-y-auto px-4 py-4 text-sm text-foreground">
+        {#if isEmbedded}
+          <!-- Embedded build: connection is locked to the dongle's
+               origin. The mode toggle, ConnectConfigPanel, server-URL
+               field, and InterfaceConfigPanel are all hidden — the
+               user can't override them without rebuilding the SPA.
+               Surface a small read-only summary instead so the host
+               + endpoint are still discoverable from Settings.       -->
+          <div>
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wider text-faint">
+              Connection
+            </span>
+            <div class="rounded border border-divider bg-base px-3 py-2 text-xs">
+              <div>
+                Connected to dongle at
+                <code class="ml-1 font-mono text-foreground">{window.location.host}</code>
+              </div>
+              <div class="mt-1 text-faint">
+                Mode + server URL fixed for this build (dongle-hosted SPA).
+              </div>
+            </div>
+          </div>
+        {:else}
         <ModeConfigPanel bind:config={app.config} onmodechange={onModeChange} />
 
         {#if app.config.mode === "client"}
@@ -204,6 +227,7 @@
 
           <!-- Interface selector + per-interface fieldsets (shared web-ui). -->
           <InterfaceConfigPanel bind:config={app.config} />
+        {/if}
         {/if}
 
         <!-- Theme -->
