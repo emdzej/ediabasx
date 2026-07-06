@@ -13,6 +13,7 @@
     "web:build": "pnpm --filter @emdzej/ediabasx-web build",
     "web:build:embedded": "pnpm --filter @emdzej/ediabasx-web build:embedded",
     "web:preview": "pnpm --filter @emdzej/ediabasx-web preview",
+    "web:preview:embedded": "pnpm --filter @emdzej/ediabasx-web preview:embedded",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
@@ -33,5 +34,5 @@
     "type": "git",
     "url": "https://github.com/emdzej/ediabasx.git"
   },
-  "version": "0.7.1"
+  "version": "0.8.0"
 }

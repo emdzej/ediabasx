@@ -1,6 +1,9 @@
 <script lang="ts">
+  import { useEmbeddedAutoConnect } from "@emdzej/bimmerz-ui";
+  import { getLogger } from "@emdzej/bimmerz-logger";
   import { state as app } from "./lib/app.svelte";
-  import { connect } from "./lib/runtime.svelte";
+  import { connect, disconnect, runtime } from "./lib/runtime.svelte";
+  import { isEmbedded } from "./lib/embedded";
   import InstallPicker from "./components/InstallPicker.svelte";
   import SgbdSidebar from "./components/SgbdSidebar.svelte";
   import Jobs from "./routes/Jobs.svelte";
@@ -8,6 +11,18 @@
   import SettingsDialog from "./components/SettingsDialog.svelte";
   import ConnectSessionDialog from "./components/ConnectSessionDialog.svelte";
   import ConnectButton from "./components/ConnectButton.svelte";
+
+  /* Embedded-mode lifecycle — auto-connect on mount, auto-reconnect
+     on transient drops, clean disconnect on tab close. No-op in the
+     browser build so the manual Connect button keeps ownership. */
+  const autoConnectLog = getLogger("ediabasx.autoconnect");
+  useEmbeddedAutoConnect({
+    isEmbedded,
+    connect,
+    disconnect,
+    isConnected: () => runtime.phase === "connected",
+    log: (msg, level) => autoConnectLog[level ?? "info"](msg),
+  });
 
   $effect(() => {
     if (app.config.mode === "client" && app.view === "picker") {

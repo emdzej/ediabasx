@@ -4,6 +4,63 @@ All notable changes to the EdiabasX monorepo. Package versions move in lockstep 
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions follow [Semantic Versioning](https://semver.org/) with the usual 0.x caveat (minor bumps may still carry breaking changes when the surface is small).
 
+## [0.8.0] — 2026-07-06
+
+Wires the dongle-embedded ediabasx-web variant into the shared
+`useEmbeddedAutoConnect` lifecycle hook from `@emdzej/bimmerz-ui@0.2.0`,
+ships a Bimmerz Box `manifest.json` alongside the build, and attaches
+`ediabasx-web-embedded-<version>.zip` to every GitHub Release so dongle
+packagers can drop the SPA onto the SD card without cloning the
+monorepo.
+
+Nothing changes for the hosted browser build at `ediabasx.bimmerz.app`
+— the auto-connect hook is a no-op when `__EMBEDDED__` is false, so
+the manual Connect button stays in charge. All package versions move
+in lockstep from 0.7.1 → 0.8.0.
+
+### Added
+
+- **Embedded-mode auto-connect** in `apps/web`. `App.svelte` calls
+  `useEmbeddedAutoConnect({ isEmbedded, connect, disconnect, isConnected,
+  log })` from `@emdzej/bimmerz-ui`. The hook opens the RPC session on
+  mount, retries with exponential backoff on transient drops (1 → 2
+  → 4 → 8 → 16 → 30 s cap), and fires `disconnect()` on `beforeunload`
+  / `pagehide` so the dongle WebSocket closes cleanly. Attempts are
+  streamed to the `ediabasx.autoconnect` bimmerz-logger category.
+- **`pnpm web:preview:embedded`** — new script that runs
+  `vite preview --mode embedded`, serving `dist-embedded/` at
+  `http://localhost:4173/ediabasx/` with the same base-path + no-PWA
+  behaviour as the on-dongle bundle. Root `/` auto-redirects to the
+  prefixed URL.
+- **Bimmerz Box `manifest.json`** — a tiny Vite plugin
+  (`ediabasx-embedded-manifest`) emits `dist-embedded/manifest.json`
+  at build time, with `name` / `description` / `version` (pulled from
+  `package.json`) / `icon` (the existing PWA icon) / `requires: ["kline"]`.
+  The bimmerz-box dashboard auto-discovers apps under `/sdcard/apps/`
+  by reading this file — see [bimmerz-box's App manifest section](https://github.com/emdzej/bimmerz-box#app-manifest).
+- **Embedded-build docs** — new "Embedded build (dongle-hosted)"
+  section in `apps/web/README.md` covering the compile-time connection
+  lock, the auto-connect hook, the no-PWA choice, the manifest, and
+  the `pnpm web:build:embedded` / `pnpm web:preview:embedded` workflow.
+
+### Release artefacts
+
+- **`ediabasx-web-embedded-<version>.zip`** attached to each GitHub
+  Release via `publish.yml`. The workflow runs
+  `pnpm --filter @emdzej/ediabasx-web build:embedded`, zips the
+  contents of `dist-embedded/`, and uploads via `gh release upload`.
+  Skipped on manual `workflow_dispatch` / dry runs. Required
+  permission bumped to `contents: write`.
+
+### Dependencies
+
+- **`@emdzej/bimmerz-ui@^0.2.0`** — new dependency of
+  `@emdzej/ediabasx-web`, pulled from npm. Source-only Svelte package
+  — added to `optimizeDeps.exclude` so each `.svelte` / `.svelte.ts`
+  file is routed through `@sveltejs/vite-plugin-svelte`'s transform
+  instead of esbuild's pre-bundler (which lacks the loader for those
+  extensions and would choke on TS syntax in a `.svelte.ts` file).
+
 ## [0.7.1] — 2026-06-05
 
 Fills a gap in the `IEdiabas` surface: `job(...)` now accepts binary

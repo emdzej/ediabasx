@@ -105,6 +105,9 @@ importers:
       '@emdzej/bimmerz-theme':
         specifier: ^0.1.0
         version: 0.1.0(tailwindcss@3.4.19)
+      '@emdzej/bimmerz-ui':
+        specifier: ^0.2.0
+        version: 0.2.0(svelte@5.55.5)
       '@emdzej/ediabasx-best-parser':
         specifier: workspace:*
         version: link:../../packages/best-parser
@@ -1106,6 +1109,11 @@ packages:
     resolution: {integrity: sha512-LaYUlTFSGLL848uQ7AUizbwux57fmbYeNO//8iWlDU204+WbN2bDQk5mJAp9XMx0vfedShSZLBgWQeKTcpb0Jw==}
     peerDependencies:
       tailwindcss: ^3.4.0
+
+  '@emdzej/bimmerz-ui@0.2.0':
+    resolution: {integrity: sha512-KdRzkLVfQ1kbPyjb01Fl4dN7acE5qye2I85cBmbpiej44M27Kd0iwayIYJsFpGL+LoWbOaOzK3KMA53Mrn+t2g==}
+    peerDependencies:
+      svelte: ^5.0.0
 
   '@emdzej/j2534-core@0.3.0':
     resolution: {integrity: sha512-w4mcWWRToceEzWGwEj1kyiQpItaN0n4PHnvrPuxs5iBKv/reqjiGXNkm0BLn02Zlx9Yn2erxzHgrXCNsT0b0Pg==}
@@ -5855,6 +5863,10 @@ snapshots:
   '@emdzej/bimmerz-theme@0.1.0(tailwindcss@3.4.19)':
     dependencies:
       tailwindcss: 3.4.19
+
+  '@emdzej/bimmerz-ui@0.2.0(svelte@5.55.5)':
+    dependencies:
+      svelte: 5.55.5
 
   '@emdzej/j2534-core@0.3.0':
     dependencies:

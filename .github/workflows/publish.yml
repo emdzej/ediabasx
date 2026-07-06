@@ -19,7 +19,9 @@ jobs:
       # trusted publishing exchanges for a short-lived publish credential.
       # Without it the `npm publish` step would fall back to looking for
       # NODE_AUTH_TOKEN and fail.
-      contents: read
+      # `contents: write` lets the "Attach embedded web bundle" step
+      # upload the dongle artefact to the GitHub Release.
+      contents: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -59,3 +61,30 @@ jobs:
       - name: Dry run
         if: ${{ github.event.inputs.dry_run == 'true' }}
         run: pnpm -r publish --provenance --no-git-checks --dry-run
+
+      # Dongle-hosted variant of the web SPA (mounted at `/ediabasx/` on
+      # the Bimmerz Box). Not published to npm — packagers grab it from
+      # the GitHub Release and drop it under `/sdcard/apps/ediabasx/`.
+      # See apps/web/README.md#embedded-build-dongle-hosted.
+      - name: Build embedded web bundle
+        if: ${{ github.event_name == 'release' }}
+        run: pnpm --filter @emdzej/ediabasx-web build:embedded
+
+      # Zip with a versioned name so multiple releases can coexist on
+      # the same download page. The release tag drives the version —
+      # for a manual `workflow_dispatch` we skip this step entirely.
+      - name: Package embedded web bundle
+        if: ${{ github.event_name == 'release' }}
+        id: package-embedded
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          artifact="ediabasx-web-embedded-${version}.zip"
+          (cd apps/web/dist-embedded && zip -r "../../../${artifact}" .)
+          echo "artifact=${artifact}" >> "$GITHUB_OUTPUT"
+
+      - name: Attach embedded web bundle to release
+        if: ${{ github.event_name == 'release' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${GITHUB_REF_NAME}" "${{ steps.package-embedded.outputs.artifact }}" --clobber

@@ -56,6 +56,44 @@ export default defineConfig(({ mode }) => {
   },
   plugins: [
     svelte(),
+    /* Bimmerz Box app manifest. The dongle's dashboard auto-discovers
+       apps under `/sdcard/apps/<slug>/` and reads each folder's
+       `manifest.json` to render a tile — see
+       https://github.com/emdzej/bimmerz-box#app-manifest. Emitting
+       from the plugin (instead of a static file in `public/`) keeps
+       the `version` field in lockstep with package.json without a
+       manual bump on every release.
+
+       Only relevant to the embedded build — the hosted `dist/` deploy
+       lives on GitHub Pages, not inside the dashboard's app grid. */
+    isEmbedded && {
+      name: "ediabasx-embedded-manifest",
+      apply: "build" as const,
+      generateBundle(): void {
+        this.emitFile({
+          type: "asset",
+          fileName: "manifest.json",
+          source: JSON.stringify(
+            {
+              name: "EDIABASX",
+              description: "BMW EDIABAS diagnostics — DS2 / KWP over K-line & CAN",
+              version: pkg.version,
+              icon: "icon.svg",
+              /* Advisory — the dashboard flags tiles whose requirements
+                 aren't met by the dongle hardware. Ediabasx's practical
+                 protocols in this SPA are DS2 / KWP2000 over K-line
+                 (via the dongle's K-line transceiver). BMW ECUs that
+                 speak D-CAN look like K-line to EDIABAS at the SGBD
+                 level, so requiring `"kline"` is sufficient — no
+                 separate CAN dependency to advertise. */
+              requires: ["kline"],
+            },
+            null,
+            2,
+          ) + "\n",
+        });
+      },
+    },
     // PWA — generates a Web App Manifest, registers a service worker
     // that precaches the build output, and gives users an "install"
     // affordance on Chromium / Edge. The SW is regenerated on every
@@ -137,6 +175,13 @@ export default defineConfig(({ mode }) => {
       "@emdzej/ediabasx-interpreter",
       "@emdzej/bimmerz-logger",
     ],
+    /* `@emdzej/bimmerz-ui` ships source-only `.svelte` + `.svelte.ts`.
+       Excluding it from pre-bundling routes each file through
+       `@sveltejs/vite-plugin-svelte`'s transform (which handles the
+       runes helpers), instead of esbuild — which would choke on TS
+       syntax in a `.svelte.ts` file because it lacks a matching
+       loader. Applies to both dev-server and build. */
+    exclude: ["@emdzej/bimmerz-ui"],
   },
   build: {
     /* Separate output for the embedded build so a normal `pnpm

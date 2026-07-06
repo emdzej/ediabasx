@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-mac-ftdi-latency",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "macOS-only native addon: set the FTDI USB-side latency timer via the IOSSDATALAT ioctl. Used by @emdzej/ediabasx-interface-serial.",
   "type": "module",
   "main": "dist/index.js",

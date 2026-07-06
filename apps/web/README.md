@@ -42,6 +42,46 @@ pnpm web:build                  # → apps/web/dist (static SPA, deploy anywhere
 pnpm web:preview                # serve the production bundle locally on :4173
 ```
 
+## Embedded build (dongle-hosted)
+
+The `embedded` mode targets the [Bimmerz Box](https://github.com/emdzej/bimmerz-box) dongle
+scenario, where this SPA is served by the dongle itself at
+`http://172.16.7.1/ediabasx/` alongside the `ediabasx-server` process that
+owns the K-line / CAN cable. The build differs from the default browser
+build in three ways:
+
+- **Connection is locked to the dongle** — `mode: client`, `connectionMethod: direct`,
+  `serverUrl: ${origin}/rpc/ediabasx` are hard-set at load time
+  (`lib/config.ts`), so no interface / URL wizard is shown.
+- **Auto-connect on open** — the `useEmbeddedAutoConnect` hook from
+  `@emdzej/bimmerz-ui` opens the RPC session on mount, retries with
+  exponential backoff on transient drops (1 → 2 → 4 → 8 → 16 → 30 s cap),
+  and disconnects cleanly on `beforeunload` / `pagehide`. The manual
+  Connect button is still rendered but is a fallback path.
+- **No PWA / service worker** — the dongle has no internet, precache +
+  autoUpdate flows are noise on a device the user doesn't manage. Source-
+  maps are stripped and the base path is rewritten to `/ediabasx/`.
+- **Bimmerz Box `manifest.json`** — a small Vite plugin emits
+  `dist-embedded/manifest.json` (name, description, version pulled from
+  `package.json`, icon, hardware requirements) so the dongle dashboard
+  auto-discovers the app and renders a tile. Schema is documented in
+  [bimmerz-box's App manifest section](https://github.com/emdzej/bimmerz-box#app-manifest).
+
+```bash
+pnpm web:build:embedded         # → apps/web/dist-embedded/
+pnpm web:preview:embedded       # serve dist-embedded/ locally on :4173
+# → http://localhost:4173/ediabasx/  (note the /ediabasx/ prefix)
+```
+
+Ship `dist-embedded/` to the dongle's HTTP root under `/ediabasx/`. The
+Bimmerz Box firmware picks it up from `/sdcard/apps/ediabasx/` — see
+[`bimmerz-box`](https://github.com/emdzej/bimmerz-box) for the exact
+layout and OTA / SD-card upload paths.
+
+Release builds attach `ediabasx-web-embedded-<version>.zip` to the GitHub
+Release so dongle packagers can drop the zip straight onto the SD card
+without cloning + building the monorepo.
+
 ## Docker
 
 A multi-stage Dockerfile in this directory packages the production build behind nginx.

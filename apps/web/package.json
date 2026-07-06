@@ -1,6 +1,6 @@
 {
   "name": "@emdzej/ediabasx-web",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "Browser SPA for EdiabasX — pick a PRG/GRP file, configure an interface, and explore jobs. Pure client-side; uses the File API and Web Serial for everything.",
   "private": true,
   "type": "module",
@@ -9,6 +9,7 @@
     "build": "vite build",
     "build:embedded": "vite build --mode embedded",
     "preview": "vite preview",
+    "preview:embedded": "vite preview --mode embedded",
     "pwa-assets": "pwa-assets-generator",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json"
@@ -16,6 +17,7 @@
   "dependencies": {
     "@emdzej/bimmerz-logger": "^0.1.2",
     "@emdzej/bimmerz-theme": "^0.1.0",
+    "@emdzej/bimmerz-ui": "^0.2.0",
     "@emdzej/ediabasx-best-parser": "workspace:*",
     "@emdzej/ediabasx-client": "workspace:*",
     "@emdzej/ediabasx-core": "workspace:*",
